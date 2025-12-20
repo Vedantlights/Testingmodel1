@@ -250,19 +250,62 @@ try {
                 } else {
                     $property['amenities'] = is_array($amenities) ? $amenities : [];
                 }
+            } else {
+                // Property not found after insert - this shouldn't happen, but handle it
+                error_log("Add Property: Property not found after insert. ID: $propertyId");
+                // Get basic property info
+                $stmt = $db->prepare("SELECT * FROM properties WHERE id = ?");
+                $stmt->execute([$propertyId]);
+                $property = $stmt->fetch();
+                if ($property) {
+                    $property['images'] = !empty($coverImage) ? [$coverImage] : (!empty($images[0]) ? [$images[0]] : []);
+                    $property['amenities'] = is_array($amenities) ? $amenities : [];
+                } else {
+                    // Still not found - return minimal data
+                    $property = [
+                        'id' => $propertyId,
+                        'title' => $title,
+                        'status' => $status,
+                        'images' => !empty($coverImage) ? [$coverImage] : (!empty($images[0]) ? [$images[0]] : []),
+                        'amenities' => is_array($amenities) ? $amenities : []
+                    ];
+                }
             }
         } catch (Exception $e) {
             error_log("Add Property: Failed to fetch property: " . $e->getMessage());
             // Fallback: Get basic property info
-            $stmt = $db->prepare("SELECT * FROM properties WHERE id = ?");
-            $stmt->execute([$propertyId]);
-            $property = $stmt->fetch();
-            if ($property) {
-                $property['images'] = !empty($coverImage) ? [$coverImage] : (!empty($images[0]) ? [$images[0]] : []);
-                $property['amenities'] = is_array($amenities) ? $amenities : [];
+            try {
+                $stmt = $db->prepare("SELECT * FROM properties WHERE id = ?");
+                $stmt->execute([$propertyId]);
+                $property = $stmt->fetch();
+                if ($property) {
+                    $property['images'] = !empty($coverImage) ? [$coverImage] : (!empty($images[0]) ? [$images[0]] : []);
+                    $property['amenities'] = is_array($amenities) ? $amenities : [];
+                } else {
+                    // Return minimal data
+                    $property = [
+                        'id' => $propertyId,
+                        'title' => $title,
+                        'status' => $status,
+                        'images' => !empty($coverImage) ? [$coverImage] : (!empty($images[0]) ? [$images[0]] : []),
+                        'amenities' => is_array($amenities) ? $amenities : []
+                    ];
+                }
+            } catch (Exception $e2) {
+                error_log("Add Property: Fallback fetch also failed: " . $e2->getMessage());
+                // Return minimal data
+                $property = [
+                    'id' => $propertyId,
+                    'title' => $title,
+                    'status' => $status,
+                    'images' => !empty($coverImage) ? [$coverImage] : (!empty($images[0]) ? [$images[0]] : []),
+                    'amenities' => is_array($amenities) ? $amenities : []
+                ];
             }
         }
         
+        // Clear any output buffer before sending response
+        ob_clean();
         sendSuccess('Property added successfully', ['property' => $property]);
         
     } catch (PDOException $e) {
