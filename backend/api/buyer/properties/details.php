@@ -69,6 +69,74 @@ try {
     
     // Format response
     $property['images'] = $property['images'] ? explode(',', $property['images']) : [];
+    
+    // Ensure image URLs are full URLs (prepend base URL if relative)
+    // Filter out empty values and normalize URLs
+    if (!empty($property['images'])) {
+        $property['images'] = array_filter(array_map(function($img) {
+            // Remove whitespace and check if empty
+            $img = trim($img);
+            if (empty($img)) {
+                return null;
+            }
+            
+            // If it's already a full URL (http/https), return as is
+            if (strpos($img, 'http://') === 0 || strpos($img, 'https://') === 0) {
+                return $img;
+            }
+            
+            // If it starts with /uploads, it's already a relative path from base
+            if (strpos($img, '/uploads/') === 0) {
+                return BASE_URL . $img;
+            }
+            
+            // If it starts with uploads/, prepend base URL
+            if (strpos($img, 'uploads/') === 0) {
+                return BASE_URL . '/' . $img;
+            }
+            
+            // Otherwise, prepend the upload base URL
+            return UPLOAD_BASE_URL . '/' . ltrim($img, '/');
+        }, $property['images']), function($img) {
+            return $img !== null && $img !== '';
+        });
+        
+        // Re-index array after filtering
+        $property['images'] = array_values($property['images']);
+    }
+    
+    // Normalize cover_image if it exists
+    if (!empty($property['cover_image'])) {
+        $coverImg = trim($property['cover_image']);
+        if (strpos($coverImg, 'http://') === 0 || strpos($coverImg, 'https://') === 0) {
+            $property['cover_image'] = $coverImg;
+        } elseif (strpos($coverImg, '/uploads/') === 0) {
+            $property['cover_image'] = BASE_URL . $coverImg;
+        } elseif (strpos($coverImg, 'uploads/') === 0) {
+            $property['cover_image'] = BASE_URL . '/' . $coverImg;
+        } else {
+            $property['cover_image'] = UPLOAD_BASE_URL . '/' . ltrim($coverImg, '/');
+        }
+    } elseif (!empty($property['images'][0])) {
+        // Set cover_image if not set, use first image
+        $property['cover_image'] = $property['images'][0];
+    }
+    
+    // Normalize seller profile image
+    $sellerProfileImage = $property['seller_profile_image'];
+    if (!empty($sellerProfileImage)) {
+        $sellerProfileImage = trim($sellerProfileImage);
+        if (strpos($sellerProfileImage, 'http://') === 0 || strpos($sellerProfileImage, 'https://') === 0) {
+            // Already a full URL
+        } elseif (strpos($sellerProfileImage, '/uploads/') === 0) {
+            $sellerProfileImage = BASE_URL . $sellerProfileImage;
+        } elseif (strpos($sellerProfileImage, 'uploads/') === 0) {
+            $sellerProfileImage = BASE_URL . '/' . $sellerProfileImage;
+        } else {
+            $sellerProfileImage = UPLOAD_BASE_URL . '/' . ltrim($sellerProfileImage, '/');
+        }
+    }
+    
     $property['amenities'] = $property['amenities'] ? explode(',', $property['amenities']) : [];
     $property['is_favorite'] = $isFavorite;
     $property['price_negotiable'] = (bool)$property['price_negotiable'];
@@ -80,7 +148,7 @@ try {
         'name' => $property['seller_name'],
         'email' => $property['seller_email'],
         'phone' => $property['seller_phone'],
-        'profile_image' => $property['seller_profile_image'],
+        'profile_image' => $sellerProfileImage,
         'user_type' => $property['seller_user_type']
     ];
     
