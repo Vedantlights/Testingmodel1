@@ -143,6 +143,22 @@ try {
     
     // Prepare user data
     unset($user['password']);
+    
+    // Normalize profile image URL
+    $profileImage = $user['profile_image'] ?? null;
+    if (!empty($profileImage)) {
+        $profileImage = trim($profileImage);
+        if (strpos($profileImage, 'http://') === 0 || strpos($profileImage, 'https://') === 0) {
+            // Already a full URL
+        } elseif (strpos($profileImage, '/uploads/') === 0) {
+            $profileImage = BASE_URL . $profileImage;
+        } elseif (strpos($profileImage, 'uploads/') === 0) {
+            $profileImage = BASE_URL . '/' . $profileImage;
+        } else {
+            $profileImage = UPLOAD_BASE_URL . '/' . ltrim($profileImage, '/');
+        }
+    }
+    
     $userData = [
         'id' => $user['id'],
         'full_name' => $user['full_name'],
@@ -151,7 +167,7 @@ try {
         'user_type' => $userType, // Return the login type, not registered type
         'email_verified' => (bool)$user['email_verified'],
         'phone_verified' => (bool)$user['phone_verified'],
-        'profile_image' => $user['profile_image']
+        'profile_image' => $profileImage
     ];
     
     error_log("Login API: Sending success response for user: {$userData['email']}, type: {$userData['user_type']}");
