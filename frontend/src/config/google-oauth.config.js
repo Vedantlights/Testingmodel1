@@ -7,8 +7,12 @@
  * 3. Enable Google+ API
  * 4. Go to Credentials > Create Credentials > OAuth 2.0 Client ID
  * 5. Application type: Web application
- * 6. Authorized JavaScript origins: http://localhost:3000
- * 7. Authorized redirect URIs: http://localhost:3000/admin/login
+ * 6. Authorized JavaScript origins: 
+ *    - Development: http://localhost:3000
+ *    - Production: https://demo1.indiapropertys.com
+ * 7. Authorized redirect URIs:
+ *    - Development: http://localhost:3000/admin/login
+ *    - Production: https://demo1.indiapropertys.com/admin/login
  * 8. Copy the Client ID and replace below
  */
 
