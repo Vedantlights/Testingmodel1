@@ -41,13 +41,28 @@ try {
         sendError('Buyer not found', null, 404);
     }
     
+    // Normalize profile image URL
+    $profileImage = $buyer['profile_image'] ?? null;
+    if (!empty($profileImage)) {
+        $profileImage = trim($profileImage);
+        if (strpos($profileImage, 'http://') === 0 || strpos($profileImage, 'https://') === 0) {
+            // Already a full URL
+        } elseif (strpos($profileImage, '/uploads/') === 0) {
+            $profileImage = BASE_URL . $profileImage;
+        } elseif (strpos($profileImage, 'uploads/') === 0) {
+            $profileImage = BASE_URL . '/' . $profileImage;
+        } else {
+            $profileImage = UPLOAD_BASE_URL . '/' . ltrim($profileImage, '/');
+        }
+    }
+    
     // Format response
     $buyerData = [
         'id' => $buyer['id'],
         'name' => $buyer['full_name'],
         'email' => $buyer['email'],
         'phone' => $buyer['phone'],
-        'profile_image' => $buyer['profile_image']
+        'profile_image' => $profileImage
     ];
     
     sendSuccess('Buyer details retrieved successfully', ['buyer' => $buyerData]);
