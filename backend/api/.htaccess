@@ -8,6 +8,7 @@ RewriteEngine On
 AddDefaultCharset UTF-8
 
 # Error handling
-ErrorDocument 404 /backend/api/error.php
-ErrorDocument 500 /backend/api/error.php
+# Use relative paths for error documents
+ErrorDocument 404 error.php
+ErrorDocument 500 error.php
 
