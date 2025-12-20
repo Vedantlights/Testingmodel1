@@ -27,20 +27,44 @@ try {
     $offset = ($page - 1) * $limit;
     $status = isset($_GET['status']) ? sanitizeInput($_GET['status']) : null;
     
-    // Build query
-    $query = "
-        SELECT p.*,
-               COUNT(DISTINCT pi.id) as image_count,
-               COUNT(DISTINCT i.id) as inquiry_count,
-               GROUP_CONCAT(DISTINCT pi.image_url ORDER BY pi.image_order) as images,
-               GROUP_CONCAT(DISTINCT pa.amenity_id) as amenities,
-               SUBSTRING_INDEX(GROUP_CONCAT(DISTINCT pi.image_url ORDER BY pi.image_order), ',', 1) as cover_image
-        FROM properties p
-        LEFT JOIN property_images pi ON p.id = pi.property_id
-        LEFT JOIN property_amenities pa ON p.id = pa.property_id
-        LEFT JOIN inquiries i ON p.id = i.property_id
-        WHERE p.user_id = ?
-    ";
+    // Check which tables exist
+    $checkImages = $db->query("SHOW TABLES LIKE 'property_images'");
+    $hasImagesTable = $checkImages->rowCount() > 0;
+    
+    $checkAmenities = $db->query("SHOW TABLES LIKE 'property_amenities'");
+    $hasAmenitiesTable = $checkAmenities->rowCount() > 0;
+    
+    $checkInquiries = $db->query("SHOW TABLES LIKE 'inquiries'");
+    $hasInquiriesTable = $checkInquiries->rowCount() > 0;
+    
+    // Build query based on available tables
+    if ($hasImagesTable && $hasAmenitiesTable && $hasInquiriesTable) {
+        $query = "
+            SELECT p.*,
+                   COUNT(DISTINCT pi.id) as image_count,
+                   COUNT(DISTINCT i.id) as inquiry_count,
+                   GROUP_CONCAT(DISTINCT pi.image_url ORDER BY pi.image_order) as images,
+                   GROUP_CONCAT(DISTINCT pa.amenity_id) as amenities,
+                   SUBSTRING_INDEX(GROUP_CONCAT(DISTINCT pi.image_url ORDER BY pi.image_order), ',', 1) as cover_image
+            FROM properties p
+            LEFT JOIN property_images pi ON p.id = pi.property_id
+            LEFT JOIN property_amenities pa ON p.id = pa.property_id
+            LEFT JOIN inquiries i ON p.id = i.property_id
+            WHERE p.user_id = ?
+        ";
+    } else {
+        // Simplified query without JOINs
+        $query = "
+            SELECT p.*,
+                   0 as image_count,
+                   0 as inquiry_count,
+                   p.cover_image as images,
+                   '' as amenities,
+                   p.cover_image as cover_image
+            FROM properties p
+            WHERE p.user_id = ?
+        ";
+    }
     
     $params = [$user['id']];
     
@@ -70,7 +94,13 @@ try {
     
     // Format properties
     foreach ($properties as &$property) {
-        $property['images'] = $property['images'] ? explode(',', $property['images']) : [];
+        // Handle images
+        if ($hasImagesTable && isset($property['images']) && !empty($property['images'])) {
+            $property['images'] = explode(',', $property['images']);
+        } else {
+            // Use cover_image as single image
+            $property['images'] = !empty($property['cover_image']) ? [$property['cover_image']] : [];
+        }
         
         // Ensure image URLs are full URLs (prepend base URL if relative)
         // Filter out empty values and normalize URLs
@@ -126,11 +156,17 @@ try {
             $property['cover_image'] = null;
         }
         
-        $property['amenities'] = $property['amenities'] ? explode(',', $property['amenities']) : [];
-        $property['image_count'] = intval($property['image_count']);
-        $property['inquiry_count'] = intval($property['inquiry_count']);
-        $property['price_negotiable'] = (bool)$property['price_negotiable'];
-        $property['is_active'] = (bool)$property['is_active'];
+        // Handle amenities
+        if ($hasAmenitiesTable && isset($property['amenities']) && !empty($property['amenities'])) {
+            $property['amenities'] = explode(',', $property['amenities']);
+        } else {
+            $property['amenities'] = [];
+        }
+        
+        $property['image_count'] = intval($property['image_count'] ?? 0);
+        $property['inquiry_count'] = intval($property['inquiry_count'] ?? 0);
+        $property['price_negotiable'] = (bool)($property['price_negotiable'] ?? false);
+        $property['is_active'] = (bool)($property['is_active'] ?? true);
     }
     
     sendSuccess('Properties retrieved successfully', [
