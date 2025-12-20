@@ -83,21 +83,51 @@ try {
     
     // Format inquiries
     foreach ($inquiries as &$inquiry) {
+        // Normalize property image
+        $propertyImage = $inquiry['property_image'];
+        if (!empty($propertyImage)) {
+            $propertyImage = trim($propertyImage);
+            if (strpos($propertyImage, 'http://') === 0 || strpos($propertyImage, 'https://') === 0) {
+                // Already a full URL
+            } elseif (strpos($propertyImage, '/uploads/') === 0) {
+                $propertyImage = BASE_URL . $propertyImage;
+            } elseif (strpos($propertyImage, 'uploads/') === 0) {
+                $propertyImage = BASE_URL . '/' . $propertyImage;
+            } else {
+                $propertyImage = UPLOAD_BASE_URL . '/' . ltrim($propertyImage, '/');
+            }
+        }
+        
         $inquiry['property'] = [
             'id' => $inquiry['property_id'],
             'title' => $inquiry['property_title'],
             'location' => $inquiry['property_location'],
             'price' => $inquiry['property_price'],
-            'cover_image' => $inquiry['property_image']
+            'cover_image' => $propertyImage
         ];
         
         if ($inquiry['buyer_id']) {
+            // Normalize buyer profile image
+            $buyerProfileImage = $inquiry['buyer_profile_image'];
+            if (!empty($buyerProfileImage)) {
+                $buyerProfileImage = trim($buyerProfileImage);
+                if (strpos($buyerProfileImage, 'http://') === 0 || strpos($buyerProfileImage, 'https://') === 0) {
+                    // Already a full URL
+                } elseif (strpos($buyerProfileImage, '/uploads/') === 0) {
+                    $buyerProfileImage = BASE_URL . $buyerProfileImage;
+                } elseif (strpos($buyerProfileImage, 'uploads/') === 0) {
+                    $buyerProfileImage = BASE_URL . '/' . $buyerProfileImage;
+                } else {
+                    $buyerProfileImage = UPLOAD_BASE_URL . '/' . ltrim($buyerProfileImage, '/');
+                }
+            }
+            
             $inquiry['buyer'] = [
                 'id' => $inquiry['buyer_id'],
                 'name' => $inquiry['buyer_name'],
                 'email' => $inquiry['buyer_email'],
                 'phone' => $inquiry['buyer_phone'],
-                'profile_image' => $inquiry['buyer_profile_image']
+                'profile_image' => $buyerProfileImage
             ];
         } else {
             $inquiry['buyer'] = null;
