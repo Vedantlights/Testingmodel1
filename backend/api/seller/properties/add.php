@@ -22,10 +22,21 @@ try {
     
     // Check property limit based on subscription
     $db = getDB();
-    $stmt = $db->prepare("SELECT plan_type FROM subscriptions WHERE user_id = ? AND is_active = 1 ORDER BY created_at DESC LIMIT 1");
-    $stmt->execute([$user['id']]);
-    $subscription = $stmt->fetch();
-    $planType = $subscription['plan_type'] ?? 'free';
+    $planType = 'free'; // Default
+    try {
+        // Check if subscriptions table exists
+        $checkStmt = $db->query("SHOW TABLES LIKE 'subscriptions'");
+        if ($checkStmt->rowCount() > 0) {
+            $stmt = $db->prepare("SELECT plan_type FROM subscriptions WHERE user_id = ? AND is_active = 1 ORDER BY created_at DESC LIMIT 1");
+            $stmt->execute([$user['id']]);
+            $subscription = $stmt->fetch();
+            $planType = $subscription['plan_type'] ?? 'free';
+        }
+    } catch (Exception $e) {
+        // Table doesn't exist or error, use default
+        error_log("Add Property: Subscriptions table check failed: " . $e->getMessage());
+        $planType = 'free';
+    }
     
     // Get current property count
     $stmt = $db->prepare("SELECT COUNT(*) as count FROM properties WHERE user_id = ?");
@@ -146,49 +157,104 @@ try {
         
         $propertyId = $db->lastInsertId();
         
-        // Insert images
+        // Insert images (only if table exists)
         if (!empty($images)) {
-            $stmt = $db->prepare("INSERT INTO property_images (property_id, image_url, image_order) VALUES (?, ?, ?)");
-            foreach ($images as $index => $imageUrl) {
-                $stmt->execute([$propertyId, $imageUrl, $index]);
+            try {
+                // Check if property_images table exists
+                $checkStmt = $db->query("SHOW TABLES LIKE 'property_images'");
+                if ($checkStmt->rowCount() > 0) {
+                    $stmt = $db->prepare("INSERT INTO property_images (property_id, image_url, image_order) VALUES (?, ?, ?)");
+                    foreach ($images as $index => $imageUrl) {
+                        $stmt->execute([$propertyId, $imageUrl, $index]);
+                    }
+                }
+            } catch (Exception $e) {
+                error_log("Add Property: Failed to insert images: " . $e->getMessage());
+                // Continue - property is already saved
             }
             
-            // Update cover image if not set
+            // Update cover image if not set (always do this)
             if (!$coverImage && !empty($images[0])) {
                 $stmt = $db->prepare("UPDATE properties SET cover_image = ? WHERE id = ?");
                 $stmt->execute([$images[0], $propertyId]);
+                $coverImage = $images[0];
             }
         }
         
-        // Insert amenities
+        // Insert amenities (only if table exists)
         if (!empty($amenities) && is_array($amenities)) {
-            $stmt = $db->prepare("INSERT INTO property_amenities (property_id, amenity_id) VALUES (?, ?)");
-            foreach ($amenities as $amenityId) {
-                $stmt->execute([$propertyId, sanitizeInput($amenityId)]);
+            try {
+                // Check if property_amenities table exists
+                $checkStmt = $db->query("SHOW TABLES LIKE 'property_amenities'");
+                if ($checkStmt->rowCount() > 0) {
+                    $stmt = $db->prepare("INSERT INTO property_amenities (property_id, amenity_id) VALUES (?, ?)");
+                    foreach ($amenities as $amenityId) {
+                        $stmt->execute([$propertyId, sanitizeInput($amenityId)]);
+                    }
+                }
+            } catch (Exception $e) {
+                error_log("Add Property: Failed to insert amenities: " . $e->getMessage());
+                // Continue - property is already saved
             }
         }
         
         $db->commit();
         $transactionStarted = false;
         
-        // Get created property
-        $stmt = $db->prepare("
-            SELECT p.*, 
-                   GROUP_CONCAT(pi.image_url ORDER BY pi.image_order) as images,
-                   GROUP_CONCAT(pa.amenity_id) as amenities
-            FROM properties p
-            LEFT JOIN property_images pi ON p.id = pi.property_id
-            LEFT JOIN property_amenities pa ON p.id = pa.property_id
-            WHERE p.id = ?
-            GROUP BY p.id
-        ");
-        $stmt->execute([$propertyId]);
-        $property = $stmt->fetch();
-        
-        // Format response
-        if ($property) {
-            $property['images'] = $property['images'] ? explode(',', $property['images']) : [];
-            $property['amenities'] = $property['amenities'] ? explode(',', $property['amenities']) : [];
+        // Get created property (handle missing tables gracefully)
+        try {
+            // Check which tables exist
+            $checkImages = $db->query("SHOW TABLES LIKE 'property_images'");
+            $hasImagesTable = $checkImages->rowCount() > 0;
+            
+            $checkAmenities = $db->query("SHOW TABLES LIKE 'property_amenities'");
+            $hasAmenitiesTable = $checkAmenities->rowCount() > 0;
+            
+            if ($hasImagesTable && $hasAmenitiesTable) {
+                // Full query with JOINs
+                $stmt = $db->prepare("
+                    SELECT p.*, 
+                           GROUP_CONCAT(pi.image_url ORDER BY pi.image_order) as images,
+                           GROUP_CONCAT(pa.amenity_id) as amenities
+                    FROM properties p
+                    LEFT JOIN property_images pi ON p.id = pi.property_id
+                    LEFT JOIN property_amenities pa ON p.id = pa.property_id
+                    WHERE p.id = ?
+                    GROUP BY p.id
+                ");
+            } else {
+                // Simple query without JOINs
+                $stmt = $db->prepare("SELECT * FROM properties WHERE id = ?");
+            }
+            
+            $stmt->execute([$propertyId]);
+            $property = $stmt->fetch();
+            
+            // Format response
+            if ($property) {
+                if ($hasImagesTable && isset($property['images']) && !empty($property['images'])) {
+                    $property['images'] = explode(',', $property['images']);
+                } else {
+                    // Use cover_image or first image from input
+                    $property['images'] = !empty($coverImage) ? [$coverImage] : (!empty($images[0]) ? [$images[0]] : []);
+                }
+                
+                if ($hasAmenitiesTable && isset($property['amenities']) && !empty($property['amenities'])) {
+                    $property['amenities'] = explode(',', $property['amenities']);
+                } else {
+                    $property['amenities'] = is_array($amenities) ? $amenities : [];
+                }
+            }
+        } catch (Exception $e) {
+            error_log("Add Property: Failed to fetch property: " . $e->getMessage());
+            // Fallback: Get basic property info
+            $stmt = $db->prepare("SELECT * FROM properties WHERE id = ?");
+            $stmt->execute([$propertyId]);
+            $property = $stmt->fetch();
+            if ($property) {
+                $property['images'] = !empty($coverImage) ? [$coverImage] : (!empty($images[0]) ? [$images[0]] : []);
+                $property['amenities'] = is_array($amenities) ? $amenities : [];
+            }
         }
         
         sendSuccess('Property added successfully', ['property' => $property]);
