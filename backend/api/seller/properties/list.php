@@ -70,8 +70,62 @@ try {
     
     // Format properties
     foreach ($properties as &$property) {
-        $property['cover_image'] = $property['cover_image'] ?: null;
         $property['images'] = $property['images'] ? explode(',', $property['images']) : [];
+        
+        // Ensure image URLs are full URLs (prepend base URL if relative)
+        // Filter out empty values and normalize URLs
+        if (!empty($property['images'])) {
+            $property['images'] = array_filter(array_map(function($img) {
+                // Remove whitespace and check if empty
+                $img = trim($img);
+                if (empty($img)) {
+                    return null;
+                }
+                
+                // If it's already a full URL (http/https), return as is
+                if (strpos($img, 'http://') === 0 || strpos($img, 'https://') === 0) {
+                    return $img;
+                }
+                
+                // If it starts with /uploads, it's already a relative path from base
+                if (strpos($img, '/uploads/') === 0) {
+                    return BASE_URL . $img;
+                }
+                
+                // If it starts with uploads/, prepend base URL
+                if (strpos($img, 'uploads/') === 0) {
+                    return BASE_URL . '/' . $img;
+                }
+                
+                // Otherwise, prepend the upload base URL
+                return UPLOAD_BASE_URL . '/' . ltrim($img, '/');
+            }, $property['images']), function($img) {
+                return $img !== null && $img !== '';
+            });
+            
+            // Re-index array after filtering
+            $property['images'] = array_values($property['images']);
+        }
+        
+        // Set cover_image if not set, use first image
+        if (empty($property['cover_image']) && !empty($property['images'][0])) {
+            $property['cover_image'] = $property['images'][0];
+        } elseif (!empty($property['cover_image'])) {
+            $coverImg = trim($property['cover_image']);
+            // Ensure cover_image is also a full URL
+            if (strpos($coverImg, 'http://') === 0 || strpos($coverImg, 'https://') === 0) {
+                $property['cover_image'] = $coverImg;
+            } elseif (strpos($coverImg, '/uploads/') === 0) {
+                $property['cover_image'] = BASE_URL . $coverImg;
+            } elseif (strpos($coverImg, 'uploads/') === 0) {
+                $property['cover_image'] = BASE_URL . '/' . $coverImg;
+            } else {
+                $property['cover_image'] = UPLOAD_BASE_URL . '/' . ltrim($coverImg, '/');
+            }
+        } else {
+            $property['cover_image'] = null;
+        }
+        
         $property['amenities'] = $property['amenities'] ? explode(',', $property['amenities']) : [];
         $property['image_count'] = intval($property['image_count']);
         $property['inquiry_count'] = intval($property['inquiry_count']);
