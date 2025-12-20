@@ -1,0 +1,341 @@
+/* Container */
+.container {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  padding: 20px;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+}
+
+/* Card */
+.card {
+  background: white;
+  border-radius: 24px;
+  max-width: 500px;
+  width: 100%;
+  padding: 40px;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+}
+
+/* Header */
+.header {
+  text-align: center;
+  margin-bottom: 32px;
+}
+
+.avatar {
+  width: 80px;
+  height: 80px;
+  margin: 0 auto 16px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, #667eea, #764ba2);
+  color: white;
+  box-shadow: 0 8px 16px rgba(102,126,234,0.4);
+}
+
+.avatar-icon {
+  width: 40px;
+  height: 40px;
+}
+
+.title {
+  font-size: 28px;
+  font-weight: 700;
+  margin-bottom: 8px;
+}
+
+.subtitle {
+  font-size: 14px;
+  color: #718096;
+}
+
+/* User Type Toggle */
+.user-type-toggle {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.type-btn {
+  flex: 1;
+  padding: 12px 8px;
+  border-radius: 12px;
+  border: 2px solid #e2e8f0;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  background: #f7fafc;
+  font-weight: 600;
+  font-size: 13px;
+  color: #4a5568;
+  transition: all 0.3s ease;
+}
+
+.type-btn:hover {
+  border-color: #667eea;
+  background: #f0f0ff;
+}
+
+.type-btn.active {
+  background: linear-gradient(135deg, #667eea, #764ba2);
+  color: white;
+  border-color: transparent;
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+}
+
+/* Role Info */
+.role-info {
+  margin-top: 8px;
+}
+
+.role-hint {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  padding: 10px 12px;
+  background: #e8f4fd;
+  border-radius: 8px;
+  font-size: 12px;
+  color: #2b6cb0;
+  line-height: 1.4;
+}
+
+.role-hint-agent {
+  background: #fef3cd;
+  color: #856404;
+}
+
+.info-icon {
+  font-size: 14px;
+  flex-shrink: 0;
+}
+
+/* Form */
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  text-align: left;
+}
+
+.label {
+  font-size: 14px;
+  font-weight: 600;
+  color: #2d3748;
+}
+
+.input-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.input {
+  width: 100%;
+  padding: 14px 16px;
+  border: 2px solid #e2e8f0;
+  border-radius: 12px;
+  font-size: 15px;
+  background: #f7fafc;
+  outline: none;
+  transition: all 0.3s ease;
+}
+
+.input:focus {
+  border-color: #667eea;
+  background: white;
+}
+
+.input-pr {
+  padding-right: 110px;
+}
+
+.input-small-pr {
+  padding-right: 60px;
+}
+
+/* Buttons */
+.inline-btn {
+  position: absolute;
+  right: 6px;
+  background: linear-gradient(135deg,#667eea,#764ba2);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  padding: 8px 16px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 0.3s ease;
+}
+
+.inline-btn:hover {
+  transform: scale(1.02);
+  box-shadow: 0 4px 12px rgba(102,126,234,0.3);
+}
+
+.verify-btn {
+  position: absolute;
+  right: 6px;
+  background: linear-gradient(135deg,#48bb78,#38a169);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  padding: 8px 16px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 0.3s ease;
+}
+
+.verify-btn:hover {
+  transform: scale(1.02);
+  box-shadow: 0 4px 12px rgba(72,187,120,0.3);
+}
+
+.icon-btn {
+  position: absolute;
+  right: 6px;
+  background: linear-gradient(135deg,#667eea,#764ba2);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  padding: 8px 12px;
+  font-size: 16px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.icon-btn:hover {
+  transform: scale(1.05);
+}
+
+/* Checkbox */
+.checkbox-group {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+}
+
+.checkbox {
+  width: 18px;
+  height: 18px;
+  cursor: pointer;
+  accent-color: #667eea;
+  margin-top: 2px;
+}
+
+.checkbox-label {
+  font-size: 13px;
+  color: #4a5568;
+  cursor: pointer;
+  line-height: 1.4;
+}
+
+/* Links */
+.link {
+  color: #667eea;
+  text-decoration: none;
+  font-weight: 600;
+}
+
+.link:hover {
+  text-decoration: underline;
+}
+
+/* Register button */
+.register-btn {
+  width: 100%;
+  padding: 16px;
+  font-size: 16px;
+  font-weight: 700;
+  color: white;
+  border-radius: 12px;
+  border: none;
+  background: linear-gradient(135deg,#667eea,#764ba2);
+  cursor: pointer;
+  margin-top: 8px;
+  box-shadow: 0 4px 12px rgba(102,126,234,0.3);
+  transition: all 0.3s ease;
+}
+
+.register-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(102,126,234,0.4);
+}
+
+.register-btn:active {
+  transform: translateY(0);
+}
+
+/* Login link */
+.login-link {
+  text-align: center;
+  font-size: 14px;
+  color: #718096;
+  margin-top: 8px;
+}
+
+.login-link button,
+.link-btn {
+  border: none;
+  background: none;
+  color: #7b5fc9;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.login-link button:hover,
+.link-btn:hover {
+  text-decoration: underline;
+}
+
+/* FadeIn animation for OTP fields */
+.fadeIn {
+  animation: fadeIn 0.3s ease;
+}
+
+@keyframes fadeIn {
+  from { 
+    opacity: 0; 
+    transform: translateY(4px); 
+  }
+  to { 
+    opacity: 1; 
+    transform: translateY(0); 
+  }
+}
+
+/* Responsive */
+@media (max-width: 480px) {
+  .card {
+    padding: 24px;
+  }
+
+  .user-type-toggle {
+    flex-direction: column;
+  }
+
+  .type-btn {
+    padding: 14px;
+  }
+
+  .title {
+    font-size: 24px;
+  }
+}

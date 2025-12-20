@@ -1,0 +1,796 @@
+/* Property Card Styles */
+.buyer-property-card {
+  background: #ffffff;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  max-width: 100%;
+  flex-shrink: 0;
+  border: 2px solid #151515;
+  box-sizing: border-box;
+}
+
+.buyer-filtered-properties-grid-property-card{
+background: #ffffff;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  max-width: 100%;
+  flex-shrink: 0;
+  border: 1px solid #e5e7eb;
+  box-sizing: border-box;
+
+}
+
+.buyer-property-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
+  border-color: #d1d5db;
+}
+
+.buyer-property-image-container {
+  position: relative;
+  width: 100%;
+  height: 220px;
+  overflow: hidden;
+  background: #f3f4f6;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.buyer-property-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center;
+  transition: transform 0.3s ease;
+}
+
+.buyer-property-card:hover .buyer-property-image {
+  transform: scale(1.1);
+}
+
+.buyer-property-status {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  padding: 6px 16px;
+  border-radius: 20px;
+  font-size: 13px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  z-index: 5;
+}
+
+.buyer-property-status.buyer-for-sale {
+  background: #1e3a8a;
+  color: #ffffff;
+}
+
+.buyer-property-status.buyer-for-rent {
+  background: #059669;
+  color: #ffffff;
+}
+
+.buyer-property-content {
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  flex-grow: 1;
+}
+
+.buyer-property-title {
+  font-size: 18px;
+  font-weight: 700;
+  color: #1e3a8a;
+  margin: 0 0 12px 0;
+  line-height: 1.4;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.buyer-property-location {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #64748b;
+  font-size: 14px;
+  margin-bottom: 16px;
+}
+
+.buyer-property-location svg {
+  color: #1e3a8a;
+  flex-shrink: 0;
+}
+
+.buyer-property-details {
+  display: flex;
+  gap: 16px;
+  padding: 16px 0;
+  border-top: 1px solid #e2e8f0;
+  border-bottom: 1px solid #e2e8f0;
+  margin-bottom: 16px;
+}
+
+.buyer-detail-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: #475569;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.buyer-detail-item svg {
+  color: #1e3a8a;
+  flex-shrink: 0;
+}
+
+.buyer-property-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: auto;
+  gap: 12px;
+}
+
+.buyer-property-price {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.buyer-price-label {
+  font-size: 12px;
+  color: #64748b;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.buyer-price-value {
+  font-size: 22px;
+  font-weight: 700;
+  color: #1e3a8a;
+}
+
+.buyer-view-details-btn {
+  background: #1e3a8a;
+  color: #ffffff;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.3s ease;
+  white-space: nowrap;
+}
+
+.buyer-view-details-btn:hover {
+  background: #1e40af;
+}
+
+/* --------------------------------------------------
+ * ★ Favourite Button Styles
+ * -------------------------------------------------- */
+
+.buyer-favourite-btn {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  background: rgba(255, 255, 255, 0.9);
+  border: none;
+  border-radius: 50%;
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  z-index: 10;
+  transition: all 0.2s ease;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.1);
+}
+
+.buyer-favourite-btn:hover {
+  transform: scale(1.1);
+}
+
+/* Default Heart Color (Not Favourited - Outline) */
+.buyer-favourite-btn svg {
+  color: #475569;
+  fill: none;
+  transition: color 0.2s ease, fill 0.2s ease;
+}
+
+/* Active (Favourited) State - Solid White Heart on Red Background */
+.buyer-favourite-btn.active {
+  background: #ef4444;
+}
+
+.buyer-favourite-btn.active svg {
+  color: white;
+  fill: white;
+}
+
+
+.buyer-property-type-badge {
+  display: inline-block;
+  background: #f0f9ff;
+  color: #0369a1;
+  padding: 4px 12px;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 600;
+  margin-bottom: 12px;
+}
+
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .buyer-property-card {
+    min-width: unset;
+    max-width: 100%;
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .buyer-property-image-container {
+    height: 150px;
+    position: relative;
+  }
+
+  .buyer-property-image {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  .buyer-property-content {
+    padding: 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .buyer-property-title {
+    font-size: 14px;
+    margin-bottom: 0;
+    line-height: 1.3;
+    font-weight: 600;
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+
+  .buyer-property-location {
+    font-size: 11px;
+    margin-bottom: 0;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+  }
+
+  .buyer-property-location svg {
+    width: 12px;
+    height: 12px;
+    flex-shrink: 0;
+  }
+
+  .buyer-property-details {
+    display: flex;
+    flex-wrap: nowrap;
+    gap: 10px;
+    padding: 10px 0;
+    margin-bottom: 0;
+    border-top: 1px solid #e2e8f0;
+    border-bottom: 1px solid #e2e8f0;
+    justify-content: space-around;
+  }
+
+  .buyer-detail-item {
+    font-size: 11px;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+  }
+
+  .buyer-detail-item svg {
+    width: 13px;
+    height: 13px;
+    flex-shrink: 0;
+  }
+
+  .buyer-property-footer {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 10px;
+    margin-top: auto;
+  }
+
+  .buyer-property-price {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  .buyer-price-label {
+    font-size: 10px;
+  }
+
+  .buyer-price-value {
+    font-size: 16px;
+  }
+
+  .buyer-view-details-btn {
+    width: 100%;
+    padding: 10px 16px;
+    font-size: 12px;
+    border-radius: 8px;
+  }
+}
+
+@media (max-width: 480px) {
+  .buyer-property-card {
+    min-width: unset;
+    max-width: 100%;
+    width: 100%;
+    border-radius: 8px;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .buyer-property-image-container {
+    height: 120px;
+    position: relative;
+  }
+
+  .buyer-property-image {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  .buyer-property-content {
+    padding: 10px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  .buyer-property-title {
+    font-size: 13px;
+    margin-bottom: 0;
+    line-height: 1.3;
+    font-weight: 600;
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    min-height: 34px;
+  }
+
+  .buyer-property-location {
+    font-size: 10px;
+    margin-bottom: 0;
+    gap: 4px;
+    display: flex;
+    align-items: center;
+  }
+
+  .buyer-property-location svg {
+    width: 10px;
+    height: 10px;
+    flex-shrink: 0;
+  }
+
+  .buyer-property-details {
+    display: flex;
+    flex-wrap: nowrap;
+    gap: 8px;
+    padding: 8px 0;
+    margin-bottom: 0;
+    border-top: 1px solid #e2e8f0;
+    border-bottom: 1px solid #e2e8f0;
+    justify-content: space-between;
+  }
+
+  .buyer-detail-item {
+    font-size: 9px;
+    gap: 3px;
+    display: flex;
+    align-items: center;
+    flex: 1;
+    min-width: 0;
+  }
+
+  .buyer-detail-item svg {
+    width: 11px;
+    height: 11px;
+    flex-shrink: 0;
+  }
+
+  .buyer-detail-item span {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .buyer-property-footer {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 8px;
+    margin-top: auto;
+  }
+
+  .buyer-property-price {
+    display: flex;
+    flex-direction: row;
+    align-items: baseline;
+    gap: 6px;
+  }
+
+  .buyer-price-label {
+    font-size: 8px;
+    order: 2;
+  }
+
+  .buyer-price-value {
+    font-size: 14px;
+    order: 1;
+  }
+
+  .buyer-view-details-btn {
+    width: 100%;
+    padding: 8px 12px;
+    font-size: 11px;
+    border-radius: 6px;
+  }
+
+  .buyer-property-status {
+    top: 8px;
+    right: 8px;
+    padding: 4px 8px;
+    font-size: 9px;
+    border-radius: 12px;
+  }
+
+  .buyer-favourite-btn {
+    width: 30px;
+    height: 30px;
+    top: 8px;
+    left: 8px;
+  }
+
+  .buyer-favourite-btn svg {
+    width: 15px;
+    height: 15px;
+  }
+
+  .buyer-share-btn {
+    width: 28px;
+    height: 28px;
+    left: 44px;
+    top: 8px;
+  }
+
+  .buyer-share-btn svg {
+    width: 14px;
+    height: 14px;
+  }
+
+  .buyer-property-type-badge {
+    padding: 3px 8px;
+    font-size: 9px;
+    margin-bottom: 4px;
+  }
+}
+
+@media (max-width: 360px) {
+  .buyer-property-card {
+    min-width: unset;
+    max-width: 100%;
+    width: 100%;
+    border-radius: 8px;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .buyer-property-image-container {
+    height: 110px;
+    position: relative;
+  }
+
+  .buyer-property-image {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  .buyer-property-content {
+    padding: 8px;
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+  }
+
+  .buyer-property-title {
+    font-size: 12px;
+    margin-bottom: 0;
+    line-height: 1.3;
+    font-weight: 600;
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    min-height: 31px;
+  }
+
+  .buyer-property-location {
+    font-size: 9px;
+    margin-bottom: 0;
+    gap: 3px;
+    display: flex;
+    align-items: center;
+  }
+
+  .buyer-property-location svg {
+    width: 9px;
+    height: 9px;
+    flex-shrink: 0;
+  }
+
+  .buyer-property-details {
+    display: flex;
+    flex-wrap: nowrap;
+    gap: 6px;
+    padding: 6px 0;
+    margin-bottom: 0;
+    border-top: 1px solid #e2e8f0;
+    border-bottom: 1px solid #e2e8f0;
+    justify-content: space-between;
+  }
+
+  .buyer-detail-item {
+    font-size: 8px;
+    gap: 2px;
+    display: flex;
+    align-items: center;
+    flex: 1;
+    min-width: 0;
+  }
+
+  .buyer-detail-item svg {
+    width: 10px;
+    height: 10px;
+    flex-shrink: 0;
+  }
+
+  .buyer-detail-item span {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .buyer-property-footer {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 6px;
+    margin-top: auto;
+  }
+
+  .buyer-property-price {
+    display: flex;
+    flex-direction: row;
+    align-items: baseline;
+    gap: 5px;
+  }
+
+  .buyer-price-label {
+    font-size: 7px;
+    order: 2;
+  }
+
+  .buyer-price-value {
+    font-size: 13px;
+    order: 1;
+  }
+
+  .buyer-view-details-btn {
+    width: 100%;
+    padding: 7px 10px;
+    font-size: 10px;
+    border-radius: 5px;
+  }
+
+  .buyer-property-status {
+    top: 6px;
+    right: 6px;
+    padding: 3px 6px;
+    font-size: 8px;
+    border-radius: 10px;
+  }
+
+  .buyer-favourite-btn {
+    width: 28px;
+    height: 28px;
+    top: 6px;
+    left: 6px;
+  }
+
+  .buyer-favourite-btn svg {
+    width: 14px;
+    height: 14px;
+  }
+
+  .buyer-share-btn {
+    width: 26px;
+    height: 26px;
+    left: 40px;
+    top: 6px;
+  }
+
+  .buyer-share-btn svg {
+    width: 12px;
+    height: 12px;
+  }
+
+  .buyer-property-type-badge {
+    padding: 2px 6px;
+    font-size: 8px;
+    margin-bottom: 3px;
+  }
+}
+
+/* --------------------------------------------------
+ * ★ Share Button Styles
+ * -------------------------------------------------- */
+
+.buyer-share-btn {
+  position: absolute;
+  top: 10px;
+  left: 56px;
+  background: rgba(255, 255, 255, 0.9);
+  border: none;
+  border-radius: 50%;
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  z-index: 10;
+  transition: all 0.2s ease;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.1);
+}
+
+.buyer-share-btn:hover {
+  transform: scale(1.1);
+  background: #1e3a8a;
+}
+
+.buyer-share-btn svg {
+  color: #475569;
+  transition: color 0.2s ease;
+}
+
+.buyer-share-btn:hover svg {
+  color: white;
+}
+
+/* Mobile optimizations for share button */
+@media (max-width: 480px) {
+  .buyer-share-btn {
+    width: 28px;
+    height: 28px;
+    left: 44px;
+    top: 8px;
+  }
+
+  .buyer-share-btn svg {
+    width: 14px;
+    height: 14px;
+  }
+}
+
+@media (max-width: 360px) {
+  .buyer-share-btn {
+    width: 26px;
+    height: 26px;
+    left: 40px;
+    top: 6px;
+  }
+
+  .buyer-share-btn svg {
+    width: 12px;
+    height: 12px;
+  }
+}
+
+/* --------------------------------------------------
+ * ★ Toast Notification for Copy Link
+ * -------------------------------------------------- */
+
+.buyer-share-toast {
+  position: absolute;
+  bottom: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(30, 58, 138, 0.95);
+  color: white;
+  padding: 10px 20px;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  z-index: 20;
+  animation: buyer-slideUp 0.3s ease;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+
+@keyframes buyer-slideUp {
+  from {
+    opacity: 0;
+    transform: translateX(-50%) translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+  }
+}
+
+/* Mobile toast optimization */
+@media (max-width: 480px) {
+  .buyer-share-toast {
+    bottom: 15px;
+    padding: 8px 16px;
+    font-size: 12px;
+    border-radius: 6px;
+  }
+}
+
+@media (max-width: 360px) {
+  .buyer-share-toast {
+    bottom: 12px;
+    padding: 6px 12px;
+    font-size: 11px;
+  }
+}
+
+/* Touch optimization for share button */
+@media (hover: none) and (pointer: coarse) {
+  .buyer-share-btn {
+    min-width: 28px;
+    min-height: 28px;
+  }
+
+  .buyer-share-btn:hover {
+    background: rgba(255, 255, 255, 0.9);
+    transform: none;
+  }
+
+  .buyer-share-btn:hover svg {
+    color: #475569;
+  }
+
+  .buyer-share-btn:active {
+    background: #1e3a8a;
+    transform: scale(0.96);
+  }
+
+  .buyer-share-btn:active svg {
+    color: white;
+  }
+}

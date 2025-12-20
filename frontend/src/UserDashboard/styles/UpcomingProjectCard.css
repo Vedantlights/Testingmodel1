@@ -1,0 +1,706 @@
+/* --- General Section Styling --- */
+.buyer-upcoming-projects-section {
+    width: 100%;
+    padding: 60px 0;
+    background-color: rgb(222, 220, 220);
+}
+
+.buyer-section-header {
+    text-align: center;
+    margin-bottom: 40px;
+    padding: 0 24px;
+}
+
+.buyer-section-title {
+    font-size: 2.5rem;
+    color: #1a1a1a;
+    margin-bottom: 8px;
+    font-weight: 700;
+}
+
+.buyer-section-subtitle {
+    font-size: 1.1rem;
+    color: #666;
+    margin: 0;
+}
+
+/* --- Horizontal Scroll Container --- */
+.buyer-horizontal-scroll-container {
+    width: 100%;
+    overflow-x: auto;
+    overflow-y: hidden;
+    padding: 0 0 20px 0;
+    scroll-behavior: smooth;
+    -webkit-overflow-scrolling: touch;
+}
+
+.buyer-projects-wrapper {
+    display: flex;
+    gap: 24px;
+    padding: 0 24px;
+    min-width: min-content;
+}
+
+/* Ensure project cards have proper width in horizontal scroll */
+.buyer-projects-wrapper .buyer-project-card {
+    flex-shrink: 0;
+    width: 380px;
+    max-width: 380px;
+}
+
+/* Custom Scrollbar */
+.buyer-horizontal-scroll-container::-webkit-scrollbar {
+    height: 8px;
+}
+
+.buyer-horizontal-scroll-container::-webkit-scrollbar-track {
+    background: #f1f5f9;
+    border-radius: 10px;
+}
+
+.buyer-horizontal-scroll-container::-webkit-scrollbar-thumb {
+    background: #1a73e8;
+    border-radius: 10px;
+}
+
+.buyer-horizontal-scroll-container::-webkit-scrollbar-thumb:hover {
+    background: #155bb5;
+}
+
+/* --- Project Card Styling --- */
+.buyer-project-card {
+    background-color: #fff;
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    transition: transform 0.3s, box-shadow 0.3s;
+    cursor: pointer;
+    display: flex;
+    flex-direction: column;
+}
+
+.buyer-project-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+}
+
+.buyer-project-image-container {
+    position: relative;
+    height: 240px;
+    overflow: hidden;
+}
+
+.buyer-project-image {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.3s ease;
+}
+
+.buyer-project-card:hover .buyer-project-image {
+    transform: scale(1.05);
+}
+
+/* Overlay Info Styling */
+.buyer-overlay-info {
+    position: absolute;
+    padding: 8px 12px;
+    color: white;
+    font-weight: 600;
+    z-index: 5;
+}
+
+.buyer-top-right {
+    top: 12px;
+    right: 12px;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 6px;
+}
+
+.buyer-bhk-type {
+    background-color: rgba(0, 0, 0, 0.7);
+    padding: 6px 12px;
+    border-radius: 6px;
+    font-size: 0.85rem;
+}
+
+.buyer-price-range {
+    background-color: #ff5a5f;
+    padding: 6px 12px;
+    border-radius: 6px;
+    font-size: 1rem;
+    font-weight: 700;
+}
+
+.buyer-bottom-left {
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    background: linear-gradient(to top, rgba(0, 0, 0, 0.85), rgba(0, 0, 0, 0));
+    padding: 20px 12px 12px;
+    text-align: left;
+}
+
+.buyer-project-title {
+    margin: 0 0 6px 0;
+    font-size: 1.3rem;
+    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
+    line-height: 1.3;
+}
+
+.buyer-project-location {
+    margin: 0;
+    font-size: 0.9rem;
+    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.buyer-location-icon {
+    font-size: 0.85rem;
+}
+
+/* City Badge */
+.buyer-city-badge {
+    position: absolute;
+    top: 12px;
+    left: 12px;
+    background-color: #1a73e8;
+    color: white;
+    padding: 6px 12px;
+    border-radius: 6px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    z-index: 5;
+}
+
+/* Footer Styling */
+.buyer-project-card-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 16px;
+    border-top: 1px solid #f0f0f0;
+    gap: 12px;
+}
+
+.buyer-builder-info {
+    text-align: left;
+    flex: 1;
+    min-width: 0;
+}
+
+.buyer-interested-text {
+    font-size: 0.8rem;
+    color: #777;
+    margin: 0 0 4px 0;
+}
+
+.buyer-builder-link {
+    color: #1a73e8;
+    text-decoration: none;
+    font-weight: 600;
+    font-size: 0.9rem;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    transition: color 0.2s;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.buyer-builder-link:hover {
+    color: #155bb5;
+}
+
+/* Primary Button Style */
+.buyer-btn-primary {
+    background-color: #1a73e8;
+    color: white;
+    border: none;
+    padding: 10px 16px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 0.9rem;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    transition: background-color 0.2s, transform 0.1s;
+    white-space: nowrap;
+    flex-shrink: 0;
+}
+
+.buyer-btn-primary:hover {
+    background-color: #155bb5;
+}
+
+.buyer-btn-primary:active {
+    transform: scale(0.98);
+}
+
+.buyer-phone-icon {
+    font-size: 0.9rem;
+}
+
+/* --- Modal/Pop-up Styling --- */
+.buyer-modal-backdrop {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.6);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+    padding: 20px;
+}
+
+.buyer-modal-content {
+    background-color: white;
+    padding: 30px;
+    border-radius: 12px;
+    width: 90%;
+    max-width: 480px;
+    position: relative;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+    text-align: center;
+    max-height: 90vh;
+    overflow-y: auto;
+}
+
+.buyer-modal-content h3 {
+    margin-top: 0;
+    color: #333;
+    font-size: 1.5rem;
+    margin-bottom: 8px;
+}
+
+.buyer-modal-content p {
+    color: #666;
+    margin-bottom: 24px;
+    font-size: 0.95rem;
+}
+
+.buyer-modal-close {
+    position: absolute;
+    top: 12px;
+    right: 12px;
+    background: none;
+    border: none;
+    font-size: 1.5rem;
+    color: #999;
+    cursor: pointer;
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    transition: background-color 0.2s;
+}
+
+.buyer-modal-close:hover {
+    background-color: #f0f0f0;
+}
+
+/* Form Styling */
+.buyer-contact-form {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.buyer-form-group {
+    position: relative;
+    text-align: left;
+}
+
+.buyer-input-icon {
+    position: absolute;
+    left: 14px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #aaa;
+    font-size: 1rem;
+}
+
+.buyer-contact-form input,
+.buyer-contact-form textarea {
+    width: 100%;
+    padding: 12px 12px 12px 42px;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    font-size: 0.95rem;
+    box-sizing: border-box;
+    transition: border-color 0.2s;
+}
+
+.buyer-contact-form input:focus,
+.buyer-contact-form textarea:focus {
+    outline: none;
+    border-color: #1a73e8;
+}
+
+.buyer-contact-form textarea {
+    height: auto;
+    min-height: 100px;
+    resize: vertical;
+}
+
+.buyer-form-group.buyer-textarea-group .buyer-input-icon {
+    top: 16px;
+    transform: translateY(0);
+}
+
+.buyer-privacy-note {
+    font-size: 0.75rem;
+    color: #999;
+    margin-top: 8px;
+    text-align: center;
+}
+
+/* Submission Success State */
+.buyer-modal-content.submitted {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 40px 30px;
+}
+
+.buyer-success-icon {
+    font-size: 4rem;
+    color: #28a745;
+    margin-bottom: 20px;
+}
+
+.buyer-modal-content.submitted h2 {
+    color: #28a745;
+    font-size: 1.8rem;
+    margin-bottom: 12px;
+}
+
+.buyer-modal-content.submitted p {
+    font-size: 1rem;
+    line-height: 1.6;
+}
+
+.buyer-modal-content.submitted .buyer-btn-primary {
+    margin-top: 24px;
+    padding: 12px 32px;
+}
+
+/* ============================================================================
+   RESPONSIVE DESIGN
+   ============================================================================ */
+
+/* Tablet */
+@media (max-width: 768px) {
+    .buyer-upcoming-projects-section {
+        padding: 40px 0;
+    }
+
+    .buyer-section-header {
+        margin-bottom: 30px;
+        padding: 0 16px;
+    }
+
+    .buyer-section-title {
+        font-size: 2rem;
+    }
+
+    .buyer-section-subtitle {
+        font-size: 1rem;
+    }
+
+    .buyer-projects-wrapper {
+        gap: 20px;
+        padding: 0 16px;
+    }
+
+    .buyer-projects-wrapper .buyer-project-card {
+        width: 340px;
+        max-width: 340px;
+    }
+
+    .buyer-project-image-container {
+        height: 220px;
+    }
+
+    .buyer-project-title {
+        font-size: 1.2rem;
+    }
+
+    .buyer-modal-content {
+        padding: 24px;
+    }
+
+    .buyer-modal-content h3 {
+        font-size: 1.3rem;
+    }
+}
+
+/* Mobile Large */
+@media (max-width: 640px) {
+    .buyer-section-title {
+        font-size: 1.75rem;
+    }
+
+    .buyer-section-subtitle {
+        font-size: 0.95rem;
+    }
+
+    .buyer-projects-wrapper {
+        gap: 16px;
+    }
+
+    .buyer-projects-wrapper .buyer-project-card {
+        width: 300px;
+        max-width: 300px;
+    }
+
+    .buyer-project-image-container {
+        height: 200px;
+    }
+
+    .buyer-project-card-footer {
+        padding: 14px;
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .buyer-builder-info {
+        text-align: center;
+        margin-bottom: 8px;
+    }
+
+    .buyer-builder-link {
+        justify-content: center;
+    }
+
+    .buyer-btn-primary {
+        width: 100%;
+        justify-content: center;
+        padding: 12px 16px;
+    }
+}
+
+/* Mobile Small */
+@media (max-width: 480px) {
+    .buyer-upcoming-projects-section {
+        padding: 32px 0;
+    }
+
+    .buyer-section-header {
+        margin-bottom: 24px;
+        padding: 0 12px;
+    }
+
+    .buyer-section-title {
+        font-size: 1.5rem;
+        line-height: 1.3;
+    }
+
+    .buyer-section-subtitle {
+        font-size: 0.9rem;
+    }
+
+    .buyer-horizontal-scroll-container {
+        padding: 0 0 16px 0;
+    }
+
+    .buyer-projects-wrapper {
+        gap: 14px;
+        padding: 0 12px;
+    }
+
+    .buyer-projects-wrapper .buyer-project-card {
+        width: 280px;
+        max-width: 280px;
+    }
+
+    .buyer-project-image-container {
+        height: 180px;
+    }
+
+    .buyer-city-badge {
+        padding: 4px 10px;
+        font-size: 0.75rem;
+        top: 10px;
+        left: 10px;
+    }
+
+    .buyer-top-right {
+        top: 10px;
+        right: 10px;
+        gap: 4px;
+    }
+
+    .buyer-bhk-type {
+        padding: 4px 8px;
+        font-size: 0.75rem;
+    }
+
+    .buyer-price-range {
+        padding: 5px 10px;
+        font-size: 0.9rem;
+    }
+
+    .buyer-bottom-left {
+        padding: 16px 10px 10px;
+    }
+
+    .buyer-project-title {
+        font-size: 1.1rem;
+        margin-bottom: 4px;
+    }
+
+    .buyer-project-location {
+        font-size: 0.8rem;
+    }
+
+    .buyer-project-card-footer {
+        padding: 12px;
+    }
+
+    .buyer-interested-text {
+        font-size: 0.75rem;
+    }
+
+    .buyer-builder-link {
+        font-size: 0.85rem;
+    }
+
+    .buyer-btn-primary {
+        font-size: 0.85rem;
+        padding: 10px 14px;
+    }
+
+    .buyer-modal-content {
+        padding: 20px;
+        border-radius: 10px;
+    }
+
+    .buyer-modal-content h3 {
+        font-size: 1.2rem;
+    }
+
+    .buyer-modal-content p {
+        font-size: 0.9rem;
+    }
+
+    .buyer-contact-form input,
+    .buyer-contact-form textarea {
+        padding: 10px 10px 10px 38px;
+        font-size: 0.9rem;
+    }
+
+    .buyer-modal-content.submitted {
+        padding: 30px 20px;
+    }
+
+    .buyer-success-icon {
+        font-size: 3rem;
+    }
+
+    .buyer-modal-content.submitted h2 {
+        font-size: 1.5rem;
+    }
+}
+
+/* Mobile Extra Small */
+@media (max-width: 360px) {
+    .buyer-section-title {
+        font-size: 1.35rem;
+    }
+
+    .buyer-section-subtitle {
+        font-size: 0.85rem;
+    }
+
+    .buyer-projects-wrapper {
+        gap: 12px;
+        padding: 0 10px;
+    }
+
+    .buyer-projects-wrapper .buyer-project-card {
+        width: 260px;
+        max-width: 260px;
+    }
+
+    .buyer-project-image-container {
+        height: 170px;
+    }
+
+    .buyer-project-title {
+        font-size: 1rem;
+    }
+
+    .buyer-project-location {
+        font-size: 0.75rem;
+    }
+
+    .buyer-project-card-footer {
+        padding: 10px;
+    }
+
+    .buyer-builder-link {
+        font-size: 0.8rem;
+    }
+
+    .buyer-btn-primary {
+        font-size: 0.8rem;
+        padding: 9px 12px;
+    }
+}
+
+/* Touch Device Optimization */
+@media (hover: none) and (pointer: coarse) {
+    .buyer-project-card:hover {
+        transform: none;
+    }
+
+    .buyer-project-card:active {
+        transform: scale(0.98);
+    }
+
+    .buyer-btn-primary,
+    .buyer-builder-link,
+    .buyer-modal-close {
+        -webkit-tap-highlight-color: transparent;
+        user-select: none;
+    }
+
+    .buyer-btn-primary:hover {
+        background-color: #1a73e8;
+    }
+
+    .buyer-btn-primary:active {
+        background-color: #155bb5;
+    }
+}
+
+/* Landscape Mode Optimization */
+@media (max-height: 500px) and (orientation: landscape) {
+    .buyer-upcoming-projects-section {
+        padding: 24px 0;
+    }
+
+    .buyer-section-header {
+        margin-bottom: 20px;
+    }
+
+    .buyer-section-title {
+        font-size: 1.5rem;
+    }
+
+    .buyer-project-image-container {
+        height: 160px;
+    }
+}

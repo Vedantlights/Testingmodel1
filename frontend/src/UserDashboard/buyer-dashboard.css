@@ -1,0 +1,122 @@
+/* App.buyer-css - Complete Configuration */
+
+/* Base App Styles */
+.App {
+  background: rgb(222, 220, 220);
+  text-align: center;
+}
+
+.buyer-App-logo {
+  height: 40vmin;
+  pointer-events: none;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .buyer-App-logo {
+    animation: buyer-App-logo-spin infinite 20s linear;
+  }
+}
+
+.buyer-App-header {
+  background-color: #282c34;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  font-size: calc(10px + 2vmin);
+  color: white;
+}
+
+.buyer-App-link {
+  color: #61dafb;
+}
+
+@keyframes buyer-App-logo-spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* ============================================================================
+ * STICKY NAVBAR CONFIGURATION - CRITICAL SECTION
+ * ============================================================================ */
+
+/* Reset and Base Styles */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+/* HTML & Body - Allow Scrolling for Sticky Navbar */
+html {
+  scroll-behavior: smooth;
+  height: 100%;
+}
+
+html, body {
+  overflow-x: hidden;
+  overflow-y: auto;  /* ← CRITICAL: Allow vertical scrolling for sticky */
+  width: 100%;
+  max-width: 100vw;
+  min-height: 100vh;
+}
+
+/* Add padding to prevent content hiding behind fixed navbar */
+body {
+  padding-top: 90px;  /* Same as navbar height */
+}
+
+/* Root Container - Allow Sticky Navbar to Work */
+#root {
+  overflow-x: hidden;
+  overflow-y: visible;  /* ← CRITICAL: Changed from hidden to visible for sticky */
+  width: 100%;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+/* App Container - Support Sticky Navbar */
+.App,
+.buyer-app-container {
+  overflow: visible;  /* ← CRITICAL: Allow sticky navbar to work */
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Main Content Area - Support Sticky Navbar */
+.buyer-page-content,
+.buyer-main-content {
+  flex: 1;
+  overflow: visible;  /* ← CRITICAL: Allow sticky navbar to work */
+  width: 100%;
+}
+
+/* Page Wrappers - Allow Sticky to Function */
+.buyer-page-wrapper,
+.buyer-content-wrapper,
+.buyer-layout-wrapper {
+  overflow: visible;  /* ← CRITICAL: Allow sticky navbar to work */
+  min-height: calc(100vh - 90px);  /* Account for navbar height */
+}
+
+/* Prevent any element from causing horizontal overflow */
+body * {
+  max-width: 100%;
+}
+
+/* Ensure all containers respect max-width */
+.container,
+.wrapper,
+section {
+  max-width: 100%;
+  overflow-x: hidden;
+}
+
+

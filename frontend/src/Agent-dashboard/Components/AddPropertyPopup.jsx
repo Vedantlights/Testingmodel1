@@ -1,0 +1,1506 @@
+// src/components/AddPropertyPopup.jsx
+import React, { useState, useRef, useEffect } from "react";
+import { useProperty } from "./PropertyContext";
+import { sellerPropertiesAPI } from "../../services/api.service";
+import LocationPicker from "../../components/Map/LocationPicker";
+import LocationAutoSuggest from "../../components/LocationAutoSuggest";
+import "../styles/AddPropertyPopup.css";
+
+const STEPS = [
+  { id: 1, title: "Basic Info", icon: "📝" },
+  { id: 2, title: "Property Details", icon: "🏠" },
+  { id: 3, title: "Amenities", icon: "✨" },
+  { id: 4, title: "Photos", icon: "📷" },
+  { id: 5, title: "Pricing", icon: "💰" }
+];
+
+const PROPERTY_TYPES = [
+  { value: "Apartment", icon: "🏢", category: "residential", subCategory: "standard" },
+  { value: "Flat", icon: "🏠", category: "residential", subCategory: "standard" },
+  { value: "Villa", icon: "🏡", category: "residential", subCategory: "independent" },
+  { value: "Independent House", icon: "🏘️", category: "residential", subCategory: "independent" },
+  { value: "Row House", icon: "🏘️", category: "residential", subCategory: "standard" },
+  { value: "Penthouse", icon: "🌆", category: "residential", subCategory: "luxury" },
+  { value: "Studio Apartment", icon: "🛏️", category: "residential", subCategory: "studio" },
+  { value: "Farm House", icon: "🌳", category: "residential", subCategory: "independent" },
+  { value: "Plot / Land", icon: "📐", category: "land", subCategory: "plot" },
+  { value: "Commercial Office", icon: "🏢", category: "commercial", subCategory: "office" },
+  { value: "Commercial Shop", icon: "🏪", category: "commercial", subCategory: "shop" },
+  { value: "PG / Hostel", icon: "🛏️", category: "pg", subCategory: "accommodation" }
+];
+
+// Property type field configurations - based on real-world requirements
+const PROPERTY_TYPE_FIELDS = {
+  // Standard Residential (Apartment, Flat, Row House, Penthouse)
+  residential_standard: {
+    showBedrooms: true,
+    showBathrooms: true,
+    showBalconies: true,
+    showFloor: true,
+    showTotalFloors: true,
+    showFacing: true,
+    showFurnishing: true,
+    showAge: true,
+    showCarpetArea: true,
+    bedroomsRequired: true,
+    bathroomsRequired: true
+  },
+  // Independent Residential (Villa, Independent House)
+  residential_independent: {
+    showBedrooms: true,
+    showBathrooms: true,
+    showBalconies: true,
+    showFloor: false, // Often ground floor or single floor
+    showTotalFloors: true, // May have multiple floors
+    showFacing: true,
+    showFurnishing: true,
+    showAge: true,
+    showCarpetArea: true,
+    bedroomsRequired: true,
+    bathroomsRequired: true
+  },
+  // Studio Apartment - special case
+  residential_studio: {
+    showBedrooms: false, // Studio = 0 bedrooms (combined living/sleeping)
+    showBathrooms: true,
+    showBalconies: true,
+    showFloor: true,
+    showTotalFloors: true,
+    showFacing: true,
+    showFurnishing: true,
+    showAge: true,
+    showCarpetArea: true,
+    bedroomsRequired: false,
+    bathroomsRequired: true
+  },
+  // Farm House - often single floor
+  residential_farmhouse: {
+    showBedrooms: true,
+    showBathrooms: true,
+    showBalconies: false, // Farm houses may not have balconies
+    showFloor: false, // Usually ground floor
+    showTotalFloors: true,
+    showFacing: true,
+    showFurnishing: true,
+    showAge: true,
+    showCarpetArea: true,
+    bedroomsRequired: true,
+    bathroomsRequired: true
+  },
+  // Commercial Office
+  commercial_office: {
+    showBedrooms: false,
+    showBathrooms: true,
+    showBalconies: false,
+    showFloor: true,
+    showTotalFloors: true,
+    showFacing: true,
+    showFurnishing: true,
+    showAge: true,
+    showCarpetArea: true,
+    bedroomsRequired: false,
+    bathroomsRequired: false // Optional for commercial
+  },
+  // Commercial Shop
+  commercial_shop: {
+    showBedrooms: false,
+    showBathrooms: true, // May have restroom
+    showBalconies: false,
+    showFloor: true, // Ground floor preferred
+    showTotalFloors: true,
+    showFacing: true, // Important for shops
+    showFurnishing: false, // Shops usually unfurnished
+    showAge: true,
+    showCarpetArea: true,
+    bedroomsRequired: false,
+    bathroomsRequired: false
+  },
+  // Plot/Land
+  land_plot: {
+    showBedrooms: false,
+    showBathrooms: false,
+    showBalconies: false,
+    showFloor: false,
+    showTotalFloors: false,
+    showFacing: true, // Important for plot
+    showFurnishing: false,
+    showAge: false,
+    showCarpetArea: false, // Only plot area
+    bedroomsRequired: false,
+    bathroomsRequired: false
+  },
+  // PG/Hostel
+  pg_accommodation: {
+    showBedrooms: true, // Number of beds/rooms
+    showBathrooms: true,
+    showBalconies: false,
+    showFloor: true,
+    showTotalFloors: true,
+    showFacing: true,
+    showFurnishing: true,
+    showAge: true,
+    showCarpetArea: true,
+    bedroomsRequired: true,
+    bathroomsRequired: true
+  }
+};
+
+const AMENITIES = [
+  { id: "parking", label: "Parking", icon: "🚗" },
+  { id: "lift", label: "Lift", icon: "🛗" },
+  { id: "security", label: "24x7 Security", icon: "👮" },
+  { id: "power_backup", label: "Power Backup", icon: "⚡" },
+  { id: "gym", label: "Gym", icon: "🏋️" },
+  { id: "swimming_pool", label: "Swimming Pool", icon: "🏊" },
+  { id: "garden", label: "Garden", icon: "🌳" },
+  { id: "clubhouse", label: "Club House", icon: "🏛️" },
+  { id: "playground", label: "Children's Play Area", icon: "🎢" },
+  { id: "cctv", label: "CCTV", icon: "📹" },
+  { id: "intercom", label: "Intercom", icon: "📞" },
+  { id: "fire_safety", label: "Fire Safety", icon: "🔥" },
+  { id: "water_supply", label: "24x7 Water", icon: "💧" },
+  { id: "gas_pipeline", label: "Gas Pipeline", icon: "🔥" },
+  { id: "wifi", label: "WiFi", icon: "📶" },
+  { id: "ac", label: "Air Conditioning", icon: "❄️" }
+];
+
+// Amenities configuration based on property type
+const PROPERTY_TYPE_AMENITIES = {
+  // Residential properties (Apartment, Flat, Row House, Penthouse, Villa, Independent House, Studio Apartment)
+  residential: [
+    "parking", "lift", "security", "power_backup", "gym", "swimming_pool", 
+    "garden", "clubhouse", "playground", "cctv", "intercom", "fire_safety", 
+    "water_supply", "gas_pipeline", "wifi", "ac"
+  ],
+  // Farm House - similar to residential but may not have lift
+  residential_farmhouse: [
+    "parking", "security", "power_backup", "gym", "swimming_pool", 
+    "garden", "clubhouse", "playground", "cctv", "fire_safety", 
+    "water_supply", "gas_pipeline", "wifi", "ac"
+  ],
+  // Commercial Office
+  commercial_office: [
+    "parking", "lift", "security", "power_backup", "cctv", 
+    "fire_safety", "water_supply", "wifi", "ac", "intercom"
+  ],
+  // Commercial Shop
+  commercial_shop: [
+    "parking", "security", "power_backup", "cctv", 
+    "fire_safety", "water_supply", "wifi", "ac"
+  ],
+  // Plot/Land - minimal amenities
+  land_plot: [
+    "security", "water_supply", "cctv"
+  ],
+  // PG/Hostel
+  pg_accommodation: [
+    "parking", "security", "power_backup", "cctv", 
+    "fire_safety", "water_supply", "wifi", "ac", "intercom"
+  ]
+};
+
+const FURNISHING_OPTIONS = ["Unfurnished", "Semi-Furnished", "Fully-Furnished"];
+const FACING_OPTIONS = ["North", "South", "East", "West", "North-East", "North-West", "South-East", "South-West"];
+const AGE_OPTIONS = ["New Construction", "Less than 1 Year", "1-5 Years", "5-10 Years", "10+ Years"];
+
+export default function AddPropertyPopup({ onClose, editIndex = null, initialData = null }) {
+  const { addProperty, updateProperty, properties } = useProperty();
+  
+  const [currentStep, setCurrentStep] = useState(1);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [uploadingImages, setUploadingImages] = useState(false);
+  const [errors, setErrors] = useState({});
+  const [showLocationPicker, setShowLocationPicker] = useState(false);
+  const [imageFiles, setImageFiles] = useState([]); // Store actual File objects
+  // separate refs for images, video, brochure
+  const imagesRef = useRef();
+  const videoRef = useRef();
+  const brochureRef = useRef();
+
+  const [formData, setFormData] = useState(initialData || {
+    // Step 1: Basic Info
+    title: "",
+    status: "sale",
+    propertyType: "",
+    
+    // Step 2: Property Details
+    location: "",
+    latitude: "",
+    longitude: "",
+    bedrooms: "",
+    bathrooms: "",
+    balconies: "",
+    area: "",
+    carpetArea: "",
+    floor: "",
+    totalFloors: "",
+    facing: "",
+    age: "",
+    furnishing: "",
+    
+    // Step 3: Amenities
+    amenities: [],
+    description: "",
+    
+    // Step 4: Media
+    images: [],
+    video: null,       // NEW
+    brochure: null,    // NEW (object: { name, size, url })
+    
+    // Step 5: Pricing
+    price: "",
+    priceNegotiable: false,
+    maintenanceCharges: "",
+    depositAmount: ""
+  });
+
+  // Close on escape
+  useEffect(() => {
+    const onKey = (e) => { if (e.key === "Escape") onClose(); };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [onClose]);
+
+  // Cleanup blob URLs on unmount to prevent memory leaks
+  useEffect(() => {
+    return () => {
+      // Revoke all blob URLs when component unmounts
+      if (formData.images) {
+        formData.images.forEach(img => {
+          if (typeof img === 'string' && img.startsWith('blob:')) {
+            URL.revokeObjectURL(img);
+          }
+        });
+      }
+    };
+  }, []);
+
+  const handleChange = (field, value) => {
+    setFormData(prev => {
+      const newData = { ...prev, [field]: value };
+      
+      // Auto-set bedrooms to "0" for Studio Apartment
+      if (field === 'propertyType' && value === 'Studio Apartment') {
+        newData.bedrooms = '0';
+      }
+      // Clear bedrooms if switching away from Studio Apartment and it was set to 0
+      if (field === 'propertyType' && value !== 'Studio Apartment' && prev.bedrooms === '0') {
+        newData.bedrooms = '';
+      }
+      
+      // Clear amenities that are not applicable to the new property type
+      if (field === 'propertyType') {
+        // Get available amenities for the new property type
+        const propertyType = PROPERTY_TYPES.find(pt => pt.value === value);
+        let availableAmenityIds = [];
+        
+        if (propertyType) {
+          if (value === 'Farm House') {
+            availableAmenityIds = PROPERTY_TYPE_AMENITIES.residential_farmhouse;
+          } else if (value === 'Plot / Land') {
+            availableAmenityIds = PROPERTY_TYPE_AMENITIES.land_plot;
+          } else if (propertyType.category === 'residential') {
+            availableAmenityIds = PROPERTY_TYPE_AMENITIES.residential;
+          } else if (propertyType.category === 'commercial') {
+            const configKey = `${propertyType.category}_${propertyType.subCategory}`;
+            availableAmenityIds = PROPERTY_TYPE_AMENITIES[configKey] || PROPERTY_TYPE_AMENITIES.commercial_office;
+          } else if (propertyType.category === 'pg') {
+            availableAmenityIds = PROPERTY_TYPE_AMENITIES.pg_accommodation;
+          } else if (propertyType.category === 'land') {
+            availableAmenityIds = PROPERTY_TYPE_AMENITIES.land_plot;
+          }
+        }
+        
+        // Filter out amenities that are not available for the new property type
+        if (availableAmenityIds.length > 0 && prev.amenities) {
+          newData.amenities = prev.amenities.filter(amenityId => availableAmenityIds.includes(amenityId));
+        }
+      }
+      
+      return newData;
+    });
+    if (errors[field]) {
+      setErrors(prev => ({ ...prev, [field]: null }));
+    }
+  };
+
+  // Get property type configuration
+  const getPropertyTypeConfig = () => {
+    if (!formData.propertyType) return PROPERTY_TYPE_FIELDS.residential_standard; // default
+    
+    const propertyType = PROPERTY_TYPES.find(pt => pt.value === formData.propertyType);
+    if (!propertyType) return PROPERTY_TYPE_FIELDS.residential_standard;
+    
+    // Special case for Farm House
+    if (formData.propertyType === 'Farm House') {
+      return PROPERTY_TYPE_FIELDS.residential_farmhouse;
+    }
+    
+    // Build config key based on category and subCategory
+    const configKey = `${propertyType.category}_${propertyType.subCategory}`;
+    return PROPERTY_TYPE_FIELDS[configKey] || PROPERTY_TYPE_FIELDS.residential_standard;
+  };
+
+  const toggleAmenity = (amenityId) => {
+    setFormData(prev => ({
+      ...prev,
+      amenities: prev.amenities.includes(amenityId)
+        ? prev.amenities.filter(a => a !== amenityId)
+        : [...prev.amenities, amenityId]
+    }));
+  };
+
+  // Handle location selection from LocationPicker
+  const handleLocationSelect = (locationData) => {
+    setFormData(prev => ({
+      ...prev,
+      latitude: locationData.latitude.toString(),
+      longitude: locationData.longitude.toString(),
+      location: locationData.fullAddress || prev.location // Update location with full address if available
+    }));
+    setShowLocationPicker(false);
+  };
+
+  const handleImageUpload = (e) => {
+    const files = Array.from(e.target.files || []);
+    
+    // Check total image count
+    const currentCount = formData.images?.length || 0;
+    if (currentCount + files.length > 10) {
+      setErrors(prev => ({ 
+        ...prev, 
+        images: `Maximum 10 photos allowed. You have ${currentCount} and trying to add ${files.length}` 
+      }));
+      return;
+    }
+    
+    // Store file objects for later upload
+    setImageFiles(prev => [...prev, ...files].slice(0, 10));
+    
+    // Create blob URLs for preview (temporary)
+    const newImages = files.map(f => URL.createObjectURL(f));
+    setFormData(prev => ({
+      ...prev,
+      images: [...(prev.images || []), ...newImages].slice(0, 10)
+    }));
+    
+    if (errors.images) {
+      setErrors(prev => ({ ...prev, images: null }));
+    }
+  };
+
+  const removeImage = (idx) => {
+    const imageToRemove = formData.images[idx];
+    
+    // Revoke blob URL to free memory
+    if (imageToRemove && imageToRemove.startsWith('blob:')) {
+      URL.revokeObjectURL(imageToRemove);
+      
+      // Find and remove corresponding file from imageFiles
+      // Count blob URLs before this index to find the file index
+      const blobUrlsBefore = formData.images.slice(0, idx).filter(img => img.startsWith('blob:'));
+      const fileIndex = blobUrlsBefore.length;
+      setImageFiles(prev => prev.filter((_, i) => i !== fileIndex));
+    }
+    
+    setFormData(prev => ({
+      ...prev,
+      images: prev.images.filter((_, i) => i !== idx)
+    }));
+  };
+
+  // ---------- NEW: Video Handlers ----------
+  const handleVideoUpload = (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    // validate type
+    const allowed = ["video/mp4", "video/webm", "video/quicktime", "video/x-m4v", "video/ogg"];
+    if (!allowed.includes(file.type)) {
+      setErrors(prev => ({ ...prev, video: "Unsupported video format" }));
+      return;
+    }
+
+    // validate size (<= 50MB)
+    if (file.size > 50 * 1024 * 1024) {
+      setErrors(prev => ({ ...prev, video: "Video must be <= 50MB" }));
+      return;
+    }
+
+    const url = URL.createObjectURL(file);
+    setFormData(prev => ({ ...prev, video: { file, url, name: file.name, size: file.size } }));
+    setErrors(prev => ({ ...prev, video: null }));
+  };
+
+  const removeVideo = () => {
+    // revoke object URL to free memory
+    if (formData.video?.url) URL.revokeObjectURL(formData.video.url);
+    setFormData(prev => ({ ...prev, video: null }));
+  };
+
+  // ---------- NEW: Brochure (PDF) Handlers ----------
+  const handleBrochureUpload = (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    // validate type
+    if (file.type !== "application/pdf") {
+      setErrors(prev => ({ ...prev, brochure: "Only PDF files are allowed" }));
+      return;
+    }
+
+    // validate size (<= 10MB)
+    if (file.size > 10 * 1024 * 1024) {
+      setErrors(prev => ({ ...prev, brochure: "PDF must be <= 10MB" }));
+      return;
+    }
+
+    const url = URL.createObjectURL(file);
+    setFormData(prev => ({ ...prev, brochure: { file, url, name: file.name, size: file.size } }));
+    setErrors(prev => ({ ...prev, brochure: null }));
+  };
+
+  const removeBrochure = () => {
+    if (formData.brochure?.url) URL.revokeObjectURL(formData.brochure.url);
+    setFormData(prev => ({ ...prev, brochure: null }));
+  };
+
+  const validateStep = (step) => {
+    const newErrors = {};
+
+    switch (step) {
+      case 1:
+        if (!formData.title?.trim()) newErrors.title = "Property title is required";
+        if (!formData.propertyType) newErrors.propertyType = "Select property type";
+        break;
+      case 2:
+        if (!formData.location?.trim()) newErrors.location = "Location is required";
+        if (!formData.area) {
+          newErrors.area = formData.propertyType === 'Plot / Land' 
+            ? "Plot area is required" 
+            : "Built-up area is required";
+        }
+        
+        // Dynamic validation based on property type
+        const fieldConfig = getPropertyTypeConfig();
+        if (fieldConfig.bedroomsRequired && !formData.bedrooms) {
+          newErrors.bedrooms = "Bedrooms is required";
+        }
+        if (fieldConfig.bathroomsRequired && !formData.bathrooms) {
+          newErrors.bathrooms = "Bathrooms is required";
+        }
+        break;
+      case 3:
+        if (!formData.description?.trim()) newErrors.description = "Please add a description";
+        break;
+      case 4:
+        // require at least 1 image (existing behaviour)
+        if (!formData.images || formData.images.length === 0) {
+          newErrors.images = "Add at least 1 photo";
+        }
+        // optional: if you want to require brochure/video, uncomment below
+        // if (!formData.video) newErrors.video = "Please upload a video";
+        // if (!formData.brochure) newErrors.brochure = "Please upload brochure";
+        break;
+      case 5:
+        if (!formData.price) newErrors.price = "Price is required";
+        break;
+      default:
+        break;
+    }
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
+  const handleNext = () => {
+    if (validateStep(currentStep)) {
+      setCurrentStep(prev => Math.min(prev + 1, 5));
+      // scroll to top of popup body to ensure user sees the step (no scroll to media specifically)
+      const body = document.querySelector(".popup-body");
+      if (body) body.scrollTop = 0;
+    }
+  };
+
+  const handleBack = () => {
+    setCurrentStep(prev => Math.max(prev - 1, 1));
+  };
+
+  const handleSubmit = async () => {
+    if (!validateStep(currentStep)) return;
+    
+    setIsSubmitting(true);
+    setUploadingImages(true);
+    
+    try {
+      // Upload images first if there are image files
+      let uploadedImageUrls = [];
+      if (imageFiles.length > 0) {
+        try {
+          // Upload each image file
+          const uploadPromises = imageFiles.map(async (file, index) => {
+            try {
+              const response = await sellerPropertiesAPI.uploadImage(file);
+              if (response.success && response.data && response.data.url) {
+                return { success: true, url: response.data.url, index };
+              } else {
+                console.error(`Image ${index + 1} upload failed:`, response.message || 'Unknown error');
+                return { success: false, index, error: response.message || 'Upload failed' };
+              }
+            } catch (error) {
+              console.error(`Image ${index + 1} upload error:`, error);
+              return { success: false, index, error: error.message || 'Upload failed' };
+            }
+          });
+          
+          const results = await Promise.all(uploadPromises);
+          const successful = results.filter(r => r.success);
+          const failed = results.filter(r => !r.success);
+          
+          if (failed.length > 0) {
+            console.error('Failed uploads:', failed);
+            const errorMessage = failed.length === imageFiles.length 
+              ? `Failed to upload all images. ${failed[0].error || 'Please check server permissions and try again.'}`
+              : `Failed to upload ${failed.length} of ${imageFiles.length} images. Please try again.`;
+            alert(errorMessage);
+            setUploadingImages(false);
+            setIsSubmitting(false);
+            return;
+          }
+          
+          uploadedImageUrls = successful.map(r => r.url);
+          
+          // Filter out blob URLs and combine with uploaded URLs
+          const existingUrls = (formData.images || []).filter(img => 
+            typeof img === 'string' && !img.startsWith('blob:')
+          );
+          
+          // Update formData with combined URLs (existing + newly uploaded)
+          formData.images = [...existingUrls, ...uploadedImageUrls];
+        } catch (uploadError) {
+          console.error('Image upload error:', uploadError);
+          alert(`Failed to upload images: ${uploadError.message || 'Please check server permissions and try again.'}`);
+          setUploadingImages(false);
+          setIsSubmitting(false);
+          return;
+        }
+      } else if (formData.images && formData.images.length > 0) {
+        // If images are already URLs (from edit mode), filter out blob URLs
+        uploadedImageUrls = formData.images.filter(img => 
+          typeof img === 'string' && !img.startsWith('blob:')
+        );
+        formData.images = uploadedImageUrls;
+      }
+      
+      setUploadingImages(false);
+      
+      // Now submit the property with uploaded image URLs
+      if (editIndex !== null) {
+        const propertyId = properties[editIndex]?.id;
+        if (propertyId) {
+          await updateProperty(propertyId, formData);
+        }
+      } else {
+        await addProperty(formData);
+      }
+      
+      // Close popup on success
+      onClose();
+    } catch (error) {
+      // Show detailed error message
+      const errorMessage = error.message || error.status === 401 
+        ? 'Authentication required. Please log in to add properties.'
+        : error.status === 403
+        ? 'Access denied. Please check your permissions.'
+        : 'Failed to save property. Please check your connection and try again.';
+      alert(errorMessage);
+      console.error('Property save error:', error);
+    } finally {
+      setIsSubmitting(false);
+      setUploadingImages(false);
+    }
+  };
+
+  const renderStepIndicator = () => (
+    <div className="step-indicator">
+      {STEPS.map((step, idx) => (
+        <div 
+          key={step.id}
+          className={`step-item ${currentStep === step.id ? 'active' : ''} ${currentStep > step.id ? 'completed' : ''}`}
+        >
+          <div className="step-circle">
+            {currentStep > step.id ? (
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+                <path d="M20 6L9 17l-5-5" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"/>
+              </svg>
+            ) : (
+              <span>{step.icon}</span>
+            )}
+          </div>
+          <span className="step-title">{step.title}</span>
+          {idx < STEPS.length - 1 && <div className="step-line" />}
+        </div>
+      ))}
+    </div>
+  );
+
+  const renderStep1 = () => (
+    <div className="step-content">
+      <h3 className="step-heading">Basic Information</h3>
+      <p className="step-subheading">Let's start with the basic details of your property</p>
+
+      <div className="form-group">
+        <label>Property Title <span className="required">*</span></label>
+        <input
+          type="text"
+          placeholder="e.g., Spacious 3BHK Apartment with Sea View"
+          value={formData.title}
+          onChange={(e) => handleChange('title', e.target.value)}
+          className={errors.title ? 'error' : ''}
+        />
+        {errors.title && <span className="error-text">{errors.title}</span>}
+      </div>
+
+      <div className="form-group">
+        <label>I want to</label>
+        <div className="toggle-buttons">
+          <button
+            type="button"
+            className={`toggle-btn ${formData.status === 'sale' ? 'active' : ''}`}
+            onClick={() => handleChange('status', 'sale')}
+          >
+            <span className="toggle-icon">🏷️</span>
+            Sell
+          </button>
+          <button
+            type="button"
+            className={`toggle-btn ${formData.status === 'rent' ? 'active' : ''}`}
+            onClick={() => handleChange('status', 'rent')}
+          >
+            <span className="toggle-icon">🔑</span>
+            Rent / Lease
+          </button>
+        </div>
+      </div>
+
+      <div className="form-group">
+        <label>Property Type <span className="required">*</span></label>
+        <div className="property-type-grid">
+          {PROPERTY_TYPES.map(type => (
+            <button
+              key={type.value}
+              type="button"
+              className={`property-type-btn ${formData.propertyType === type.value ? 'active' : ''}`}
+              onClick={() => handleChange('propertyType', type.value)}
+            >
+              <span className="type-icon">{type.icon}</span>
+              <span className="type-label">{type.value}</span>
+            </button>
+          ))}
+        </div>
+        {errors.propertyType && <span className="error-text">{errors.propertyType}</span>}
+      </div>
+    </div>
+  );
+
+  const renderStep2 = () => {
+    const fieldConfig = getPropertyTypeConfig();
+    
+    return (
+      <div className="step-content">
+        <h3 className="step-heading">Property Details</h3>
+        <p className="step-subheading">Tell us more about your property specifications</p>
+
+        <div className="form-group">
+          <label>Location <span className="required">*</span></label>
+          <LocationAutoSuggest
+            placeholder="Enter locality, area or landmark"
+            value={formData.location}
+            onChange={(locationData) => {
+              if (!locationData) {
+                setFormData(prev => ({ ...prev, location: "", latitude: "", longitude: "" }));
+                return;
+              }
+              setFormData(prev => ({
+                ...prev,
+                location: locationData.fullAddress || locationData.placeName || "",
+                latitude: locationData.coordinates?.lat ?? "",
+                longitude: locationData.coordinates?.lng ?? ""
+              }));
+            }}
+            className={errors.location ? 'agent-location-error' : ''}
+            error={errors.location}
+          />
+        </div>
+
+        {/* Location Picker Button */}
+        <div className="form-group">
+          <label>Property Location on Map (Optional)</label>
+          {!formData.latitude || !formData.longitude ? (
+            <>
+              <button
+                type="button"
+                className="location-picker-btn"
+                onClick={() => setShowLocationPicker(true)}
+              >
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" style={{ marginRight: '8px' }}>
+                  <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z" stroke="currentColor" strokeWidth="2"/>
+                  <circle cx="12" cy="10" r="3" stroke="currentColor" strokeWidth="2"/>
+                </svg>
+                <span>Add Location on Map</span>
+              </button>
+              <span className="hint-text">Select exact location on map for better visibility</span>
+            </>
+          ) : (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <span className="location-icon" style={{ fontSize: '18px' }}>📍</span>
+                <div style={{ flex: 1 }}>
+                  <span style={{ fontSize: '0.875rem', color: '#059669', fontWeight: '500' }}>
+                    Location set on map
+                  </span>
+                </div>
+              </div>
+              <small className="location-picker-coordinates" style={{ marginLeft: '26px', fontSize: '0.75rem', color: '#059669', fontFamily: 'monospace' }}>
+                Coordinates: {parseFloat(formData.latitude).toFixed(6)}, {parseFloat(formData.longitude).toFixed(6)}
+              </small>
+              <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+                <button
+                  type="button"
+                  className="location-picker-change-btn"
+                  onClick={() => setShowLocationPicker(true)}
+                  title="Change location"
+                  style={{
+                    padding: '6px 12px',
+                    fontSize: '0.875rem',
+                    backgroundColor: '#f3f4f6',
+                    border: '1px solid #d1d5db',
+                    borderRadius: '6px',
+                    cursor: 'pointer',
+                    color: '#374151',
+                    fontWeight: '500'
+                  }}
+                >
+                  Change Location
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setFormData(prev => ({ ...prev, latitude: '', longitude: '' }));
+                  }}
+                  title="Remove location"
+                  style={{
+                    padding: '6px 12px',
+                    fontSize: '0.875rem',
+                    backgroundColor: '#fee2e2',
+                    border: '1px solid #fecaca',
+                    borderRadius: '6px',
+                    cursor: 'pointer',
+                    color: '#991b1b',
+                    fontWeight: '500'
+                  }}
+                >
+                  Remove
+                </button>
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* Dynamic fields based on property type */}
+        {(fieldConfig.showBedrooms || fieldConfig.showBathrooms || fieldConfig.showBalconies) && (
+          <div className="form-row three-cols">
+            {fieldConfig.showBedrooms && (
+              <div className="form-group">
+                <label>
+                  {formData.propertyType === 'Studio Apartment' ? 'Studio' : 'Bedrooms'} 
+                  {fieldConfig.bedroomsRequired && <span className="required">*</span>}
+                </label>
+                {formData.propertyType === 'Studio Apartment' ? (
+                  <div className="number-selector">
+                    <button
+                      type="button"
+                      className="num-btn active"
+                      disabled
+                      style={{ cursor: 'not-allowed', opacity: 0.7 }}
+                    >
+                      Studio
+                    </button>
+                  </div>
+                ) : (
+                  <div className="number-selector">
+                    {['1', '2', '3', '4', '5', '5+'].map(num => (
+                      <button
+                        key={num}
+                        type="button"
+                        className={`num-btn ${formData.bedrooms === num ? 'active' : ''}`}
+                        onClick={() => handleChange('bedrooms', num)}
+                      >
+                        {num}
+                      </button>
+                    ))}
+                  </div>
+                )}
+                {errors.bedrooms && <span className="error-text">{errors.bedrooms}</span>}
+              </div>
+            )}
+
+            {fieldConfig.showBathrooms && (
+              <div className="form-group">
+                <label>Bathrooms {fieldConfig.bathroomsRequired && <span className="required">*</span>}</label>
+                <div className="number-selector">
+                  {['1', '2', '3', '4', '4+'].map(num => (
+                    <button
+                      key={num}
+                      type="button"
+                      className={`num-btn ${formData.bathrooms === num ? 'active' : ''}`}
+                      onClick={() => handleChange('bathrooms', num)}
+                    >
+                      {num}
+                    </button>
+                  ))}
+                </div>
+                {errors.bathrooms && <span className="error-text">{errors.bathrooms}</span>}
+              </div>
+            )}
+
+            {fieldConfig.showBalconies && (
+              <div className="form-group">
+                <label>Balconies</label>
+                <div className="number-selector">
+                  {['0', '1', '2', '3', '3+'].map(num => (
+                    <button
+                      key={num}
+                      type="button"
+                      className={`num-btn ${formData.balconies === num ? 'active' : ''}`}
+                      onClick={() => handleChange('balconies', num)}
+                    >
+                      {num}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+        )}
+
+        <div className="form-row two-cols">
+          <div className="form-group">
+            <label>
+              {formData.propertyType === 'Plot / Land' ? 'Plot Area' : 'Built-up Area'} 
+              <span className="required">*</span>
+            </label>
+            <div className="input-with-suffix">
+              <input
+                type="number"
+                placeholder={formData.propertyType === 'Plot / Land' ? 'Enter plot area' : 'Enter area'}
+                value={formData.area}
+                onChange={(e) => handleChange('area', e.target.value)}
+                className={errors.area ? 'error' : ''}
+              />
+              <span className="suffix">sq.ft</span>
+            </div>
+            {errors.area && <span className="error-text">{errors.area}</span>}
+          </div>
+
+          {fieldConfig.showCarpetArea && (
+            <div className="form-group">
+              <label>Carpet Area</label>
+              <div className="input-with-suffix">
+                <input
+                  type="number"
+                  placeholder="Enter area"
+                  value={formData.carpetArea}
+                  onChange={(e) => handleChange('carpetArea', e.target.value)}
+                />
+                <span className="suffix">sq.ft</span>
+              </div>
+            </div>
+          )}
+        </div>
+
+        {(fieldConfig.showFloor || fieldConfig.showTotalFloors) && (
+          <div className="form-row two-cols">
+            {fieldConfig.showFloor && (
+              <div className="form-group">
+                <label>Floor Number</label>
+                <input
+                  type="text"
+                  placeholder="e.g., 5 or Ground"
+                  value={formData.floor}
+                  onChange={(e) => handleChange('floor', e.target.value)}
+                />
+              </div>
+            )}
+
+            {fieldConfig.showTotalFloors && (
+              <div className="form-group">
+                <label>Total Floors</label>
+                <input
+                  type="number"
+                  placeholder="Total floors in building"
+                  value={formData.totalFloors}
+                  onChange={(e) => handleChange('totalFloors', e.target.value)}
+                />
+              </div>
+            )}
+          </div>
+        )}
+
+        {(fieldConfig.showFacing || fieldConfig.showAge || fieldConfig.showFurnishing) && (
+          <div className="form-row three-cols">
+            {fieldConfig.showFacing && (
+              <div className="form-group">
+                <label>Facing</label>
+                <select
+                  value={formData.facing}
+                  onChange={(e) => handleChange('facing', e.target.value)}
+                >
+                  <option value="">Select</option>
+                  {FACING_OPTIONS.map(opt => (
+                    <option key={opt} value={opt}>{opt}</option>
+                  ))}
+                </select>
+              </div>
+            )}
+
+            {fieldConfig.showAge && (
+              <div className="form-group">
+                <label>Property Age</label>
+                <select
+                  value={formData.age}
+                  onChange={(e) => handleChange('age', e.target.value)}
+                >
+                  <option value="">Select</option>
+                  {AGE_OPTIONS.map(opt => (
+                    <option key={opt} value={opt}>{opt}</option>
+                  ))}
+                </select>
+              </div>
+            )}
+
+            {fieldConfig.showFurnishing && (
+              <div className="form-group">
+                <label>Furnishing</label>
+                <select
+                  value={formData.furnishing}
+                  onChange={(e) => handleChange('furnishing', e.target.value)}
+                >
+                  <option value="">Select</option>
+                  {FURNISHING_OPTIONS.map(opt => (
+                    <option key={opt} value={opt}>{opt}</option>
+                  ))}
+                </select>
+              </div>
+            )}
+          </div>
+        )}
+      </div>
+    );
+  };
+
+  // Get available amenities based on property type
+  const getAvailableAmenities = () => {
+    if (!formData.propertyType) return AMENITIES;
+    
+    const propertyType = PROPERTY_TYPES.find(pt => pt.value === formData.propertyType);
+    if (!propertyType) return AMENITIES;
+    
+    // Special case for Farm House
+    if (formData.propertyType === 'Farm House') {
+      const amenityIds = PROPERTY_TYPE_AMENITIES.residential_farmhouse;
+      return AMENITIES.filter(a => amenityIds.includes(a.id));
+    }
+    
+    // Special case for Plot/Land
+    if (formData.propertyType === 'Plot / Land') {
+      const amenityIds = PROPERTY_TYPE_AMENITIES.land_plot;
+      return AMENITIES.filter(a => amenityIds.includes(a.id));
+    }
+    
+    // For residential properties
+    if (propertyType.category === 'residential') {
+      const amenityIds = PROPERTY_TYPE_AMENITIES.residential;
+      return AMENITIES.filter(a => amenityIds.includes(a.id));
+    }
+    
+    // For commercial properties
+    if (propertyType.category === 'commercial') {
+      const configKey = `${propertyType.category}_${propertyType.subCategory}`;
+      const amenityIds = PROPERTY_TYPE_AMENITIES[configKey] || PROPERTY_TYPE_AMENITIES.commercial_office;
+      return AMENITIES.filter(a => amenityIds.includes(a.id));
+    }
+    
+    // For PG/Hostel
+    if (propertyType.category === 'pg') {
+      const amenityIds = PROPERTY_TYPE_AMENITIES.pg_accommodation;
+      return AMENITIES.filter(a => amenityIds.includes(a.id));
+    }
+    
+    // For land
+    if (propertyType.category === 'land') {
+      const amenityIds = PROPERTY_TYPE_AMENITIES.land_plot;
+      return AMENITIES.filter(a => amenityIds.includes(a.id));
+    }
+    
+    // Default: return all amenities
+    return AMENITIES;
+  };
+
+  const renderStep3 = () => {
+    const availableAmenities = getAvailableAmenities();
+    
+    return (
+      <div className="step-content">
+        <h3 className="step-heading">Amenities & Description</h3>
+        <p className="step-subheading">Select the amenities available and describe your property</p>
+
+        <div className="form-group">
+          <label>Select Amenities</label>
+          <div className="amenities-grid">
+            {availableAmenities.map(amenity => (
+              <button
+                key={amenity.id}
+                type="button"
+                className={`amenity-btn ${formData.amenities.includes(amenity.id) ? 'active' : ''}`}
+                onClick={() => toggleAmenity(amenity.id)}
+              >
+                <span className="amenity-icon">{amenity.icon}</span>
+                <span className="amenity-label">{amenity.label}</span>
+                {formData.amenities.includes(amenity.id) && (
+                  <span className="check-icon">✓</span>
+                )}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        <div className="form-group">
+          <label>Property Description <span className="required">*</span></label>
+          <textarea
+            placeholder="Describe your property in detail. Mention unique features, nearby landmarks, connectivity, etc."
+            value={formData.description}
+            onChange={(e) => handleChange('description', e.target.value)}
+            rows={5}
+            className={errors.description ? 'error' : ''}
+          />
+          <span className="char-count">{(formData.description || '').length}/1000</span>
+          {errors.description && <span className="error-text">{errors.description}</span>}
+        </div>
+      </div>
+    );
+  };
+
+  const renderStep4 = () => (
+    <div className="step-content">
+      <h3 className="step-heading">Upload Photos, Video & Brochure</h3>
+      <p className="step-subheading">Add up to 10 high-quality photos, optional video and brochure</p>
+
+      {/* ===== TOP: Image / Video / Brochure upload boxes (no scroll needed to reach) ===== */}
+      <div className="media-upload-row">
+        {/* Images */}
+        <div 
+          className={`upload-zone media-upload ${errors.images ? 'error' : ''}`}
+          onClick={() => imagesRef.current?.click()}
+          role="button"
+          tabIndex={0}
+          aria-label="Upload Images"
+        >
+          <input
+            ref={imagesRef}
+            type="file"
+            accept="image/*"
+            multiple
+            onChange={handleImageUpload}
+            style={{ display: 'none' }}
+          />
+          <div className="upload-content">
+            <div className="upload-icon">
+              <svg width="48" height="48" viewBox="0 0 24 24" fill="none">
+                <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M17 8l-5-5-5 5M12 3v12" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+              </svg>
+            </div>
+            <h4>Upload Photos</h4>
+            <p>JPG, PNG, WEBP — Max 5MB each</p>
+          </div>
+        </div>
+
+        {/* Video */}
+        <div 
+          className={`upload-zone media-upload ${errors.video ? 'error' : ''}`}
+          onClick={() => videoRef.current?.click()}
+          role="button"
+          tabIndex={0}
+          aria-label="Upload Video"
+        >
+          <input
+            ref={videoRef}
+            type="file"
+            accept="video/mp4,video/webm,video/quicktime,video/x-m4v,video/ogg"
+            onChange={handleVideoUpload}
+            style={{ display: 'none' }}
+          />
+          <div className="upload-content">
+            <div className="upload-icon">
+              <svg width="48" height="48" viewBox="0 0 24 24" fill="none">
+                <path d="M23 7v10a2 2 0 01-2 2H3a2 2 0 01-2-2V7a2 2 0 012-2h18a2 2 0 012 2zM10 8l6 4-6 4V8z" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+              </svg>
+            </div>
+            <h4>Upload Video (Optional)</h4>
+            <p>MP4, WEBM, MOV — Max 50MB</p>
+            {errors.video && <span className="error-text small">{errors.video}</span>}
+          </div>
+        </div>
+
+        {/* Brochure */}
+        <div 
+          className={`upload-zone media-upload ${errors.brochure ? 'error' : ''}`}
+          onClick={() => brochureRef.current?.click()}
+          role="button"
+          tabIndex={0}
+          aria-label="Upload Brochure"
+        >
+          <input
+            ref={brochureRef}
+            type="file"
+            accept="application/pdf"
+            onChange={handleBrochureUpload}
+            style={{ display: 'none' }}
+          />
+          <div className="upload-content">
+            <div className="upload-icon">
+              <svg width="48" height="48" viewBox="0 0 24 24" fill="none">
+                <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                <path d="M14 2v6h6" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+              </svg>
+            </div>
+            <h4>Upload Brochure (PDF)</h4>
+            <p>PDF — Max 10MB</p>
+            {errors.brochure && <span className="error-text small">{errors.brochure}</span>}
+          </div>
+        </div>
+      </div>
+
+      {/* ===== previews: Video and Brochure appear BEFORE images preview grid so user sees them without scrolling ===== */}
+      <div className="media-preview-row">
+        {formData.video && (
+          <div className="video-preview-card preview-item media-card">
+            <video controls src={formData.video.url} className="video-player" />
+            <div className="media-card-footer">
+              <div className="media-info">
+                <strong>{formData.video.name}</strong>
+                <span className="media-size">{Math.round(formData.video.size / 1024 / 1024 * 100) / 100} MB</span>
+              </div>
+              <div className="media-actions">
+                <button type="button" className="remove-btn small" onClick={removeVideo} aria-label="Remove video">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M18 6L6 18M6 6l12 12" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/></svg>
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {formData.brochure && (
+          <div className="brochure-preview-card preview-item media-card">
+            <div className="brochure-card">
+              <div className="pdf-icon">📄</div>
+              <div className="brochure-info">
+                <strong className="brochure-name">{formData.brochure.name}</strong>
+                <span className="media-size">{Math.round(formData.brochure.size / 1024) } KB</span>
+              </div>
+              <div className="media-actions">
+                <button type="button" className="remove-btn small" onClick={removeBrochure} aria-label="Remove brochure">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M18 6L6 18M6 6l12 12" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/></svg>
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* Images preview grid (unchanged except placed after video/brochure previews) */}
+      {errors.images && <span className="error-text center">{errors.images}</span>}
+
+      {formData.images?.length > 0 && (
+        <div className="image-preview-section">
+          <div className="preview-header">
+            <span>Uploaded Photos ({formData.images.length}/10)</span>
+            <div>
+              <button 
+                type="button" 
+                className="add-more-btn"
+                onClick={() => imagesRef.current?.click()}
+              >
+                + Add More
+              </button>
+            </div>
+          </div>
+          <div className="image-preview-grid">
+            {formData.images.map((src, idx) => (
+              <div key={idx} className="preview-item">
+                <img src={src} alt={`Preview ${idx + 1}`} />
+                {idx === 0 && <span className="cover-badge">Cover</span>}
+                <button
+                  type="button"
+                  className="remove-btn"
+                  onClick={() => removeImage(idx)}
+                >
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
+                    <path d="M18 6L6 18M6 6l12 12" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+                  </svg>
+                </button>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+
+  const renderStep5 = () => (
+    <div className="step-content">
+      <h3 className="step-heading">Pricing Details</h3>
+      <p className="step-subheading">Set the right price for your property</p>
+
+      <div className="form-group">
+        <label>
+          {formData.status === 'sale' ? 'Expected Price' : 'Monthly Rent'} 
+          <span className="required">*</span>
+        </label>
+        <div className="price-input-wrapper">
+          <span className="currency">₹</span>
+          <input
+            type="number"
+            placeholder={formData.status === 'sale' ? 'Enter expected price' : 'Enter monthly rent'}
+            value={formData.price}
+            onChange={(e) => handleChange('price', e.target.value)}
+            className={errors.price ? 'error' : ''}
+          />
+        </div>
+        {formData.price && (
+          <span className="price-words">
+            {formatPriceInWords(formData.price)}
+          </span>
+        )}
+        {errors.price && <span className="error-text">{errors.price}</span>}
+      </div>
+
+      <div className="form-group">
+        <label className="checkbox-label">
+          <input
+            type="checkbox"
+            checked={formData.priceNegotiable}
+            onChange={(e) => handleChange('priceNegotiable', e.target.checked)}
+          />
+          <span className="checkmark"></span>
+          Price is negotiable
+        </label>
+      </div>
+
+      {formData.status === 'rent' && (
+        <div className="form-row two-cols">
+          <div className="form-group">
+            <label>Security Deposit</label>
+            <div className="price-input-wrapper">
+              <span className="currency">₹</span>
+              <input
+                type="number"
+                placeholder="Enter deposit amount"
+                value={formData.depositAmount}
+                onChange={(e) => handleChange('depositAmount', e.target.value)}
+              />
+            </div>
+          </div>
+
+          <div className="form-group">
+            <label>Maintenance (per month)</label>
+            <div className="price-input-wrapper">
+              <span className="currency">₹</span>
+              <input
+                type="number"
+                placeholder="Enter maintenance"
+                value={formData.maintenanceCharges}
+                onChange={(e) => handleChange('maintenanceCharges', e.target.value)}
+              />
+            </div>
+          </div>
+        </div>
+      )}
+
+      {formData.status === 'sale' && (
+        <div className="form-group">
+          <label>Maintenance (per month)</label>
+          <div className="price-input-wrapper">
+            <span className="currency">₹</span>
+            <input
+              type="number"
+              placeholder="Enter monthly maintenance"
+              value={formData.maintenanceCharges}
+              onChange={(e) => handleChange('maintenanceCharges', e.target.value)}
+            />
+          </div>
+        </div>
+      )}  
+
+      <div className="listing-summary">
+        <h4>Listing Summary</h4>
+        <div className="summary-grid">
+          <div className="summary-item">
+            <span className="summary-label">Property</span>
+            <span className="summary-value">{formData.title || '-'}</span>
+          </div>
+          <div className="summary-item">
+            <span className="summary-label">Type</span>
+            <span className="summary-value">{formData.propertyType || '-'}</span>
+          </div>
+          <div className="summary-item">
+            <span className="summary-label">Location</span>
+            <span className="summary-value">{formData.location || '-'}</span>
+          </div>
+          <div className="summary-item">
+            <span className="summary-label">Configuration</span>
+            <span className="summary-value">
+              {formData.bedrooms ? `${formData.bedrooms} BHK` : '-'}
+            </span>
+          </div>
+          <div className="summary-item">
+            <span className="summary-label">Area</span>
+            <span className="summary-value">
+              {formData.area ? `${formData.area} sq.ft` : '-'}
+            </span>
+          </div>
+          <div className="summary-item">
+            <span className="summary-label">Photos</span>
+            <span className="summary-value">
+              {formData.images?.length || 0} uploaded
+            </span>
+          </div>
+          <div className="summary-item">
+            <span className="summary-label">Video</span>
+            <span className="summary-value">{formData.video ? formData.video.name : '—'}</span>
+          </div>
+          <div className="summary-item">
+            <span className="summary-label">Brochure</span>
+            <span className="summary-value">{formData.brochure ? formData.brochure.name : '—'}</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+
+  const formatPriceInWords = (price) => {
+    const num = parseFloat(price);
+    if (isNaN(num)) return '';
+    
+    if (num >= 10000000) {
+      return `₹${(num / 10000000).toFixed(2)} Crore`;
+    } else if (num >= 100000) {
+      return `₹${(num / 100000).toFixed(2)} Lakh`;
+    } else if (num >= 1000) {
+      return `₹${(num / 1000).toFixed(2)} Thousand`;
+    }
+    return `₹${num}`;
+  };
+
+  const renderCurrentStep = () => {
+    switch (currentStep) {
+      case 1: return renderStep1();
+      case 2: return renderStep2();
+      case 3: return renderStep3();
+      case 4: return renderStep4();
+      case 5: return renderStep5();
+      default: return renderStep1();
+    }
+  };
+
+  return (
+    <div className="popup-overlay" onClick={(e) => e.target.classList.contains('popup-overlay') && onClose()}>
+      <div className="popup-container" role="dialog" aria-modal="true">
+        {/* Header */}
+        <div className="popup-header">
+          <h2>{editIndex !== null ? 'Edit Property' : 'List Your Property'}</h2>
+          <button className="close-btn" onClick={onClose} aria-label="Close">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+              <path d="M18 6L6 18M6 6l12 12" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+            </svg>
+          </button>
+        </div>
+
+        {/* Step Indicator */}
+        {renderStepIndicator()}
+
+        {/* Form Content */}
+        <div className="popup-body">
+          {renderCurrentStep()}
+        </div>
+
+        {/* Footer */}
+        <div className="popup-footer">
+          {currentStep > 1 && (
+            <button type="button" className="back-btn" onClick={handleBack}>
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+                <path d="M19 12H5M12 19l-7-7 7-7" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+              </svg>
+              Back
+            </button>
+          )}
+          
+          <div className="footer-right">
+            <button type="button" className="cancel-btn" onClick={onClose}>
+              Cancel
+            </button>
+            
+            {currentStep < 5 ? (
+              <button type="button" className="next-btn" onClick={handleNext}>
+                Next
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+                  <path d="M5 12h14M12 5l7 7-7 7" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+                </svg>
+              </button>
+            ) : (
+              <button 
+                type="button" 
+                className="submit-btn" 
+                onClick={handleSubmit}
+                disabled={isSubmitting}
+              >
+                {isSubmitting ? (
+                  <>
+                    <span className="spinner"></span>
+                    Publishing...
+                  </>
+                ) : (
+                  <>
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+                      <path d="M20 6L9 17l-5-5" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+                    </svg>
+                    {editIndex !== null ? 'Update Property' : 'Publish Listing'}
+                  </>
+                )}
+              </button>
+            )}
+          </div>
+        </div>
+      </div>
+
+      {/* Location Picker Modal */}
+      {showLocationPicker && (
+        <div className="location-picker-modal-overlay" onClick={(e) => {
+          if (e.target.classList.contains('location-picker-modal-overlay')) {
+            setShowLocationPicker(false);
+          }
+        }}>
+          <LocationPicker
+            initialLocation={formData.latitude && formData.longitude ? {
+              latitude: parseFloat(formData.latitude),
+              longitude: parseFloat(formData.longitude),
+              fullAddress: formData.location
+            } : null}
+            onLocationChange={handleLocationSelect}
+            onClose={() => setShowLocationPicker(false)}
+          />
+        </div>
+      )}
+    </div>
+  );
+}

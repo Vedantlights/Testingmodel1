@@ -1,0 +1,964 @@
+/* General Styling */
+.buyer-details-wrapper {
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+}
+
+.buyer-view-details-page {
+    flex-grow: 1;
+    padding: 0 0 3rem 0;
+    background-color: rgb(229, 225, 225);
+}
+
+.buyer-details-container {
+    max-width: 1280px;
+    margin: 0 auto;
+    padding: 0 1rem;
+}
+
+.buyer-divider {
+    border: none;
+    border-top: 1px solid #e0e0e0;
+    margin: 2rem 0;
+}
+
+/* Back Button Styling */
+.buyer-back-button {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 15px;
+    border: 1px solid #d1d5db; 
+    border-radius: 8px;
+    background-color: #ffffff; 
+    color: #1e3a8a;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+    margin-top: 2rem; 
+    margin-bottom: 1.5rem; 
+}
+
+.buyer-back-button:hover {
+    background-color: #f3f4f6; 
+    border-color: #a5b4fc; 
+    color: #1e40af;
+}
+
+.buyer-back-button svg {
+    font-size: 1.1rem;
+}
+
+/* --- ENHANCED PROPERTY HEADER --- */
+.buyer-property-header {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    padding: 2.5rem;
+    border-radius: 16px;
+    margin-bottom: 2rem;
+    box-shadow: 0 20px 60px rgba(102, 126, 234, 0.3);
+    position: relative;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    width: 100%;
+    max-width: 750px;
+}
+
+/* Decorative background elements */
+.buyer-property-header::before {
+    content: '';
+    position: absolute;
+    top: -50px;
+    right: -50px;
+    width: 200px;
+    height: 200px;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 50%;
+    filter: blur(40px);
+    pointer-events: none;
+}
+
+.buyer-property-header::after {
+    content: '';
+    position: absolute;
+    bottom: -30px;
+    left: -30px;
+    width: 150px;
+    height: 150px;
+    background: rgba(255, 255, 255, 0.08);
+    border-radius: 50%;
+    filter: blur(30px);
+    pointer-events: none;
+}
+
+.buyer-property-header > * {
+    position: relative;
+    z-index: 1;
+}
+
+/* Header Badges Container */
+.buyer-header-badges {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+    flex-wrap: wrap;
+}
+
+.buyer-status-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: rgba(255, 255, 255, 0.25);
+    backdrop-filter: blur(10px);
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    color: white;
+    padding: 10px 20px;
+    border-radius: 50px;
+    font-size: 0.95rem;
+    font-weight: 600;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+    cursor: default;
+    transition: all 0.3s ease;
+}
+
+.buyer-status-badge::before {
+    content: '🏷️';
+    font-size: 1rem;
+}
+
+.buyer-status-badge:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
+}
+
+.buyer-premium-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: rgba(255, 255, 255, 0.15);
+    backdrop-filter: blur(10px);
+    color: rgba(255, 255, 255, 0.9);
+    padding: 10px 18px;
+    border-radius: 50px;
+    font-size: 0.9rem;
+    font-weight: 500;
+    transition: all 0.3s ease;
+}
+
+.buyer-premium-badge:hover {
+    background: rgba(255, 255, 255, 0.2);
+}
+
+/* Property Title */
+.buyer-property-header h1 {
+    font-size: 2.8rem;
+    font-weight: 800;
+    color: white;
+    margin-bottom: 1rem;
+    line-height: 1.2;
+    text-shadow: 0 2px 20px rgba(0, 0, 0, 0.2);
+    letter-spacing: -0.5px;
+}
+
+/* Property Location */
+.buyer-property-location {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 1.2rem;
+    color: #000000;
+    margin-bottom: 1.5rem;
+    font-weight: 700;
+}
+
+.buyer-property-location::before {
+    font-size: 1.4rem;
+    filter: drop-shadow(0 2px 4px rgba(0,0,0,0.2));
+}
+
+/* Property Meta Info Bar */
+.buyer-property-meta-info {
+    display: inline-flex;
+    gap: 1.5rem;
+    flex-wrap: wrap;
+    padding: 1.2rem 1.5rem;
+    background: rgba(255, 255, 255, 0.15);
+    backdrop-filter: blur(10px);
+    border-radius: 12px;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    align-self: flex-start;
+}
+
+.buyer-meta-item {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.buyer-meta-label {
+    color: rgba(255, 255, 255, 0.8);
+    font-size: 0.85rem;
+    font-weight: 500;
+}
+
+.buyer-meta-value {
+    color: white;
+    font-weight: 700;
+    font-size: 1rem;
+}
+
+.buyer-meta-divider {
+    width: 1px;
+    background: rgba(255, 255, 255, 0.2);
+    align-self: stretch;
+}
+
+/* --- Image Gallery Section --- */
+.buyer-image-gallery {
+    display: grid;
+    grid-template-columns: 3fr 1fr;
+    gap: 10px;
+    margin-top: 0; 
+    margin-bottom: 2.5rem;
+    height: 550px;
+    max-height: 70vh;
+    overflow: hidden;
+    border-radius: 16px;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15);
+}
+
+.buyer-main-image {
+    grid-column: 1 / 2;
+    cursor: pointer;
+}
+
+.buyer-main-image img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-radius: 16px 0 0 16px;
+}
+
+.buyer-thumbnail-gallery {
+    grid-column: 2 / 3;
+    display: grid;
+    grid-template-rows: repeat(3, 1fr);
+    gap: 10px;
+    position: relative;
+}
+
+.buyer-thumbnail-gallery img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    cursor: pointer;
+}
+
+.buyer-thumbnail:nth-child(3) {
+    border-radius: 0 16px 0 0;
+}
+.buyer-thumbnail:nth-child(4) {
+    border-radius: 0 0 16px 0;
+}
+
+.buyer-view-more-overlay {
+    position: absolute;
+    bottom: 0;
+    right: 0;
+    width: 100%;
+    height: 33.33%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background-color: rgba(2, 43, 95, 0.85);
+    color: white;
+    font-size: 1.1rem;
+    font-weight: 600;
+    cursor: pointer;
+    border-radius: 0 0 16px 0;
+    transition: background-color 0.3s ease;
+}
+
+.buyer-view-more-overlay:hover {
+    background-color: #886ace;
+}
+
+
+/* --- Main Content Layout (Two Columns) --- */
+.buyer-main-content-area {
+    display: flex;
+    gap: 2.5rem;
+    flex-wrap: wrap;
+}
+
+.buyer-property-details-section {
+    flex: 3;
+    padding: 2.5rem;
+    background-color: #ffffff;
+    border-radius: 12px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+}
+
+.buyer-agent-sidebar {
+    flex: 1.9;
+    position: sticky;
+    top: 100px;
+    align-self: flex-start;
+}
+
+/* --- Section Headers --- */
+.buyer-description-section h2, .buyer-amenities-section h2 {
+    font-size: 1.8rem;
+    color: #011a3d;
+    font-weight: 700;
+    margin-bottom: 1.5rem;
+    border-left: 5px solid #886ace;
+    padding-left: 15px;
+}
+
+/* --- Key Features Section --- */
+.buyer-features-grid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 15px;
+    justify-content: space-between;
+}
+
+.buyer-feature-item {
+    flex-basis: calc(25% - 15px);
+    min-width: 150px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    padding: 20px 10px;
+    background: linear-gradient(135deg, #886ace 0%, #B084E0 100%);
+    border: 1px solid #f0f0f0;
+    border-radius: 12px;
+    transition: all 0.3s ease;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.03);
+}
+
+.buyer-feature-item:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 8px 20px rgba(136, 106, 206, 0.15);
+    border-color: #886ace;
+}
+
+.buyer-feature-icon {
+    font-size: 2.2rem;
+    line-height: 1;
+    margin-bottom: 0.5rem;
+    color: #0a0a0a;
+}
+
+.buyer-feature-value {
+    font-size: 1.2rem;
+    font-weight: 700;
+    color: #fff4f4;
+}
+
+.buyer-feature-label {
+    font-weight: 700;
+    font-size: 1.1rem;
+    color: #000000;
+}
+
+/* --- Amenities Section --- */
+.buyer-amenities-grid {
+    list-style: none;
+    padding: 0;
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 20px 15px;
+}
+
+.buyer-amenity-item {
+    font-size: 1rem;
+    color: #444;
+    display: flex;
+    align-items: center;
+    padding-bottom: 5px;
+    border-bottom: 1px dashed #eee;
+}
+
+.buyer-check-icon {
+    color: #00b894;
+    font-size: 1.2rem;
+    margin-right: 10px;
+}
+
+/* ============================================================================
+ * DETAIL PAGE CONTACT FORM CARD STYLES
+ * ============================================================================ */
+
+.buyer-detail-contact-card {
+    background-color: #ffffff;
+    border-radius: 16px;
+    padding: 2.5rem;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+}
+
+.buyer-detail-contact-card h3 {
+    font-size: 1.5rem;
+    color: #040404;
+    margin-bottom: 0.5rem;
+    text-align: center;
+    font-weight: 700;
+}
+
+.buyer-contact-card-subtitle {
+    text-align: center;
+    color: #666;
+    font-size: 0.95rem;
+    margin-bottom: 2rem;
+}
+
+/* Contact Form Styles */
+.buyer-detail-contact-form {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+.buyer-contact-field-group {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.buyer-contact-field-group label {
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: #1e3a8a;
+    margin-bottom: 0.25rem;
+    text-align: left;
+}
+
+.buyer-contact-input-box {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    background-color: rgb(229, 225, 225);
+    border: 2px solid #e5e7eb;
+    border-radius: 8px;
+    padding: 12px 15px;
+    transition: all 0.3s ease;
+}
+
+.buyer-contact-input-box:focus-within {
+    border-color: #886ace;
+    box-shadow: 0 0 0 3px rgba(136, 106, 206, 0.1);
+}
+
+.buyer-contact-field-icon {
+    color: #886ace;
+    font-size: 1rem;
+    flex-shrink: 0;
+    min-width: 16px;
+    width: 16px;
+    height: 16px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.buyer-contact-textarea-box {
+    align-items: flex-start;
+}
+
+.buyer-contact-textarea-icon {
+    margin-top: 6px;
+}
+
+.buyer-contact-input-box input,
+.buyer-contact-input-box textarea {
+    flex: 1;
+    border: none;
+    outline: none;
+    font-size: 1rem;
+    color: #1e3a8a;
+    background: transparent;
+    font-family: inherit;
+}
+
+.buyer-contact-input-box input::placeholder,
+.buyer-contact-input-box textarea::placeholder {
+    color: #9ca3af;
+}
+
+.buyer-contact-input-box textarea {
+    resize: vertical;
+    min-height: 80px;
+}
+
+/* Submit Button */
+.buyer-contact-send-button {
+    width: 100%;
+    color: white;
+    background-color: #886ace;
+    border: none;
+    padding: 14px;
+    font-weight: 600;
+    font-size: 1.1rem;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    margin-top: 0.5rem;
+}
+
+.buyer-contact-send-button:hover {
+    background-color: #7a5dbd;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(136, 106, 206, 0.3);
+}
+
+.buyer-contact-send-button:active {
+    transform: translateY(0);
+}
+
+/* Success Message */
+.buyer-contact-success-message {
+    text-align: center;
+    padding: 2rem 1rem;
+    animation: buyer-slideDown 0.3s ease;
+}
+
+@keyframes buyer-slideDown {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.buyer-contact-success-icon {
+    font-size: 4rem;
+    color: #00b894;
+    margin-bottom: 1rem;
+}
+
+.buyer-contact-success-message h4 {
+    font-size: 1.4rem;
+    color: #1e3a8a;
+    margin-bottom: 0.75rem;
+    font-weight: 700;
+}
+
+.buyer-contact-success-message p {
+    color: #666;
+    font-size: 1rem;
+    line-height: 1.6;
+}
+
+/* --- Responsive Design --- */
+@media (max-width: 1024px) {
+    .buyer-main-content-area {
+        flex-direction: column;
+        gap: 2rem;
+    }
+
+    .buyer-property-details-section {
+        padding: 1.5rem;
+        box-shadow: none;
+    }
+
+    .buyer-agent-sidebar {
+        position: static;
+        width: 100%;
+    }
+
+    .buyer-image-gallery {
+        grid-template-columns: 1fr;
+        height: auto;
+        border-radius: 12px;
+        box-shadow: 0 5px 20px rgba(0, 0, 0, 0.1);
+    }
+
+    .buyer-main-image img {
+        border-radius: 12px 12px 0 0;
+    }
+    
+    .buyer-thumbnail-gallery {
+        display: flex;
+        overflow-x: auto;
+        gap: 10px;
+        padding: 10px;
+        grid-column: 1 / -1;
+        background-color: #fff;
+        border-radius: 0 0 12px 12px;
+    }
+    
+    .buyer-thumbnail-gallery img {
+        min-width: 100px;
+        max-height: 100px;
+        object-fit: cover;
+        border-radius: 8px;
+    }
+
+    .buyer-view-more-overlay {
+        position: static;
+        width: 100px;
+        height: 100px;
+        border-radius: 8px;
+        flex-shrink: 0;
+        margin-left: 10px;
+        background-color: #886ace;
+    }
+
+    .buyer-features-grid {
+        justify-content: center;
+        gap: 15px;
+    }
+
+    .buyer-feature-item {
+        flex-basis: calc(50% - 7.5px);
+    }
+    
+    .buyer-map-card-container {
+        margin-bottom: 20px;
+    }
+
+    .buyer-detail-contact-card {
+        padding: 2rem;
+    }
+
+    /* Responsive Property Header */
+    .buyer-property-header {
+        padding: 2rem;
+    }
+
+    .buyer-property-header h1 {
+        font-size: 2.2rem;
+    }
+
+    .buyer-property-meta-info {
+        gap: 1rem;
+    }
+}
+
+@media (max-width: 600px) {
+    .buyer-back-button {
+        margin-top: 1rem;
+        margin-bottom: 1rem;
+    }
+
+    /* Mobile Property Header */
+    .buyer-property-header {
+        padding: 1.5rem;
+        width: 100%;
+        max-width: 100%;
+    }
+
+    .buyer-property-header h1 {
+        font-size: clamp(1.5rem, 6vw, 1.8rem);
+    }
+    
+    .buyer-image-gallery {
+        height: auto;
+        min-height: 300px;
+    }
+
+    .buyer-property-location {
+        font-size: 1rem;
+    }
+
+    .buyer-header-badges {
+        gap: 0.5rem;
+    }
+
+    .buyer-status-badge, .buyer-premium-badge {
+        font-size: 0.85rem;
+        padding: 8px 14px;
+    }
+
+    .buyer-property-meta-info {
+        flex-direction: column;
+        gap: 0.75rem;
+        padding: 1rem;
+    }
+
+    .buyer-meta-divider {
+        display: none;
+    }
+
+    .buyer-meta-item {
+        padding-bottom: 0.75rem;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+    }
+
+    .buyer-meta-item:last-child {
+        border-bottom: none;
+        padding-bottom: 0;
+    }
+
+    .buyer-features-grid {
+        gap: 10px;
+    }
+    .buyer-feature-item {
+        flex-basis: calc(50% - 5px);
+    }
+    .buyer-amenities-grid {
+        grid-template-columns: 1fr;
+    }
+    .buyer-detail-contact-card {
+        padding: 1.5rem;
+    }
+    .buyer-detail-contact-form {
+        gap: 1.25rem;
+    }
+    .buyer-contact-field-group label {
+        font-size: 0.85rem;
+    }
+    .buyer-contact-input-box {
+        padding: 10px 12px;
+        gap: 8px;
+    }
+    .buyer-contact-field-icon {
+        font-size: 0.95rem;
+        min-width: 14px;
+        width: 14px;
+        height: 14px;
+    }
+    .buyer-contact-input-box input,
+    .buyer-contact-input-box textarea {
+        font-size: 0.95rem;
+    }
+    .buyer-contact-send-button {
+        padding: 12px;
+        font-size: 1rem;
+    }
+    .buyer-contact-success-icon {
+        font-size: 3rem;
+    }
+    .buyer-contact-success-message h4 {
+        font-size: 1.2rem;
+    }
+    .buyer-contact-success-message p {
+        font-size: 0.95rem;
+    }
+}
+
+/* ------------------------------------------------ */
+/* --- Image Slider Modal Styles --- */
+/* ------------------------------------------------ */
+
+.buyer-image-slider-modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.95); 
+    z-index: 2000; 
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.3s ease, visibility 0.3s ease;
+}
+
+.buyer-image-slider-modal-overlay.open {
+    opacity: 1;
+    visibility: visible;
+}
+
+.buyer-image-slider-modal-content {
+    position: relative;
+    width: 90%;
+    height: 90%;
+    max-width: 1400px;
+    max-height: 90vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+}
+
+.buyer-slider-close-btn {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    color: white;
+    font-size: 3rem;
+    font-weight: 100;
+    background: none;
+    border: none;
+    cursor: pointer;
+    z-index: 2010;
+    padding: 10px;
+    line-height: 1;
+    transition: color 0.2s ease;
+}
+
+.buyer-slider-close-btn:hover {
+    color: #ff4d4d;
+}
+
+.buyer-slider-controls {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+    height: 100%;
+}
+
+.buyer-slider-main-image {
+    max-width: 90%;
+    max-height: 90vh;
+    object-fit: contain;
+    display: block;
+    user-select: none; 
+}
+
+.buyer-slider-prev-btn,
+.buyer-slider-next-btn {
+    background-color: rgba(255, 255, 255, 0.15);
+    color: white;
+    border: none;
+    padding: 10px 15px;
+    font-size: 2rem;
+    cursor: pointer;
+    z-index: 2005;
+    transition: background-color 0.2s ease;
+    border-radius: 50%;
+    width: 50px;
+    height: 50px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.buyer-slider-prev-btn:hover,
+.buyer-slider-next-btn:hover {
+    background-color: rgba(255, 255, 255, 0.4);
+}
+
+.buyer-slider-info {
+    color: white;
+    font-size: 1rem;
+    margin-top: 10px;
+    padding: 5px 15px;
+    background-color: rgba(0, 0, 0, 0.5);
+    border-radius: 5px;
+}
+
+/* ============================================================================
+ * Google Map Feature Styles for the Sidebar
+ * ============================================================================ */
+
+.buyer-map-card-container {
+  background: #ffffff;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  padding: 20px;
+  margin-bottom: 24px;
+}
+
+.buyer-map-card-container h3 {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: #1e3a8a;
+  margin-top: 0;
+  margin-bottom: 15px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.buyer-map-embed-area {
+  height: 250px;
+  width: 100%;
+  border-radius: 8px;
+  overflow: hidden;
+  background-color: #e5e7eb;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  border: 1px solid #d1d5db;
+}
+
+.buyer-map-placeholder-text {
+  color: #64748b;
+  font-size: 14px;
+  padding: 10px;
+}
+
+.buyer-map-placeholder-text strong {
+  color: #1e3a8a;
+}
+
+/* ============================================================================
+ * Seller Contact Form Preview Styles (Disabled/Shadow Overlay)
+ * ============================================================================ */
+
+.seller-contact-preview {
+  position: relative;
+}
+
+.seller-contact-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.75);
+  backdrop-filter: blur(4px);
+  border-radius: 12px;
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+}
+
+.seller-contact-overlay-message {
+  background: rgba(255, 255, 255, 0.95);
+  padding: 1.5rem 2rem;
+  border-radius: 12px;
+  text-align: center;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+  max-width: 280px;
+}
+
+.seller-contact-overlay-message svg {
+  color: #003B73;
+  margin-bottom: 0.75rem;
+  display: block;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.seller-contact-overlay-message p {
+  margin: 0;
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: #1e3a8a;
+  line-height: 1.4;
+}
+
+/* Performance optimizations */
+.buyer-details-wrapper {
+  will-change: scroll-position;
+}
+
+.buyer-image-gallery img {
+  will-change: transform;
+  transform: translateZ(0);
+}
+
+.buyer-thumbnail img {
+  will-change: transform;
+  transform: translateZ(0);
+}

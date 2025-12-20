@@ -1,0 +1,363 @@
+import React, { useState, useEffect } from 'react';
+import { Search, Filter, Eye, Edit, Trash2, X, Check } from 'lucide-react';
+import { API_BASE_URL, API_ENDPOINTS } from '../../config/api.config';
+import '../style/AdminProperties.css';
+
+const AdminProperties = () => {
+  const [searchTerm, setSearchTerm] = useState('');
+  const [statusFilter, setStatusFilter] = useState('All Status');
+  const [showFilterDropdown, setShowFilterDropdown] = useState(false);
+  const [properties, setProperties] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [pagination, setPagination] = useState({ page: 1, total: 0, pages: 0 });
+  const [pageSize, setPageSize] = useState(20);
+
+  useEffect(() => {
+    // Reset to page 1 when filters or page size change
+    setPagination(prev => ({ ...prev, page: 1 }));
+  }, [statusFilter, searchTerm, pageSize]);
+
+  useEffect(() => {
+    fetchProperties();
+  }, [pagination.page, statusFilter, searchTerm]);
+
+  const fetchProperties = async () => {
+    setLoading(true);
+    setError(null);
+    
+    try {
+      const token = localStorage.getItem('adminToken');
+      if (!token) {
+        setError('Not authenticated');
+        setLoading(false);
+        return;
+      }
+
+      const params = new URLSearchParams({
+        page: pagination.page.toString(),
+        limit: pageSize.toString()
+      });
+
+      if (statusFilter !== 'All Status') {
+        if (statusFilter === 'Approved') {
+          params.append('status', 'approved');
+        } else if (statusFilter === 'Pending') {
+          params.append('status', 'pending');
+        }
+      }
+
+      if (searchTerm) {
+        params.append('search', searchTerm);
+      }
+
+      const response = await fetch(`${API_BASE_URL}${API_ENDPOINTS.ADMIN_PROPERTIES_LIST}?${params}`, {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        }
+      });
+
+      const data = await response.json();
+
+      if (data.success) {
+        setProperties(data.data.properties || []);
+        setPagination(data.data.pagination || { page: 1, total: 0, pages: 0 });
+      } else {
+        setError(data.message || 'Failed to load properties');
+      }
+    } catch (err) {
+      console.error('Error fetching properties:', err);
+      setError('Failed to load properties');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleApprove = async (propertyId) => {
+    try {
+      const token = localStorage.getItem('adminToken');
+      const response = await fetch(`${API_BASE_URL}${API_ENDPOINTS.ADMIN_PROPERTIES_APPROVE}?id=${propertyId}`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        }
+      });
+
+      const data = await response.json();
+
+      if (data.success) {
+        fetchProperties();
+      } else {
+        alert(data.message || 'Failed to approve property');
+      }
+    } catch (err) {
+      console.error('Error approving property:', err);
+      alert('Failed to approve property');
+    }
+  };
+
+  const handleReject = async (propertyId) => {
+    const reason = window.prompt('Enter rejection reason (optional):');
+    if (reason === null) return; // User cancelled
+
+    try {
+      const token = localStorage.getItem('adminToken');
+      const response = await fetch(`${API_BASE_URL}${API_ENDPOINTS.ADMIN_PROPERTIES_REJECT}?id=${propertyId}`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ reason: reason || 'Property rejected by admin' })
+      });
+
+      const data = await response.json();
+
+      if (data.success) {
+        fetchProperties();
+      } else {
+        alert(data.message || 'Failed to reject property');
+      }
+    } catch (err) {
+      console.error('Error rejecting property:', err);
+      alert('Failed to reject property');
+    }
+  };
+
+  const handleDelete = async (propertyId) => {
+    if (!window.confirm('Are you sure you want to delete this property? This action cannot be undone.')) {
+      return;
+    }
+
+    try {
+      const token = localStorage.getItem('adminToken');
+      const response = await fetch(`${API_BASE_URL}${API_ENDPOINTS.ADMIN_PROPERTIES_DELETE}?id=${propertyId}`, {
+        method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        }
+      });
+
+      const data = await response.json();
+
+      if (data.success) {
+        fetchProperties();
+      } else {
+        alert(data.message || 'Failed to delete property');
+      }
+    } catch (err) {
+      console.error('Error deleting property:', err);
+      alert('Failed to delete property');
+    }
+  };
+
+  const getStatusColor = (isActive) => {
+    return isActive ? '#10b981' : '#f59e0b';
+  };
+
+  const getStatusText = (isActive) => {
+    return isActive ? 'Approved' : 'Pending';
+  };
+
+  const formatPrice = (price) => {
+    if (!price) return 'N/A';
+    return new Intl.NumberFormat('en-IN', {
+      style: 'currency',
+      currency: 'INR',
+      maximumFractionDigits: 0
+    }).format(price);
+  };
+
+  return (
+    <div className="admin-properties">
+      <div className="admin-page-header">
+        <div>
+          <h1>Manage Properties</h1>
+          <p>{loading ? 'Loading...' : `${properties.length} of ${pagination.total} properties`}</p>
+        </div>
+      </div>
+
+      <div className="admin-filters-bar">
+        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+          <label style={{ fontSize: '14px', color: '#64748b' }}>Items per page:</label>
+          <select 
+            value={pageSize} 
+            onChange={(e) => setPageSize(Number(e.target.value))}
+            style={{
+              padding: '6px 12px',
+              border: '1px solid #e2e8f0',
+              borderRadius: '6px',
+              fontSize: '14px',
+              cursor: 'pointer'
+            }}
+          >
+            <option value={10}>10</option>
+            <option value={20}>20</option>
+            <option value={50}>50</option>
+            <option value={100}>100</option>
+          </select>
+        </div>
+        
+        <div className="admin-search-box">
+          <div className="admin-search-input-wrapper">
+            <Search />
+            <input
+              type="text"
+              placeholder="Search by name, location, or type..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              onKeyPress={(e) => {
+                if (e.key === 'Enter') {
+                  fetchProperties();
+                }
+              }}
+            />
+          </div>
+          <button className="admin-search-btn" onClick={fetchProperties}>
+            Search
+          </button>
+        </div>
+        
+        <div style={{ position: 'relative' }}>
+          <button 
+            className="admin-filter-btn"
+            onClick={() => setShowFilterDropdown(!showFilterDropdown)}
+          >
+            <Filter />
+            {statusFilter}
+          </button>
+          
+          {showFilterDropdown && (
+            <div className="admin-filter-dropdown">
+              {['All Status', 'Approved', 'Pending', 'Rejected'].map(status => (
+                <div
+                  key={status}
+                  className={`admin-filter-option ${statusFilter === status ? 'admin-active' : ''}`}
+                  onClick={() => {
+                    setStatusFilter(status);
+                    setShowFilterDropdown(false);
+                  }}
+                >
+                  {status}
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      </div>
+
+      <div className="admin-properties-table-container">
+        {loading ? (
+          <div className="admin-no-results">
+            <h3>Loading properties...</h3>
+          </div>
+        ) : error ? (
+          <div className="admin-no-results">
+            <h3>Error</h3>
+            <p>{error}</p>
+          </div>
+        ) : properties.length > 0 ? (
+          <table className="admin-properties-table">
+            <thead>
+              <tr>
+                <th>ID</th>
+                <th>PROPERTY</th>
+                <th>TYPE</th>
+                <th>LISTING</th>
+                <th>PRICE</th>
+                <th>STATUS</th>
+                <th>ACTIONS</th>
+              </tr>
+            </thead>
+            <tbody>
+              {properties.map((property) => {
+                const isActive = property.is_active || false;
+                return (
+                  <tr key={property.id}>
+                    <td>#{property.id}</td>
+                    <td>
+                      <div className="admin-property-cell">
+                        <div className="admin-property-icon">
+                          {property.cover_image ? (
+                            <img src={property.cover_image} alt="" />
+                          ) : (
+                            <div style={{ width: '40px', height: '40px', background: '#e5e7eb', borderRadius: '4px' }}></div>
+                          )}
+                        </div>
+                        <div>
+                          <div className="admin-property-name">{property.title || 'Untitled Property'}</div>
+                          <div className="admin-property-location">{property.location || 'N/A'}</div>
+                        </div>
+                      </div>
+                    </td>
+                    <td>{property.property_type || 'N/A'}</td>
+                    <td>
+                      <span className={`admin-listing-badge ${property.status?.toLowerCase() || 'sale'}`}>
+                        {property.status === 'rent' ? 'Rent' : 'Sale'}
+                      </span>
+                    </td>
+                    <td className="admin-price-cell">{formatPrice(property.price)}</td>
+                    <td>
+                      <span 
+                        className="admin-status-badge"
+                        style={{ 
+                          background: `${getStatusColor(isActive)}20`,
+                          color: getStatusColor(isActive)
+                        }}
+                      >
+                        {getStatusText(isActive)}
+                      </span>
+                    </td>
+                    <td className="admin-actions-column">
+                      <div className="admin-action-buttons">
+                        <button className="admin-properties-icon-btn" title="View">
+                          <Eye />
+                        </button>
+                        {!isActive && (
+                          <>
+                            <button 
+                              className="admin-properties-icon-btn admin-approve-btn" 
+                              title="Approve"
+                              onClick={() => handleApprove(property.id)}
+                            >
+                              <Check />
+                            </button>
+                            <button 
+                              className="admin-properties-icon-btn admin-reject-btn" 
+                              title="Reject"
+                              onClick={() => handleReject(property.id)}
+                            >
+                              <X />
+                            </button>
+                          </>
+                        )}
+                        <button 
+                          className="admin-properties-icon-btn admin-danger" 
+                          title="Delete"
+                          onClick={() => handleDelete(property.id)}
+                        >
+                          <Trash2 />
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        ) : (
+          <div className="admin-no-results">
+            <h3>No properties found</h3>
+            <p>Try adjusting your search or filters</p>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+};
+
+export default AdminProperties;

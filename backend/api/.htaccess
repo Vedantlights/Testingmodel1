@@ -1,0 +1,13 @@
+# API .htaccess
+RewriteEngine On
+
+# CORS is handled by PHP in response.php
+# This ensures PHP has full control over CORS headers
+
+# Set default charset
+AddDefaultCharset UTF-8
+
+# Error handling
+ErrorDocument 404 /backend/api/error.php
+ErrorDocument 500 /backend/api/error.php
+

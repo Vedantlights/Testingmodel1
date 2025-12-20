@@ -1,0 +1,349 @@
+/* SearchResults.buyer-css */
+
+.buyer-search-results-page {
+  min-height: 100vh;
+  background:rgb(222, 220, 220);
+  padding: 0;
+  width: 100%;
+  overflow-x: hidden;
+  box-sizing: border-box;
+}
+
+/* ========== SEARCH RESULTS BANNER BACKGROUND ========== */
+.buyer-search-results-banner {
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  padding: 3rem 1rem 4rem;
+  position: relative;
+  width: 100%;
+  min-height: 550px;
+  box-sizing: border-box;
+  margin: 0;
+}
+
+/* Optional: Add overlay for better text readability */
+.buyer-search-results-banner::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.7); /* Adjust opacity as needed */
+  z-index: 0;
+}
+
+/* Ensure content appears above overlay */
+.buyer-search-results-banner .buyer-search-bar-wrapper {
+  position: relative;
+  z-index: 1;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 1rem;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+/* Override BuyerSearchBar container when nested inside banner */
+.buyer-search-results-banner .buyer-search-bar-container {
+  background: transparent !important;
+  background-image: none !important;
+  padding: 0 !important;
+  min-height: auto !important;
+  position: relative !important;
+}
+
+.buyer-search-results-banner .buyer-search-bar-container::before {
+  display: none !important;
+}
+
+/* Results Header */
+.buyer-results-header,
+.buyer-results-content {
+  max-width: 1400px;
+  margin: 0 auto;
+  width: 100%;
+  box-sizing: border-box;
+  padding: 0 1rem;
+}
+
+/* Added Flexbox to Header Content for layout, which you might need */
+.buyer-results-header-content {
+    display: flex;
+    align-items: center;
+    /* This ensures the back button and title stay on the same line */
+    flex-wrap: wrap; 
+}
+
+.buyer-results-title {
+  font-size: 2rem;
+  color: #1e3a8a;
+  font-weight: 700;
+  margin: 20px;
+}
+
+.buyer-results-count {
+  font-size: 1.1rem;
+  color: #64748b;
+  margin: 0.5rem 0 0 0;
+}
+
+/* Active Filters */
+.buyer-active-filters {
+  background: white;
+  padding: 1.25rem 1.5rem;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  flex-wrap: wrap;
+  margin: 20px;
+}
+
+.buyer-filters-label {
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: #334155;
+}
+
+.buyer-filter-tags {
+  display: flex;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+  flex: 1;
+}
+
+.buyer-filter-tag {
+  background: linear-gradient(135deg, #8b5cf6 0%, #a78bfa 100%);
+  color: white;
+  padding: 0.5rem 1rem;
+  border-radius: 25px;
+  font-size: 0.9rem;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.buyer-remove-filter {
+  background: rgba(255, 255, 255, 0.2);
+  border: none;
+  border-radius: 50%;
+  width: 20px;
+  height: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s;
+  padding: 0;
+}
+
+.buyer-remove-filter:hover {
+  background: rgba(255, 255, 255, 0.3);
+  transform: scale(1.1);
+}
+
+.buyer-remove-filter svg {
+  width: 12px;
+  height: 12px;
+}
+
+.buyer-clear-all-btn {
+  background: #ef4444;
+  color: white;
+  border: none;
+  padding: 0.5rem 1.25rem;
+  border-radius: 25px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s;
+}
+
+.buyer-clear-all-btn:hover {
+  background: #dc2626;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3);
+}
+
+/* Results Content */
+.buyer-results-content {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 2rem 1rem;
+}
+
+.buyer-results-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 1.5rem;
+  animation: buyer-fadeIn 0.5s ease-in;
+}
+
+@keyframes buyer-fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* No Results */
+.buyer-no-results {
+  background: white;
+  border-radius: 12px;
+  padding: 4rem 2rem;
+  text-align: center;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  max-width: 600px;
+  margin: 3rem auto;
+}
+
+.buyer-no-results svg {
+  margin: 0 auto 1.5rem;
+  opacity: 0.5;
+}
+
+.buyer-no-results h3 {
+  font-size: 1.75rem;
+  color: #1e3a8a;
+  margin: 0 0 1rem 0;
+  font-weight: 700;
+}
+
+.buyer-no-results p {
+  font-size: 1.1rem;
+  color: #64748b;
+  margin: 0 0 2rem 0;
+}
+
+.buyer-no-results-actions {
+  display: flex;
+  gap: 1rem;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+.buyer-try-again-btn,
+.buyer-go-home-btn {
+  padding: 0.875rem 1.75rem;
+  border-radius: 8px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s;
+  border: none;
+}
+
+.buyer-try-again-btn {
+  background: linear-gradient(135deg, #8b5cf6 0%, #a78bfa 100%);
+  color: white;
+  box-shadow: 0 4px 15px rgba(139, 92, 246, 0.3);
+}
+
+.buyer-try-again-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(139, 92, 246, 0.5);
+}
+
+.buyer-go-home-btn {
+  background: white;
+  color: #8b5cf6;
+  border: 2px solid #8b5cf6;
+}
+
+.buyer-go-home-btn:hover {
+  background: #8b5cf6;
+  color: white;
+  transform: translateY(-2px);
+}
+
+/* Responsive Design */
+@media (max-width: 1024px) {
+  .buyer-results-grid {
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  }
+}
+
+@media (max-width: 768px) {
+  .buyer-search-results-banner {
+    padding: 1.5rem 1rem;
+  }
+
+  .buyer-results-title {
+    font-size: 1.75rem;
+  }
+
+  /* Adjustments for smaller screens */
+  .buyer-results-header-content {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.5rem;
+  }
+  
+  /* Styling for the back button on mobile */
+  .buyer-back-button {
+      margin-left: 0 !important;
+      margin-bottom: 0.5rem; /* Space it out from the title */
+  }
+
+  .buyer-active-filters {
+    padding: 1rem;
+  }
+
+  .buyer-filter-tags {
+    flex-direction: column;
+    width: 100%;
+  }
+
+  .buyer-filter-tag,
+  .buyer-clear-all-btn {
+    width: 100%;
+    justify-content: space-between;
+  }
+
+  .buyer-results-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .buyer-no-results {
+    padding: 3rem 1.5rem;
+  }
+
+  .buyer-no-results-actions {
+    flex-direction: column;
+  }
+
+  .buyer-try-again-btn,
+  .buyer-go-home-btn {
+    width: 100%;
+  }
+}
+
+@media (max-width: 480px) {
+  .buyer-search-results-banner {
+    padding: 1rem;
+  }
+
+  .buyer-results-title {
+    font-size: 1.5rem;
+  }
+
+  .buyer-results-count {
+    font-size: 1rem;
+  }
+
+  .buyer-no-results h3 {
+    font-size: 1.5rem;
+  }
+
+  .buyer-no-results p {
+    font-size: 1rem;
+  }
+}

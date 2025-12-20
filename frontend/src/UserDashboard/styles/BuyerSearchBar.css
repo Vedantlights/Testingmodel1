@@ -1,0 +1,414 @@
+/* SearchBar.buyer-css */
+
+/* Note: When BuyerSearchBar is used inside another container (like SearchResults),
+   the parent container handles the background, padding, and min-height */
+
+.buyer-search-bar-container {
+  width: 100%;
+  max-width: 100vw;
+  overflow-x: hidden;
+  padding: 3rem 1rem 4rem;
+  min-height: 600px;
+  position: relative;
+}
+
+.buyer-search-bar-container::before {
+   content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5); /* Adjust opacity as needed */
+  z-index: 0;
+}
+
+
+.buyer-search-bar-wrapper {
+  max-width: 1200px;
+  margin: 0 auto;
+  position: relative;
+  z-index: 1;
+  padding: 0rem 1rem;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+/* ============================================================================
+   BACK BUTTON INSIDE SEARCH BAR
+   ============================================================================ */
+
+.buyer-search-back-button {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 18px;
+  margin-bottom: 20px;
+  border: 2px solid;
+  border-radius: 10px;
+  background-color: transparent;
+  color: #ffffff;
+  font-weight: 100;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 8px rgba(30, 58, 138, 0.15);
+  font-family: inherit;
+  width: fit-content;
+}
+
+.buyer-search-back-button:hover {
+  color: #ffffff;
+  transform: translateX(-4px);
+  box-shadow: 0 4px 12px rgba(30, 58, 138, 0.25);
+}
+
+.buyer-search-back-button:active {
+  transform: translateX(-2px) scale(0.98);
+}
+
+.buyer-search-back-button svg {
+  flex-shrink: 0;
+  transition: transform 0.3s ease;
+}
+
+.buyer-search-back-button:hover svg {
+  transform: translateX(-2px);
+}
+
+/* ============================================================================
+   SEARCH BAR TITLE AND SUBTITLE
+   ============================================================================ */
+
+.buyer-search-title {
+  text-align: center;
+  font-size: 2.5rem;
+  font-weight: 700;
+  color: #fefeff;
+  margin: 0 0 0.5rem 0;
+}
+
+.buyer-search-subtitle {
+  text-align: center;
+  font-size: 1.1rem;
+  color: #ffffff;
+  margin: 0 0 2.5rem 0;
+}
+
+.buyer-search-form {
+   background: transparent;
+  border-radius: 16px;
+  padding: 2rem;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+}
+
+.buyer-search-inputs {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 1.5rem;
+  margin-bottom: 1.5rem;
+}
+
+.buyer-search-field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  min-width: 0;
+}
+
+.buyer-search-field:first-child {
+  flex: 1;
+}
+
+.buyer-search-label {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #ffffff;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.buyer-search-label svg {
+  width: 18px;
+  height: 18px;
+  color: #8b5cf6;
+}
+
+.buyer-search-input,
+.buyer-search-select {
+  width: 100%;
+  min-width: 0;
+  padding: 0.875rem 1rem;
+  border: 2px solid #e2e8f0;
+  border-radius: 10px;
+  font-size: 0.95rem;
+  color: #1e293b;
+  background: white;
+  transition: all 0.3s ease;
+  font-family: inherit;
+  box-sizing: border-box;
+}
+
+/* Override LocationAutoSuggest input styling to match buyer-search-input exactly */
+.buyer-search-field .location-autosuggest {
+  width: 100%;
+  min-width: 0;
+  display: block;
+  margin: 0;
+  padding: 0;
+  height: auto;
+}
+
+.buyer-search-field .location-autosuggest .location-input-wrapper {
+  width: 100%;
+  min-width: 0;
+  position: relative;
+  display: block;
+  margin: 0;
+  padding: 0;
+}
+
+.buyer-search-field .location-autosuggest .location-input {
+  width: 100% !important;
+  min-width: 0 !important;
+  padding: 0.875rem 2.5rem 0.875rem 1rem !important;
+  border: 2px solid #e2e8f0 !important;
+  border-radius: 10px !important;
+  font-size: 0.75rem !important;
+  line-height: 1.1 !important;
+  color: #1e293b !important;
+  background: white !important;
+  transition: all 0.3s ease !important;
+  font-family: inherit !important;
+  box-sizing: border-box !important;
+  margin: 0 !important;
+  display: block !important;
+  appearance: none !important;
+  -webkit-appearance: none !important;
+  -moz-appearance: none !important;
+}
+
+.buyer-search-field .location-autosuggest .location-input:focus {
+  outline: none !important;
+  border-color: #8b5cf6 !important;
+  box-shadow: 0 0 0 4px rgba(139, 92, 246, 0.1) !important;
+  background-color: #ffffff !important;
+}
+
+.buyer-search-field .location-autosuggest .location-input::placeholder {
+  color: #94a3b8 !important;
+}
+
+.buyer-search-field .location-autosuggest .location-clear-btn {
+  right: 0.75rem !important;
+  top: 50% !important;
+  transform: translateY(-50%) !important;
+  font-size: 1.25rem !important;
+  line-height: 1 !important;
+  width: auto !important;
+  height: auto !important;
+  padding: 0 !important;
+  margin: 0 !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+}
+
+.buyer-search-field .location-autosuggest .location-spinner {
+  right: 0.75rem !important;
+  top: 50% !important;
+  transform: translateY(-50%) !important;
+  margin: 0 !important;
+}
+
+.buyer-search-input:focus,
+.buyer-search-select:focus {
+  outline: none;
+  border-color: #8b5cf6;
+  box-shadow: 0 0 0 4px rgba(139, 92, 246, 0.1);
+}
+
+.buyer-search-input::placeholder {
+  color: #94a3b8;
+}
+
+.buyer-search-select {
+  cursor: pointer;
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%231e293b' d='M6 9L1 4h10z'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 1rem center;
+  padding-right: 2.5rem;
+}
+
+.buyer-search-button {
+  width: 100%;
+  padding: 1rem 2rem;
+  background: linear-gradient(135deg, #8b5cf6 0%, #a78bfa 100%);
+  color: white;
+  border: none;
+  border-radius: 10px;
+  font-size: 1.1rem;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 15px rgba(139, 92, 246, 0.3);
+}
+
+.buyer-search-button svg {
+  width: 22px;
+  height: 22px;
+}
+
+.buyer-search-button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(139, 92, 246, 0.5);
+}
+
+.buyer-search-button:active {
+  transform: translateY(0);
+}
+
+/* Quick Search */
+.buyer-quick-search {
+  margin-top: 2rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.buyer-quick-search-label {
+  font-size: 0.95rem;
+  color: #ffffff;
+  font-weight: 600;
+}
+
+.buyer-quick-search-buttons {
+  display: flex;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.buyer-quick-search-btn {
+  padding: 0.5rem 1.25rem;
+  background: white;
+  color: #475569;
+  border: 1px solid #e2e8f0;
+  border-radius: 25px;
+  font-size: 0.9rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  backdrop-filter: blur(10px);
+}
+
+.buyer-quick-search-btn:hover {
+  background: #8b5cf6;
+  border-color: #8b5cf6;
+  color: white;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(139, 92, 246, 0.4);
+}
+
+/* Responsive Design */
+@media (max-width: 1024px) {
+  .buyer-search-bar-container {
+    min-height: 500px;
+  }
+  
+  .buyer-search-inputs {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 768px) {
+  .buyer-search-bar-container {
+    padding: 2rem 1rem;
+    min-height: 450px;
+  }
+  
+  .buyer-search-title {
+    font-size: 2rem;
+  }
+
+  .buyer-search-subtitle {
+    font-size: 1rem;
+  }
+
+  .buyer-search-form {
+    padding: 1.5rem;
+  }
+
+  .buyer-search-inputs {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+
+  .buyer-quick-search {
+    flex-direction: column;
+    text-align: center;
+  }
+}
+
+@media (max-width: 480px) {
+  .buyer-search-bar-container {
+    padding: 1.5rem 1rem;
+    min-height: 400px;
+  }
+
+  .buyer-search-title {
+    font-size: 1.75rem;
+  }
+
+  .buyer-search-form {
+    padding: 1.25rem;
+  }
+
+  .buyer-search-button {
+    font-size: 1rem;
+    padding: 0.875rem 1.5rem;
+  }
+}
+
+/* Animation */
+@keyframes buyer-slideInUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.buyer-search-form {
+  animation: buyer-slideInUp 0.6s ease forwards;
+}
+
+.buyer-search-field {
+  animation: buyer-slideInUp 0.6s ease forwards;
+}
+
+.buyer-search-field:nth-child(1) {
+  animation-delay: 0.1s;
+}
+
+.buyer-search-field:nth-child(2) {
+  animation-delay: 0.2s;
+}
+
+.buyer-search-field:nth-child(3) {
+  animation-delay: 0.3s;
+}
+
+.buyer-search-field:nth-child(4) {
+  animation-delay: 0.4s;
+}

@@ -1,0 +1,206 @@
+/* Filteredproperties.css */
+
+/* ========== BUY SEARCH BAR BANNER STYLING ========== */
+.buyer-buy-search-bar-banner {
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  padding: 3rem 1rem 4rem;
+  position: relative;
+  width: 100%;
+  min-height: 550px;
+}
+
+/* Optional: Add overlay for better text readability */
+.buyer-buy-search-bar-banner::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.7); /* Adjust opacity as needed */
+  z-index: 0;
+}
+
+/* Ensure content appears above overlay */
+.buyer-buy-search-bar-banner .buyer-search-bar-wrapper {
+  position: relative;
+  z-index: 1;
+  max-width: auto;
+  margin: 0 auto;
+}
+
+/* ========== RENT SEARCH BAR BANNER STYLING ========== */
+.buyer-rent-search-bar-banner {
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  padding: 3rem 1rem 4rem;
+  position: relative;
+  width: 100%;
+  min-height: 550px;
+}
+
+/* Optional: Add overlay for better text readability */
+.buyer-rent-search-bar-banner::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5); /* Adjust opacity as needed */
+  z-index: 0;
+}
+
+/* Ensure content appears above overlay */
+.buyer-rent-search-bar-banner .buyer-search-bar-wrapper {
+  position: relative;
+  z-index: 1;
+  max-width: auto;
+  margin: 0 auto;
+}
+
+/* ========== FILTERED PROPERTIES PAGE ========== */
+.buyer-filtered-properties-page {
+  min-height: 100vh;
+  background: rgb(222, 220, 220);
+  padding: 0;
+  width: 100%;
+  overflow-x: hidden;
+  box-sizing: border-box;
+}
+
+/* Filtered Header */
+.buyer-filtered-header {
+  max-width: 1400px;
+  margin: 2rem auto;
+  padding: 0 1rem;
+  text-align: center;
+}
+
+.buyer-filtered-header h1 {
+  font-size: 2rem;
+  color: #1e3a8a;
+  font-weight: 700;
+  margin-bottom: 0.5rem;
+}
+
+.buyer-filtered-count {
+  font-size: 1.1rem;
+  color: #64748b;
+}
+
+/* Properties Grid */
+.buyer-filtered-properties-grid {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 2rem 1rem;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 1.5rem;
+  animation: buyer-fadeIn 0.5s ease-in;
+}
+
+@keyframes buyer-fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* List View */
+.buyer-filtered-properties-grid.buyer-list-view {
+  grid-template-columns: 1fr;
+}
+
+/* No Properties Found */
+.buyer-no-properties {
+  max-width: 600px;
+  margin: 3rem auto;
+  padding: 4rem 2rem;
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  text-align: center;
+}
+
+.buyer-no-properties svg {
+  margin: 0 auto 1.5rem;
+  opacity: 0.5;
+}
+
+.buyer-no-properties h2 {
+  font-size: 1.75rem;
+  color: #1e3a8a;
+  margin: 0 0 1rem 0;
+  font-weight: 700;
+}
+
+.buyer-no-properties p {
+  font-size: 1.1rem;
+  color: #64748b;
+  margin: 0;
+}
+
+/* Responsive Design */
+@media (max-width: 1024px) {
+  .buyer-filtered-properties-grid {
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  }
+  
+  .buyer-buy-search-bar-banner,
+  .buyer-rent-search-bar-banner {
+    min-height: 500px;
+  }
+}
+
+@media (max-width: 768px) {
+  .buyer-buy-search-bar-banner,
+  .buyer-rent-search-bar-banner {
+    padding: 2rem 1rem;
+    min-height: 450px;
+  }
+
+  .buyer-filtered-header h1 {
+    font-size: 1.75rem;
+  }
+
+  .buyer-filtered-count {
+    font-size: 1rem;
+  }
+
+  .buyer-filtered-properties-grid {
+    grid-template-columns: 1fr;
+    padding: 1.5rem 1rem;
+  }
+
+  .buyer-no-properties {
+    padding: 3rem 1.5rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .buyer-buy-search-bar-banner,
+  .buyer-rent-search-bar-banner {
+    padding: 1.5rem 1rem;
+    min-height: 400px;
+  }
+
+  .buyer-filtered-header h1 {
+    font-size: 1.5rem;
+  }
+
+  .buyer-no-properties h2 {
+    font-size: 1.5rem;
+  }
+
+  .buyer-no-properties p {
+    font-size: 1rem;
+  }
+}

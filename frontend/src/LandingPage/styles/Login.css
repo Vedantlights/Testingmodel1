@@ -1,0 +1,316 @@
+/* Container */
+.login-container {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(to bottom right, #7b5fc9, #5f3dc4, #667eea);
+  padding: 16px;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+}
+
+/* Card */
+.login-card {
+  background: white;
+  border-radius: 24px;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
+  max-width: 500px;
+  width: 100%;
+  padding: 32px;
+}
+
+/* Header */
+.login-header {
+  text-align: center;
+  margin-bottom: 24px;
+}
+
+.login-header h1 {
+  font-size: 28px;
+  font-weight: bold;
+  color: #1a202c;
+  margin-bottom: 8px;
+}
+
+.login-header p {
+  color: #718096;
+}
+
+/* User type toggle */
+.user-type-toggle {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+
+.user-type-toggle button {
+  flex: 1;
+  padding: 12px;
+  border-radius: 12px;
+  border: 2px solid #e2e8f0;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  background: #f7fafc;
+  font-weight: 600;
+  font-size: 13px;
+  color: #4a5568;
+  transition: all 0.3s;
+}
+
+.user-type-toggle button:hover {
+  border-color: #7b5fc9;
+  background: #f5f3ff;
+}
+
+.user-type-toggle button.active {
+  background: linear-gradient(to right, #7b5fc9, #667eea);
+  color: white;
+  border-color: transparent;
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+}
+
+/* Role Access Hint */
+.role-access-hint {
+  margin-bottom: 16px;
+}
+
+.hint-text {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  padding: 10px 12px;
+  background: #e8f4fd;
+  border-radius: 8px;
+  font-size: 12px;
+  color: #2b6cb0;
+  line-height: 1.4;
+}
+
+.hint-warning {
+  background: #fef3cd;
+  color: #856404;
+}
+
+.hint-icon {
+  font-size: 14px;
+  flex-shrink: 0;
+}
+
+/* Error Message */
+.error-message {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 14px 16px;
+  background: #fed7d7;
+  border: 1px solid #fc8181;
+  border-radius: 12px;
+  color: #c53030;
+  font-size: 13px;
+  line-height: 1.5;
+  margin-bottom: 16px;
+  animation: shake 0.5s ease-in-out;
+}
+
+.error-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  background: #c53030;
+  color: white;
+  border-radius: 50%;
+  font-size: 12px;
+  font-weight: bold;
+  flex-shrink: 0;
+}
+
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  10%, 30%, 50%, 70%, 90% { transform: translateX(-4px); }
+  20%, 40%, 60%, 80% { transform: translateX(4px); }
+}
+
+/* Form */
+.login-form .form-group {
+  margin-bottom: 16px;
+}
+
+.login-form label {
+  display: block;
+  font-weight: 600;
+  margin-bottom: 4px;
+  color: #2d3748;
+}
+
+.login-form input {
+  width: 100%;
+  padding: 12px;
+  border-radius: 12px;
+  border: 2px solid #e2e8f0;
+  outline: none;
+  font-size: 14px;
+  background: #f7fafc;
+  transition: all 0.3s;
+}
+
+.login-form input:focus {
+  border-color: #7b5fc9;
+  background: white;
+}
+
+/* Password wrapper */
+.password-wrapper {
+  position: relative;
+}
+
+.password-toggle {
+  position: absolute;
+  right: 8px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: #eee;
+  border: none;
+  padding: 4px 8px;
+  border-radius: 8px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #4a5568;
+  transition: all 0.3s;
+}
+
+.password-toggle:hover {
+  background: #e2e8f0;
+}
+
+/* Options row */
+.options-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+}
+
+.options-row label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 500;
+}
+
+.options-row input[type="checkbox"] {
+  accent-color: #7b5fc9;
+  width: 16px;
+  height: 16px;
+}
+
+.options-row button {
+  border: none;
+  background: none;
+  color: #7b5fc9;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.options-row button:hover {
+  text-decoration: underline;
+}
+
+/* Login button */
+.login-btn {
+  width: 100%;
+  padding: 14px;
+  border: none;
+  border-radius: 12px;
+  background: linear-gradient(to right, #7b5fc9, #667eea);
+  color: white;
+  font-weight: bold;
+  font-size: 15px;
+  cursor: pointer;
+  margin-bottom: 16px;
+  transition: all 0.3s;
+}
+
+.login-btn:hover {
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+  transform: scale(1.02);
+}
+
+.login-btn:active {
+  transform: scale(1);
+}
+
+/* Divider */
+.divider {
+  text-align: center;
+  color: #718096;
+  font-weight: 500;
+  margin: 16px 0;
+}
+
+/* Social buttons */
+.social-buttons {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+
+.social-buttons button {
+  flex: 1;
+  padding: 12px;
+  border: 2px solid #e2e8f0;
+  border-radius: 12px;
+  cursor: pointer;
+  font-weight: 600;
+  background: white;
+  transition: all 0.3s;
+}
+
+.social-buttons button:hover {
+  border-color: #7b5fc9;
+  background: #f5f3ff;
+}
+
+/* Signup link */
+.signup-link {
+  text-align: center;
+  color: #4a5568;
+  font-weight: 500;
+}
+
+.signup-link button {
+  border: none;
+  background: none;
+  color: #7b5fc9;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.signup-link button:hover {
+  text-decoration: underline;
+}
+
+/* Responsive */
+@media (max-width: 480px) {
+  .login-card {
+    padding: 24px;
+  }
+
+  .user-type-toggle {
+    flex-direction: column;
+  }
+
+  .user-type-toggle button {
+    padding: 14px;
+  }
+
+  .login-header h1 {
+    font-size: 24px;
+  }
+}

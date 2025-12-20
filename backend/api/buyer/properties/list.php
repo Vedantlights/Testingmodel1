@@ -1,0 +1,343 @@
+<?php
+/**
+ * List Properties for Buyers API
+ * GET /api/buyer/properties/list.php
+ */
+
+require_once __DIR__ . '/../../../config/config.php';
+require_once __DIR__ . '/../../../config/database.php';
+require_once __DIR__ . '/../../../utils/response.php';
+require_once __DIR__ . '/../../../utils/validation.php';
+require_once __DIR__ . '/../../../utils/auth.php';
+
+handlePreflight();
+
+if ($_SERVER['REQUEST_METHOD'] !== 'GET') {
+    sendError('Method not allowed', null, 405);
+}
+
+try {
+    // Optional authentication for buyers
+    $user = null;
+    try {
+        $user = getCurrentUser();
+    } catch (Exception $e) {
+        // Allow unauthenticated access
+    }
+    
+    $db = getDB();
+    
+    // Get query parameters
+    $page = isset($_GET['page']) ? max(1, intval($_GET['page'])) : 1;
+    $limit = isset($_GET['limit']) ? min(MAX_PAGE_SIZE, max(1, intval($_GET['limit']))) : DEFAULT_PAGE_SIZE;
+    $offset = ($page - 1) * $limit;
+    
+    $status = isset($_GET['status']) ? sanitizeInput($_GET['status']) : null;
+    $propertyType = isset($_GET['property_type']) ? sanitizeInput($_GET['property_type']) : null;
+    $city = isset($_GET['city']) ? sanitizeInput($_GET['city']) : null;
+    $location = isset($_GET['location']) ? sanitizeInput($_GET['location']) : null;
+    $minPrice = isset($_GET['min_price']) ? floatval($_GET['min_price']) : null;
+    $maxPrice = isset($_GET['max_price']) ? floatval($_GET['max_price']) : null;
+    $bedrooms = isset($_GET['bedrooms']) ? sanitizeInput($_GET['bedrooms']) : null;
+    $search = isset($_GET['search']) ? sanitizeInput($_GET['search']) : null;
+    
+    // Parse budget range (e.g., "25L-50L", "1Cr-2Cr", "5K-10K")
+    $budgetRange = isset($_GET['budget']) ? sanitizeInput($_GET['budget']) : null;
+    if ($budgetRange && $minPrice === null && $maxPrice === null) {
+        // Budget range mapping for different property types
+        $budgetMap = [
+            // Rent Residential
+            '5K-10K' => [5000, 10000],
+            '10K-20K' => [10000, 20000],
+            '20K-30K' => [20000, 30000],
+            '30K-50K' => [30000, 50000],
+            '50K-75K' => [50000, 75000],
+            '75K-1L' => [75000, 100000],
+            '1L-2L' => [100000, 200000],
+            '2L+' => [200000, null],
+            // Sale Residential
+            '25L-50L' => [2500000, 5000000],
+            '50L-75L' => [5000000, 7500000],
+            '75L-1Cr' => [7500000, 10000000],
+            '1Cr-2Cr' => [10000000, 20000000],
+            '2Cr-5Cr' => [20000000, 50000000],
+            '5Cr+' => [50000000, null],
+            // Commercial Sale
+            '50L-1Cr' => [5000000, 10000000],
+            '1Cr-2Cr' => [10000000, 20000000],
+            '2Cr-5Cr' => [20000000, 50000000],
+            '5Cr-10Cr' => [50000000, 100000000],
+            '10Cr-25Cr' => [100000000, 250000000],
+            '25Cr+' => [250000000, null],
+            // Commercial Rent
+            '10K-25K' => [10000, 25000],
+            '25K-50K' => [25000, 50000],
+            '50K-1L' => [50000, 100000],
+            '1L-2L' => [100000, 200000],
+            '2L-5L' => [200000, 500000],
+            '5L+' => [500000, null]
+        ];
+        
+        if (isset($budgetMap[$budgetRange])) {
+            [$min, $max] = $budgetMap[$budgetRange];
+            if ($min !== null) {
+                $minPrice = $min;
+            }
+            if ($max !== null) {
+                $maxPrice = $max;
+            }
+        }
+    }
+    
+    // Parse area range (e.g., "0-500 sq ft", "1000-2000 sq ft", "10000+ sq ft")
+    $areaRange = isset($_GET['area']) ? sanitizeInput($_GET['area']) : null;
+    $minArea = null;
+    $maxArea = null;
+    if ($areaRange) {
+        // Extract min and max area from range string
+        if (preg_match('/(\d+)-(\d+)\s*sq\s*ft/i', $areaRange, $matches)) {
+            $minArea = floatval($matches[1]);
+            $maxArea = floatval($matches[2]);
+        } elseif (preg_match('/(\d+)\+\s*sq\s*ft/i', $areaRange, $matches)) {
+            $minArea = floatval($matches[1]);
+            $maxArea = null;
+        }
+    }
+    
+    // Build query
+    // Use user_full_name from properties (denormalized) for optimization
+    $query = "
+        SELECT p.*,
+               COALESCE(p.user_full_name, u.full_name) as seller_name,
+               u.phone as seller_phone,
+               GROUP_CONCAT(DISTINCT pi.image_url ORDER BY pi.image_order) as images,
+               GROUP_CONCAT(DISTINCT pa.amenity_id) as amenities
+        FROM properties p
+        INNER JOIN users u ON p.user_id = u.id
+        LEFT JOIN property_images pi ON p.id = pi.property_id
+        LEFT JOIN property_amenities pa ON p.id = pa.property_id
+        WHERE p.is_active = 1
+    ";
+    
+    $params = [];
+    
+    if ($status && in_array($status, ['sale', 'rent'])) {
+        $query .= " AND p.status = ?";
+        $params[] = $status;
+    }
+    
+    if ($propertyType) {
+        $query .= " AND p.property_type = ?";
+        $params[] = $propertyType;
+    }
+    
+    // Use location if provided, otherwise use city
+    $locationFilter = $location ? $location : $city;
+    if ($locationFilter) {
+        $query .= " AND p.location LIKE ?";
+        $params[] = "%$locationFilter%";
+    }
+    
+    if ($minPrice !== null) {
+        $query .= " AND p.price >= ?";
+        $params[] = $minPrice;
+    }
+    
+    if ($maxPrice !== null) {
+        $query .= " AND p.price <= ?";
+        $params[] = $maxPrice;
+    }
+    
+    if ($bedrooms) {
+        // Handle BHK format like "1 BHK", "2 BHK", "5+ BHK"
+        $bedroomStr = $bedrooms;
+        if (preg_match('/(\d+)\s*\+?\s*BHK/i', $bedroomStr, $matches)) {
+            $bedroomCount = intval($matches[1]);
+            if (strpos($bedroomStr, '+') !== false) {
+                $query .= " AND CAST(p.bedrooms AS UNSIGNED) >= ?";
+                $params[] = $bedroomCount;
+            } else {
+                $query .= " AND p.bedrooms = ?";
+                $params[] = $bedrooms;
+            }
+        } else {
+            $query .= " AND p.bedrooms = ?";
+            $params[] = $bedrooms;
+        }
+    }
+    
+    if ($minArea !== null) {
+        $query .= " AND p.area >= ?";
+        $params[] = $minArea;
+    }
+    
+    if ($maxArea !== null) {
+        $query .= " AND p.area <= ?";
+        $params[] = $maxArea;
+    }
+    
+    if ($search) {
+        $query .= " AND (p.title LIKE ? OR p.location LIKE ? OR p.description LIKE ?)";
+        $searchTerm = "%$search%";
+        $params[] = $searchTerm;
+        $params[] = $searchTerm;
+        $params[] = $searchTerm;
+    }
+    
+    $query .= " GROUP BY p.id ORDER BY p.created_at DESC LIMIT " . intval($limit) . " OFFSET " . intval($offset);
+    
+    $stmt = $db->prepare($query);
+    $stmt->execute($params);
+    $properties = $stmt->fetchAll();
+    
+    // Get total count
+    $countQuery = "
+        SELECT COUNT(DISTINCT p.id) as total
+        FROM properties p
+        WHERE p.is_active = 1
+    ";
+    $countParams = [];
+    
+    if ($status) {
+        $countQuery .= " AND p.status = ?";
+        $countParams[] = $status;
+    }
+    if ($propertyType) {
+        $countQuery .= " AND p.property_type = ?";
+        $countParams[] = $propertyType;
+    }
+    // Use location if provided, otherwise use city
+    $locationFilter = $location ? $location : $city;
+    if ($locationFilter) {
+        $countQuery .= " AND p.location LIKE ?";
+        $countParams[] = "%$locationFilter%";
+    }
+    if ($minPrice !== null) {
+        $countQuery .= " AND p.price >= ?";
+        $countParams[] = $minPrice;
+    }
+    if ($maxPrice !== null) {
+        $countQuery .= " AND p.price <= ?";
+        $countParams[] = $maxPrice;
+    }
+    if ($bedrooms) {
+        // Handle BHK format
+        $bedroomStr = $bedrooms;
+        if (preg_match('/(\d+)\s*\+?\s*BHK/i', $bedroomStr, $matches)) {
+            $bedroomCount = intval($matches[1]);
+            if (strpos($bedroomStr, '+') !== false) {
+                $countQuery .= " AND CAST(p.bedrooms AS UNSIGNED) >= ?";
+                $countParams[] = $bedroomCount;
+            } else {
+                $countQuery .= " AND p.bedrooms = ?";
+                $countParams[] = $bedrooms;
+            }
+        } else {
+            $countQuery .= " AND p.bedrooms = ?";
+            $countParams[] = $bedrooms;
+        }
+    }
+    if ($minArea !== null) {
+        $countQuery .= " AND p.area >= ?";
+        $countParams[] = $minArea;
+    }
+    if ($maxArea !== null) {
+        $countQuery .= " AND p.area <= ?";
+        $countParams[] = $maxArea;
+    }
+    if ($search) {
+        $countQuery .= " AND (p.title LIKE ? OR p.location LIKE ? OR p.description LIKE ?)";
+        $searchTerm = "%$search%";
+        $countParams[] = $searchTerm;
+        $countParams[] = $searchTerm;
+        $countParams[] = $searchTerm;
+    }
+    
+    $stmt = $db->prepare($countQuery);
+    $stmt->execute($countParams);
+    $total = $stmt->fetch()['total'];
+    
+    // Format properties and check favorites if user is logged in
+    $favoriteIds = [];
+    if ($user) {
+        $stmt = $db->prepare("SELECT property_id FROM favorites WHERE user_id = ?");
+        $stmt->execute([$user['id']]);
+        $favoriteIds = $stmt->fetchAll(PDO::FETCH_COLUMN);
+    }
+    
+    foreach ($properties as &$property) {
+        $property['images'] = $property['images'] ? explode(',', $property['images']) : [];
+        
+        // Ensure image URLs are full URLs (prepend base URL if relative)
+        // Filter out empty values and normalize URLs
+        if (!empty($property['images'])) {
+            $property['images'] = array_filter(array_map(function($img) {
+                // Remove whitespace and check if empty
+                $img = trim($img);
+                if (empty($img)) {
+                    return null;
+                }
+                
+                // If it's already a full URL (http/https), return as is
+                if (strpos($img, 'http://') === 0 || strpos($img, 'https://') === 0) {
+                    return $img;
+                }
+                
+                // If it starts with /uploads, it's already a relative path from base
+                if (strpos($img, '/uploads/') === 0) {
+                    return BASE_URL . $img;
+                }
+                
+                // If it starts with uploads/, prepend base URL
+                if (strpos($img, 'uploads/') === 0) {
+                    return BASE_URL . '/' . $img;
+                }
+                
+                // Otherwise, prepend the upload base URL
+                return UPLOAD_BASE_URL . '/' . ltrim($img, '/');
+            }, $property['images']), function($img) {
+                return $img !== null && $img !== '';
+            });
+            
+            // Re-index array after filtering
+            $property['images'] = array_values($property['images']);
+        }
+        
+        // Set cover_image if not set, use first image
+        if (empty($property['cover_image']) && !empty($property['images'][0])) {
+            $property['cover_image'] = $property['images'][0];
+        } elseif (!empty($property['cover_image'])) {
+            $coverImg = trim($property['cover_image']);
+            // Ensure cover_image is also a full URL
+            if (strpos($coverImg, 'http://') === 0 || strpos($coverImg, 'https://') === 0) {
+                $property['cover_image'] = $coverImg;
+            } elseif (strpos($coverImg, '/uploads/') === 0) {
+                $property['cover_image'] = BASE_URL . $coverImg;
+            } elseif (strpos($coverImg, 'uploads/') === 0) {
+                $property['cover_image'] = BASE_URL . '/' . $coverImg;
+            } else {
+                $property['cover_image'] = UPLOAD_BASE_URL . '/' . ltrim($coverImg, '/');
+            }
+        }
+        
+        $property['amenities'] = $property['amenities'] ? explode(',', $property['amenities']) : [];
+        $property['is_favorite'] = in_array($property['id'], $favoriteIds);
+        $property['price_negotiable'] = (bool)$property['price_negotiable'];
+        $property['views_count'] = intval($property['views_count']);
+    }
+    
+    sendSuccess('Properties retrieved successfully', [
+        'properties' => $properties,
+        'pagination' => [
+            'page' => $page,
+            'limit' => $limit,
+            'total' => intval($total),
+            'total_pages' => ceil($total / $limit)
+        ]
+    ]);
+    
+} catch (Exception $e) {
+    error_log("List Properties Error: " . $e->getMessage());
+    sendError('Failed to retrieve properties', null, 500);
+}
+
