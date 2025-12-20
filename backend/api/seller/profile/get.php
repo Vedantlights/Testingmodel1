@@ -128,8 +128,22 @@ try {
     // Remove sensitive data
     unset($profile['password']);
     
-    // Use profile_image from user_profiles
-    $profile['profile_image'] = $profile['profile_image'] ?? null;
+    // Use profile_image from user_profiles and normalize URL
+    $profileImage = $profile['profile_image'] ?? null;
+    if (!empty($profileImage)) {
+        $profileImage = trim($profileImage);
+        // If it's already a full URL (http/https), return as is
+        if (strpos($profileImage, 'http://') === 0 || strpos($profileImage, 'https://') === 0) {
+            // Already a full URL
+        } elseif (strpos($profileImage, '/uploads/') === 0) {
+            $profileImage = BASE_URL . $profileImage;
+        } elseif (strpos($profileImage, 'uploads/') === 0) {
+            $profileImage = BASE_URL . '/' . $profileImage;
+        } else {
+            $profileImage = UPLOAD_BASE_URL . '/' . ltrim($profileImage, '/');
+        }
+    }
+    $profile['profile_image'] = $profileImage;
     
     sendSuccess('Profile retrieved successfully', ['profile' => $profile]);
     
