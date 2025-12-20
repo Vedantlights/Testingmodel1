@@ -61,11 +61,11 @@ if ($isLocalhost) {
     ini_set('display_errors', 1);
 } else {
     // PRODUCTION (Hostinger)
-    // TODO: Replace with your actual subdomain URL
-    // Example: https://api.yourdomain.com or https://backend.yourdomain.com
+    // Backend is deployed in /backend/ folder under demo1 subdomain
     $protocol = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? 'https' : 'http';
     $host = $_SERVER['HTTP_HOST'];
-    define('BASE_URL', $protocol . '://' . $host);
+    // If backend is in /backend/ folder, include it in BASE_URL
+    define('BASE_URL', $protocol . '://' . $host . '/backend');
     define('ENVIRONMENT', 'production');
     // Error reporting disabled for production
     error_reporting(0);
