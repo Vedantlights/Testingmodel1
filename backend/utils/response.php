@@ -32,9 +32,23 @@ function setCorsHeaders() {
     // Set CORS origin header
     if (!empty($origin) && in_array($origin, $allowedOrigins)) {
         header("Access-Control-Allow-Origin: $origin");
+    } elseif (!empty($origin)) {
+        // If origin is provided but not in allowed list, check if it's production
+        // Allow demo1 subdomain even if not explicitly listed (for flexibility)
+        if (strpos($origin, 'demo1.indiapropertys.com') !== false || 
+            strpos($origin, 'indiapropertys.com') !== false) {
+            header("Access-Control-Allow-Origin: $origin");
+        } else {
+            // Default to first allowed origin for development
+            header('Access-Control-Allow-Origin: http://localhost:3000');
+        }
     } else {
-        // Default to first allowed origin for development
-        header('Access-Control-Allow-Origin: http://localhost:3000');
+        // No origin header - allow all for development, restrict for production
+        if (defined('ENVIRONMENT') && ENVIRONMENT === 'development') {
+            header('Access-Control-Allow-Origin: *');
+        } else {
+            header('Access-Control-Allow-Origin: https://demo1.indiapropertys.com');
+        }
     }
     
     header('Access-Control-Allow-Methods: GET, POST, PUT, DELETE, OPTIONS, PATCH');
@@ -58,6 +72,11 @@ function handlePreflight() {
 
 // Send JSON response
 function sendResponse($success, $message = '', $data = null, $statusCode = 200) {
+    // Clear any output buffer to ensure clean JSON
+    if (ob_get_level() > 0) {
+        ob_clean();
+    }
+    
     setCorsHeaders();
     http_response_code($statusCode);
     
@@ -70,7 +89,22 @@ function sendResponse($success, $message = '', $data = null, $statusCode = 200) 
         $response['data'] = $data;
     }
     
-    echo json_encode($response, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+    $json = json_encode($response, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+    
+    if ($json === false) {
+        // JSON encoding failed - log error and send error response
+        error_log("JSON encoding failed: " . json_last_error_msg());
+        http_response_code(500);
+        header('Content-Type: application/json');
+        echo json_encode([
+            'success' => false,
+            'message' => 'Server error: Failed to encode response',
+            'error' => json_last_error_msg()
+        ]);
+        exit();
+    }
+    
+    echo $json;
     exit();
 }
 
