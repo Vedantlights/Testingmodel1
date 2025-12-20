@@ -320,6 +320,7 @@ try {
         error_log("Add Property Error Code: " . $e->getCode());
         error_log("Add Property SQL State: " . ($e->errorInfo[0] ?? 'N/A'));
         error_log("Add Property Error Info: " . print_r($e->errorInfo ?? [], true));
+        ob_clean();
         sendError('Database error: ' . $e->getMessage(), ['error_code' => $e->getCode(), 'error_info' => $e->errorInfo ?? []], 500);
     } catch (Exception $e) {
         if ($transactionStarted) {
@@ -331,17 +332,20 @@ try {
         }
         error_log("Add Property Error: " . $e->getMessage());
         error_log("Add Property Stack Trace: " . $e->getTraceAsString());
+        ob_clean();
         sendError('Failed to add property: ' . $e->getMessage(), null, 500);
     }
     
 } catch (PDOException $e) {
     error_log("Add Property PDO Error (outer): " . $e->getMessage());
     error_log("Add Property Error Code: " . $e->getCode());
-    error_log("Add Property SQL State: " . $e->errorInfo[0] ?? 'N/A');
+    error_log("Add Property SQL State: " . ($e->errorInfo[0] ?? 'N/A'));
+    ob_clean();
     sendError('Database error during property creation: ' . $e->getMessage(), ['error_code' => $e->getCode()], 500);
 } catch (Exception $e) {
     error_log("Add Property Error (outer): " . $e->getMessage());
     error_log("Add Property Stack Trace: " . $e->getTraceAsString());
+    ob_clean();
     sendError('Failed to add property: ' . $e->getMessage(), null, 500);
 }
 
