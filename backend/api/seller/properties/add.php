@@ -4,12 +4,18 @@
  * POST /api/seller/properties/add.php
  */
 
+// Start output buffering to catch any unexpected output
+ob_start();
+
 require_once __DIR__ . '/../../../config/config.php';
 require_once __DIR__ . '/../../../config/database.php';
 require_once __DIR__ . '/../../../utils/response.php';
 require_once __DIR__ . '/../../../utils/validation.php';
 require_once __DIR__ . '/../../../utils/auth.php';
 require_once __DIR__ . '/../../../utils/upload.php';
+
+// Clear any output that might have been generated during require
+ob_clean();
 
 handlePreflight();
 
