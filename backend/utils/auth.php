@@ -167,6 +167,11 @@ function getCurrentUser() {
 
 // Require authentication
 function requireAuth() {
+    // Clear any output buffer before sending error
+    if (ob_get_level() > 0) {
+        ob_clean();
+    }
+    
     $user = getCurrentUser();
     if (!$user) {
         error_log("requireAuth: Authentication failed - user not found or token invalid");
@@ -225,6 +230,10 @@ function requireUserType($allowedTypes) {
     
     if (!$allowed) {
         error_log("Access denied: user_type=$userType, token_user_type=$tokenUserType, allowed=" . json_encode($allowedTypes));
+        // Clear any output buffer before sending error
+        if (ob_get_level() > 0) {
+            ob_clean();
+        }
         sendError('Access denied. Insufficient permissions. You need to be registered as a Seller or Agent to post properties.', null, 403);
     }
     
