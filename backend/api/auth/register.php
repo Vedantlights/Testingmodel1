@@ -399,6 +399,22 @@ try {
         $stmt->execute([$userId]);
         $user = $stmt->fetch();
         
+        // Normalize profile image URL
+        if (isset($user['profile_image']) && !empty($user['profile_image'])) {
+            $profileImage = trim($user['profile_image']);
+            if (strpos($profileImage, 'http://') === 0 || strpos($profileImage, 'https://') === 0) {
+                // Already a full URL
+            } elseif (strpos($profileImage, '/uploads/') === 0) {
+                $user['profile_image'] = BASE_URL . $profileImage;
+            } elseif (strpos($profileImage, 'uploads/') === 0) {
+                $user['profile_image'] = BASE_URL . '/' . $profileImage;
+            } else {
+                $user['profile_image'] = UPLOAD_BASE_URL . '/' . ltrim($profileImage, '/');
+            }
+        } else {
+            $user['profile_image'] = null;
+        }
+        
         sendSuccess('Registration successful', [
             'token' => $token,
             'user' => $user
