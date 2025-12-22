@@ -13,6 +13,7 @@ require_once __DIR__ . '/../../../utils/response.php';
 require_once __DIR__ . '/../../../utils/validation.php';
 require_once __DIR__ . '/../../../utils/auth.php';
 require_once __DIR__ . '/../../../utils/upload.php';
+require_once __DIR__ . '/../../../utils/geocoding.php';
 
 // Clear any output that might have been generated during require
 ob_clean();
@@ -96,6 +97,20 @@ try {
     $location = sanitizeInput($input['location']);
     $latitude = isset($input['latitude']) ? floatval($input['latitude']) : null;
     $longitude = isset($input['longitude']) ? floatval($input['longitude']) : null;
+    
+    // Auto-geocode location if coordinates are missing
+    if (empty($latitude) || empty($longitude) || $latitude == 0 || $longitude == 0) {
+        if (!empty($location)) {
+            $geocoded = geocodeIfNeeded($location, $latitude, $longitude);
+            if ($geocoded['latitude'] && $geocoded['longitude']) {
+                $latitude = $geocoded['latitude'];
+                $longitude = $geocoded['longitude'];
+                error_log("Auto-geocoded location '{$location}' to coordinates: {$latitude}, {$longitude}");
+            } else {
+                error_log("Failed to geocode location '{$location}'. Property will be saved without coordinates.");
+            }
+        }
+    }
     // Studio Apartment should have bedrooms as "0" or null
     $bedrooms = isset($input['bedrooms']) && !empty($input['bedrooms']) && $input['bedrooms'] !== '0' 
       ? sanitizeInput($input['bedrooms']) 
