@@ -27,24 +27,82 @@ try {
     $status = isset($_GET['status']) ? sanitizeInput($_GET['status']) : null;
     $propertyId = isset($_GET['property_id']) ? intval($_GET['property_id']) : null;
     
-    // Build query
-    $query = "
-        SELECT i.*,
-               p.id as property_id,
-               p.title as property_title,
-               p.location as property_location,
-               p.price as property_price,
-               p.cover_image as property_image,
-               u.full_name as buyer_name,
-               u.email as buyer_email,
-               u.phone as buyer_phone,
-               up.profile_image as buyer_profile_image
-        FROM inquiries i
-        INNER JOIN properties p ON i.property_id = p.id
-        LEFT JOIN users u ON i.buyer_id = u.id
-        LEFT JOIN user_profiles up ON u.id = up.user_id
-        WHERE i.seller_id = ?
-    ";
+    // Check if user_profiles table exists
+    $hasUserProfilesTable = false;
+    try {
+        $checkStmt = $db->query("SHOW TABLES LIKE 'user_profiles'");
+        $hasUserProfilesTable = $checkStmt->rowCount() > 0;
+    } catch (Exception $e) {
+        $hasUserProfilesTable = false;
+        error_log("Could not check user_profiles table: " . $e->getMessage());
+    }
+    
+    // Check if users table has profile_image column
+    $hasProfileImageInUsers = false;
+    try {
+        $checkStmt = $db->query("SHOW COLUMNS FROM users LIKE 'profile_image'");
+        $hasProfileImageInUsers = $checkStmt->rowCount() > 0;
+    } catch (Exception $e) {
+        $hasProfileImageInUsers = false;
+    }
+    
+    // Build query based on available tables
+    if ($hasUserProfilesTable) {
+        // user_profiles table exists - use it
+        $query = "
+            SELECT i.*,
+                   p.id as property_id,
+                   p.title as property_title,
+                   p.location as property_location,
+                   p.price as property_price,
+                   p.cover_image as property_image,
+                   u.full_name as buyer_name,
+                   u.email as buyer_email,
+                   u.phone as buyer_phone,
+                   up.profile_image as buyer_profile_image
+            FROM inquiries i
+            INNER JOIN properties p ON i.property_id = p.id
+            LEFT JOIN users u ON i.buyer_id = u.id
+            LEFT JOIN user_profiles up ON u.id = up.user_id
+            WHERE i.seller_id = ?
+        ";
+    } elseif ($hasProfileImageInUsers) {
+        // user_profiles doesn't exist, but users has profile_image column
+        $query = "
+            SELECT i.*,
+                   p.id as property_id,
+                   p.title as property_title,
+                   p.location as property_location,
+                   p.price as property_price,
+                   p.cover_image as property_image,
+                   u.full_name as buyer_name,
+                   u.email as buyer_email,
+                   u.phone as buyer_phone,
+                   u.profile_image as buyer_profile_image
+            FROM inquiries i
+            INNER JOIN properties p ON i.property_id = p.id
+            LEFT JOIN users u ON i.buyer_id = u.id
+            WHERE i.seller_id = ?
+        ";
+    } else {
+        // Neither user_profiles table nor profile_image column exists
+        $query = "
+            SELECT i.*,
+                   p.id as property_id,
+                   p.title as property_title,
+                   p.location as property_location,
+                   p.price as property_price,
+                   p.cover_image as property_image,
+                   u.full_name as buyer_name,
+                   u.email as buyer_email,
+                   u.phone as buyer_phone,
+                   NULL as buyer_profile_image
+            FROM inquiries i
+            INNER JOIN properties p ON i.property_id = p.id
+            LEFT JOIN users u ON i.buyer_id = u.id
+            WHERE i.seller_id = ?
+        ";
+    }
     
     $params = [$user['id']];
     
@@ -150,7 +208,19 @@ try {
     ]);
     
 } catch (Exception $e) {
-    error_log("List Inquiries Error: " . $e->getMessage());
-    sendError('Failed to retrieve inquiries', null, 500);
+    $errorDetails = [
+        'message' => $e->getMessage(),
+        'file' => $e->getFile(),
+        'line' => $e->getLine(),
+        'trace' => $e->getTraceAsString()
+    ];
+    error_log("List Inquiries Error: " . json_encode($errorDetails));
+    
+    // In production, don't expose internal error details
+    if (defined('ENVIRONMENT') && ENVIRONMENT === 'production') {
+        sendError('Failed to retrieve inquiries. Please try again later.', null, 500);
+    } else {
+        sendError('Failed to retrieve inquiries: ' . $e->getMessage(), null, 500);
+    }
 }
 
