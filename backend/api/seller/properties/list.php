@@ -180,7 +180,19 @@ try {
     ]);
     
 } catch (Exception $e) {
-    error_log("List Properties Error: " . $e->getMessage());
-    sendError('Failed to retrieve properties', null, 500);
+    $errorDetails = [
+        'message' => $e->getMessage(),
+        'file' => $e->getFile(),
+        'line' => $e->getLine(),
+        'trace' => $e->getTraceAsString()
+    ];
+    error_log("List Properties Error: " . json_encode($errorDetails));
+    
+    // In production, don't expose internal error details
+    if (defined('ENVIRONMENT') && ENVIRONMENT === 'production') {
+        sendError('Failed to retrieve properties. Please try again later.', null, 500);
+    } else {
+        sendError('Failed to retrieve properties: ' . $e->getMessage(), null, 500);
+    }
 }
 
