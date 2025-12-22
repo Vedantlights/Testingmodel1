@@ -42,18 +42,44 @@ const apiRequest = async (endpoint, options = {}) => {
   try {
     const response = await fetch(url, config);
     
+    // Get response text first to check if it's empty
+    const responseText = await response.text();
+    
+    // Check if response is empty
+    if (!responseText || responseText.trim() === '') {
+      console.error('Empty response from server:', url);
+      throw {
+        status: response.status || 500,
+        message: 'Empty response from server. The API may have encountered an error.',
+        errors: null,
+      };
+    }
+    
     // Check if response is JSON
     const contentType = response.headers.get('content-type');
     let data;
     
     if (contentType && contentType.includes('application/json')) {
-      data = await response.json();
+      try {
+        data = JSON.parse(responseText);
+      } catch (parseError) {
+        console.error('JSON parse error:', parseError);
+        console.error('Response text:', responseText.substring(0, 500));
+        throw {
+          status: response.status || 500,
+          message: 'Invalid JSON response from server. Response: ' + responseText.substring(0, 200),
+          errors: null,
+          rawResponse: responseText.substring(0, 500)
+        };
+      }
     } else {
-      const text = await response.text();
+      // Not JSON - might be HTML error page or plain text
+      console.error('Non-JSON response:', responseText.substring(0, 500));
       throw {
-        status: response.status,
-        message: text || 'Invalid response from server',
+        status: response.status || 500,
+        message: responseText.substring(0, 200) || 'Invalid response from server',
         errors: null,
+        rawResponse: responseText.substring(0, 500)
       };
     }
     
@@ -75,7 +101,7 @@ const apiRequest = async (endpoint, options = {}) => {
       // Only add generic messages if backend didn't provide one
       if (!error.message || error.message === 'Request failed') {
         if (error.status === 401) {
-          error.message = 'Authentication required. Please log in to continue.';
+          error.message = 'Authentication required. Please log in to add properties.';
         } else if (error.status === 403) {
           error.message = 'Access denied. You do not have permission to perform this action.';
         }
@@ -83,9 +109,17 @@ const apiRequest = async (endpoint, options = {}) => {
       throw error;
     }
     // Handle network errors or JSON parse errors
+    if (error.name === 'TypeError' && error.message.includes('fetch')) {
+      throw {
+        status: 0,
+        message: 'Network error. Please check your connection and ensure the backend server is running.',
+      };
+    }
+    // JSON parse error or other error
     throw {
       status: 0,
       message: error.message || 'Network error. Please check your connection and ensure the backend server is running.',
+      originalError: error.message
     };
   }
 };
@@ -207,36 +241,82 @@ export const sellerPropertiesAPI = {
     const url = `${API_BASE_URL}${API_ENDPOINTS.UPLOAD_PROPERTY_FILES}`;
     const token = getToken();
     
-    const response = await fetch(url, {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${token}`,
-      },
-      body: formData,
-    });
-    
-    const contentType = response.headers.get('content-type');
-    let data;
-    
-    if (contentType && contentType.includes('application/json')) {
-      data = await response.json();
-    } else {
-      const text = await response.text();
+    try {
+      const response = await fetch(url, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+        },
+        body: formData,
+      });
+      
+      // Get response text first to check if it's empty
+      const responseText = await response.text();
+      
+      // Check if response is empty
+      if (!responseText || responseText.trim() === '') {
+        throw {
+          status: response.status || 500,
+          message: 'Empty response from server. The upload may have failed.',
+          errors: null,
+        };
+      }
+      
+      // Check if response is JSON
+      const contentType = response.headers.get('content-type');
+      let data;
+      
+      if (contentType && contentType.includes('application/json')) {
+        try {
+          data = JSON.parse(responseText);
+        } catch (parseError) {
+          console.error('JSON parse error:', parseError);
+          console.error('Response text:', responseText.substring(0, 500));
+          throw {
+            status: response.status || 500,
+            message: 'Invalid JSON response from server. Response: ' + responseText.substring(0, 200),
+            errors: null,
+            rawResponse: responseText.substring(0, 500)
+          };
+        }
+      } else {
+        // Not JSON - might be HTML error page or plain text
+        console.error('Non-JSON response:', responseText.substring(0, 500));
+        throw {
+          status: response.status || 500,
+          message: responseText.substring(0, 200) || 'Invalid response from server',
+          errors: null,
+          rawResponse: responseText.substring(0, 500)
+        };
+      }
+      
+      if (!response.ok) {
+        throw {
+          status: response.status,
+          message: data.message || 'Upload failed',
+          errors: data.errors || null,
+          data: data
+        };
+      }
+      
+      return data;
+    } catch (error) {
+      if (error.status) {
+        throw error;
+      }
+      // Handle network errors
+      if (error.name === 'TypeError' && error.message.includes('fetch')) {
+        throw {
+          status: 0,
+          message: 'Network error. Please check your connection and ensure the backend server is running.',
+        };
+      }
       throw {
-        status: response.status,
-        message: text || 'Invalid response from server',
+        status: 0,
+        message: error.message || 'Upload failed. Please try again.',
+        originalError: error.message
       };
     }
-    
-    if (!response.ok) {
-      throw {
-        status: response.status,
-        message: data.message || 'Upload failed',
-        errors: data.errors || null,
-      };
-    }
-    
-    return data;
   },
 };
 
