@@ -10,6 +10,7 @@ require_once __DIR__ . '/../../../utils/response.php';
 require_once __DIR__ . '/../../../utils/validation.php';
 require_once __DIR__ . '/../../../utils/auth.php';
 require_once __DIR__ . '/../../../utils/upload.php';
+require_once __DIR__ . '/../../../utils/geocoding.php';
 
 handlePreflight();
 
@@ -48,6 +49,26 @@ try {
         'price_negotiable', 'maintenance_charges', 'deposit_amount',
         'cover_image', 'video_url', 'brochure_url', 'is_active'
     ];
+    
+    // Check if location is being updated and if coordinates need geocoding
+    $location = isset($input['location']) ? sanitizeInput($input['location']) : null;
+    $latitude = isset($input['latitude']) ? floatval($input['latitude']) : null;
+    $longitude = isset($input['longitude']) ? floatval($input['longitude']) : null;
+    
+    // Auto-geocode location if coordinates are missing and location is being updated
+    if ($location !== null && (empty($latitude) || empty($longitude) || $latitude == 0 || $longitude == 0)) {
+        $geocoded = geocodeIfNeeded($location, $latitude, $longitude);
+        if ($geocoded['latitude'] && $geocoded['longitude']) {
+            $latitude = $geocoded['latitude'];
+            $longitude = $geocoded['longitude'];
+            // Add latitude and longitude to input so they get updated
+            $input['latitude'] = $latitude;
+            $input['longitude'] = $longitude;
+            error_log("Auto-geocoded location '{$location}' to coordinates: {$latitude}, {$longitude}");
+        } else {
+            error_log("Failed to geocode location '{$location}'. Property will be updated without coordinates.");
+        }
+    }
     
     foreach ($allowedFields as $field) {
         if (isset($input[$field])) {
