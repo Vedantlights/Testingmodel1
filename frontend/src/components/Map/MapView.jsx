@@ -1,4 +1,5 @@
 import React, { useEffect, useRef, useState, useCallback } from 'react';
+import { useNavigate } from 'react-router-dom';
 import mapboxgl from 'mapbox-gl';
 import './MapView.css';
 
@@ -16,11 +17,13 @@ const MapView = ({
   interactive = true,
   currentPropertyId = null // ID of the property to highlight
 }) => {
+  const navigate = useNavigate();
   const mapContainer = useRef(null);
   const map = useRef(null);
   const markersRef = useRef([]);
   const markersMapRef = useRef(new Map()); // Map to store propertyId -> marker mapping
   const [mapLoaded, setMapLoaded] = useState(false);
+  const [selectedProperty, setSelectedProperty] = useState(null); // Track selected property for popup
   const lastOpenedPopupRef = useRef(null); // Track last opened popup to avoid duplicates
 
   // Initialize map
@@ -142,34 +145,45 @@ const MapView = ({
     return distanceKm / 111;
   }, []);
 
-  // Redirect to listing page with property data
-  const redirectToListing = useCallback((property) => {
-    if (!property || !property.id) {
-      console.error('Invalid property data for redirect:', property);
+  // Navigate to property details page using React Router
+  const navigateToProperty = useCallback((propertyId) => {
+    if (!propertyId) {
+      console.error('Invalid property ID for navigation:', propertyId);
       return;
     }
     
-    // Navigate to the property details page
-    // Try multiple route formats to ensure compatibility
-    const routes = [
-      `/buyer-dashboard/details/${property.id}`,
-      `/buyer-dashboard/view-details/${property.id}`,
-      `/details/${property.id}`
-    ];
-    
-    // Use the first route format (most common)
-    const listingUrl = routes[0];
-    
     try {
-      window.location.href = listingUrl;
+      // Use React Router navigation
+      navigate(`/buyer-dashboard/details/${propertyId}`);
     } catch (error) {
-      console.error('Error redirecting to property details:', error);
-      // Fallback: try using window.location.assign
-      window.location.assign(listingUrl);
+      console.error('Error navigating to property details:', error);
+      // Fallback: use window location
+      window.location.href = `/buyer-dashboard/details/${propertyId}`;
     }
-  }, []);
+  }, [navigate]);
 
   // Popups should only open on marker click, not automatically
+
+  // Format price helper - returns compact format (e.g., "45L", "6.5Cr")
+  const formatPrice = useCallback((price) => {
+    if (!price) return 'Price on Request';
+    const numPrice = typeof price === 'string' ? parseFloat(price) : price;
+    if (isNaN(numPrice)) return 'Price on Request';
+    
+    if (numPrice >= 10000000) {
+      const cr = numPrice / 10000000;
+      return cr % 1 === 0 ? `${cr}Cr` : `${cr.toFixed(1)}Cr`;
+    }
+    if (numPrice >= 100000) {
+      const lac = numPrice / 100000;
+      return lac % 1 === 0 ? `${lac}L` : `${lac.toFixed(1)}L`;
+    }
+    if (numPrice >= 1000) {
+      const k = numPrice / 1000;
+      return k % 1 === 0 ? `${k}K` : `${k.toFixed(1)}K`;
+    }
+    return numPrice.toString();
+  }, []);
 
   // Helper function to apply small offset for overlapping markers
   const applyMarkerOffset = useCallback((property, allProperties) => {
@@ -240,44 +254,35 @@ const MapView = ({
       console.log('📍 MapView: Creating marker for property:', property.id, property.title, 'lat:', markerLat, 'lng:', markerLng);
 
       const isCurrentProperty = currentPropertyId !== null && property.id === currentPropertyId;
-
-      // Determine listing type from status or property data
-      const listingType = property.listing_type || (property.status === 'For Rent' ? 'rent' : 'sale');
       
       // Get thumbnail/image
       const thumbnail = property.thumbnail || 
-                       (property.images && property.images.length > 0 ? property.images[0].url : null) ||
+                       (property.images && property.images.length > 0 ? (typeof property.images[0] === 'string' ? property.images[0] : property.images[0].url) : null) ||
                        (property.cover_image || '/placeholder-property.jpg');
 
-      // Create custom marker element
+      // Create custom price tag marker element - small pill-shaped
       const el = document.createElement('div');
-      el.className = `property-marker ${isCurrentProperty ? 'current-property' : ''}`;
+      el.className = `price-tag-marker ${isCurrentProperty ? 'selected' : ''}`;
       el.innerHTML = `
-        <div class="marker-content ${listingType} ${isCurrentProperty ? 'highlighted' : ''}">
-          <span class="marker-price">${formatPrice(property.price)}</span>
+        <div class="price-tag">
+          ₹${formatPrice(property.price)}
         </div>
       `;
 
-      // Create popup - don't auto-open, only on click
-      // Don't show "View Details" button for current property
-      const showViewButton = !isCurrentProperty;
-      
-      // Create a unique ID for this button to avoid conflicts
-      const buttonId = `view-details-btn-${property.id}`;
-      const listingUrl = `/buyer-dashboard/details/${property.id}`;
-      
-      const popup = new mapboxgl.Popup({ offset: 25, closeButton: true, closeOnClick: false })
+      // Create popup card - shows on marker click
+      const popup = new mapboxgl.Popup({ 
+        offset: 25, 
+        closeButton: true, 
+        closeOnClick: false,
+        anchor: 'bottom'
+      })
         .setHTML(`
-          <div class="property-popup">
-            <div class="popup-image-container">
-              <img src="${thumbnail}" alt="${property.title || 'Property'}" class="popup-cover-image" onerror="this.src='/placeholder-property.jpg';" />
-            </div>
-            <div class="popup-content">
-              <h3>${property.title || 'Property'}</h3>
-              <p class="popup-price">₹${formatPrice(property.price)}${listingType === 'rent' ? '/month' : ''}</p>
-              ${showViewButton ? `<div class="popup-actions">
-                <button id="${buttonId}" class="btn-view" data-id="${property.id}" onclick="window.location.href='${listingUrl}'; return false;">View Details</button>
-              </div>` : ''}
+          <div class="property-popup-card">
+            <img src="${thumbnail}" alt="${property.title || 'Property'}" class="popup-card-image" onerror="this.src='/placeholder-property.jpg';" />
+            <div class="popup-card-content">
+              <p class="popup-card-location">${property.location || 'Location not specified'}</p>
+              <p class="popup-card-price">₹${formatPrice(property.price)}</p>
+              <button class="popup-card-button" data-property-id="${property.id}">View Details</button>
             </div>
           </div>
         `);
@@ -288,7 +293,7 @@ const MapView = ({
         .setPopup(popup)
         .addTo(map.current);
 
-      // Handle marker click - open popup only on click
+      // Handle marker click - open popup on click
       const markerElement = marker.getElement();
       
       // Ensure marker element is clickable
@@ -306,10 +311,14 @@ const MapView = ({
           }
         });
         
+        // Set selected property for popup
+        setSelectedProperty(property);
+        
         // Toggle popup for this marker
         if (marker.getPopup().isOpen()) {
           marker.getPopup().remove();
           lastOpenedPopupRef.current = null;
+          setSelectedProperty(null);
         } else {
           marker.togglePopup();
           lastOpenedPopupRef.current = property.id;
@@ -324,80 +333,75 @@ const MapView = ({
       // Add click listener to marker element
       markerElement.addEventListener('click', handleMarkerClick);
       
-      // Also handle clicks on nested elements (marker-content) - ensure they bubble up
-      const markerContent = markerElement.querySelector('.marker-content');
-      if (markerContent) {
-        markerContent.style.pointerEvents = 'auto';
-        markerContent.style.cursor = 'pointer';
-        // The click will bubble to markerElement, but we can also handle it directly
-        markerContent.addEventListener('click', (e) => {
+      // Also handle clicks on nested elements (price-tag) - ensure they bubble up
+      const priceTag = markerElement.querySelector('.price-tag');
+      if (priceTag) {
+        priceTag.style.pointerEvents = 'auto';
+        priceTag.style.cursor = 'pointer';
+        priceTag.addEventListener('click', (e) => {
           e.stopPropagation();
           handleMarkerClick(e);
         });
       }
 
-      // Handle popup button clicks - redirect to listing (only if button exists)
-      if (showViewButton) {
-        popup.on('open', () => {
-          // Use setTimeout to ensure DOM is ready
-          setTimeout(() => {
-            const popupElement = popup.getElement();
-            const viewBtn = popupElement?.querySelector(`[data-id="${property.id}"]`);
-            
-            if (viewBtn) {
-              // Remove any existing listeners by cloning
-              const newViewBtn = viewBtn.cloneNode(true);
-              viewBtn.parentNode.replaceChild(newViewBtn, viewBtn);
-              
-              newViewBtn.addEventListener('click', (e) => {
-                e.preventDefault();
-                e.stopPropagation();
-                console.log('View Details button clicked for property:', property.id);
-                // Redirect to ViewDetailsPage for this listing
-                redirectToListing(property);
-              });
-              
-              // Ensure button is clickable
-              newViewBtn.style.cursor = 'pointer';
-              newViewBtn.style.pointerEvents = 'auto';
-            }
-          }, 100);
-        });
-      }
-      
-      // Also handle button clicks directly when popup is created (backup method)
-      if (showViewButton) {
-        // Use a more reliable method - attach listener after popup is added to DOM
-        const attachButtonListener = () => {
+      // Handle popup "View Details" button clicks
+      popup.on('open', () => {
+        // Use setTimeout to ensure DOM is ready
+        setTimeout(() => {
           const popupElement = popup.getElement();
-          if (popupElement) {
-            const viewBtn = popupElement.querySelector(`[data-id="${property.id}"]`);
-            if (viewBtn && !viewBtn.hasAttribute('data-listener-attached')) {
-              viewBtn.setAttribute('data-listener-attached', 'true');
-              viewBtn.style.cursor = 'pointer';
-              viewBtn.style.pointerEvents = 'auto';
-              viewBtn.addEventListener('click', (e) => {
-                e.preventDefault();
-                e.stopPropagation();
-                console.log('View Details button clicked (backup method) for property:', property.id);
-                redirectToListing(property);
-              });
-            }
+          const viewBtn = popupElement?.querySelector(`[data-property-id="${property.id}"]`);
+          
+          if (viewBtn) {
+            // Remove any existing listeners by cloning
+            const newViewBtn = viewBtn.cloneNode(true);
+            viewBtn.parentNode.replaceChild(newViewBtn, viewBtn);
+            
+            newViewBtn.addEventListener('click', (e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              console.log('View Details button clicked for property:', property.id);
+              // Navigate using React Router
+              navigateToProperty(property.id);
+            });
+            
+            // Ensure button is clickable
+            newViewBtn.style.cursor = 'pointer';
+            newViewBtn.style.pointerEvents = 'auto';
           }
-        };
-        
-        // Try multiple times to ensure button is in DOM
-        popup.on('open', () => {
-          attachButtonListener();
-          setTimeout(attachButtonListener, 50);
-          setTimeout(attachButtonListener, 150);
-        });
-      }
+        }, 100);
+      });
+      
+      // Backup method - attach listener when popup is added to DOM
+      const attachButtonListener = () => {
+        const popupElement = popup.getElement();
+        if (popupElement) {
+          const viewBtn = popupElement.querySelector(`[data-property-id="${property.id}"]`);
+          if (viewBtn && !viewBtn.hasAttribute('data-listener-attached')) {
+            viewBtn.setAttribute('data-listener-attached', 'true');
+            viewBtn.style.cursor = 'pointer';
+            viewBtn.style.pointerEvents = 'auto';
+            viewBtn.addEventListener('click', (e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              console.log('View Details button clicked (backup method) for property:', property.id);
+              navigateToProperty(property.id);
+            });
+          }
+        }
+      };
+      
+      // Try multiple times to ensure button is in DOM
+      popup.on('open', () => {
+        attachButtonListener();
+        setTimeout(attachButtonListener, 50);
+        setTimeout(attachButtonListener, 150);
+      });
 
       // Track popup close
       popup.on('close', () => {
         if (lastOpenedPopupRef.current === property.id) {
           lastOpenedPopupRef.current = null;
+          setSelectedProperty(null);
         }
       });
 
@@ -407,16 +411,7 @@ const MapView = ({
     });
     
     console.log('🗺️ MapView: Total markers created:', markersRef.current.length);
-  }, [properties, mapLoaded, onPropertyClick, currentPropertyId, redirectToListing, applyMarkerOffset]);
-
-  // Format price helper
-  const formatPrice = (price) => {
-    if (!price) return 'Price on Request';
-    if (price >= 10000000) return `${(price / 10000000).toFixed(2)} Cr`;
-    if (price >= 100000) return `${(price / 100000).toFixed(2)} Lac`;
-    if (price >= 1000) return `${(price / 1000).toFixed(1)}K`;
-    return price.toString();
-  };
+  }, [properties, mapLoaded, onPropertyClick, currentPropertyId, navigateToProperty, applyMarkerOffset, formatPrice]);
 
   // Expose map instance for external use
   const getMap = useCallback(() => map.current, []);
