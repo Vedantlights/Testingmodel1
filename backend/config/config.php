@@ -67,9 +67,10 @@ if ($isLocalhost) {
     // If backend is in /backend/ folder, include it in BASE_URL
     define('BASE_URL', $protocol . '://' . $host . '/backend');
     define('ENVIRONMENT', 'production');
-    // Error reporting: Log errors but don't display them (security)
+    // Error reporting: TEMPORARILY ENABLED FOR DEBUGGING
+    // TODO: Set display_errors back to 0 after fixing issues
     error_reporting(E_ALL);
-    ini_set('display_errors', 0);
+    ini_set('display_errors', 1);  // TEMPORARY: Shows errors on screen
     ini_set('log_errors', 1);
     // Log errors to a file in the backend directory
     $errorLogPath = __DIR__ . '/../logs/php_errors.log';
