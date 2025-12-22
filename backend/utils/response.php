@@ -23,9 +23,17 @@ function setCorsHeaders() {
     
     // If no origin header, try Referer header
     if (empty($origin) && isset($_SERVER['HTTP_REFERER'])) {
-        $referer = parse_url($_SERVER['HTTP_REFERER'], PHP_URL_ORIGIN);
-        if ($referer) {
-            $origin = $referer;
+        $parsedUrl = parse_url($_SERVER['HTTP_REFERER']);
+        if (isset($parsedUrl['scheme']) && isset($parsedUrl['host'])) {
+            // Build origin from scheme and host
+            $origin = $parsedUrl['scheme'] . '://' . $parsedUrl['host'];
+            // Include port if present (and not default port)
+            if (isset($parsedUrl['port'])) {
+                $defaultPort = ($parsedUrl['scheme'] === 'https') ? 443 : 80;
+                if ($parsedUrl['port'] != $defaultPort) {
+                    $origin .= ':' . $parsedUrl['port'];
+                }
+            }
         }
     }
     
