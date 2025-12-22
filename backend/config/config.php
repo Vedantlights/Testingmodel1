@@ -67,9 +67,16 @@ if ($isLocalhost) {
     // If backend is in /backend/ folder, include it in BASE_URL
     define('BASE_URL', $protocol . '://' . $host . '/backend');
     define('ENVIRONMENT', 'production');
-    // Error reporting disabled for production
-    error_reporting(0);
+    // Error reporting: Log errors but don't display them (security)
+    error_reporting(E_ALL);
     ini_set('display_errors', 0);
+    ini_set('log_errors', 1);
+    // Log errors to a file in the backend directory
+    $errorLogPath = __DIR__ . '/../logs/php_errors.log';
+    if (!file_exists(dirname($errorLogPath))) {
+        @mkdir(dirname($errorLogPath), 0755, true);
+    }
+    ini_set('error_log', $errorLogPath);
 }
 
 define('API_BASE_URL', BASE_URL . '/api');
