@@ -210,11 +210,24 @@ const MapView = ({
 
     console.log('🗺️ MapView: Adding markers for', properties.length, 'properties');
     
+    // Count properties with and without coordinates
+    const propertiesWithCoords = properties.filter(p => p.longitude && p.latitude);
+    const propertiesWithoutCoords = properties.filter(p => !p.longitude || !p.latitude);
+    
+    if (propertiesWithoutCoords.length > 0) {
+      console.warn(`⚠️ MapView: ${propertiesWithoutCoords.length} out of ${properties.length} properties are missing coordinates and will not appear on the map.`);
+      console.warn('⚠️ Properties without coordinates:', propertiesWithoutCoords.map(p => ({ id: p.id, title: p.title, location: p.location })));
+    }
+    
+    if (propertiesWithCoords.length === 0) {
+      console.error('❌ MapView: No properties have valid coordinates. Map will be empty.');
+      console.error('💡 Solution: Ensure properties have latitude/longitude values. Use LocationPicker when adding/editing properties.');
+    }
+    
     // Add new markers for each property
     properties.forEach((property, index) => {
       if (!property.longitude || !property.latitude) {
-        console.log('⚠️ MapView: Skipping property without coordinates:', property.id, property.title);
-        return;
+        return; // Skip silently (already logged above)
       }
       
       // Apply offset if multiple properties at same location
