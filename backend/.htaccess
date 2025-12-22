@@ -1,6 +1,11 @@
 # Enable Rewrite Engine
 RewriteEngine On
 
+# Preserve Authorization header for Hostinger Apache servers
+RewriteCond %{HTTP:Authorization} .
+RewriteRule .* - [E=HTTP_AUTHORIZATION:%{HTTP:Authorization}]
+SetEnvIf Authorization "(.*)" HTTP_AUTHORIZATION=$1
+
 # Allow CORS
 # Note: CORS is primarily handled by PHP in config.php
 # This .htaccess is a fallback. Update the domain below for production.
