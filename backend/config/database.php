@@ -48,8 +48,16 @@ class Database {
             
             $this->conn = new PDO($dsn, DB_USER, DB_PASS, $options);
         } catch (PDOException $e) {
-            error_log("Database Connection Error: " . $e->getMessage());
-            throw new Exception("Database connection failed");
+            $errorMsg = "Database Connection Error: " . $e->getMessage();
+            $errorMsg .= " | Host: " . DB_HOST . " | Database: " . DB_NAME . " | User: " . DB_USER;
+            error_log($errorMsg);
+            
+            // In production, don't expose database details in error messages
+            if (defined('ENVIRONMENT') && ENVIRONMENT === 'production') {
+                throw new Exception("Database connection failed. Please contact support.");
+            } else {
+                throw new Exception("Database connection failed: " . $e->getMessage());
+            }
         }
     }
 
