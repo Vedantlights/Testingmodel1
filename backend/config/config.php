@@ -121,6 +121,10 @@ define('JWT_SECRET', 'your-secret-key-change-in-production-2024');
 define('JWT_ALGORITHM', 'HS256');
 define('JWT_EXPIRATION', 86400); // 24 hours
 
+// Mapbox Access Token (for geocoding)
+// This is used to automatically convert location addresses to coordinates
+define('MAPBOX_ACCESS_TOKEN', 'pk.eyJ1Ijoic3VkaGFrYXJwb3VsIiwiYSI6ImNtaXp0ZmFrNTAxaTQzZHNiODNrYndsdTAifQ.YTMezksySLU7ZpcYkvXyqg');
+
 // OTP Configuration
 define('OTP_EXPIRATION_MINUTES', 10);
 define('OTP_LENGTH', 6);
