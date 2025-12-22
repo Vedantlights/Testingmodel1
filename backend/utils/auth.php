@@ -67,8 +67,24 @@ function verifyToken($token) {
 
 // Get current user from token
 function getCurrentUser() {
+    $authHeader = null;
+    
+    // Method 1: getallheaders
     $headers = getallheaders();
-    $authHeader = $headers['Authorization'] ?? $headers['authorization'] ?? $_SERVER['HTTP_AUTHORIZATION'] ?? '';
+    $authHeader = $headers['Authorization'] ?? $headers['authorization'] ?? null;
+    
+    // Method 2: $_SERVER variations (including REDIRECT_HTTP_AUTHORIZATION for mod_rewrite)
+    if (empty($authHeader)) {
+        $authHeader = $_SERVER['HTTP_AUTHORIZATION'] 
+            ?? $_SERVER['REDIRECT_HTTP_AUTHORIZATION']
+            ?? null;
+    }
+    
+    // Method 3: apache_request_headers (fallback)
+    if (empty($authHeader) && function_exists('apache_request_headers')) {
+        $apacheHeaders = apache_request_headers();
+        $authHeader = $apacheHeaders['Authorization'] ?? null;
+    }
     
     if (empty($authHeader)) {
         error_log("getCurrentUser: No Authorization header found");
@@ -191,11 +207,28 @@ function requireUserType($allowedTypes) {
     $userType = $userType ? strtolower(trim($userType)) : null;
     
     // Also check token payload for user_type (login type)
+    $authHeader = null;
+    
+    // Method 1: getallheaders
     $headers = getallheaders();
-    $authHeader = $headers['Authorization'] ?? $headers['authorization'] ?? $_SERVER['HTTP_AUTHORIZATION'] ?? '';
+    $authHeader = $headers['Authorization'] ?? $headers['authorization'] ?? null;
+    
+    // Method 2: $_SERVER variations (including REDIRECT_HTTP_AUTHORIZATION for mod_rewrite)
+    if (empty($authHeader)) {
+        $authHeader = $_SERVER['HTTP_AUTHORIZATION'] 
+            ?? $_SERVER['REDIRECT_HTTP_AUTHORIZATION']
+            ?? null;
+    }
+    
+    // Method 3: apache_request_headers (fallback)
+    if (empty($authHeader) && function_exists('apache_request_headers')) {
+        $apacheHeaders = apache_request_headers();
+        $authHeader = $apacheHeaders['Authorization'] ?? null;
+    }
+    
     $tokenUserType = null;
     
-    if (preg_match('/Bearer\s+(.*)$/i', $authHeader, $matches)) {
+    if (!empty($authHeader) && preg_match('/Bearer\s+(.*)$/i', $authHeader, $matches)) {
         $token = $matches[1];
         $payload = verifyToken($token);
         if ($payload && isset($payload['user_type'])) {
