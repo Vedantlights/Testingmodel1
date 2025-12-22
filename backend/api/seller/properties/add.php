@@ -95,20 +95,34 @@ try {
     $status = in_array($input['status'] ?? 'sale', ['sale', 'rent']) ? $input['status'] : 'sale';
     $propertyType = sanitizeInput($input['property_type']);
     $location = sanitizeInput($input['location']);
-    $latitude = isset($input['latitude']) ? floatval($input['latitude']) : null;
-    $longitude = isset($input['longitude']) ? floatval($input['longitude']) : null;
     
-    // Auto-geocode location if coordinates are missing
-    if (empty($latitude) || empty($longitude) || $latitude == 0 || $longitude == 0) {
-        if (!empty($location)) {
-            $geocoded = geocodeIfNeeded($location, $latitude, $longitude);
-            if ($geocoded['latitude'] && $geocoded['longitude']) {
-                $latitude = $geocoded['latitude'];
-                $longitude = $geocoded['longitude'];
-                error_log("Auto-geocoded location '{$location}' to coordinates: {$latitude}, {$longitude}");
-            } else {
-                error_log("Failed to geocode location '{$location}'. Property will be saved without coordinates.");
-            }
+    // Handle latitude/longitude - convert empty strings to null
+    $latitude = null;
+    $longitude = null;
+    if (isset($input['latitude']) && $input['latitude'] !== '' && $input['latitude'] !== null) {
+        $latitude = floatval($input['latitude']);
+        // Validate latitude range
+        if ($latitude < -90 || $latitude > 90) {
+            $latitude = null;
+        }
+    }
+    if (isset($input['longitude']) && $input['longitude'] !== '' && $input['longitude'] !== null) {
+        $longitude = floatval($input['longitude']);
+        // Validate longitude range
+        if ($longitude < -180 || $longitude > 180) {
+            $longitude = null;
+        }
+    }
+    
+    // Auto-geocode location if coordinates are missing or invalid
+    if (($latitude === null || $longitude === null || $latitude == 0 || $longitude == 0) && !empty($location)) {
+        $geocoded = geocodeIfNeeded($location, $latitude, $longitude);
+        if ($geocoded['latitude'] && $geocoded['longitude']) {
+            $latitude = $geocoded['latitude'];
+            $longitude = $geocoded['longitude'];
+            error_log("Auto-geocoded location '{$location}' to coordinates: {$latitude}, {$longitude}");
+        } else {
+            error_log("Failed to geocode location '{$location}'. Property will be saved without coordinates.");
         }
     }
     // Studio Apartment should have bedrooms as "0" or null
