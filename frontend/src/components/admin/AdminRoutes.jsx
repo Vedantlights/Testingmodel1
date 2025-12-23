@@ -1,5 +1,6 @@
 import React from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
+import { API_BASE_URL } from '../../config/api.config';
 import AdminLayout from '../../LandingPage/components/admin/AdminLayout';
 
 // Import admin pages
@@ -12,13 +13,42 @@ import AdminSupport from '../../LandingPage/pages/admin/AdminSupport';
 import AdminSettings from '../../LandingPage/pages/admin/AdminSettings';
 
 // Protected Route Component for Admin
+// Uses session-based auth (HTTP-only cookie), so we check via API
 const AdminProtectedRoute = ({ children }) => {
-  const token = localStorage.getItem('adminToken');
-  
-  if (!token) {
+  const [isAuthenticated, setIsAuthenticated] = React.useState(null);
+  const [isChecking, setIsChecking] = React.useState(true);
+
+  React.useEffect(() => {
+    const checkAuth = async () => {
+      try {
+        const response = await fetch(`${API_BASE_URL}/admin/auth/verify.php`, {
+          method: 'GET',
+          credentials: 'include',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+        });
+
+        const data = await response.json();
+        setIsAuthenticated(data.success && data.data && data.data.admin);
+      } catch (error) {
+        setIsAuthenticated(false);
+      } finally {
+        setIsChecking(false);
+      }
+    };
+
+    checkAuth();
+  }, []);
+
+  if (isChecking) {
+    return <div>Loading...</div>;
+  }
+
+  if (!isAuthenticated) {
     return <Navigate to="/admin/login" replace />;
   }
-  
+
   return children;
 };
 

@@ -52,29 +52,17 @@ const AdminLayout = () => {
     return allMenuItems.filter(item => item.roles.includes(role));
   };
 
-  // Check authentication for protected routes - VERIFY WITH BACKEND
+  // Check authentication for protected routes - VERIFY SESSION WITH BACKEND
   useEffect(() => {
     const checkAuth = async () => {
-      const token = localStorage.getItem('adminToken');
-      
-      if (!token) {
-        setIsAuthenticated(false);
-        setIsCheckingAuth(false);
-        if (!isLoginPage) {
-          navigate('/admin/login', { replace: true });
-        }
-        return;
-      }
-
-      // Verify token with backend
+      // Verify session with backend (uses HTTP-only cookie)
       try {
         const response = await fetch(`${API_BASE_URL}${API_ENDPOINTS.ADMIN_VERIFY}`, {
           method: 'GET',
           headers: {
-            'Authorization': `Bearer ${token}`,
             'Content-Type': 'application/json',
           },
-          credentials: 'include',
+          credentials: 'include', // Important: include cookies
         });
 
         const data = await response.json();
@@ -89,10 +77,7 @@ const AdminLayout = () => {
             navigate('/admin/dashboard', { replace: true });
           }
         } else {
-          // Token invalid - clear and redirect to login
-          localStorage.removeItem('adminToken');
-          localStorage.removeItem('adminData');
-          localStorage.removeItem('adminLoggedIn');
+          // Session invalid - redirect to login
           setIsAuthenticated(false);
           if (!isLoginPage) {
             navigate('/admin/login', { replace: true });
@@ -100,10 +85,7 @@ const AdminLayout = () => {
         }
       } catch (error) {
         console.error('Auth verification error:', error);
-        // On error, clear token and redirect to login
-        localStorage.removeItem('adminToken');
-        localStorage.removeItem('adminData');
-        localStorage.removeItem('adminLoggedIn');
+        // On error, redirect to login
         setIsAuthenticated(false);
         if (!isLoginPage) {
           navigate('/admin/login', { replace: true });
@@ -116,11 +98,22 @@ const AdminLayout = () => {
     checkAuth();
   }, [isLoginPage, navigate]);
 
-  const handleLogout = () => {
-    // Clear admin token and data
-    localStorage.removeItem('adminToken');
-    localStorage.removeItem('adminData');
-    navigate('/admin/login');
+  const handleLogout = async () => {
+    try {
+      // Call logout API to destroy session
+      await fetch(`${API_BASE_URL}/admin/auth/logout.php`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        credentials: 'include',
+      });
+    } catch (error) {
+      console.error('Logout error:', error);
+    }
+    
+    // Navigate to login
+    navigate('/admin/login', { replace: true });
   };
 
   const toggleMobileMenu = () => {

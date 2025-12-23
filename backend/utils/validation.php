@@ -26,6 +26,34 @@ function validatePhone($phone) {
     return false;
 }
 
+// Validate mobile number format (supports international format)
+function validateMobileFormat($mobile) {
+    // Remove spaces and normalize
+    $mobile = trim($mobile);
+    
+    // Extract digits only for validation
+    $digits = preg_replace('/\D/', '', $mobile);
+    
+    // Check international format: +[country code][number] (with or without spaces)
+    // Normalize to remove spaces first
+    $normalized = preg_replace('/\s+/', '', $mobile);
+    if (preg_match('/^\+\d{10,15}$/', $normalized)) {
+        return $normalized; // Return normalized format without spaces
+    }
+    
+    // Check Indian format: 91[10 digits] (12 digits total)
+    if (strlen($digits) === 12 && substr($digits, 0, 2) === '91' && preg_match('/^91[6-9]\d{9}$/', $digits)) {
+        return '+' . $digits;
+    }
+    
+    // Check 10-digit Indian number (without country code)
+    if (strlen($digits) === 10 && preg_match('/^[6-9]\d{9}$/', $digits)) {
+        return '+91' . $digits;
+    }
+    
+    return false;
+}
+
 // Validate password strength
 function validatePassword($password) {
     // At least 6 characters
