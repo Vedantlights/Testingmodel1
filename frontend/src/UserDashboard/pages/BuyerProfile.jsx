@@ -366,9 +366,14 @@ const BuyerProfile = () => {
   };
 
   const handleChange = (e) => {
+    const { name, value } = e.target;
+    // Convert firstName and lastName to uppercase, but keep email as is
+    const processedValue = (name === 'firstName' || name === 'lastName') 
+      ? value.toUpperCase() 
+      : value;
     setFormData({
       ...formData,
-      [e.target.name]: e.target.value
+      [name]: processedValue
     });
   };
 

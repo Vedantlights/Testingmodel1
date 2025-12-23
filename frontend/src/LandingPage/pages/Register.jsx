@@ -42,9 +42,13 @@ const Register = () => {
 
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
+    // Convert fullName to uppercase, but keep email as is
+    const processedValue = (name === 'fullName' && type !== 'checkbox') 
+      ? value.toUpperCase() 
+      : (type === "checkbox" ? checked : value);
     setFormData((prev) => ({
       ...prev,
-      [name]: type === "checkbox" ? checked : value,
+      [name]: processedValue,
     }));
   };
 

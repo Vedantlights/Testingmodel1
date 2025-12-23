@@ -46,8 +46,8 @@
 .contact-container {
   max-width: 1280px;
   margin: 0 auto;
-  padding: 5rem 1rem;
-  padding-top: calc(8rem + 5rem); /* Account for fixed navbar (8rem) + original padding */
+  padding: 3rem 1rem;
+  padding-top: calc(8rem + 3rem); /* Account for fixed navbar (8rem) + original padding */
   position: relative;
   z-index: 1; /* Below navbar (z-index: 1000) */
 }
@@ -381,7 +381,7 @@
 /* Responsive Design */
 @media (max-width: 1099px) {
   .contact-container {
-    padding-top: calc(5rem + 4rem); /* Tablet navbar height (matches Navbar.css) */
+    padding-top: calc(5rem + 2rem); /* Tablet navbar height (matches Navbar.css) */
   }
   
   .info-section {
@@ -392,7 +392,7 @@
 
 @media (max-width: 768px) {
   .contact-container {
-    padding-top: calc(4.5rem + 3rem); /* Mobile navbar height (matches Navbar.css) */
+    padding-top: calc(4.5rem + 2rem); /* Mobile navbar height (matches Navbar.css) */
   }
 
   .info-section { 
@@ -413,7 +413,7 @@
 @media (max-width: 480px) {
   .contact-container {
     padding: 2rem 1rem;
-    padding-top: calc(4rem + 2rem); /* Small mobile navbar height (matches Navbar.css) */
+    padding-top: calc(4rem + 1.5rem); /* Small mobile navbar height (matches Navbar.css) */
   }
 
   .info-card { 
@@ -446,7 +446,7 @@
 
 @media (max-width: 360px) {
   .contact-container {
-    padding-top: calc(3.75rem + 1.5rem); /* Extra small navbar height (matches Navbar.css) */
+    padding-top: calc(3.75rem + 1rem); /* Extra small navbar height (matches Navbar.css) */
   }
   
   .contact-title {

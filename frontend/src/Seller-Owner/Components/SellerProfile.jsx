@@ -145,8 +145,10 @@ const SellerProfile = () => {
     const { name, value } = e.target;
     let sanitizedValue = value;
     
-    // Sanitize text inputs
-    if (['firstName', 'lastName', 'address', 'agencyName', 'agencyAddress'].includes(name)) {
+    // Convert firstName and lastName to uppercase, but keep email as is
+    if (name === 'firstName' || name === 'lastName') {
+      sanitizedValue = sanitizeInput(value.toUpperCase());
+    } else if (['address', 'agencyName', 'agencyAddress'].includes(name)) {
       sanitizedValue = sanitizeInput(value);
     }
     

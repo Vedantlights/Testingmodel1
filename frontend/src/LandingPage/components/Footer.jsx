@@ -112,7 +112,7 @@ const Footer = () => {
             {/* Social Media */}
             <div className="footer-social">
               <a 
-                href="https://tr.ee/a2za1wr24G" 
+                href="https://www.facebook.com/profile.php?id=61585284702521" 
                 target="_blank"
                 rel="noopener noreferrer"
                 className="social-link" 
@@ -123,7 +123,7 @@ const Footer = () => {
                 </svg>
               </a>
               <a 
-                href="https://tr.ee/N2a064Rxes" 
+                href="https://www.instagram.com/indiapropertys_official/" 
                 target="_blank"
                 rel="noopener noreferrer"
                 className="social-link" 
@@ -134,7 +134,7 @@ const Footer = () => {
                 </svg>
               </a>
               <a 
-                href="https://tr.ee/UpO5keCLI_" 
+                href="https://www.youtube.com/@Indiapropertys" 
                 target="_blank"
                 rel="noopener noreferrer"
                 className="social-link" 
@@ -145,7 +145,7 @@ const Footer = () => {
                 </svg>
               </a>
               <a 
-                href="https://tr.ee/d-pXDz3Lab" 
+                href="https://www.linkedin.com/in/indiapropertys-social-43b6493a1/" 
                 target="_blank"
                 rel="noopener noreferrer"
                 className="social-link" 
@@ -156,7 +156,7 @@ const Footer = () => {
                 </svg>
               </a>
               <a 
-                href="https://tr.ee/O78d8U4Cmx" 
+                href="https://x.com/indiapropertys_" 
                 target="_blank"
                 rel="noopener noreferrer"
                 className="social-link" 
