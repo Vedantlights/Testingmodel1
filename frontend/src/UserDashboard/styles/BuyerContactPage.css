@@ -105,6 +105,31 @@
   border-color: #6d28d9;
 }
 
+.buyer-info-card-clickable {
+  cursor: pointer;
+  display: flex;
+  align-items: flex-start;
+  gap: 1.5rem;
+  text-decoration: none;
+  color: inherit;
+  background: white;
+  border-radius: 16px;
+  padding: 2rem;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.06);
+  transition: all 0.4s ease;
+  border: 2px solid #8b5cf6;
+  animation: buyer-fadeInUp 0.8s ease forwards;
+  opacity: 0;
+}
+
+.buyer-info-card-clickable:nth-child(2) { animation-delay: 0.4s; }
+
+.buyer-info-card-clickable:hover {
+  transform: translateY(-10px);
+  box-shadow: 0 12px 40px rgba(139, 92, 246, 0.2);
+  border-color: #6d28d9;
+}
+
 .buyer-info-icon {
   width: 60px;
   height: 60px;

@@ -154,6 +154,48 @@
     background: rgba(255, 255, 255, 0.2);
 }
 
+/* Favorite Button in Details Page Header */
+.buyer-detail-favourite-btn {
+    background: rgba(255, 255, 255, 0.2);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    border-radius: 50%;
+    width: 44px;
+    height: 44px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    color: white;
+    margin-left: auto;
+}
+
+.buyer-detail-favourite-btn:hover {
+    background: rgba(255, 255, 255, 0.3);
+    transform: scale(1.1);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+
+.buyer-detail-favourite-btn.active {
+    background: #ef4444;
+    border-color: #dc2626;
+}
+
+.buyer-detail-favourite-btn.active:hover {
+    background: #dc2626;
+}
+
+.buyer-detail-favourite-btn svg {
+    transition: all 0.3s ease;
+    stroke: currentColor;
+}
+
+.buyer-detail-favourite-btn.active svg {
+    fill: white;
+    stroke: white;
+}
+
 /* Property Title */
 .buyer-property-header h1 {
     font-size: 2.8rem;

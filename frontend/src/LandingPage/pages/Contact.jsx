@@ -1,6 +1,6 @@
 // Contact.jsx
 import React, { useState } from "react";
-import { MapPin, Mail, MessageSquare, Phone } from "lucide-react";
+import { MapPin, Mail, MessageSquare } from "lucide-react";
 import emailjs from "@emailjs/browser";     // ✅ Correct EmailJS package
 import '../styles/Contact.css';
 
@@ -94,14 +94,17 @@ export default function Contact() {
             <div className="info-text">
               <h3>Visit Us</h3>
               <p>
-                Office No. 22, 3rd Floor,<br />
+                Office No.21 & 22, 3rd Floor, S/Bo. 56<br />
                 Aston Plaza, Ambegaon Bk.<br />
-                Pune – 411046
+                Pune , Maharashtra– 411046
               </p>
             </div>
           </div>
 
-          <div className="info-card">
+          <a 
+            href="mailto:info@indiapropertys.com" 
+            className="info-card-clickable"
+          >
             <div className="info-icon bg-purple">
               <Mail />
             </div>
@@ -109,17 +112,7 @@ export default function Contact() {
               <h3>Email Us</h3>
               <p>info@indiapropertys.com</p>
             </div>
-          </div>
-
-          <div className="info-card">
-            <div className="info-icon bg-blue">
-              <Phone />
-            </div>
-            <div className="info-text">
-              <h3>Call Us</h3>
-              <p>+91 9860638920 / 9890770189</p>
-            </div>
-          </div>
+          </a>
 
         </div>
 

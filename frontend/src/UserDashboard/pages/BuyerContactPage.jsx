@@ -1,6 +1,6 @@
 // Contact.jsx
 import React, { useState } from "react";
-import { MapPin, Mail, MessageSquare, Phone } from "lucide-react";
+import { MapPin, Mail, MessageSquare } from "lucide-react";
 import "../styles/BuyerContactPage.css";
 
 export default function Contact() {
@@ -73,34 +73,25 @@ export default function Contact() {
             </div>
             <div className="buyer-info-text">
               <h3>Visit Us</h3>
-              <p>Office No. 22, 3rd Floor,<br />
+              <p>Office No.21 & 22, 3rd Floor, S/Bo. 56<br />
               Aston Plaza, Ambegaon Bk.<br />
-              Pune – 411046</p>
+              Pune , Maharashtra– 411046</p>
             </div>
           </div>
 
           {/* EMAIL */}
-          <div className="buyer-info-card">
+          <a 
+            href="mailto:info@indiapropertys.com" 
+            className="buyer-info-card-clickable"
+          >
             <div className="buyer-info-icon buyer-bg-purple">
               <Mail />
             </div>
             <div className="buyer-info-text">
               <h3>Email Us</h3>
-              <p>sudhakarpoul@vedantlights.com<br />
-              shital@vedantlights.com</p>
+              <p>info@indiapropertys.com</p>
             </div>
-          </div>
-
-          {/* PHONE */}
-          <div className="buyer-info-card">
-            <div className="buyer-info-icon buyer-bg-blue">
-              <Phone />
-            </div>
-            <div className="buyer-info-text">
-              <h3>Call Us</h3>
-              <p>‪+91 9860638920‬ / 9890770189 </p>
-            </div>
-          </div>
+          </a>
 
         </div>
 

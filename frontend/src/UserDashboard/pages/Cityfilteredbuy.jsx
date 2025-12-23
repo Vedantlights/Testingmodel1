@@ -77,6 +77,7 @@ const CityFilteredBuy = () => {
   
   // Budget ranges for Sale (Residential) - BUY PAGE
   const saleResidentialBudget = [
+    '0-25L',
     '25L-50L',
     '50L-75L',
     '75L-1Cr',
@@ -87,6 +88,7 @@ const CityFilteredBuy = () => {
   
   // Budget ranges for Land/Commercial (Sale) - BUY PAGE
   const commercialBudget = [
+    '0-50L',
     '50L-1Cr',
     '1Cr-2Cr',
     '2Cr-5Cr',
@@ -327,7 +329,7 @@ const CityFilteredBuy = () => {
     <div className="buyer-filtered-properties-page">
       {/* ========== SEARCH BAR WITH BACK BUTTON - START ========== */}
       <div className="buyer-buy-search-bar-banner" 
-            style={{ backgroundImage: 'url(/Buy.jpg)' }}>
+            style={{ backgroundImage: 'url(/buy.jpg)' }}>
         <div className="buyer-search-bar-wrapper">
           {/* Back Button */}
           <button onClick={handleBackClick} className="buyer-search-back-button">

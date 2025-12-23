@@ -77,8 +77,10 @@ const PropertyCard = ({ property, onFavoriteToggle }) => {
                 if (token) {
                     const { favoritesAPI } = await import('../../services/api.service');
                     const response = await favoritesAPI.list();
-                    if (response.success && response.data && response.data.favorites) {
-                        const favoriteIds = response.data.favorites.map(f => f.property_id || f.id);
+                    if (response.success && response.data) {
+                        // API returns properties array (not favorites array)
+                        const properties = response.data.properties || response.data.favorites || [];
+                        const favoriteIds = properties.map(p => p.id || p.property_id);
                         setIsFavorited(favoriteIds.includes(property.id));
                     }
                 }
@@ -103,7 +105,7 @@ const PropertyCard = ({ property, onFavoriteToggle }) => {
             const response = await favoritesAPI.toggle(property.id);
             
             if (response.success) {
-                setIsFavorited(response.data.isFavorite || !isFavorited);
+                setIsFavorited(response.data.is_favorite !== undefined ? response.data.is_favorite : !isFavorited);
                 // Also update local storage for offline support
                 FavoritesManager.toggleFavorite(property.id);
                 

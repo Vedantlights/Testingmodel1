@@ -275,19 +275,93 @@ const BuyerProfile = () => {
 
   // Favorites state
   const [favoriteProperties, setFavoriteProperties] = useState([]);
+  const [favoritesLoading, setFavoritesLoading] = useState(false);
   const [activeSection, setActiveSection] = useState('profile'); // 'profile' or 'favorites'
 
-  // Load favorites on mount
+  // Load favorites on mount and when section changes to favorites
   useEffect(() => {
-    loadFavorites();
-  }, []);
+    if (activeSection === 'favorites') {
+      loadFavorites();
+    }
+  }, [activeSection, user]);
 
-  const loadFavorites = () => {
-    const favorites = FavoritesManager.getFavoriteProperties();
-    setFavoriteProperties(favorites);
+  const loadFavorites = async () => {
+    if (!user) {
+      setFavoriteProperties([]);
+      return;
+    }
+
+    setFavoritesLoading(true);
+    try {
+      // Fetch favorites from API
+      const { favoritesAPI } = await import('../../services/api.service');
+      const response = await favoritesAPI.list();
+      
+      if (response.success && response.data) {
+        // API returns properties array (not favorites array)
+        const properties = response.data.properties || response.data.favorites || [];
+        
+        // Format properties from API response
+        const formattedProperties = properties.map(prop => ({
+          id: prop.id || prop.property_id,
+          title: prop.title,
+          location: prop.location,
+          price: parseFloat(prop.price) || 0,
+          image: prop.cover_image || (prop.images && Array.isArray(prop.images) && prop.images.length > 0 ? prop.images[0] : (typeof prop.images === 'string' ? prop.images : null)),
+          images: Array.isArray(prop.images) ? prop.images : (prop.images ? [prop.images] : []),
+          bedrooms: prop.bedrooms,
+          bathrooms: prop.bathrooms,
+          area: parseFloat(prop.area) || 0,
+          status: prop.status === 'sale' ? 'For Sale' : prop.status === 'rent' ? 'For Rent' : (prop.status || 'For Sale')
+        }));
+        
+        setFavoriteProperties(formattedProperties);
+      } else {
+        // Fallback: try to get from localStorage and fetch properties
+        const favoriteIds = FavoritesManager.getFavorites();
+        if (favoriteIds.length > 0) {
+          try {
+            const { propertiesAPI } = await import('../../services/api.service');
+            const propertyPromises = favoriteIds.map(id => 
+              propertiesAPI.getDetails(id).catch(() => null)
+            );
+            const propertyResponses = await Promise.all(propertyPromises);
+            const validProperties = propertyResponses
+              .filter(res => res && res.success && res.data && res.data.property)
+              .map(res => {
+                const prop = res.data.property;
+                return {
+                  id: prop.id,
+                  title: prop.title,
+                  location: prop.location,
+                  price: parseFloat(prop.price) || 0,
+                  image: prop.cover_image || (prop.images && Array.isArray(prop.images) && prop.images.length > 0 ? prop.images[0] : null),
+                  images: Array.isArray(prop.images) ? prop.images : [],
+                  bedrooms: prop.bedrooms,
+                  bathrooms: prop.bathrooms,
+                  area: parseFloat(prop.area) || 0,
+                  status: prop.status === 'sale' ? 'For Sale' : prop.status === 'rent' ? 'For Rent' : 'For Sale'
+                };
+              });
+            setFavoriteProperties(validProperties);
+          } catch (error) {
+            console.error('Error fetching favorite properties:', error);
+            setFavoriteProperties([]);
+          }
+        } else {
+          setFavoriteProperties([]);
+        }
+      }
+    } catch (error) {
+      console.error('Error loading favorites:', error);
+      setFavoriteProperties([]);
+    } finally {
+      setFavoritesLoading(false);
+    }
   };
 
   const handleFavoriteToggle = () => {
+    // Reload favorites when a favorite is toggled
     loadFavorites();
   };
 
@@ -636,7 +710,12 @@ const BuyerProfile = () => {
       ) : (
         /* FAVORITES SECTION */
         <div className="buyer-favorites-section">
-          {favoriteProperties.length === 0 ? (
+          {favoritesLoading ? (
+            <div className="buyer-empty-favorites">
+              <div className="buyer-upload-spinner" style={{ width: '40px', height: '40px', borderWidth: '4px', margin: '0 auto 1rem' }}></div>
+              <p>Loading favorites...</p>
+            </div>
+          ) : favoriteProperties.length === 0 ? (
             <div className="buyer-empty-favorites">
               <svg 
                 width="80" 

@@ -4,7 +4,8 @@
   background: linear-gradient(180deg, #022b5f 0%, #011a3d 100%);
   color: white;
   position: relative;
-  overflow: hidden;
+  overflow-x: hidden;
+  overflow-y: visible;
 }
 
 /* Decorative Wave */
@@ -30,7 +31,7 @@
   margin: 0 auto;
   padding: 0 1rem;
   position: relative;
-  z-index: 1;
+  z-index: 1; /* Below navbar (z-index: 1000) */
 }
 
 /* Main Footer Content */
@@ -131,11 +132,14 @@
   transform: translateX(4px);
 }
 
-/* Admin Link Special Styling */
+/* Admin Link Special Styling - Hidden */
 .footer-links li a.admin-link {
-  position: relative;
-  color: #B084E0;
-  font-weight: 500;
+  display: none !important; /* Hide admin link */
+}
+
+.footer-links li:has(a.admin-link),
+.footer-links li:nth-child(4) {
+  display: none !important; /* Hide the list item containing admin link */
 }
 
 .footer-links li a.admin-link::before {
@@ -192,6 +196,19 @@
   background: rgba(136, 106, 206, 0.1);
   border-color: rgba(136, 106, 206, 0.3);
   transform: translateX(5px);
+}
+
+.footer-contact li a {
+  display: flex;
+  gap: 1rem;
+  width: 100%;
+  text-decoration: none;
+  color: inherit;
+  cursor: pointer;
+}
+
+.footer-contact li a:hover {
+  color: inherit;
 }
 
 .contact-icon {
@@ -286,8 +303,9 @@
   font-weight: 600;
   background: linear-gradient(135deg, #886ace 0%, #B084E0 100%);
   -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
   background-clip: text;
+  -webkit-text-fill-color: transparent;
+  color: transparent; /* Fallback for browsers that don't support background-clip */
 }
 
 /* Responsive Design */
@@ -299,6 +317,11 @@
 
   .footer-about {
     grid-column: 1 / -1;
+    margin-bottom: 1rem;
+  }
+  
+  .footer-column:not(.footer-about) {
+    align-self: start;
   }
 }
 

@@ -47,14 +47,6 @@ const Search = () => {
     { icon: '🔐', number: '100%', label: 'Verified & safe leads' }
   ];
 
-  const freeTools = [
-    { name: 'Auto-generated rental agreement' },
-    { name: 'Price estimator tool' },
-    { name: 'Property photo enhancer' },
-    { name: 'Interested buyer notification' },
-    { name: 'Multi-listing manager' }
-  ];
-
   return (
     <div className="landing-page">
       {/* Hero Section */}
@@ -165,19 +157,6 @@ const Search = () => {
           <li>Serious seekers only → saves time.</li>
         </ul>
         <button className="btn btn-primary" onClick={handleLoginClick}>Register & Start Listing →</button>
-      </section>
-
-      {/* Free Tools */}
-      <section className="free-tools">
-        <h2>Free Tools for Owners</h2>
-        <div className="tools-list">
-          {freeTools.map((tool, index) => (
-            <div key={index} className="tool-item">
-              <span>✓ {tool.name}</span>
-              {tool.isPro && <span className="pro-badge">Pro</span>}
-            </div>
-          ))}
-        </div>
       </section>
 
       {/* Final CTA */}

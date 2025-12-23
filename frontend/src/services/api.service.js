@@ -495,7 +495,7 @@ export const favoritesAPI = {
   toggle: async (propertyId) => {
     return apiRequest(API_ENDPOINTS.TOGGLE_FAVORITE, {
       method: 'POST',
-      body: JSON.stringify({ propertyId }),
+      body: JSON.stringify({ property_id: propertyId }),
     });
   },
   

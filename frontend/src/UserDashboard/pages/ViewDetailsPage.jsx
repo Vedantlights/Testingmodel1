@@ -4,11 +4,12 @@
 // DO NOT use seller's seller-pro-details.jsx component for buyer routes
 
 import React, { useState, useCallback, useEffect } from 'react'; 
-import { useParams, Navigate, useNavigate } from 'react-router-dom';
+import { useParams, Navigate, useNavigate, useLocation } from 'react-router-dom';
 import { FaPhone, FaEnvelope, FaAngleLeft, FaAngleRight, FaBed, FaShower, FaRulerCombined, FaTimes, FaCheckCircle, FaUser, FaCommentAlt, FaComments } from "react-icons/fa";
 import '../styles/ViewDetailPage.css';
 import { propertiesAPI, chatAPI } from '../../services/api.service';
 import { useAuth } from '../../context/AuthContext';
+import { FavoritesManager } from '../components/PropertyCard';
 // Note: createOrGetChatRoom is not imported here - chat rooms are created only when first message is sent
 import MapView from '../../components/Map/MapView';
 
@@ -415,13 +416,30 @@ const PropertyMapFeature = ({ property }) => {
 // --- Main Page Component ---
 // BUYER DASHBOARD - Property Details Page Component
 // This component is specifically for buyers to view property details and send inquiries
-// Routes: /details/:id, /buyer-dashboard/details/:id
+// Routes: /details/:id, /buyer-dashboard/details/:id, /seller-dashboard/details/:id
 const ViewDetailsPage = () => {
-    // Get the property ID from the URL parameter
-    const { id } = useParams();
-    const propertyId = parseInt(id, 10);
     const navigate = useNavigate();
     const { user } = useAuth();
+    const location = useLocation();
+    
+    // Get the property ID from URL parameter (for buyer routes) or extract from pathname (for seller dashboard catch-all route)
+    const { id: routeId } = useParams();
+    
+    // Extract ID from pathname if route params don't work (seller dashboard uses catch-all route)
+    let propertyId;
+    if (routeId) {
+        // Standard route parameter (buyer dashboard)
+        propertyId = parseInt(routeId, 10);
+    } else {
+        // Extract from pathname (seller dashboard catch-all route)
+        // Path format: /seller-dashboard/details/123
+        const pathMatch = location.pathname.match(/\/details\/(\d+)/);
+        if (pathMatch) {
+            propertyId = parseInt(pathMatch[1], 10);
+        } else {
+            propertyId = null;
+        }
+    }
 
     // State for property data from API
     const [property, setProperty] = useState(null);
@@ -513,6 +531,9 @@ const ViewDetailsPage = () => {
 
     // --- 1. DEFINE ALL STATE HOOKS UNCONDITIONALLY ---
     const [currentImageIndex, setCurrentImageIndex] = useState(null);
+    
+    // Favorite State
+    const [isFavorited, setIsFavorited] = useState(false);
     
     // Inquiry Form States
     const [formData, setFormData] = useState({
@@ -619,6 +640,38 @@ const ViewDetailsPage = () => {
         }
     }, [user, property, propertyId, navigate]);
 
+    // Handle favorite button click
+    const handleFavoriteClick = async (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        
+        if (!user) {
+            alert('Please login to add properties to favorites');
+            navigate('/login');
+            return;
+        }
+        
+        try {
+            // Import favoritesAPI dynamically to avoid circular dependencies
+            const { favoritesAPI } = await import('../../services/api.service');
+            const response = await favoritesAPI.toggle(propertyId);
+            
+            if (response.success) {
+                setIsFavorited(response.data.is_favorite !== undefined ? response.data.is_favorite : !isFavorited);
+                // Also update local storage for offline support
+                FavoritesManager.toggleFavorite(propertyId);
+            } else {
+                console.error('Failed to toggle favorite:', response.message);
+                alert(response.message || 'Failed to update favorite');
+            }
+        } catch (error) {
+            console.error('Error toggling favorite:', error);
+            // Fallback to local storage if API fails
+            FavoritesManager.toggleFavorite(propertyId);
+            setIsFavorited(!isFavorited);
+        }
+    };
+    
     // Handle form input changes
     const handleInputChange = (e) => {
         const { name, value } = e.target;
@@ -665,6 +718,38 @@ const ViewDetailsPage = () => {
     };
 
     // --- 3. DEFINE ALL useEffect HOOKS UNCONDITIONALLY ---
+    
+    // Check favorite status on mount and when property changes
+    useEffect(() => {
+        const checkFavoriteStatus = async () => {
+            if (!propertyId) return;
+            
+            try {
+                // Check local storage first for quick display
+                const localFavorite = FavoritesManager.isFavorite(propertyId);
+                setIsFavorited(localFavorite);
+                
+                // Then verify with API if user is authenticated
+                const token = localStorage.getItem('authToken');
+                if (token && user) {
+                    const { favoritesAPI } = await import('../../services/api.service');
+                    const response = await favoritesAPI.list();
+                    if (response.success && response.data) {
+                        // API returns properties array (not favorites array)
+                        const properties = response.data.properties || response.data.favorites || [];
+                        const favoriteIds = properties.map(p => p.id || p.property_id);
+                        setIsFavorited(favoriteIds.includes(propertyId));
+                    }
+                }
+            } catch (error) {
+                console.error('Error checking favorite status:', error);
+                // Fallback to local storage
+                setIsFavorited(FavoritesManager.isFavorite(propertyId));
+            }
+        };
+        
+        checkFavoriteStatus();
+    }, [propertyId, user]);
     
     // Keyboard navigation for slider
     useEffect(() => {
@@ -753,6 +838,27 @@ const ViewDetailsPage = () => {
                             <span className="buyer-premium-badge">
                                 🏠 Premium Property
                             </span>
+                            {/* Favorite Button */}
+                            <button 
+                                className={`buyer-detail-favourite-btn ${isFavorited ? 'active' : ''}`}
+                                onClick={handleFavoriteClick}
+                                aria-label={isFavorited ? 'Remove from favorites' : 'Add to favorites'}
+                                title={isFavorited ? 'Remove from favorites' : 'Add to favorites'}
+                            >
+                                <svg 
+                                    xmlns="http://www.w3.org/2000/svg" 
+                                    width="22" 
+                                    height="22" 
+                                    viewBox="0 0 24 24" 
+                                    fill={isFavorited ? 'white' : 'none'}
+                                    stroke="currentColor" 
+                                    strokeWidth="2" 
+                                    strokeLinecap="round" 
+                                    strokeLinejoin="round"
+                                >
+                                    <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path>
+                                </svg>
+                            </button>
                         </div>
                         <h1>{propertyData.title}</h1>
                         <p className="buyer-property-location">

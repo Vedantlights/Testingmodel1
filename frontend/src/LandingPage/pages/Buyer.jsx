@@ -8,12 +8,12 @@ export default function BuyerTenantLandingPage() {
   
 
   const benefits = [
-    { icon: '3e0', title: 'Verified Properties Only', desc: 'Browse through authenticated listings' },
-    { icon: '50d', title: 'Advanced Search Filters', desc: 'Find exactly what you need' },
-    { icon: '4b0', title: 'Zero Brokerage', desc: 'Connect directly with owners' },
-    { icon: '705', title: 'Verified Owners', desc: 'Deal with authenticated sellers only' },
-    { icon: '4f1', title: 'Instant Notifications', desc: 'Get alerts for new properties' },
-    { icon: '5fae0f', title: 'Location Insights', desc: 'Detailed area information' }
+    { icon: '✅', title: 'Verified Properties Only', desc: 'Browse through authenticated listings' },
+    { icon: '🔍', title: 'Advanced Search Filters', desc: 'Find exactly what you need' },
+    { icon: '💰', title: 'Zero Brokerage', desc: 'Connect directly with owners' },
+    { icon: '✓', title: 'Verified Owners', desc: 'Deal with authenticated sellers only' },
+    { icon: '🔔', title: 'Instant Notifications', desc: 'Get alerts for new properties' },
+    { icon: '📍', title: 'Location Insights', desc: 'Detailed area information' }
   ];
 
   const steps = [
@@ -35,18 +35,18 @@ export default function BuyerTenantLandingPage() {
   ];
 
   const features = [
-    { icon: '4f8', title: 'Virtual Tours', desc: 'Explore properties from home' },
-    { icon: '4ac', title: 'Direct Chat', desc: 'Talk to owners directly' },
-    { icon: '514', title: 'Smart Alerts', desc: 'Get notified of matching listings' },
-    { icon: '4cd', title: 'Map View', desc: 'See properties on interactive map' },
-    { icon: 'b50', title: 'Save Favorites', desc: 'Bookmark properties you like' }
+    { icon: '4f8', title: 'Virtual Tours', desc: 'Explore properties from home' },
+    { icon: '4ac', title: 'Direct Chat', desc: 'Talk to owners directly' },
+    { icon: '514', title: 'Smart Alerts', desc: 'Get notified of matching listings' },
+    { icon: '4cd', title: 'Map View', desc: 'See properties on interactive map' },
+    { icon: 'b50', title: 'Save Favorites', desc: 'Bookmark properties you like' }
   ];
 
   const stats = [
-    { icon: '3e0', number: '35,000+', label: 'Active properties' },
-    { icon: '705', number: '100%', label: 'Verified listings' },
-    { icon: '465', number: '50,000+', label: 'Happy users' },
-    { icon: '3af', number: '4.9/5', label: 'User satisfaction' }
+    { icon: '3e0', number: '35,000+', label: 'Active properties' },
+    { icon: '705', number: '100%', label: 'Verified listings' },
+    { icon: '465', number: '50,000+', label: 'Happy users' },
+    { icon: '3af', number: '4.9/5', label: 'User satisfaction' }
   ];
 
   const reviews = [
@@ -117,9 +117,9 @@ export default function BuyerTenantLandingPage() {
           onMouseLeave={() => setHoveredCard(null)}
         >
           <div className="blur-content">
-            <div className="blur-item">Saved Properties: 7e97e97e97e9</div>
-            <div className="blur-item">New Matches: 7e97e97e9</div>
-            <div className="blur-item">Messages: 7e97e9</div>
+            <div className="blur-item">Saved Properties: 7e97e97e97e9</div>
+            <div className="blur-item">New Matches: 7e97e97e9</div>
+            <div className="blur-item">Messages: 7e97e9</div>
           </div>
         </div>
       </section>
@@ -130,8 +130,8 @@ export default function BuyerTenantLandingPage() {
         <div className="reviews-grid">
           {reviews.map((review, index) => (
             <div key={index} className="review-card">
-              <p className="review-text">4ac {review.text}</p>
-              <p className="review-author">464 {review.author} <span>- {review.role}</span></p>
+              <p className="review-text">4ac {review.text}</p>
+              <p className="review-author">464 {review.author} <span>- {review.role}</span></p>
             </div>
           ))}
         </div>
@@ -156,7 +156,7 @@ export default function BuyerTenantLandingPage() {
         <h2>Pro Tips for Property Search</h2>
         <ul className="search-tips-list">
           {searchTips.map((tip, index) => (
-            <li key={index}>449 {tip}</li>
+            <li key={index}>449 {tip}</li>
           ))}
         </ul>
       </section>

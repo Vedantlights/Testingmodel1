@@ -60,6 +60,7 @@ const SearchBar = () => {
   
   // Budget ranges for Rent (Residential)
   const rentResidentialBudget = [
+    '0-5K',
     '5K-10K',
     '10K-20K',
     '20K-30K',
@@ -72,6 +73,7 @@ const SearchBar = () => {
   
   // Budget ranges for Sale (Residential)
   const saleResidentialBudget = [
+    '0-25L',
     '25L-50L',
     '50L-75L',
     '75L-1Cr',
@@ -81,7 +83,8 @@ const SearchBar = () => {
   ];
   
   // Budget ranges for Land/Commercial (Sale)
-  const commercialBudget = [
+  const commercialBudget = [  
+    '0-50L',
     '50L-1Cr',
     '1Cr-2Cr',
     '2Cr-5Cr',
@@ -92,6 +95,7 @@ const SearchBar = () => {
   
   // Budget ranges for Commercial Rent
   const commercialRentBudget = [
+    '0-10K',
     '10K-25K',
     '25K-50K',
     '50K-1L',
@@ -150,7 +154,7 @@ const SearchBar = () => {
     'Hyderabad',
     'Ahmedabad',
     'Chennai',
-    'Kolkata',
+    'kolkata',
     'Pune',
     'Jaipur',
     'Surat'

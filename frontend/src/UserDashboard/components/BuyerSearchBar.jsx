@@ -70,6 +70,7 @@ const SearchBar = () => {
   ];
 
   const saleResidentialBudget = [
+    '0-25L',
     '25L-50L',
     '50L-75L',
     '75L-1Cr',
@@ -79,6 +80,7 @@ const SearchBar = () => {
   ];
 
   const commercialBudget = [
+    '0-50L',
     '50L-1Cr',
     '1Cr-2Cr',
     '2Cr-5Cr',
@@ -88,6 +90,7 @@ const SearchBar = () => {
   ];
 
   const commercialRentBudget = [
+    '0-10K',
     '10K-25K',
     '25K-50K',
     '50K-1L',

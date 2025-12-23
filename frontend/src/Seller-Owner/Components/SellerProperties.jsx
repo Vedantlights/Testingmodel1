@@ -66,8 +66,8 @@ const SellerProperties = () => {
 
   const handleViewDetails = (propertyId) => {
     console.log('Navigating to property:', propertyId);
-    // Use buyer's ViewDetailsPage route (same layout for all users)
-    const path = `/details/${propertyId}`;
+    // Navigate to seller dashboard details route to keep seller navbar
+    const path = `/seller-dashboard/details/${propertyId}`;
     console.log('Navigation path:', path);
     navigate(path);
   };

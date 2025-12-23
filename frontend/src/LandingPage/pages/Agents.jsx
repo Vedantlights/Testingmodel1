@@ -51,15 +51,6 @@ export default function AgentBuilderLandingPage() {
     { icon: '📊', number: '96%', label: 'Lead Satisfaction Score' }
   ];
 
-  const tools = [
-    'Lead Management CRM',
-    'Project Showcase Page',
-    'Multi-listing Uploader',
-    'Priority Listing Banner',
-    'Performance Analytics',
-    'Team Member Access'
-  ];
-
   const reviews = [
     { text: 'Huge boost in quality leads. Closed 7 deals this month.', author: 'A. Sharma', role: 'Agent' },
     { text: 'Our new township project got 120+ enquiries in 2 weeks!', author: 'Sunrise Builders', role: 'Builder' }
@@ -178,22 +169,6 @@ export default function AgentBuilderLandingPage() {
             </div>
           ))}
         </div>
-      </section>
-
-      {/* Tools Highlights */}
-      <section className="tools-section">
-        <h2>Powerful Tools for Your Business</h2>
-        <div className="tools-grid">
-          {tools.map((tool, index) => (
-            <div key={index} className="tool-card">
-              <span className="tool-check">✓</span>
-              <span>{tool}</span>
-            </div>
-          ))}
-        </div>
-        <p className="section-cta" onClick={handleRegister} style={{ cursor: 'pointer' }}>
-          Unlock all tools → Create your free business account
-        </p>
       </section>
 
       {/* Reviews */}

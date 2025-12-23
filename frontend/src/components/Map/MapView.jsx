@@ -1,6 +1,7 @@
 import React, { useEffect, useRef, useState, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import mapboxgl from 'mapbox-gl';
+import 'mapbox-gl/dist/mapbox-gl.css';
 import './MapView.css';
 
 // Set your Mapbox access token - using Create React App environment variable
@@ -9,7 +10,7 @@ mapboxgl.accessToken = MAPBOX_TOKEN;
 
 const MapView = ({ 
   properties = [], 
-  center = [78.9629, 20.5937], // Default: India center
+  center = [73.8567, 18.5204], // Pune, Maharashtra
   zoom = 5,
   onPropertyClick,
   onMapClick,
@@ -84,7 +85,7 @@ const MapView = ({
       map.current.on('click', (e) => {
         // Check if click was on a marker element
         const target = e.originalEvent.target;
-        if (target && (target.closest('.property-marker') || target.closest('.mapboxgl-marker'))) {
+        if (target && (target.closest('.price-tag-marker') || target.closest('.mapboxgl-marker'))) {
           return; // Don't trigger map click if clicking on a marker
         }
         // Close popups when clicking on map
@@ -161,8 +162,6 @@ const MapView = ({
       window.location.href = `/buyer-dashboard/details/${propertyId}`;
     }
   }, [navigate]);
-
-  // Popups should only open on marker click, not automatically
 
   // Format price helper - returns compact format (e.g., "45L", "6.5Cr")
   const formatPrice = useCallback((price) => {
@@ -269,7 +268,7 @@ const MapView = ({
         </div>
       `;
 
-      // Create popup card - shows on marker click
+      // Create popup card - Horizontal Layout (Image Left, Content Right)
       const popup = new mapboxgl.Popup({ 
         offset: 25, 
         closeButton: true, 
@@ -278,8 +277,11 @@ const MapView = ({
       })
         .setHTML(`
           <div class="property-popup-card">
-            <img src="${thumbnail}" alt="${property.title || 'Property'}" class="popup-card-image" onerror="this.src='/placeholder-property.jpg';" />
+            <div class="popup-card-image-container">
+              <img src="${thumbnail}" alt="${property.title || 'Property'}" class="popup-card-image" onerror="this.src='/placeholder-property.jpg';" />
+            </div>
             <div class="popup-card-content">
+              <p class="popup-card-title">${property.title || 'Property'}</p>
               <p class="popup-card-location">${property.location || 'Location not specified'}</p>
               <p class="popup-card-price">₹${formatPrice(property.price)}</p>
               <button class="popup-card-button" data-property-id="${property.id}">View Details</button>
