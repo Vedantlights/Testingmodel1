@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { API_BASE_URL } from '../../config/api.config';
 import '../style/AdminLogin.css';
@@ -21,6 +21,7 @@ const AdminLogin = () => {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const [mobileLocked, setMobileLocked] = useState(false);
+  const widgetInitializedRef = useRef(false); // Track if widget was already initialized
 
   // Helper function to normalize mobile number for comparison (remove spaces, dashes, etc.)
   const normalizeMobile = (mobileNumber) => {
@@ -119,26 +120,31 @@ const AdminLogin = () => {
     setStep('otp');
     setLoading(false);
     
-    // Initialize MSG91 widget immediately after frontend validation
-    setTimeout(() => {
-      initializeMSG91Widget();
-    }, 100);
+    // Widget will be initialized by useEffect when step changes to 'otp'
   };
 
   // Step 2: Initialize MSG91 Widget (after frontend validation)
-  const initializeMSG91Widget = () => {
+  const initializeMSG91Widget = useCallback((mobileNumber = null) => {
+    // Prevent double initialization
+    if (widgetInitializedRef.current) {
+      return;
+    }
+
     if (!window.initSendOTP) {
       setError('MSG91 widget is not loaded. Please refresh the page and try again.');
       return;
     }
 
-    if (!validatedMobile) {
+    // Use passed mobile number or fallback to state
+    const mobileToUse = mobileNumber || validatedMobile;
+
+    if (!mobileToUse) {
       setError('Mobile number validation missing. Please restart the login process.');
       return;
     }
 
-    // Use validated mobile (ensures we use the exact mobile that backend approved)
-    const mobileToUse = validatedMobile || mobile;
+    // Mark as initialized
+    widgetInitializedRef.current = true;
     
     // Format mobile for MSG91 (remove + and spaces)
     const formattedMobile = mobileToUse.replace(/[^0-9]/g, '');
@@ -175,6 +181,7 @@ const AdminLogin = () => {
           console.error('MSG91 Widget Error:', error);
           const errorMessage = error?.message || error?.error || error?.toString() || 'OTP verification failed. Please try again.';
           setError(errorMessage);
+          widgetInitializedRef.current = false; // Reset on failure so user can retry
         },
       };
 
@@ -182,8 +189,9 @@ const AdminLogin = () => {
     } catch (error) {
       console.error('Error initializing MSG91 widget:', error);
       setError('Failed to open OTP widget. Please try again.');
+      widgetInitializedRef.current = false; // Reset on error
     }
-  };
+  }, [validatedMobile]);
 
   // Step 3: Verify OTP with backend and create session
   const handleVerifyOTP = async (widgetToken) => {
@@ -272,6 +280,17 @@ const AdminLogin = () => {
     }
   };
 
+  // Initialize widget when step changes to OTP and validatedMobile is set
+  useEffect(() => {
+    if (step === 'otp' && validatedMobile && !loading && !widgetInitializedRef.current) {
+      // Small delay to ensure DOM is ready and state is fully updated
+      const timer = setTimeout(() => {
+        initializeMSG91Widget(validatedMobile);
+      }, 300);
+      return () => clearTimeout(timer);
+    }
+  }, [step, validatedMobile, loading, initializeMSG91Widget]); // Include all dependencies
+
   // Reset form
   const handleReset = () => {
     setStep('mobile');
@@ -281,6 +300,7 @@ const AdminLogin = () => {
     setValidationToken(null);
     setMobileLocked(false);
     setError('');
+    widgetInitializedRef.current = false; // Reset widget initialization flag
   };
 
   return (
