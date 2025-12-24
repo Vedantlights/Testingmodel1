@@ -23,6 +23,49 @@ const AdminLogin = () => {
   const [mobileLocked, setMobileLocked] = useState(false);
   const widgetInitializedRef = useRef(false); // Track if widget was already initialized
 
+  // Helper function to load MSG91 script dynamically if not already loaded
+  const loadMSG91Script = () => {
+    return new Promise((resolve, reject) => {
+      // Check if script is already loaded
+      if (window.initSendOTP && typeof window.initSendOTP === 'function') {
+        resolve();
+        return;
+      }
+
+      // Check if script tag already exists
+      const existingScript = document.querySelector('script[src*="otp-provider.js"]');
+      if (existingScript) {
+        // Script tag exists, wait for it to load
+        existingScript.addEventListener('load', () => resolve());
+        existingScript.addEventListener('error', () => reject(new Error('Failed to load MSG91 script')));
+        return;
+      }
+
+      // Load script dynamically
+      const script = document.createElement('script');
+      script.type = 'text/javascript';
+      script.src = 'https://verify.msg91.com/otp-provider.js';
+      script.async = true;
+      
+      script.onload = () => {
+        // Wait a bit more for the function to be available
+        setTimeout(() => {
+          if (window.initSendOTP && typeof window.initSendOTP === 'function') {
+            resolve();
+          } else {
+            reject(new Error('MSG91 script loaded but initSendOTP function not available'));
+          }
+        }, 100);
+      };
+      
+      script.onerror = () => {
+        reject(new Error('Failed to load MSG91 script'));
+      };
+      
+      document.head.appendChild(script);
+    });
+  };
+
   // Helper function to normalize mobile number for comparison (remove spaces, dashes, etc.)
   const normalizeMobile = (mobileNumber) => {
     if (!mobileNumber) return '';
@@ -123,15 +166,59 @@ const AdminLogin = () => {
     // Widget will be initialized by useEffect when step changes to 'otp'
   };
 
+  // Helper function to wait for MSG91 script to load
+  const waitForMSG91Script = (maxAttempts = 20, delay = 200) => {
+    return new Promise((resolve, reject) => {
+      let attempts = 0;
+      
+      const checkScript = () => {
+        attempts++;
+        
+        if (window.initSendOTP && typeof window.initSendOTP === 'function') {
+          resolve(true);
+          return;
+        }
+        
+        if (attempts >= maxAttempts) {
+          reject(new Error('MSG91 script failed to load after multiple attempts'));
+          return;
+        }
+        
+        setTimeout(checkScript, delay);
+      };
+      
+      checkScript();
+    });
+  };
+
   // Step 2: Initialize MSG91 Widget (after frontend validation)
-  const initializeMSG91Widget = useCallback((mobileNumber = null) => {
+  const initializeMSG91Widget = useCallback(async (mobileNumber = null) => {
     // Prevent double initialization
     if (widgetInitializedRef.current) {
       return;
     }
 
-    if (!window.initSendOTP) {
+    // Try to load MSG91 script if not already loaded
+    try {
+      // First try to load script dynamically
+      await loadMSG91Script();
+    } catch (loadError) {
+      console.warn('Failed to load MSG91 script dynamically, waiting for existing script:', loadError);
+      // If dynamic load fails, wait for existing script to load
+      try {
+        await waitForMSG91Script(20, 200); // Wait up to 4 seconds (20 * 200ms)
+      } catch (waitError) {
+        console.error('MSG91 script loading error:', waitError);
+        setError('MSG91 widget is not loaded. Please refresh the page and try again.');
+        widgetInitializedRef.current = false;
+        return;
+      }
+    }
+
+    // Final check
+    if (!window.initSendOTP || typeof window.initSendOTP !== 'function') {
       setError('MSG91 widget is not loaded. Please refresh the page and try again.');
+      widgetInitializedRef.current = false;
       return;
     }
 
@@ -324,9 +411,9 @@ const AdminLogin = () => {
   useEffect(() => {
     if (step === 'otp' && validatedMobile && !loading && !widgetInitializedRef.current) {
       // Small delay to ensure DOM is ready and state is fully updated
-      const timer = setTimeout(() => {
-        initializeMSG91Widget(validatedMobile);
-      }, 300);
+      const timer = setTimeout(async () => {
+        await initializeMSG91Widget(validatedMobile);
+      }, 500); // Increased delay to ensure script is loaded
       return () => clearTimeout(timer);
     }
   }, [step, validatedMobile, loading, initializeMSG91Widget]); // Include all dependencies
