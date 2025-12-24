@@ -128,24 +128,69 @@ try {
     
     if ($propertyType) {
         // Handle compound property types (e.g., "Plot / Land / Industrial Property")
-        // Split by " / " and match any property that contains any of the individual types
+        // Split by " / " or "/" (with or without spaces) and match any property that contains any of the individual types
         // This handles cases where:
         // - Search: "Villa / Row House / Bungalow / Farm House"
         // - DB has: "Villa", "Row House", "Villa / Banglow", "Row House/ Farm House", etc.
-        $types = array_map('trim', explode(' / ', $propertyType));
+        // - Also handles typos: "Industrial" vs "Indusrtial", "Bungalow" vs "Banglow"
+        
+        // Normalize: replace " / " and "/" with a consistent delimiter for splitting
+        $normalized = preg_replace('/\s*\/\s*/', ' / ', $propertyType);
+        $types = array_map('trim', explode(' / ', $normalized));
         
         if (count($types) > 1) {
             // Multiple types - use LIKE with OR to match any type that contains any search term
             $likeConditions = [];
             foreach ($types as $type) {
-                $likeConditions[] = "p.property_type LIKE ?";
-                $params[] = "%" . $type . "%";
+                // Handle common typos and variations
+                $searchTerms = [$type];
+                
+                // Handle "Industrial" vs "Indusrtial" typo - add both spellings
+                if (stripos($type, 'Industrial') !== false) {
+                    $searchTerms[] = str_ireplace('Industrial', 'Indusrtial', $type);
+                } elseif (stripos($type, 'Indusrtial') !== false) {
+                    $searchTerms[] = str_ireplace('Indusrtial', 'Industrial', $type);
+                }
+                
+                // Handle "Bungalow" vs "Banglow" typo - add both spellings
+                if (stripos($type, 'Bungalow') !== false) {
+                    $searchTerms[] = str_ireplace('Bungalow', 'Banglow', $type);
+                } elseif (stripos($type, 'Banglow') !== false) {
+                    $searchTerms[] = str_ireplace('Banglow', 'Bungalow', $type);
+                }
+                
+                // Add LIKE conditions for each search term
+                foreach ($searchTerms as $searchTerm) {
+                    $likeConditions[] = "p.property_type LIKE ?";
+                    $params[] = "%" . $searchTerm . "%";
+                }
             }
             $query .= " AND (" . implode(" OR ", $likeConditions) . ")";
         } else {
             // Single type - use LIKE to match exact or compound types containing this type
-            $query .= " AND p.property_type LIKE ?";
-            $params[] = "%" . $propertyType . "%";
+            // Also handle typos
+            $searchTerms = [$propertyType];
+            
+            // Handle "Industrial" vs "Indusrtial" typo - add both spellings
+            if (stripos($propertyType, 'Industrial') !== false) {
+                $searchTerms[] = str_ireplace('Industrial', 'Indusrtial', $propertyType);
+            } elseif (stripos($propertyType, 'Indusrtial') !== false) {
+                $searchTerms[] = str_ireplace('Indusrtial', 'Industrial', $propertyType);
+            }
+            
+            // Handle "Bungalow" vs "Banglow" typo - add both spellings
+            if (stripos($propertyType, 'Bungalow') !== false) {
+                $searchTerms[] = str_ireplace('Bungalow', 'Banglow', $propertyType);
+            } elseif (stripos($propertyType, 'Banglow') !== false) {
+                $searchTerms[] = str_ireplace('Banglow', 'Bungalow', $propertyType);
+            }
+            
+            $likeConditions = [];
+            foreach ($searchTerms as $searchTerm) {
+                $likeConditions[] = "p.property_type LIKE ?";
+                $params[] = "%" . $searchTerm . "%";
+            }
+            $query .= " AND (" . implode(" OR ", $likeConditions) . ")";
         }
     }
     
@@ -222,24 +267,69 @@ try {
     }
     if ($propertyType) {
         // Handle compound property types (e.g., "Plot / Land / Industrial Property")
-        // Split by " / " and match any property that contains any of the individual types
+        // Split by " / " or "/" (with or without spaces) and match any property that contains any of the individual types
         // This handles cases where:
         // - Search: "Villa / Row House / Bungalow / Farm House"
         // - DB has: "Villa", "Row House", "Villa / Banglow", "Row House/ Farm House", etc.
-        $types = array_map('trim', explode(' / ', $propertyType));
+        // - Also handles typos: "Industrial" vs "Indusrtial", "Bungalow" vs "Banglow"
+        
+        // Normalize: replace " / " and "/" with a consistent delimiter for splitting
+        $normalized = preg_replace('/\s*\/\s*/', ' / ', $propertyType);
+        $types = array_map('trim', explode(' / ', $normalized));
         
         if (count($types) > 1) {
             // Multiple types - use LIKE with OR to match any type that contains any search term
             $likeConditions = [];
             foreach ($types as $type) {
-                $likeConditions[] = "p.property_type LIKE ?";
-                $countParams[] = "%" . $type . "%";
+                // Handle common typos and variations
+                $searchTerms = [$type];
+                
+                // Handle "Industrial" vs "Indusrtial" typo - add both spellings
+                if (stripos($type, 'Industrial') !== false) {
+                    $searchTerms[] = str_ireplace('Industrial', 'Indusrtial', $type);
+                } elseif (stripos($type, 'Indusrtial') !== false) {
+                    $searchTerms[] = str_ireplace('Indusrtial', 'Industrial', $type);
+                }
+                
+                // Handle "Bungalow" vs "Banglow" typo - add both spellings
+                if (stripos($type, 'Bungalow') !== false) {
+                    $searchTerms[] = str_ireplace('Bungalow', 'Banglow', $type);
+                } elseif (stripos($type, 'Banglow') !== false) {
+                    $searchTerms[] = str_ireplace('Banglow', 'Bungalow', $type);
+                }
+                
+                // Add LIKE conditions for each search term
+                foreach ($searchTerms as $searchTerm) {
+                    $likeConditions[] = "p.property_type LIKE ?";
+                    $countParams[] = "%" . $searchTerm . "%";
+                }
             }
             $countQuery .= " AND (" . implode(" OR ", $likeConditions) . ")";
         } else {
             // Single type - use LIKE to match exact or compound types containing this type
-            $countQuery .= " AND p.property_type LIKE ?";
-            $countParams[] = "%" . $propertyType . "%";
+            // Also handle typos
+            $searchTerms = [$propertyType];
+            
+            // Handle "Industrial" vs "Indusrtial" typo - add both spellings
+            if (stripos($propertyType, 'Industrial') !== false) {
+                $searchTerms[] = str_ireplace('Industrial', 'Indusrtial', $propertyType);
+            } elseif (stripos($propertyType, 'Indusrtial') !== false) {
+                $searchTerms[] = str_ireplace('Indusrtial', 'Industrial', $propertyType);
+            }
+            
+            // Handle "Bungalow" vs "Banglow" typo - add both spellings
+            if (stripos($propertyType, 'Bungalow') !== false) {
+                $searchTerms[] = str_ireplace('Bungalow', 'Banglow', $propertyType);
+            } elseif (stripos($propertyType, 'Banglow') !== false) {
+                $searchTerms[] = str_ireplace('Banglow', 'Bungalow', $propertyType);
+            }
+            
+            $likeConditions = [];
+            foreach ($searchTerms as $searchTerm) {
+                $likeConditions[] = "p.property_type LIKE ?";
+                $countParams[] = "%" . $searchTerm . "%";
+            }
+            $countQuery .= " AND (" . implode(" OR ", $likeConditions) . ")";
         }
     }
     // Use location if provided, otherwise use city
