@@ -196,6 +196,66 @@
     stroke: white;
 }
 
+/* Share Button in Details Page Header */
+.buyer-detail-share-btn {
+    background: rgba(255, 255, 255, 0.2);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    border-radius: 50%;
+    width: 44px;
+    height: 44px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    color: white;
+    margin-left: auto;
+}
+
+.buyer-detail-share-btn:hover {
+    background: rgba(255, 255, 255, 0.3);
+    transform: scale(1.1);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+
+.buyer-detail-share-btn svg {
+    transition: all 0.3s ease;
+    stroke: currentColor;
+    color: white;
+}
+
+.buyer-detail-share-btn:hover svg {
+    color: white;
+}
+
+/* Share Toast Notification */
+.buyer-share-toast {
+    position: fixed;
+    bottom: 30px;
+    right: 30px;
+    background: #1e3a8a;
+    color: white;
+    padding: 12px 24px;
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+    z-index: 10000;
+    font-size: 14px;
+    font-weight: 500;
+    animation: slideInUp 0.3s ease-out;
+}
+
+@keyframes slideInUp {
+    from {
+        transform: translateY(100%);
+        opacity: 0;
+    }
+    to {
+        transform: translateY(0);
+        opacity: 1;
+    }
+}
+
 /* Property Title */
 .buyer-property-header h1 {
     font-size: 2.8rem;
@@ -686,6 +746,25 @@
     .buyer-property-meta-info {
         gap: 1rem;
     }
+
+    .buyer-detail-share-btn,
+    .buyer-detail-favourite-btn {
+        width: 40px;
+        height: 40px;
+    }
+
+    .buyer-detail-share-btn svg,
+    .buyer-detail-favourite-btn svg {
+        width: 18px;
+        height: 18px;
+    }
+
+    .buyer-share-toast {
+        bottom: 20px;
+        right: 20px;
+        padding: 10px 20px;
+        font-size: 13px;
+    }
 }
 
 @media (max-width: 600px) {
@@ -721,6 +800,18 @@
     .buyer-status-badge, .buyer-premium-badge {
         font-size: 0.85rem;
         padding: 8px 14px;
+    }
+
+    .buyer-detail-share-btn,
+    .buyer-detail-favourite-btn {
+        width: 38px;
+        height: 38px;
+    }
+
+    .buyer-detail-share-btn svg,
+    .buyer-detail-favourite-btn svg {
+        width: 16px;
+        height: 16px;
     }
 
     .buyer-property-meta-info {

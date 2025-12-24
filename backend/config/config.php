@@ -115,32 +115,53 @@ define('ALLOWED_IMAGE_TYPES', ['image/jpeg', 'image/jpg', 'image/png', 'image/we
 define('ALLOWED_VIDEO_TYPES', ['video/mp4', 'video/webm', 'video/quicktime', 'video/x-m4v', 'video/ogg']);
 define('ALLOWED_BROCHURE_TYPES', ['application/pdf']);
 
-// JWT Secret (Change this in production!)
-define('JWT_SECRET', 'your-secret-key-change-in-production-2024');
-define('JWT_ALGORITHM', 'HS256');
-define('JWT_EXPIRATION', 86400); // 24 hours
+// JWT Secret (SECURITY: Use environment variable in production!)
+// WARNING: Default secret is weak and should be changed in production
+$jwtSecret = getenv('JWT_SECRET') ?: 'your-secret-key-change-in-production-2024';
+if ($jwtSecret === 'your-secret-key-change-in-production-2024' && defined('ENVIRONMENT') && ENVIRONMENT === 'production') {
+    error_log('SECURITY WARNING: Using default JWT_SECRET in production! Please set JWT_SECRET environment variable.');
+}
+define('JWT_SECRET', $jwtSecret);
+define('JWT_ALGORITHM', getenv('JWT_ALGORITHM') ?: 'HS256');
+define('JWT_EXPIRATION', (int)(getenv('JWT_EXPIRATION') ?: 86400)); // 24 hours
 
 // Mapbox Access Token (for geocoding)
-// This is used to automatically convert location addresses to coordinates
-define('MAPBOX_ACCESS_TOKEN', 'pk.eyJ1Ijoic3VkaGFrYXJwb3VsIiwiYSI6ImNtaXp0ZmFrNTAxaTQzZHNiODNrYndsdTAifQ.YTMezksySLU7ZpcYkvXyqg');
+// SECURITY: Use environment variable to avoid exposing token in code
+$mapboxToken = getenv('MAPBOX_ACCESS_TOKEN') ?: 'pk.eyJ1Ijoic3VkaGFrYXJwb3VsIiwiYSI6ImNtaXp0ZmFrNTAxaTQzZHNiODNrYndsdTAifQ.YTMezksySLU7ZpcYkvXyqg';
+define('MAPBOX_ACCESS_TOKEN', $mapboxToken);
 
 // OTP Configuration
-define('OTP_EXPIRATION_MINUTES', 10);
-define('OTP_LENGTH', 6);
+define('OTP_EXPIRATION_MINUTES', (int)(getenv('OTP_EXPIRATION_MINUTES') ?: 10));
+define('OTP_LENGTH', (int)(getenv('OTP_LENGTH') ?: 6));
 
 // Email Configuration (Hostinger SMTP)
-define('SMTP_HOST', 'smtp.hostinger.com');
-define('SMTP_PORT', 587);
-define('SMTP_USER', 'info@indiapropertys.com');
-define('SMTP_PASS', 'V1e2d2a4n5t@2020'); // Add your SMTP password here
-define('SMTP_FROM_EMAIL', 'info@indiapropertys.com');
-define('SMTP_FROM_NAME', 'IndiaPropertys');
+// SECURITY: Use environment variables for sensitive credentials
+define('SMTP_HOST', getenv('SMTP_HOST') ?: 'smtp.hostinger.com');
+define('SMTP_PORT', (int)(getenv('SMTP_PORT') ?: 587));
+define('SMTP_USER', getenv('SMTP_USER') ?: 'info@indiapropertys.com');
+// WARNING: SMTP password should be set via environment variable
+$smtpPass = getenv('SMTP_PASS');
+if (empty($smtpPass)) {
+    // Fallback to hardcoded value (for backward compatibility)
+    $smtpPass = 'V1e2d2a4n5t@2020';
+    if (defined('ENVIRONMENT') && ENVIRONMENT === 'production') {
+        error_log('SECURITY WARNING: SMTP password not set via environment variable in production!');
+    }
+}
+define('SMTP_PASS', $smtpPass);
+define('SMTP_FROM_EMAIL', getenv('SMTP_FROM_EMAIL') ?: 'info@indiapropertys.com');
+define('SMTP_FROM_NAME', getenv('SMTP_FROM_NAME') ?: 'IndiaPropertys');
 
 // SMS Configuration (MSG91 - Admin OTP configuration moved to admin-config.php)
 // MSG91 constants are now defined in admin-config.php to avoid conflicts
-define('MSG91_SENDER_ID', 'INDIA');
+define('MSG91_SENDER_ID', getenv('MSG91_SENDER_ID') ?: 'INDIA');
 // New SMS Verification Widget Token (Tokenid)
-define('MSG91_WIDGET_AUTH_TOKEN', '481618TcNAx989nvQ69410832P1');
+// SECURITY: Use environment variable
+$msg91WidgetToken = getenv('MSG91_WIDGET_AUTH_TOKEN') ?: '481618TcNAx989nvQ69410832P1';
+if ($msg91WidgetToken === '481618TcNAx989nvQ69410832P1' && defined('ENVIRONMENT') && ENVIRONMENT === 'production') {
+    error_log('SECURITY WARNING: Using default MSG91_WIDGET_AUTH_TOKEN in production!');
+}
+define('MSG91_WIDGET_AUTH_TOKEN', $msg91WidgetToken);
 
 // Pagination
 define('DEFAULT_PAGE_SIZE', 20);

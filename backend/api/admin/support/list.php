@@ -91,8 +91,7 @@ try {
     // Get total count
     $countQuery = "SELECT COUNT(*) as total FROM support_tickets st LEFT JOIN users u ON st.user_id = u.id {$whereClause}";
     $countStmt = $db->prepare($countQuery);
-    $countParams = array_slice($params, 0, -2);
-    $countStmt->execute($countParams);
+    $countStmt->execute($params);
     $total = $countStmt->fetch()['total'];
     
     // Get stats

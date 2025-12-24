@@ -6,14 +6,27 @@
  */
 
 // MSG91 Widget Configuration
-// Get from environment variables or use defaults
+// SECURITY: Use environment variables for all MSG91 credentials
 define('MSG91_WIDGET_ID', getenv('MSG91_WIDGET_ID') ?: '356c786a314c303532313736');
-define('MSG91_AUTH_TOKEN', getenv('MSG91_AUTH_TOKEN') ?: '481618TheXzNLL2u694bc65aP1');
+$msg91AuthToken = getenv('MSG91_AUTH_TOKEN') ?: '481618TheXzNLL2u694bc65aP1';
+if ($msg91AuthToken === '481618TheXzNLL2u694bc65aP1' && defined('ENVIRONMENT') && ENVIRONMENT === 'production') {
+    error_log('SECURITY WARNING: Using default MSG91_AUTH_TOKEN in production!');
+}
+define('MSG91_AUTH_TOKEN', $msg91AuthToken);
 
 // MSG91 API Credentials (for server-side verification)
-define('MSG91_AUTH_KEY', '481618A2cCSUpaZHTW6936c356P1');
-define('MSG91_TEMPLATE_ID', '356c6c6c4141303836323334');
-define('MSG91_TOKEN', '481618TheXzNLL2u694bc65aP1');
+// SECURITY: These should be set via environment variables
+$msg91AuthKey = getenv('MSG91_AUTH_KEY') ?: '481618A2cCSUpaZHTW6936c356P1';
+if ($msg91AuthKey === '481618A2cCSUpaZHTW6936c356P1' && defined('ENVIRONMENT') && ENVIRONMENT === 'production') {
+    error_log('SECURITY WARNING: Using default MSG91_AUTH_KEY in production!');
+}
+define('MSG91_AUTH_KEY', $msg91AuthKey);
+define('MSG91_TEMPLATE_ID', getenv('MSG91_TEMPLATE_ID') ?: '356c6c6c4141303836323334');
+$msg91Token = getenv('MSG91_TOKEN') ?: '481618TheXzNLL2u694bc65aP1';
+if ($msg91Token === '481618TheXzNLL2u694bc65aP1' && defined('ENVIRONMENT') && ENVIRONMENT === 'production') {
+    error_log('SECURITY WARNING: Using default MSG91_TOKEN in production!');
+}
+define('MSG91_TOKEN', $msg91Token);
 
 // MSG91 API Endpoints
 define('MSG91_SEND_OTP_URL', 'https://control.msg91.com/api/v5/otp');
@@ -22,9 +35,12 @@ define('MSG91_RESEND_OTP_URL', 'https://control.msg91.com/api/v5/otp/retry');
 
 // ADMIN WHITELIST - ONLY these numbers can access admin panel
 // NEVER expose these to frontend
+// SECURITY: Use environment variables for admin mobile numbers
 // Format: +917888076881 (with + and country code)
-define('ADMIN_MOBILE_1', getenv('ADMIN_MOBILE_1') ?: '+917888076881');
-define('ADMIN_MOBILE_2', getenv('ADMIN_MOBILE_2') ?: '');
+$adminMobile1 = getenv('ADMIN_MOBILE_1') ?: '+917888076881';
+$adminMobile2 = getenv('ADMIN_MOBILE_2') ?: '';
+define('ADMIN_MOBILE_1', $adminMobile1);
+define('ADMIN_MOBILE_2', $adminMobile2);
 
 // Get all whitelisted admin mobiles
 function getAdminWhitelist() {
@@ -57,7 +73,12 @@ function isWhitelistedMobile($mobile) {
 }
 
 // Session Configuration
-define('ADMIN_SESSION_SECRET', getenv('ADMIN_SESSION_SECRET') ?: 'change-this-to-strong-random-secret-in-production-2024');
+// SECURITY: Use environment variable for session secret
+$sessionSecret = getenv('ADMIN_SESSION_SECRET') ?: 'change-this-to-strong-random-secret-in-production-2024';
+if ($sessionSecret === 'change-this-to-strong-random-secret-in-production-2024' && defined('ENVIRONMENT') && ENVIRONMENT === 'production') {
+    error_log('SECURITY WARNING: Using default ADMIN_SESSION_SECRET in production!');
+}
+define('ADMIN_SESSION_SECRET', $sessionSecret);
 define('SESSION_EXPIRY', (int)(getenv('SESSION_EXPIRY') ?: 3600000)); // 1 hour in milliseconds
 
 // OTP Configuration

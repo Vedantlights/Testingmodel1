@@ -84,7 +84,8 @@
   padding: 10px 12px;
   background: #e8f4fd;
   border-radius: 8px;
-  font-size: 12px;
+  font-size: 14px;
+  font-weight: bold;
   color: #2b6cb0;
   line-height: 1.4;
 }

@@ -436,7 +436,12 @@ try {
     error_log("Registration Error: " . $e->getMessage());
     error_log("Registration Error Trace: " . $e->getTraceAsString());
     error_log("Registration Input: " . json_encode($input ?? []));
-    sendError('Registration failed: ' . $e->getMessage(), null, 500);
+    // Don't expose internal error details in production
+    if (defined('ENVIRONMENT') && ENVIRONMENT === 'production') {
+        sendError('Registration failed. Please try again later.', null, 500);
+    } else {
+        sendError('Registration failed: ' . $e->getMessage(), null, 500);
+    }
 }
 
 /**

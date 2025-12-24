@@ -68,7 +68,12 @@ try {
 } catch (PDOException $e) {
     error_log("File Upload Database Error: " . $e->getMessage());
     error_log("File Upload Error Code: " . $e->getCode());
-    sendError('Database error during upload: ' . $e->getMessage(), null, 500);
+    // Don't expose database error details to users
+    if (defined('ENVIRONMENT') && ENVIRONMENT === 'production') {
+        sendError('Database error during upload. Please try again later.', null, 500);
+    } else {
+        sendError('Database error during upload: ' . $e->getMessage(), null, 500);
+    }
 } catch (Exception $e) {
     error_log("File Upload Error: " . $e->getMessage());
     error_log("File Upload Stack Trace: " . $e->getTraceAsString());
@@ -79,7 +84,12 @@ try {
         error_log("Upload directory permission issue detected");
         sendError('Upload directory error. Please check server permissions.', null, 500);
     } else {
-        sendError('File upload failed: ' . $e->getMessage(), null, 500);
+        // Don't expose internal error details in production
+        if (defined('ENVIRONMENT') && ENVIRONMENT === 'production') {
+            sendError('File upload failed. Please try again later.', null, 500);
+        } else {
+            sendError('File upload failed: ' . $e->getMessage(), null, 500);
+        }
     }
 }
 

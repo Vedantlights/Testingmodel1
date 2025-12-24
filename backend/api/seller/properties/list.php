@@ -192,7 +192,12 @@ try {
     if (defined('ENVIRONMENT') && ENVIRONMENT === 'production') {
         sendError('Failed to retrieve properties. Please try again later.', null, 500);
     } else {
-        sendError('Failed to retrieve properties: ' . $e->getMessage(), null, 500);
+        // Don't expose internal error details in production
+        if (defined('ENVIRONMENT') && ENVIRONMENT === 'production') {
+            sendError('Failed to retrieve properties. Please try again later.', null, 500);
+        } else {
+            sendError('Failed to retrieve properties: ' . $e->getMessage(), null, 500);
+        }
     }
 }
 

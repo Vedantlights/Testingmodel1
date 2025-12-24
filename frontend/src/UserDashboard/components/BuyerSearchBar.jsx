@@ -59,6 +59,7 @@ const SearchBar = () => {
   ];
 
   const rentResidentialBudget = [
+    '0K-5K',
     '5K-10K',
     '10K-20K',
     '20K-30K',

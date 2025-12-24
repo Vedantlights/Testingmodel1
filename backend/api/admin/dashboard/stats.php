@@ -21,48 +21,63 @@ try {
     
     // Get date range filter
     $dateRange = $_GET['date_range'] ?? 'all';
-    $dateFilter = '';
+    $days = null;
     if ($dateRange !== 'all') {
         // Parse date range (e.g., '7d', '30d', '90d')
-        $days = 0;
         if (preg_match('/(\d+)d/', $dateRange, $matches)) {
             $days = intval($matches[1]);
         } else {
             $days = intval($dateRange);
         }
-        if ($days > 0) {
-            $dateFilter = " AND created_at >= DATE_SUB(NOW(), INTERVAL {$days} DAY)";
+        // Validate days is positive and reasonable (max 365 days)
+        if ($days <= 0 || $days > 365) {
+            $days = null;
         }
     }
     
+    // Build date filter clause safely
+    $dateFilter = '';
+    $dateParams = [];
+    if ($days !== null) {
+        $dateFilter = " AND created_at >= DATE_SUB(NOW(), INTERVAL ? DAY)";
+        $dateParams = [$days];
+    }
+    
     // Total Properties
-    $stmt = $db->query("SELECT COUNT(*) as total FROM properties WHERE 1=1" . $dateFilter);
+    $stmt = $db->prepare("SELECT COUNT(*) as total FROM properties WHERE 1=1" . $dateFilter);
+    $stmt->execute($dateParams);
     $totalProperties = $stmt->fetch()['total'];
     
     // Active Properties
-    $stmt = $db->query("SELECT COUNT(*) as total FROM properties WHERE is_active = 1" . $dateFilter);
+    $stmt = $db->prepare("SELECT COUNT(*) as total FROM properties WHERE is_active = 1" . $dateFilter);
+    $stmt->execute($dateParams);
     $activeProperties = $stmt->fetch()['total'];
     
     // Pending Properties (if admin_status column exists, otherwise use is_active = 0)
-    $stmt = $db->query("SELECT COUNT(*) as total FROM properties WHERE is_active = 0" . $dateFilter);
+    $stmt = $db->prepare("SELECT COUNT(*) as total FROM properties WHERE is_active = 0" . $dateFilter);
+    $stmt->execute($dateParams);
     $pendingProperties = $stmt->fetch()['total'];
     
     // Total Users (date filter only applies to registration date)
-    $userDateFilter = str_replace('created_at', 'created_at', $dateFilter);
-    $stmt = $db->query("SELECT COUNT(*) as total FROM users WHERE 1=1" . $userDateFilter);
+    $userDateFilter = $dateFilter; // Same filter for users
+    $stmt = $db->prepare("SELECT COUNT(*) as total FROM users WHERE 1=1" . $userDateFilter);
+    $stmt->execute($dateParams);
     $totalUsers = $stmt->fetch()['total'];
     
     // Users by type
-    $stmt = $db->query("SELECT user_type, COUNT(*) as count FROM users WHERE 1=1" . $userDateFilter . " GROUP BY user_type");
+    $stmt = $db->prepare("SELECT user_type, COUNT(*) as count FROM users WHERE 1=1" . $userDateFilter . " GROUP BY user_type");
+    $stmt->execute($dateParams);
     $usersByType = $stmt->fetchAll(PDO::FETCH_KEY_PAIR);
     
     // Active Agents
-    $stmt = $db->query("SELECT COUNT(*) as total FROM users WHERE user_type = 'agent'" . $userDateFilter);
+    $stmt = $db->prepare("SELECT COUNT(*) as total FROM users WHERE user_type = 'agent'" . $userDateFilter);
+    $stmt->execute($dateParams);
     $totalAgents = $stmt->fetch()['total'];
     
     // Total Inquiries
-    $inquiryDateFilter = str_replace('created_at', 'created_at', $dateFilter);
-    $stmt = $db->query("SELECT COUNT(*) as total FROM inquiries WHERE 1=1" . $inquiryDateFilter);
+    $inquiryDateFilter = $dateFilter; // Same filter for inquiries
+    $stmt = $db->prepare("SELECT COUNT(*) as total FROM inquiries WHERE 1=1" . $inquiryDateFilter);
+    $stmt->execute($dateParams);
     $totalInquiries = $stmt->fetch()['total'];
     
     // New Inquiries (last 7 days) - always relative to now, not date filter

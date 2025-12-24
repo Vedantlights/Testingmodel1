@@ -149,9 +149,19 @@ try {
     
 } catch (PDOException $e) {
     error_log("Get Profile PDO Error: " . $e->getMessage() . " | Code: " . $e->getCode());
-    sendError('Database error: ' . $e->getMessage(), null, 500);
+    // Don't expose database error details in production
+    if (defined('ENVIRONMENT') && ENVIRONMENT === 'production') {
+        sendError('Database error. Please try again later.', null, 500);
+    } else {
+        sendError('Database error: ' . $e->getMessage(), null, 500);
+    }
 } catch (Exception $e) {
     error_log("Get Profile Error: " . $e->getMessage() . " | Trace: " . $e->getTraceAsString());
-    sendError('Failed to retrieve profile: ' . $e->getMessage(), null, 500);
+    // Don't expose internal error details in production
+    if (defined('ENVIRONMENT') && ENVIRONMENT === 'production') {
+        sendError('Failed to retrieve profile. Please try again later.', null, 500);
+    } else {
+        sendError('Failed to retrieve profile: ' . $e->getMessage(), null, 500);
+    }
 }
 

@@ -72,6 +72,45 @@ const ImageSliderModal = ({ images, currentIndex, onClose, onNext, onPrev }) => 
     );
 };
 
+// --- Helper function to determine which features should be shown based on property type ---
+const shouldShowFeature = (propertyType, feature) => {
+    if (!propertyType) return true; // Default to showing all if type is unknown
+    
+    const typeLower = propertyType.toLowerCase();
+    
+    // Property types that should NOT show bedrooms and bathrooms
+    const noBedroomBathroomTypes = [
+        'plot / land',
+        'plot / land / indusrtial property',
+        'plot / land / industrial property',
+        'commercial shop',
+        'warehouse / godown',
+        'warehouse',
+        'godown',
+        'land',
+        'plot'
+    ];
+    
+    // Property types that might show bathrooms but not bedrooms
+    const noBedroomTypes = [
+        'commercial office',
+        'commercial'
+    ];
+    
+    if (feature === 'bedrooms') {
+        // Don't show bedrooms for land/plot, commercial shop, warehouse, or commercial office
+        return !noBedroomBathroomTypes.some(t => typeLower.includes(t)) &&
+               !noBedroomTypes.some(t => typeLower.includes(t));
+    }
+    
+    if (feature === 'bathrooms') {
+        // Don't show bathrooms for land/plot, commercial shop, warehouse
+        return !noBedroomBathroomTypes.some(t => typeLower.includes(t));
+    }
+    
+    return true; // Show other features by default
+};
+
 // --- Helper function to map property data to ViewDetailsPage structure ---
 const getPropertyDetails = (property) => {
     window.scrollTo(0,0);
@@ -98,6 +137,7 @@ const getPropertyDetails = (property) => {
         bedrooms: property.bedrooms,
         bathrooms: property.bathrooms,
         status: property.status,
+        type: property.type, // Include type for feature filtering
         description: description,
         amenities: amenities,
         images: images
@@ -535,6 +575,9 @@ const ViewDetailsPage = () => {
     // Favorite State
     const [isFavorited, setIsFavorited] = useState(false);
     
+    // Share State
+    const [showToast, setShowToast] = useState(false);
+    
     // Inquiry Form States
     const [formData, setFormData] = useState({
         name: '',
@@ -669,6 +712,93 @@ const ViewDetailsPage = () => {
             // Fallback to local storage if API fails
             FavoritesManager.toggleFavorite(propertyId);
             setIsFavorited(!isFavorited);
+        }
+    };
+
+    // Copy to clipboard helper function
+    const copyToClipboard = async (text) => {
+        try {
+            // Try modern clipboard API first
+            if (navigator.clipboard && navigator.clipboard.writeText) {
+                await navigator.clipboard.writeText(text);
+                setShowToast(true);
+                setTimeout(() => setShowToast(false), 2000);
+                return;
+            }
+            
+            // Fallback for older browsers
+            const textArea = document.createElement('textarea');
+            textArea.value = text;
+            textArea.style.position = 'fixed';
+            textArea.style.left = '-999999px';
+            textArea.style.top = '-999999px';
+            document.body.appendChild(textArea);
+            textArea.focus();
+            textArea.select();
+            
+            try {
+                const successful = document.execCommand('copy');
+                if (successful) {
+                    setShowToast(true);
+                    setTimeout(() => setShowToast(false), 2000);
+                } else {
+                    throw new Error('execCommand failed');
+                }
+            } finally {
+                document.body.removeChild(textArea);
+            }
+        } catch (error) {
+            console.error('Failed to copy to clipboard:', error);
+            // Last resort: show the link in a prompt
+            const userConfirmed = window.confirm(`Share this property link:\n\n${text}\n\nClick OK to copy, then paste it manually.`);
+            if (userConfirmed) {
+                // Try one more time with clipboard API
+                try {
+                    if (navigator.clipboard && navigator.clipboard.writeText) {
+                        await navigator.clipboard.writeText(text);
+                        setShowToast(true);
+                        setTimeout(() => setShowToast(false), 2000);
+                    }
+                } catch (finalError) {
+                    console.error('Final clipboard attempt failed:', finalError);
+                }
+            }
+        }
+    };
+
+    // Handle share button click
+    const handleShareClick = async (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+
+        if (!property || !property.id) {
+            console.error('Cannot share: property ID is missing');
+            return;
+        }
+
+        const shareUrl = `${window.location.origin}/details/${property.id}`;
+        const shareData = {
+            title: property.title || 'Property Listing',
+            text: `Check out this property: ${property.title || 'Amazing Property'}`,
+            url: shareUrl
+        };
+
+        // Check if Web Share API is supported (works great on mobile)
+        if (navigator.share) {
+            try {
+                await navigator.share(shareData);
+                console.log('Share successful');
+            } catch (error) {
+                // User cancelled or error occurred
+                if (error.name !== 'AbortError') {
+                    console.error('Error sharing:', error);
+                    // Fallback to clipboard
+                    await copyToClipboard(shareUrl);
+                }
+            }
+        } else {
+            // Fallback: Copy to clipboard for desktop
+            await copyToClipboard(shareUrl);
         }
     };
     
@@ -838,6 +968,31 @@ const ViewDetailsPage = () => {
                             <span className="buyer-premium-badge">
                                 🏠 Premium Property
                             </span>
+                            {/* Share Button */}
+                            <button 
+                                className="buyer-detail-share-btn"
+                                onClick={handleShareClick}
+                                aria-label="Share property"
+                                title="Share property"
+                            >
+                                <svg 
+                                    xmlns="http://www.w3.org/2000/svg" 
+                                    width="20" 
+                                    height="20" 
+                                    viewBox="0 0 24 24" 
+                                    fill="none"
+                                    stroke="currentColor" 
+                                    strokeWidth="2" 
+                                    strokeLinecap="round" 
+                                    strokeLinejoin="round"
+                                >
+                                    <circle cx="18" cy="5" r="3"></circle>
+                                    <circle cx="6" cy="12" r="3"></circle>
+                                    <circle cx="18" cy="19" r="3"></circle>
+                                    <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"></line>
+                                    <line x1="15.41" y1="6.51" x2="8.59" y2="10.49"></line>
+                                </svg>
+                            </button>
                             {/* Favorite Button */}
                             <button 
                                 className={`buyer-detail-favourite-btn ${isFavorited ? 'active' : ''}`}
@@ -918,23 +1073,27 @@ const ViewDetailsPage = () => {
                                     <span className="buyer-feature-label">{propertyData.status === 'For Rent' ? 'Monthly Rent' : 'Total Price'}</span>
                                 </div>
 
-                                {/* Bedrooms */}
-                                <div className="buyer-feature-item">
-                                    <div className="buyer-feature-icon">
-                                        <FaBed />
+                                {/* Bedrooms - Only show if property type supports it */}
+                                {shouldShowFeature(propertyData.type, 'bedrooms') && (
+                                    <div className="buyer-feature-item">
+                                        <div className="buyer-feature-icon">
+                                            <FaBed />
+                                        </div>
+                                        <span className="buyer-feature-value">{propertyData.bedrooms}</span>
+                                        <span className="buyer-feature-label">Bedrooms</span>
                                     </div>
-                                    <span className="buyer-feature-value">{propertyData.bedrooms}</span>
-                                    <span className="buyer-feature-label">Bedrooms</span>
-                                </div>
+                                )}
 
-                                {/* Bathrooms */}
-                                <div className="buyer-feature-item">
-                                    <div className="buyer-feature-icon">
-                                        <FaShower />
+                                {/* Bathrooms - Only show if property type supports it */}
+                                {shouldShowFeature(propertyData.type, 'bathrooms') && (
+                                    <div className="buyer-feature-item">
+                                        <div className="buyer-feature-icon">
+                                            <FaShower />
+                                        </div>
+                                        <span className="buyer-feature-value">{propertyData.bathrooms}</span>
+                                        <span className="buyer-feature-label">Bathrooms</span>
                                     </div>
-                                    <span className="buyer-feature-value">{propertyData.bathrooms}</span>
-                                    <span className="buyer-feature-label">Bathrooms</span>
-                                </div>
+                                )}
 
                                 {/* Area */}
                                 <div className="buyer-feature-item">
@@ -1016,6 +1175,13 @@ const ViewDetailsPage = () => {
                     </div>
                 </div>
             </main>
+
+            {/* Toast notification for share */}
+            {showToast && (
+                <div className="buyer-share-toast">
+                    Link copied!
+                </div>
+            )}
 
             {/* Mount the Slider Modal outside the main structure */}
             {currentImageIndex !== null && (

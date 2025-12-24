@@ -350,7 +350,12 @@ try {
         error_log("Add Property SQL State: " . ($e->errorInfo[0] ?? 'N/A'));
         error_log("Add Property Error Info: " . print_r($e->errorInfo ?? [], true));
         ob_clean();
-        sendError('Database error: ' . $e->getMessage(), ['error_code' => $e->getCode(), 'error_info' => $e->errorInfo ?? []], 500);
+        // Don't expose database error details in production
+        if (defined('ENVIRONMENT') && ENVIRONMENT === 'production') {
+            sendError('Database error during property creation. Please try again later.', null, 500);
+        } else {
+            sendError('Database error: ' . $e->getMessage(), ['error_code' => $e->getCode(), 'error_info' => $e->errorInfo ?? []], 500);
+        }
     } catch (Exception $e) {
         if ($transactionStarted) {
             try {
@@ -362,7 +367,12 @@ try {
         error_log("Add Property Error: " . $e->getMessage());
         error_log("Add Property Stack Trace: " . $e->getTraceAsString());
         ob_clean();
-        sendError('Failed to add property: ' . $e->getMessage(), null, 500);
+        // Don't expose internal error details in production
+        if (defined('ENVIRONMENT') && ENVIRONMENT === 'production') {
+            sendError('Failed to add property. Please try again later.', null, 500);
+        } else {
+            sendError('Failed to add property: ' . $e->getMessage(), null, 500);
+        }
     }
     
 } catch (PDOException $e) {
@@ -370,11 +380,21 @@ try {
     error_log("Add Property Error Code: " . $e->getCode());
     error_log("Add Property SQL State: " . ($e->errorInfo[0] ?? 'N/A'));
     ob_clean();
-    sendError('Database error during property creation: ' . $e->getMessage(), ['error_code' => $e->getCode()], 500);
+    // Don't expose database error details in production
+    if (defined('ENVIRONMENT') && ENVIRONMENT === 'production') {
+        sendError('Database error during property creation. Please try again later.', null, 500);
+    } else {
+        sendError('Database error during property creation: ' . $e->getMessage(), ['error_code' => $e->getCode()], 500);
+    }
 } catch (Exception $e) {
     error_log("Add Property Error (outer): " . $e->getMessage());
     error_log("Add Property Stack Trace: " . $e->getTraceAsString());
     ob_clean();
-    sendError('Failed to add property: ' . $e->getMessage(), null, 500);
+    // Don't expose internal error details in production
+    if (defined('ENVIRONMENT') && ENVIRONMENT === 'production') {
+        sendError('Failed to add property. Please try again later.', null, 500);
+    } else {
+        sendError('Failed to add property: ' . $e->getMessage(), null, 500);
+    }
 }
 

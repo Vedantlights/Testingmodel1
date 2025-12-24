@@ -64,6 +64,18 @@ function setCorsHeaders() {
     header('Access-Control-Allow-Credentials: true');
     header('Access-Control-Max-Age: 86400'); // Cache preflight for 24 hours
     header('Content-Type: application/json; charset=utf-8');
+    
+    // Security headers
+    header('X-Content-Type-Options: nosniff');
+    header('X-XSS-Protection: 1; mode=block');
+    header('X-Frame-Options: SAMEORIGIN');
+    // Only add Strict-Transport-Security in production with HTTPS
+    if (defined('ENVIRONMENT') && ENVIRONMENT === 'production' && 
+        (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off')) {
+        header('Strict-Transport-Security: max-age=31536000; includeSubDomains');
+    }
+    // Content-Security-Policy for API responses (minimal since it's JSON)
+    header("Content-Security-Policy: default-src 'self'");
 }
 
 // Handle preflight requests

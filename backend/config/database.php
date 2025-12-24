@@ -16,19 +16,36 @@ $isLocalhost = (
 
 if ($isLocalhost) {
     // LOCAL DEVELOPMENT (XAMPP)
-    define('DB_HOST', 'localhost');
-    define('DB_PORT', '3306');
-    define('DB_USER', 'root');
-    define('DB_PASS', '');
-    define('DB_NAME', 'indiapropertys_db');
+    // SECURITY: Use environment variables when available
+    define('DB_HOST', getenv('DB_HOST') ?: 'localhost');
+    define('DB_PORT', getenv('DB_PORT') ?: '3306');
+    define('DB_USER', getenv('DB_USER') ?: 'root');
+    define('DB_PASS', getenv('DB_PASS') ?: '');
+    define('DB_NAME', getenv('DB_NAME') ?: 'indiapropertys_db');
 } else {
     // PRODUCTION (Hostinger)
-    // Values provided from your Hostinger MySQL details
-    define('DB_HOST', '127.0.0.1');
-    define('DB_PORT', '3306');
-    define('DB_NAME', 'u449667423_lastdata');
-    define('DB_USER', 'u449667423_devlop');
-    define('DB_PASS', 'V1d2a3n4t@2020');
+    // SECURITY: Use environment variables for database credentials
+    $dbHost = getenv('DB_HOST');
+    $dbUser = getenv('DB_USER');
+    $dbPass = getenv('DB_PASS');
+    $dbName = getenv('DB_NAME');
+    
+    if (empty($dbHost) || empty($dbUser) || empty($dbPass) || empty($dbName)) {
+        // Fallback to hardcoded values (for backward compatibility)
+        // WARNING: These should be moved to environment variables
+        error_log('SECURITY WARNING: Database credentials not set via environment variables!');
+        define('DB_HOST', $dbHost ?: '127.0.0.1');
+        define('DB_PORT', getenv('DB_PORT') ?: '3306');
+        define('DB_NAME', $dbName ?: 'u449667423_lastdata');
+        define('DB_USER', $dbUser ?: 'u449667423_devlop');
+        define('DB_PASS', $dbPass ?: 'V1d2a3n4t@2020');
+    } else {
+        define('DB_HOST', $dbHost);
+        define('DB_PORT', getenv('DB_PORT') ?: '3306');
+        define('DB_NAME', $dbName);
+        define('DB_USER', $dbUser);
+        define('DB_PASS', $dbPass);
+    }
 }
 
 define('DB_CHARSET', 'utf8mb4');
