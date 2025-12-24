@@ -1,10 +1,21 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../../context/AuthContext';
 import '../styles/Buyer.css';
 
 export default function BuyerTenantLandingPage() {
   const [hoveredCard, setHoveredCard] = useState(null);
   const navigate = useNavigate();
+  const { user } = useAuth();
+
+  // Handler to redirect to login if not authenticated
+  const handleRequireAuth = (returnUrl = '/buyer-dashboard') => {
+    if (!user) {
+      navigate(`/login?returnUrl=${encodeURIComponent(returnUrl)}`);
+    } else {
+      navigate(returnUrl);
+    }
+  };
   
 
   const benefits = [
@@ -83,7 +94,8 @@ export default function BuyerTenantLandingPage() {
             <div 
               key={index} 
               className="type-card"
-              style={{ backgroundImage: `url(${type.image})` }}
+              onClick={() => handleRequireAuth('/buyer-dashboard')}
+              style={{ cursor: 'pointer', backgroundImage: `url(${type.image})` }}
             >
               <div className="type-card-overlay">
                 <h3>{type.title}</h3>
@@ -115,12 +127,17 @@ export default function BuyerTenantLandingPage() {
           className="preview-card"
           onMouseEnter={() => setHoveredCard('dashboard')}
           onMouseLeave={() => setHoveredCard(null)}
+          onClick={() => handleRequireAuth('/buyer-dashboard')}
+          style={{ cursor: 'pointer' }}
         >
           <div className="blur-content">
             <div className="blur-item">Saved Properties: 7e97e97e97e9</div>
             <div className="blur-item">New Matches: 7e97e97e9</div>
             <div className="blur-item">Messages: 7e97e9</div>
           </div>
+          {hoveredCard === 'dashboard' && !user && (
+            <div className="hover-message">🔒 Login to unlock your dashboard</div>
+          )}
         </div>
       </section>
 
@@ -168,7 +185,7 @@ export default function BuyerTenantLandingPage() {
       <section className="cta-section">
         <h2>Ready to Find Your New Home?</h2>
         <p>Sign up now and get access to the best property deals in your city.</p>
-        <button className="cta-btn" onClick={() => navigate('/register')}>
+        <button className="cta-btn" onClick={() => handleRequireAuth('/buyer-dashboard')}>
           Start Your Search Now
         </button>
       </section>

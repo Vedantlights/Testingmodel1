@@ -1,9 +1,11 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../../context/AuthContext';
 import '../styles/Propertycard.css';
 
 const PropertyCard = ({ property }) => {
   const navigate = useNavigate();
+  const { user } = useAuth();
   
   const {
     image,
@@ -18,6 +20,14 @@ const PropertyCard = ({ property }) => {
 
   // Handler for View Details button
   const handleViewDetails = () => {
+    // Check if user is authenticated
+    if (!user) {
+      // Redirect to login with return URL
+      const returnUrl = property?.id ? `/details/${property.id}` : '/';
+      navigate(`/login?returnUrl=${encodeURIComponent(returnUrl)}`);
+      return;
+    }
+    
     // Navigate to buyer's ViewDetailsPage (same layout for all users)
     if (property?.id) {
       navigate(`/details/${property.id}`);

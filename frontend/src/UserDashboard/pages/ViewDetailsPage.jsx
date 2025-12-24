@@ -1062,48 +1062,58 @@ const ViewDetailsPage = () => {
                             </div>
 
                             {/* Key Features using .features-grid */}
-                            <div className="buyer-features-grid">
-                                {/* Price/Rent */}
-                                <div className="buyer-feature-item">
-                                    <div className="buyer-feature-icon">
-                                        {/* Using an icon placeholder for the price block */}
-                                        <span role="img" aria-label="price">💰</span>
-                                    </div>
-                                    <span className="buyer-feature-value">{propertyData.price}</span>
-                                    <span className="buyer-feature-label">{propertyData.status === 'For Rent' ? 'Monthly Rent' : 'Total Price'}</span>
-                                </div>
-
-                                {/* Bedrooms - Only show if property type supports it */}
-                                {shouldShowFeature(propertyData.type, 'bedrooms') && (
-                                    <div className="buyer-feature-item">
-                                        <div className="buyer-feature-icon">
-                                            <FaBed />
+                            {(() => {
+                                // Count visible features
+                                const showBedrooms = shouldShowFeature(propertyData.type, 'bedrooms');
+                                const showBathrooms = shouldShowFeature(propertyData.type, 'bathrooms');
+                                const featureCount = 1 + (showBedrooms ? 1 : 0) + (showBathrooms ? 1 : 0) + 1; // Price + Bedrooms + Bathrooms + Area
+                                const gridClass = featureCount === 2 ? 'buyer-features-grid buyer-features-grid-2' : 'buyer-features-grid';
+                                
+                                return (
+                                    <div className={gridClass}>
+                                        {/* Price/Rent */}
+                                        <div className="buyer-feature-item">
+                                            <div className="buyer-feature-icon">
+                                                {/* Using an icon placeholder for the price block */}
+                                                <span role="img" aria-label="price">💰</span>
+                                            </div>
+                                            <span className="buyer-feature-value">{propertyData.price}</span>
+                                            <span className="buyer-feature-label">{propertyData.status === 'For Rent' ? 'Monthly Rent' : 'Total Price'}</span>
                                         </div>
-                                        <span className="buyer-feature-value">{propertyData.bedrooms}</span>
-                                        <span className="buyer-feature-label">Bedrooms</span>
-                                    </div>
-                                )}
 
-                                {/* Bathrooms - Only show if property type supports it */}
-                                {shouldShowFeature(propertyData.type, 'bathrooms') && (
-                                    <div className="buyer-feature-item">
-                                        <div className="buyer-feature-icon">
-                                            <FaShower />
+                                        {/* Bedrooms - Only show if property type supports it */}
+                                        {showBedrooms && (
+                                            <div className="buyer-feature-item">
+                                                <div className="buyer-feature-icon">
+                                                    <FaBed />
+                                                </div>
+                                                <span className="buyer-feature-value">{propertyData.bedrooms}</span>
+                                                <span className="buyer-feature-label">Bedrooms</span>
+                                            </div>
+                                        )}
+
+                                        {/* Bathrooms - Only show if property type supports it */}
+                                        {showBathrooms && (
+                                            <div className="buyer-feature-item">
+                                                <div className="buyer-feature-icon">
+                                                    <FaShower />
+                                                </div>
+                                                <span className="buyer-feature-value">{propertyData.bathrooms}</span>
+                                                <span className="buyer-feature-label">Bathrooms</span>
+                                            </div>
+                                        )}
+
+                                        {/* Area */}
+                                        <div className="buyer-feature-item">
+                                            <div className="buyer-feature-icon">
+                                                <FaRulerCombined />
+                                            </div>
+                                            <span className="buyer-feature-value">{propertyData.area}</span>
+                                            <span className="buyer-feature-label">Area</span>
                                         </div>
-                                        <span className="buyer-feature-value">{propertyData.bathrooms}</span>
-                                        <span className="buyer-feature-label">Bathrooms</span>
                                     </div>
-                                )}
-
-                                {/* Area */}
-                                <div className="buyer-feature-item">
-                                    <div className="buyer-feature-icon">
-                                        <FaRulerCombined />
-                                    </div>
-                                    <span className="buyer-feature-value">{propertyData.area}</span>
-                                    <span className="buyer-feature-label">Area</span>
-                                </div>
-                            </div>
+                                );
+                            })()}
                             {/* END of Key Features */}
 
                             <hr className="buyer-divider" />

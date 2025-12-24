@@ -299,14 +299,15 @@ const PropertyCard = ({ property, onFavoriteToggle }) => {
             </div>
 
             <div className="buyer-property-content">
-                <p className="buyer-property-location">
+                <h3 className="buyer-property-title">{title}</h3>
+                
+                <div className="buyer-property-location">
                     <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                         <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path>
                         <circle cx="12" cy="10" r="3"></circle>
                     </svg>
-                    {location}
-                </p>
-                <h3 className="buyer-property-title">{title}</h3>
+                    <span>{location}</span>
+                </div>
 
                 <div className="buyer-property-details">
                     {(bedrooms && bedrooms !== '0' && bedrooms !== 0) && (

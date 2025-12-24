@@ -432,6 +432,17 @@
     justify-content: space-between;
 }
 
+/* When there are only 2 features, remove gap and place them near each other */
+.buyer-features-grid-2 {
+    gap: 0;
+    justify-content: flex-start;
+}
+
+.buyer-features-grid-2 .buyer-feature-item {
+    flex-basis: calc(50% - 0px);
+    margin-right: 0;
+}
+
 .buyer-feature-item {
     flex-basis: calc(25% - 15px);
     min-width: 150px;
@@ -722,6 +733,15 @@
         gap: 15px;
     }
 
+    .buyer-features-grid-2 {
+        gap: 0;
+        justify-content: flex-start;
+    }
+
+    .buyer-features-grid-2 .buyer-feature-item {
+        flex-basis: calc(50% - 0px);
+    }
+
     .buyer-feature-item {
         flex-basis: calc(50% - 7.5px);
     }
@@ -837,6 +857,15 @@
     .buyer-features-grid {
         gap: 10px;
     }
+    
+    .buyer-features-grid-2 {
+        gap: 0;
+    }
+    
+    .buyer-features-grid-2 .buyer-feature-item {
+        flex-basis: calc(50% - 0px);
+    }
+    
     .buyer-feature-item {
         flex-basis: calc(50% - 5px);
     }

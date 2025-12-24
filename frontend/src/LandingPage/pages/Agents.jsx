@@ -1,10 +1,21 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../../context/AuthContext';
 import '../styles/Agents.css';
 
 export default function AgentBuilderLandingPage() {
   const [hoveredCard, setHoveredCard] = useState(null);
   const navigate = useNavigate();
+  const { user } = useAuth();
+
+  // Handler to redirect to login if not authenticated
+  const handleRequireAuth = (returnUrl = '/agent-dashboard') => {
+    if (!user) {
+      navigate(`/login?returnUrl=${encodeURIComponent(returnUrl)}`);
+    } else {
+      navigate(returnUrl);
+    }
+  };
 
   const handleLogin = () => {
     navigate('/login');
@@ -89,14 +100,15 @@ export default function AgentBuilderLandingPage() {
           className="preview-card"
           onMouseEnter={() => setHoveredCard('dashboard')}
           onMouseLeave={() => setHoveredCard(null)}
-          onClick={handleLogin}
+          onClick={() => handleRequireAuth('/agent-dashboard')}
+          style={{ cursor: 'pointer' }}
         >
           <div className="blur-content">
             <div className="blur-item">Lead Messages: ████████</div>
             <div className="blur-item">Project View Count: ████</div>
             <div className="blur-item">Enquiry Notifications: ████</div>
           </div>
-          {hoveredCard === 'dashboard' && (
+          {hoveredCard === 'dashboard' && !user && (
             <div className="hover-message">🔒 Login to unlock your agent dashboard</div>
           )}
         </div>
@@ -127,7 +139,7 @@ export default function AgentBuilderLandingPage() {
             </div>
           ))}
         </div>
-        <p className="section-cta" onClick={handleRegister} style={{ cursor: 'pointer' }}>
+        <p className="section-cta" onClick={() => handleRequireAuth('/agent-dashboard')} style={{ cursor: 'pointer' }}>
           Start Now — Free to Join
         </p>
       </section>
@@ -136,20 +148,21 @@ export default function AgentBuilderLandingPage() {
       <section className="project-teasers">
         <h2>Showcase Your Projects</h2>
         <div className="projects-grid">
-          {projects.map((project, index) => (
+            {projects.map((project, index) => (
             <div 
               key={index} 
               className="project-card"
               onMouseEnter={() => setHoveredCard(`project-${index}`)}
               onMouseLeave={() => setHoveredCard(null)}
-              onClick={handleLogin}
+              onClick={() => handleRequireAuth('/agent-dashboard')}
+              style={{ cursor: 'pointer' }}
             >
               <div className="blur-content">
                 <h3>{project.title}</h3>
                 <p>{project.type}</p>
                 <div className="blur-details">████████████</div>
               </div>
-              {hoveredCard === `project-${index}` && (
+              {hoveredCard === `project-${index}` && !user && (
                 <div className="hover-message-small">🔒 Login to list your projects</div>
               )}
             </div>

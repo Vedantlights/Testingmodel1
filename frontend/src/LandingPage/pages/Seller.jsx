@@ -1,10 +1,21 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../../context/AuthContext';
 import '../styles/Seller.css';
 
 const Seller = () => {
   const navigate = useNavigate();
   const [hoveredCard, setHoveredCard] = useState(null);
+  const { user } = useAuth();
+
+  // Handler to redirect to login if not authenticated
+  const handleRequireAuth = (returnUrl = '/seller-dashboard') => {
+    if (!user) {
+      navigate(`/login?returnUrl=${encodeURIComponent(returnUrl)}`);
+    } else {
+      navigate(returnUrl);
+    }
+  };
 
   // Handler to redirect to login
   const handleLoginClick = () => {
@@ -66,13 +77,15 @@ const Seller = () => {
           className="preview-card"
           onMouseEnter={() => setHoveredCard('dashboard')}
           onMouseLeave={() => setHoveredCard(null)}
+          onClick={() => handleRequireAuth('/seller-dashboard')}
+          style={{ cursor: 'pointer' }}
         >
           <div className="blur-content">
             <div className="blur-item">Property Analytics: ████</div>
             <div className="blur-item">Enquiry Messages: ████</div>
             <div className="blur-item">Property Views: ████</div>
           </div>
-          {hoveredCard === 'dashboard' && (
+          {hoveredCard === 'dashboard' && !user && (
             <div className="hover-message">🔒 Login to unlock your seller dashboard</div>
           )}
         </div>
@@ -156,14 +169,14 @@ const Seller = () => {
           <li>We reduce spam calls using smart filtering.</li>
           <li>Serious seekers only → saves time.</li>
         </ul>
-        <button className="seller-btn seller-btn-primary" onClick={handleLoginClick}>Register & Start Listing →</button>
+        <button className="seller-btn seller-btn-primary" onClick={() => handleRequireAuth('/seller-dashboard')}>Register & Start Listing →</button>
       </section>
 
       {/* Final CTA */}
       <section className="final-cta">
         <h2>🚀 Ready to Sell or Rent Your Property Faster?</h2>
         <p>Join thousands of owners using our platform.</p>
-        <button className="seller-btn seller-btn-large" onClick={handleLoginClick}>Create your free account →</button>
+        <button className="seller-btn seller-btn-large" onClick={() => handleRequireAuth('/seller-dashboard')}>Create your free account →</button>
       </section>
     </div>
   );
