@@ -6,6 +6,8 @@
   background: linear-gradient(180deg, #f8f9fa 0%, #ffffff 50%, #f8f9fa 100%);
   position: relative;
   overflow-x: hidden;
+  scroll-behavior: smooth;
+  scroll-padding-top: 100px; /* Prevent scroll jumps when focusing inputs */
 }
 
 /* Decorative Background Elements */
@@ -229,6 +231,8 @@
   overflow: hidden;
   max-width: 700px;
   width: 100%;
+  /* Prevent scroll jumps */
+  scroll-margin-top: 100px;
 }
 
 .form-card::before {
@@ -290,6 +294,11 @@
   text-align: center;
   box-shadow: 0 4px 15px rgba(16, 185, 129, 0.3);
   animation: slideInDown 0.5s ease;
+  /* Prevent scroll jump when success message appears */
+  min-height: 3rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 @keyframes slideInDown {
@@ -329,9 +338,11 @@
   font-size: 0.95rem;
   color: #1e293b;
   background: white;
-  transition: all 0.3s ease;
+  transition: border-color 0.3s ease, box-shadow 0.3s ease;
   font-family: inherit;
   box-sizing: border-box;
+  /* Prevent scroll jumps on focus */
+  scroll-margin-top: 100px;
 }
 
 .form-inputs input:focus,
@@ -339,7 +350,7 @@
   outline: none;
   border-color: #8b5cf6;
   box-shadow: 0 0 0 4px rgba(139, 92, 246, 0.1);
-  transform: translateY(-2px);
+  /* Removed transform to prevent scroll jumps */
 }
 
 .form-inputs input:focus-visible,

@@ -1,10 +1,11 @@
 // Contact.jsx
-import React, { useState } from "react";
+import React, { useState, useRef } from "react";
 import { MapPin, Mail, MessageSquare } from "lucide-react";
 import emailjs from "@emailjs/browser";     // ✅ Correct EmailJS package
 import '../styles/Contact.css';
 
 export default function Contact() {
+  const formRef = useRef(null);
   const [formData, setFormData] = useState({
     name: "",
     email: "",
@@ -22,6 +23,10 @@ export default function Contact() {
 
   const handleSubmit = (e) => {
     e.preventDefault();
+    e.stopPropagation(); // Prevent event bubbling
+
+    // Save current scroll position
+    const scrollPosition = window.pageYOffset || document.documentElement.scrollTop;
 
     if (
       !formData.name ||
@@ -31,6 +36,8 @@ export default function Contact() {
       !formData.message
     ) {
       alert("Please fill all fields");
+      // Restore scroll position
+      window.scrollTo(0, scrollPosition);
       return;
     }
 
@@ -61,6 +68,12 @@ export default function Contact() {
           phone: "",
           subject: "",
           message: "",
+        });
+
+        // Maintain scroll position after submission
+        const scrollPosition = window.pageYOffset || document.documentElement.scrollTop;
+        requestAnimationFrame(() => {
+          window.scrollTo(0, scrollPosition);
         });
 
         setTimeout(() => setSubmitted(false), 2500);
@@ -131,7 +144,17 @@ export default function Contact() {
               </div>
             )}
 
-            <form className="form-inputs" onSubmit={handleSubmit}>
+            <form 
+              ref={formRef}
+              className="form-inputs" 
+              onSubmit={handleSubmit} 
+              onKeyDown={(e) => {
+                // Prevent Enter key from submitting form and causing scroll jump
+                if (e.key === 'Enter' && e.target.tagName !== 'TEXTAREA') {
+                  e.preventDefault();
+                }
+              }}
+            >
 
               <label>Your Name</label>
               <input
