@@ -19,12 +19,16 @@
   outline: none;
   background-color: #f9fafb;
   transition: border-color 0.15s ease, box-shadow 0.15s ease, background-color 0.15s ease;
+  /* Prevent scroll jumps on focus */
+  scroll-margin-top: 100px;
 }
 
 .location-input:focus {
   border-color: #8b5cf6;
   background-color: #ffffff;
   box-shadow: 0 0 0 2px rgba(139, 92, 246, 0.25);
+  /* Prevent scroll jumps */
+  scroll-margin-top: 100px;
 }
 
 .location-input-error {

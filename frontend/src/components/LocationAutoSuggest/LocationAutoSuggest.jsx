@@ -458,15 +458,20 @@ const LocationAutoSuggest = ({
         return next < 0 ? suggestions.length - 1 : next;
       });
     } else if (e.key === 'Enter') {
+      // Always prevent default to avoid form submission and scroll jumps
+      e.preventDefault();
+      e.stopPropagation();
+      
       if (isOpen && suggestions.length > 0) {
-        e.preventDefault();
         const index = highlightedIndex >= 0 ? highlightedIndex : 0;
         handleSelect(suggestions[index]);
       } else if (onSearch && selectedLocation) {
-        e.preventDefault();
         onSearch(selectedLocation);
       }
+      // If no suggestions and no selected location, don't submit form
+      // User should select from dropdown or type more
     } else if (e.key === 'Escape') {
+      e.preventDefault();
       setIsOpen(false);
       setHighlightedIndex(-1);
     }

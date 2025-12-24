@@ -10,6 +10,8 @@
   padding: 3rem 1rem 4rem;
   min-height: 600px;
   position: relative;
+  scroll-behavior: smooth;
+  scroll-padding-top: 100px; /* Prevent scroll jumps when focusing inputs */
 }
 
 .buyer-search-bar-container::before {
@@ -144,9 +146,11 @@
   font-size: 0.95rem;
   color: #1e293b;
   background: white;
-  transition: all 0.3s ease;
+  transition: border-color 0.3s ease, box-shadow 0.3s ease;
   font-family: inherit;
   box-sizing: border-box;
+  /* Prevent scroll jumps on focus */
+  scroll-margin-top: 100px;
 }
 
 /* Override LocationAutoSuggest input styling to match buyer-search-input exactly */
@@ -226,6 +230,8 @@
   outline: none;
   border-color: #8b5cf6;
   box-shadow: 0 0 0 4px rgba(139, 92, 246, 0.1);
+  /* Prevent scroll jumps on focus */
+  scroll-margin-top: 100px;
 }
 
 .buyer-search-input::placeholder {

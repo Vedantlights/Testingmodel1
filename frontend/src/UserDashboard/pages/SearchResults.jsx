@@ -13,7 +13,13 @@ const SearchResults = () => {
   
   const [filteredProperties, setFilteredProperties] = useState([]);
   const [loading, setLoading] = useState(true);
+
+  // Scroll to top when component mounts or search params change
+  useEffect(() => {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }, [searchParams]);
   const [activeFilters, setActiveFilters] = useState({
+    city: '',
     location: '',
     type: '',
     budget: '',
@@ -28,6 +34,7 @@ const SearchResults = () => {
       try {
         setLoading(true);
         // Get search parameters from URL
+        const city = searchParams.get('city') || '';
         const location = searchParams.get('location') || '';
         const type = searchParams.get('type') || searchParams.get('property_type') || '';
         const budget = searchParams.get('budget') || '';
@@ -40,6 +47,8 @@ const SearchResults = () => {
           limit: 100
         };
         
+        // Pass city if available (backend uses city OR location, preferring location)
+        if (city) apiParams.city = city;
         if (location) apiParams.location = location;
         if (type) apiParams.property_type = type;
         if (budget) apiParams.budget = budget;
@@ -50,7 +59,12 @@ const SearchResults = () => {
           apiParams.status = status.toLowerCase().replace('for ', '');
         }
         
+        console.log('🔍 Search parameters:', { city, location, type, budget, bedrooms, area, status });
+        console.log('📡 API params:', apiParams);
+        
         const response = await propertiesAPI.list(apiParams);
+        
+        console.log('✅ API response:', response);
         
         if (response.success && response.data && response.data.properties) {
           // Convert backend properties to frontend format
@@ -200,6 +214,7 @@ const SearchResults = () => {
 
   // Update active filters when search params change
   useEffect(() => {
+    const city = searchParams.get('city') || '';
     const location = searchParams.get('location') || '';
     const type = searchParams.get('type') || searchParams.get('property_type') || '';
     const budget = searchParams.get('budget') || '';
@@ -207,7 +222,7 @@ const SearchResults = () => {
     const area = searchParams.get('area') || '';
     const status = searchParams.get('status') || '';
 
-    setActiveFilters({ location, type, budget, bedrooms, area, status });
+    setActiveFilters({ city, location, type, budget, bedrooms, area, status });
     
     // Filtering is now done by backend, but keep client-side as fallback
     // The main fetchProperties effect handles the filtering
@@ -216,12 +231,16 @@ const SearchResults = () => {
   
   const clearAllFilters = () => {
     navigate('/searchresults');
-    setActiveFilters({ location: '', type: '', budget: '', bedrooms: '', status: '' });
+    setActiveFilters({ city: '', location: '', type: '', budget: '', bedrooms: '', area: '', status: '' });
   };
 
   const removeFilter = (filterName) => {
     const newParams = new URLSearchParams(searchParams);
     newParams.delete(filterName);
+    // Also remove property_type if removing type filter
+    if (filterName === 'type') {
+      newParams.delete('property_type');
+    }
     navigate(`/searchresults?${newParams.toString()}`);
   };
   
@@ -274,6 +293,17 @@ const SearchResults = () => {
           <div className="buyer-active-filters">
             <span className="buyer-filters-label">Active Filters:</span>
             <div className="buyer-filter-tags">
+              {activeFilters.city && (
+                <div className="buyer-filter-tag">
+                  <span>City: {activeFilters.city}</span>
+                  <button onClick={() => removeFilter('city')} className="buyer-remove-filter">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                      <line x1="18" y1="6" x2="6" y2="18"></line>
+                      <line x1="6" y1="6" x2="18" y2="18"></line>
+                    </svg>
+                  </button>
+                </div>
+              )}
               {activeFilters.location && (
                 <div className="buyer-filter-tag">
                   <span>Location: {activeFilters.location}</span>

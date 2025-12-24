@@ -166,6 +166,7 @@ const SearchBar = () => {
   const handleSearch = (e) => {
     if (e) {
       e.preventDefault();
+      e.stopPropagation(); // Prevent event bubbling
     }
 
     const queryParams = new URLSearchParams();
@@ -199,7 +200,13 @@ const SearchBar = () => {
       queryParams.append('area', searchData.area);
     }
 
+    // Navigate to search results and scroll to top
     navigate(`/searchresults?${queryParams.toString()}`);
+    
+    // Scroll to top after navigation to show search results
+    setTimeout(() => {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }, 100);
   };
 
   const handleQuickSearch = (city) => {
@@ -221,7 +228,20 @@ const SearchBar = () => {
         <h2 className="buyer-search-title">Find Your Dream Property</h2>
         <p className="buyer-search-subtitle">Search from thousands of verified properties across India</p>
 
-        <form className="buyer-search-form" onSubmit={handleSearch}>
+        <form 
+          className="buyer-search-form" 
+          onSubmit={handleSearch}
+          onKeyDown={(e) => {
+            // Prevent Enter key from causing scroll jump (except in textarea/select)
+            if (e.key === 'Enter' && e.target.tagName !== 'TEXTAREA' && e.target.tagName !== 'SELECT') {
+              // Allow form submission but prevent default scroll behavior
+              const scrollPosition = window.pageYOffset || document.documentElement.scrollTop;
+              setTimeout(() => {
+                window.scrollTo(0, scrollPosition);
+              }, 0);
+            }
+          }}
+        >
           <div className="buyer-search-inputs">
             {/* Location Input */}
             <div className="buyer-search-field">

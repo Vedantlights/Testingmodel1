@@ -4,7 +4,9 @@
   min-height: 100vh;
   background: rgb(222, 220, 220);
   position: relative;
-  overflow: hidden;
+  overflow-x: hidden;
+  scroll-behavior: smooth;
+  scroll-padding-top: 100px; /* Prevent scroll jumps when focusing inputs */
 }
 
 /* Decorative Background Elements */
@@ -221,6 +223,8 @@
   overflow: hidden;
   max-width: 700px;
   width: 100%;
+  /* Prevent scroll jumps */
+  scroll-margin-top: 100px;
 }
 
 .buyer-form-card::before {
@@ -282,6 +286,11 @@
   text-align: center;
   box-shadow: 0 4px 15px rgba(16, 185, 129, 0.3);
   animation: buyer-slideInDown 0.5s ease;
+  /* Prevent scroll jump when success message appears */
+  min-height: 3rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 @keyframes buyer-slideInDown {
@@ -321,9 +330,11 @@
   font-size: 0.95rem;
   color: #1e293b;
   background: rgb(229, 225, 225);
-  transition: all 0.3s ease;
+  transition: border-color 0.3s ease, box-shadow 0.3s ease;
   font-family: inherit;
   box-sizing: border-box;
+  /* Prevent scroll jumps on focus */
+  scroll-margin-top: 100px;
 }
 
 .buyer-form-inputs input:focus,
@@ -331,7 +342,7 @@
   outline: none;
   border-color: #8b5cf6;
   box-shadow: 0 0 0 4px rgba(139, 92, 246, 0.1);
-  transform: translateY(-2px);
+  /* Removed transform to prevent scroll jumps */
 }
 
 .buyer-form-inputs textarea {

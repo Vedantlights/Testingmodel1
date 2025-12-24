@@ -1,10 +1,15 @@
 // Contact.jsx
-import React, { useState } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { MapPin, Mail, MessageSquare } from "lucide-react";
 import "../styles/BuyerContactPage.css";
 
 export default function Contact() {
-    window.scrollTo(0,0);
+  // Only scroll to top once on component mount, not on every render
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, []); // Empty dependency array means it only runs once on mount
+
+  const formRef = useRef(null);
   const [formData, setFormData] = useState({
     name: "",
     email: "",
@@ -20,7 +25,15 @@ export default function Contact() {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
-  const handleSubmit = () => {
+  const handleSubmit = (e) => {
+    // Prevent default form submission behavior
+    if (e) {
+      e.preventDefault();
+      e.stopPropagation();
+    }
+    
+    // Save current scroll position
+    const scrollPosition = window.pageYOffset || document.documentElement.scrollTop;
     if (
       !formData.name ||
       !formData.email ||
@@ -29,6 +42,8 @@ export default function Contact() {
       !formData.message
     ) {
       alert("Please fill all fields");
+      // Restore scroll position
+      window.scrollTo(0, scrollPosition);
       return;
     }
 
@@ -43,6 +58,11 @@ export default function Contact() {
         phone: "",
         subject: "",
         message: "",
+      });
+
+      // Maintain scroll position after submission
+      requestAnimationFrame(() => {
+        window.scrollTo(0, scrollPosition);
       });
 
       setTimeout(() => setSubmitted(false), 2500);
@@ -110,7 +130,17 @@ export default function Contact() {
               </div>
             )}
 
-            <div className="buyer-form-inputs">
+            <form 
+              ref={formRef}
+              className="buyer-form-inputs"
+              onSubmit={handleSubmit}
+              onKeyDown={(e) => {
+                // Prevent Enter key from submitting form and causing scroll jump (except in textarea)
+                if (e.key === 'Enter' && e.target.tagName !== 'TEXTAREA') {
+                  e.preventDefault();
+                }
+              }}
+            >
               
               <label>Your Full Name</label>
               <input
@@ -157,11 +187,11 @@ export default function Contact() {
                 placeholder="Tell us more..."
               ></textarea>
 
-              <button onClick={handleSubmit} disabled={isSubmitting}>
-  {isSubmitting ? "Sending..." : "Submit"}
-</button>
+              <button type="submit" disabled={isSubmitting}>
+                {isSubmitting ? "Sending..." : "Submit"}
+              </button>
 
-            </div>
+            </form>
           </div>
 
         </div>
