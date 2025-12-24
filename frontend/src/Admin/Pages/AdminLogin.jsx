@@ -54,6 +54,12 @@ const AdminLogin = () => {
           },
         });
 
+        // 401 is expected when not authenticated - handle silently
+        if (response.status === 401) {
+          // Not authenticated, continue to login page
+          return;
+        }
+
         // Check if response is JSON before parsing
         const contentType = response.headers.get('content-type');
         if (contentType && contentType.includes('application/json') && response.ok) {
@@ -63,7 +69,8 @@ const AdminLogin = () => {
           }
         }
       } catch (err) {
-        // Not authenticated, continue to login
+        // Not authenticated or network error, continue to login
+        // Silently ignore - 401 is expected behavior
       }
     };
 

@@ -29,9 +29,26 @@ const AdminProtectedRoute = ({ children }) => {
           },
         });
 
+        // 401 is expected when not authenticated - handle silently
+        if (response.status === 401) {
+          setIsAuthenticated(false);
+          setIsChecking(false);
+          return;
+        }
+
+        // Check if response is JSON before parsing
+        const contentType = response.headers.get('content-type');
+        if (!contentType || !contentType.includes('application/json')) {
+          setIsAuthenticated(false);
+          setIsChecking(false);
+          return;
+        }
+
         const data = await response.json();
         setIsAuthenticated(data.success && data.data && data.data.admin);
       } catch (error) {
+        // Network error or other exception - silently handle
+        // 401 is expected behavior when not authenticated
         setIsAuthenticated(false);
       } finally {
         setIsChecking(false);

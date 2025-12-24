@@ -65,6 +65,28 @@ const AdminLayout = () => {
           credentials: 'include', // Important: include cookies
         });
 
+        // 401 is expected when not authenticated - handle silently
+        if (response.status === 401) {
+          setIsAuthenticated(false);
+          if (!isLoginPage) {
+            navigate('/admin/login', { replace: true });
+          }
+          setIsCheckingAuth(false);
+          return;
+        }
+
+        // Check if response is JSON before parsing
+        const contentType = response.headers.get('content-type');
+        if (!contentType || !contentType.includes('application/json')) {
+          // Non-JSON response - treat as not authenticated
+          setIsAuthenticated(false);
+          if (!isLoginPage) {
+            navigate('/admin/login', { replace: true });
+          }
+          setIsCheckingAuth(false);
+          return;
+        }
+
         const data = await response.json();
 
         if (data.success && data.data && data.data.admin) {
@@ -84,8 +106,8 @@ const AdminLayout = () => {
           }
         }
       } catch (error) {
-        console.error('Auth verification error:', error);
-        // On error, redirect to login
+        // Network error or other exception - silently handle
+        // 401 is expected behavior when not authenticated
         setIsAuthenticated(false);
         if (!isLoginPage) {
           navigate('/admin/login', { replace: true });
