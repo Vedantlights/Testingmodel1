@@ -94,7 +94,7 @@ export default function Contact() {
             <div className="info-text">
               <h3>Visit Us</h3>
               <p>
-                Office No.21 & 22, 3rd Floor, S/Bo. 56<br />
+                Office No.21 & 22, 3rd Floor, S/No. 56<br />
                 Aston Plaza, Ambegaon Bk.<br />
                 Pune , Maharashtra– 411046
               </p>

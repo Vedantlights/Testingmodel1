@@ -35,18 +35,18 @@ export default function BuyerTenantLandingPage() {
   ];
 
   const features = [
-    { icon: '4f8', title: 'Virtual Tours', desc: 'Explore properties from home' },
-    { icon: '4ac', title: 'Direct Chat', desc: 'Talk to owners directly' },
-    { icon: '514', title: 'Smart Alerts', desc: 'Get notified of matching listings' },
-    { icon: '4cd', title: 'Map View', desc: 'See properties on interactive map' },
-    { icon: 'b50', title: 'Save Favorites', desc: 'Bookmark properties you like' }
+    { icon: '📸', title: 'Virtual Tours', desc: 'Explore properties from home' },
+    { icon: '💬', title: 'Direct Chat', desc: 'Talk to owners directly' },
+    { icon: '🔔', title: 'Smart Alerts', desc: 'Get notified of matching listings' },
+    { icon: '📍', title: 'Map View', desc: 'See properties on interactive map' },
+    { icon: '⭐', title: 'Save Favorites', desc: 'Bookmark properties you like' }
   ];
 
   const stats = [
-    { icon: '3e0', number: '35,000+', label: 'Active properties' },
-    { icon: '705', number: '100%', label: 'Verified listings' },
-    { icon: '465', number: '50,000+', label: 'Happy users' },
-    { icon: '3af', number: '4.9/5', label: 'User satisfaction' }
+    { icon: '🏠', number: '35,000+', label: 'Active properties' },
+    { icon: '✅', number: '100%', label: 'Verified listings' },
+    { icon: '👥', number: '50,000+', label: 'Happy users' },
+    { icon: '⭐', number: '4.9/5', label: 'User satisfaction' }
   ];
 
   const reviews = [
@@ -130,8 +130,8 @@ export default function BuyerTenantLandingPage() {
         <div className="reviews-grid">
           {reviews.map((review, index) => (
             <div key={index} className="review-card">
-              <p className="review-text">4ac {review.text}</p>
-              <p className="review-author">464 {review.author} <span>- {review.role}</span></p>
+              <p className="review-text">"{review.text}"</p>
+              <p className="review-author">— {review.author}, {review.role}</p>
             </div>
           ))}
         </div>
@@ -154,11 +154,14 @@ export default function BuyerTenantLandingPage() {
       {/* Search Tips */}
       <section className="search-tips-section">
         <h2>Pro Tips for Property Search</h2>
-        <ul className="search-tips-list">
+        <div className="tips-container">
           {searchTips.map((tip, index) => (
-            <li key={index}>449 {tip}</li>
+            <div key={index} className="tip-item">
+              <span className="tip-number">{index + 1}</span>
+              <p>{tip}</p>
+            </div>
           ))}
-        </ul>
+        </div>
       </section>
 
       {/* Call to Action */}

@@ -75,10 +75,15 @@
 
 /* Info Cards Section */
 .buyer-info-section {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  display: flex;
+  justify-content: center;
+  align-items: center;
   gap: 2rem;
   margin-bottom: 4rem;
+  max-width: 800px;
+  margin-left: auto;
+  margin-right: auto;
+  flex-wrap: wrap;
 }
 
 .buyer-info-card {
@@ -362,7 +367,6 @@
 /* Responsive Design */
 @media (max-width: 1024px) {
   .buyer-info-section { 
-    grid-template-columns: repeat(2, 1fr); 
     gap: 1.5rem; 
   }
 }
@@ -370,7 +374,7 @@
 @media (max-width: 768px) {
   .buyer-contact-container { padding: 3rem 1rem; }
   .buyer-contact-header { margin-bottom: 3rem; }
-  .buyer-info-section { grid-template-columns: 1fr; gap: 1.5rem; }
+  .buyer-info-section { flex-direction: column; gap: 1.5rem; }
   .buyer-form-card { padding: 2rem; }
   .buyer-form-inputs > div { 
     grid-template-columns: 1fr; 

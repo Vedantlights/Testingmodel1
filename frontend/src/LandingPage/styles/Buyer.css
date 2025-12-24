@@ -387,50 +387,68 @@ h2 {
 }
 
 /* Trust Stats */
-.trust-states {
+.trust-states,
+.stats-section {
   background: linear-gradient(135deg, #667eea, #764ba2);
   color: white;
+  padding: 60px 20px;
 }
 
-.trust-states h2 {
+.trust-states h2,
+.stats-section h2 {
   color: white;
 }
 
-.states-grid {
+.states-grid,
+.stats-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
   gap: 30px;
 }
 
-.state-card {
+.state-card,
+.stat-card {
   text-align: center;
   padding: 30px;
   background-color: white;
   border-radius: 12px;
   box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+  transition: all 0.3s ease;
 }
 
-.state-icon {
+.stat-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2);
+}
+
+.state-icon,
+.stat-icon {
   font-size: 3rem;
   display: block;
   margin-bottom: 10px;
+  line-height: 1;
 }
 
-.state-card h3 {
+.state-card h3,
+.stat-card h3 {
   font-size: 1.5rem;
   font-weight: bold;
   margin-bottom: 5px;
   color: #764ba2;
 }
 
-.state-card p {
+.state-card p,
+.stat-card p {
   font-size: 1rem;
   color: #666;
+  margin: 0;
 }
 
 /* Search Tips */
-.search-tips {
+.search-tips,
+.search-tips-section {
   background-color: #f8f9fa;
+  padding: 60px 20px;
 }
 
 .tips-container {
@@ -478,12 +496,35 @@ h2 {
   line-height: 1.6;
 }
 
+.search-tips-list {
+  list-style: none;
+  padding: 0;
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+.search-tips-list li {
+  padding: 15px 20px;
+  margin: 10px 0;
+  background-color: white;
+  border-radius: 10px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+  border-left: 4px solid #764ba2;
+  transition: all 0.3s ease;
+}
+
+.search-tips-list li:hover {
+  transform: translateX(10px);
+  box-shadow: 0 4px 15px rgba(240, 147, 251, 0.2);
+}
+
 /* Reviews Section */
 .reviews-section {
   background-color: #fff;
 }
 
-.reviews-container {
+.reviews-container,
+.reviews-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
   gap: 30px;
@@ -495,6 +536,12 @@ h2 {
   border-radius: 12px;
   box-shadow: 0 3px 12px rgba(0, 0, 0, 0.08);
   border-left: 4px solid #764ba2;
+  transition: all 0.3s ease;
+}
+
+.review-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 8px 25px rgba(118, 75, 162, 0.2);
 }
 
 .review-text {
@@ -502,6 +549,7 @@ h2 {
   font-style: italic;
   margin-bottom: 15px;
   color: #333;
+  line-height: 1.6;
 }
 
 .review-author {
@@ -511,23 +559,44 @@ h2 {
 }
 
 /* Final CTA */
-.final-cta {
+.final-cta,
+.cta-section {
   background: linear-gradient(135deg, #667eea, #764ba2);
   color: white;
   text-align: center;
   padding: 80px 20px;
 }
 
-.final-cta h2 {
+.final-cta h2,
+.cta-section h2 {
   color: white;
   font-size: 2.5rem;
   margin-bottom: 15px;
 }
 
-.final-cta p {
+.final-cta p,
+.cta-section p {
   font-size: 1.2rem;
   margin-bottom: 30px;
   opacity: 0.95;
+}
+
+.cta-btn {
+  padding: 16px 40px;
+  font-size: 1.2rem;
+  background-color: white;
+  color: #764ba2;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 700;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+}
+
+.cta-btn:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
 }
 
 /* Responsive Design */
@@ -560,8 +629,13 @@ h2 {
     grid-template-columns: 1fr;
   }
 
-  .reviews-container {
+  .reviews-container,
+  .reviews-grid {
     grid-template-columns: 1fr;
+  }
+  
+  .stats-grid {
+    grid-template-columns: repeat(2, 1fr);
   }
 
   .benefits-grid {

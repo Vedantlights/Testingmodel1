@@ -73,7 +73,7 @@ export default function Contact() {
             </div>
             <div className="buyer-info-text">
               <h3>Visit Us</h3>
-              <p>Office No.21 & 22, 3rd Floor, S/Bo. 56<br />
+              <p>Office No.21 & 22, 3rd Floor, S/No. 56<br />
               Aston Plaza, Ambegaon Bk.<br />
               Pune , Maharashtra– 411046</p>
             </div>
