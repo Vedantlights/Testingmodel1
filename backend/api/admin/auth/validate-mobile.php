@@ -90,9 +90,9 @@ try {
     // Log successful validation
     error_log("Mobile validation successful for whitelisted number: " . substr($validatedMobile, 0, 4) . "****");
     
+    // SECURITY: Never expose mobile number in response - frontend handles its own masking
     sendSuccess('Mobile number validated', [
         'validationToken' => $validationToken,
-        'mobile' => substr($validatedMobile, 0, 4) . '****' . substr($validatedMobile, -2), // Partially masked
         'expires_at' => $expiresAt
     ]);
     

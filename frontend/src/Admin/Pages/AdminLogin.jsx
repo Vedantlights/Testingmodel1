@@ -12,11 +12,25 @@ const AdminLogin = () => {
   const navigate = useNavigate();
   const [step, setStep] = useState('mobile'); // 'mobile', 'otp'
   const [mobile, setMobile] = useState('');
-  const [validatedMobile, setValidatedMobile] = useState(null); // Store validated mobile from backend
+  const [validatedMobile, setValidatedMobile] = useState(null); // Store validated mobile from backend (internal use only)
+  const [maskedMobile, setMaskedMobile] = useState(''); // Masked version to display
   const [validationToken, setValidationToken] = useState(null);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const [mobileLocked, setMobileLocked] = useState(false);
+
+  // Helper function to mask mobile number
+  const maskMobileNumber = (mobileNumber) => {
+    if (!mobileNumber) return '';
+    const cleaned = mobileNumber.replace(/[^0-9+]/g, '');
+    if (cleaned.length >= 6) {
+      // Show first 4 chars and last 4 chars, mask the middle
+      const start = cleaned.substring(0, 4);
+      const end = cleaned.substring(cleaned.length - 4);
+      return start + '****' + end;
+    }
+    return '****' + cleaned.substring(Math.max(0, cleaned.length - 4));
+  };
 
   // Check if already authenticated
   useEffect(() => {
@@ -30,7 +44,9 @@ const AdminLogin = () => {
           },
         });
 
-        if (response.ok) {
+        // Check if response is JSON before parsing
+        const contentType = response.headers.get('content-type');
+        if (contentType && contentType.includes('application/json') && response.ok) {
           const data = await response.json();
           if (data.success && data.data && data.data.admin) {
             navigate('/admin/dashboard', { replace: true });
@@ -66,13 +82,28 @@ const AdminLogin = () => {
         body: JSON.stringify({ mobile: mobile.trim() }),
       });
 
+      // Check if response is JSON before parsing
+      const contentType = response.headers.get('content-type');
+      if (!contentType || !contentType.includes('application/json')) {
+        const text = await response.text();
+        console.error('Non-JSON response:', text.substring(0, 500));
+        setError('Server returned an invalid response. Please try again or contact support.');
+        setLoading(false);
+        return;
+      }
+
       const data = await response.json();
 
       if (data.success && data.data && data.data.validationToken) {
-        // Store validation token and validated mobile
+        // Store validation token
         setValidationToken(data.data.validationToken);
-        // Store the validated mobile from backend (use the mobile that was validated)
-        setValidatedMobile(mobile.trim());
+        // Store the validated mobile (keep it for internal use but don't display it)
+        const mobileToStore = mobile.trim();
+        setValidatedMobile(mobileToStore);
+        // Create masked version for display only
+        setMaskedMobile(maskMobileNumber(mobileToStore));
+        // Clear the actual mobile number from the input field
+        setMobile('');
         setMobileLocked(true); // Lock mobile number
         setStep('otp');
         
@@ -85,7 +116,11 @@ const AdminLogin = () => {
       }
     } catch (err) {
       console.error('Validation error:', err);
-      setError('Connection error. Please check your internet connection and try again.');
+      if (err.message && err.message.includes('JSON')) {
+        setError('Server returned an invalid response. The API endpoint may not be available.');
+      } else {
+        setError('Connection error. Please check your internet connection and try again.');
+      }
     }
 
     setLoading(false);
@@ -176,6 +211,19 @@ const AdminLogin = () => {
         }),
       });
 
+      // Check if response is JSON before parsing
+      const contentType = response.headers.get('content-type');
+      if (!contentType || !contentType.includes('application/json')) {
+        const text = await response.text();
+        console.error('Non-JSON response:', text.substring(0, 500));
+        setError('Server returned an invalid response. Please try again or contact support.');
+        setStep('mobile');
+        setValidationToken(null);
+        setMobileLocked(false);
+        setLoading(false);
+        return;
+      }
+
       const data = await response.json();
 
       if (data.success) {
@@ -191,7 +239,11 @@ const AdminLogin = () => {
       }
     } catch (err) {
       console.error('OTP verification error:', err);
-      setError('Connection error. Please check your internet connection and try again.');
+      if (err.message && err.message.includes('JSON')) {
+        setError('Server returned an invalid response. The API endpoint may not be available.');
+      } else {
+        setError('Connection error. Please check your internet connection and try again.');
+      }
       setStep('mobile');
       setValidationToken(null);
       setMobileLocked(false);
@@ -212,6 +264,7 @@ const AdminLogin = () => {
     setStep('mobile');
     setMobile('');
     setValidatedMobile(null);
+    setMaskedMobile('');
     setValidationToken(null);
     setMobileLocked(false);
     setError('');
@@ -268,15 +321,16 @@ const AdminLogin = () => {
           {step === 'otp' && (
             <div className="admin-login-form">
               <div className="admin-form-group">
-                <label>Mobile Number (Locked)</label>
+                <label>Mobile Number Verified</label>
                 <input
-                  type="tel"
-                  value={mobile}
+                  type="text"
+                  value={maskedMobile || '****'}
                   disabled
                   className="admin-mobile-locked"
+                  readOnly
                 />
                 <small className="admin-form-hint">
-                  OTP widget will open automatically. Enter the OTP sent to this number.
+                  OTP widget will open automatically. Enter the OTP sent to your mobile number.
                 </small>
               </div>
 
