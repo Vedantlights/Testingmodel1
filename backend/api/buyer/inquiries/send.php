@@ -78,15 +78,43 @@ try {
         // User not authenticated, that's fine
     }
     
-    // Create inquiry
-    $stmt = $db->prepare("
-        INSERT INTO inquiries (property_id, buyer_id, seller_id, name, email, mobile, message, status)
-        VALUES (?, ?, ?, ?, ?, ?, ?, 'new')
-    ");
-    $stmt->execute([$propertyId, $buyerId, $sellerId, $name, $email, $mobile, $message]);
-    $inquiryId = $db->lastInsertId();
+    // Check if inquiry already exists for this buyer-property-seller combination
+    // Only create new inquiry if this is the first message/conversation
+    $existingInquiry = null;
+    if ($buyerId) {
+        $stmt = $db->prepare("
+            SELECT id FROM inquiries 
+            WHERE buyer_id = ? AND property_id = ? AND seller_id = ?
+            ORDER BY created_at DESC LIMIT 1
+        ");
+        $stmt->execute([$buyerId, $propertyId, $sellerId]);
+        $existingInquiry = $stmt->fetch(PDO::FETCH_ASSOC);
+    } else {
+        // For non-logged-in users, check by email instead
+        $stmt = $db->prepare("
+            SELECT id FROM inquiries 
+            WHERE email = ? AND property_id = ? AND seller_id = ?
+            ORDER BY created_at DESC LIMIT 1
+        ");
+        $stmt->execute([$email, $propertyId, $sellerId]);
+        $existingInquiry = $stmt->fetch(PDO::FETCH_ASSOC);
+    }
     
-    // Get created inquiry
+    $inquiryId = null;
+    if ($existingInquiry) {
+        // Inquiry already exists, return existing inquiry ID
+        $inquiryId = $existingInquiry['id'];
+    } else {
+        // Create new inquiry only if this is the first message
+        $stmt = $db->prepare("
+            INSERT INTO inquiries (property_id, buyer_id, seller_id, name, email, mobile, message, status)
+            VALUES (?, ?, ?, ?, ?, ?, ?, 'new')
+        ");
+        $stmt->execute([$propertyId, $buyerId, $sellerId, $name, $email, $mobile, $message]);
+        $inquiryId = $db->lastInsertId();
+    }
+    
+    // Get inquiry (either existing or newly created)
     $stmt = $db->prepare("
         SELECT i.*, p.title as property_title, p.location as property_location
         FROM inquiries i
@@ -96,7 +124,11 @@ try {
     $stmt->execute([$inquiryId]);
     $inquiry = $stmt->fetch();
     
-    sendSuccess('Inquiry sent successfully', ['inquiry' => $inquiry]);
+    $message = $existingInquiry 
+        ? 'Inquiry already exists. Using existing inquiry.' 
+        : 'Inquiry created successfully';
+    
+    sendSuccess($message, ['inquiry' => $inquiry]);
     
 } catch (Exception $e) {
     error_log("Send Inquiry Error: " . $e->getMessage());

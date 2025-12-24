@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { getUserChatRooms, listenToMessages, sendMessage as firebaseSendMessage, getChatRoomDetails } from '../../services/firebase.service';
-import { propertiesAPI } from '../../services/api.service';
+import { propertiesAPI, chatAPI } from '../../services/api.service';
 import MyChatBox from '../../MyChatBox/MyChatBox';
 import '../styles/ChatUs.css';
 
@@ -646,10 +646,37 @@ const ChatUs = () => {
         throw new Error('Property information is missing. Cannot determine receiver.');
       }
       
-      // ALWAYS ensure chat room exists before sending message
+      // Generate chat room ID to check if it's a new conversation
+      const { generateChatRoomId, createOrGetChatRoom, getChatRoomDetails } = await import('../../services/firebase.service');
+      const generatedChatRoomId = generateChatRoomId(user.id, receiverId, propertyId);
+      
+      // Check if this is a new chat room (first message for this buyer-property-seller)
+      let isNewChatRoom = false;
+      try {
+        const existingRoom = await getChatRoomDetails(generatedChatRoomId);
+        isNewChatRoom = !existingRoom;
+      } catch (error) {
+        // Room doesn't exist, this is a new conversation
+        isNewChatRoom = true;
+      }
+      
+      // If this is a NEW chat room (first message), call backend API to create/check inquiry
+      // This ensures inquiry is created only once per buyer-property-seller combination
+      if (isNewChatRoom) {
+        try {
+          console.log('📞 First message - Creating/checking inquiry via backend API...');
+          const response = await chatAPI.createRoom(receiverId, propertyId);
+          if (response.success) {
+            console.log('✅ Inquiry created/checked successfully:', response.data);
+          }
+        } catch (error) {
+          console.warn('⚠️ Failed to create/check inquiry via backend API, continuing with Firebase chat room creation:', error);
+          // Continue even if backend API fails - Firebase chat room will still be created
+        }
+      }
+      
+      // ALWAYS ensure chat room exists in Firebase before sending message
       // createOrGetChatRoom will get existing room or create new one
-      // This is the ONLY place where chat rooms are created (when first message is sent)
-      const { createOrGetChatRoom } = await import('../../services/firebase.service');
       const finalChatRoomId = await createOrGetChatRoom(
         user.id,
         receiverId,
