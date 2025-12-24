@@ -258,6 +258,7 @@ AdminProperties.css
   color: #1f2937;
   margin-bottom: 0.25rem;
   font-size: 0.9375rem;
+  text-transform: uppercase;
 }
 
 .admin-property-location {

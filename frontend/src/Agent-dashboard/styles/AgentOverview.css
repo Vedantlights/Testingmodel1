@@ -461,6 +461,7 @@
   margin-bottom: 0.35rem;
   white-space: nowrap;
   overflow: hidden;
+  text-transform: uppercase;
   text-overflow: ellipsis;
 }
 

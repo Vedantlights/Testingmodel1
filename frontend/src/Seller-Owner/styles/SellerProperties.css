@@ -302,6 +302,7 @@
   margin-bottom: 0.5rem;
   display: -webkit-box;
   -webkit-box-orient: vertical;
+  text-transform: uppercase;
   overflow: hidden;
 }
 

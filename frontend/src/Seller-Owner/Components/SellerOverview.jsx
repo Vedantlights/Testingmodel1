@@ -339,7 +339,15 @@ const SellerOverview = ({ onNavigate }) => {
                   key={inquiry.id}
                   style={{ animationDelay: `${index * 0.1}s` }}
                 >
-                  <div className="seller-overview-inquiry-avatar">{inquiry.avatar}</div>
+                  <div className="seller-overview-inquiry-avatar">
+                    {inquiry.buyerProfileImage ? (
+                      <img src={inquiry.buyerProfileImage} alt={inquiry.buyerName} />
+                    ) : (inquiry.avatar && (inquiry.avatar.startsWith('http://') || inquiry.avatar.startsWith('https://'))) ? (
+                      <img src={inquiry.avatar} alt={inquiry.buyerName} />
+                    ) : (
+                      inquiry.avatar || (inquiry.buyerName ? inquiry.buyerName.charAt(0).toUpperCase() : 'U')
+                    )}
+                  </div>
                   <div className="seller-overview-inquiry-content">
                     <div className="seller-overview-inquiry-header">
                       <span className="seller-overview-inquiry-name">{inquiry.buyerName}</span>

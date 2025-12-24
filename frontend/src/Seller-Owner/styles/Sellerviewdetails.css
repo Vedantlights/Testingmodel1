@@ -296,6 +296,7 @@
 }
 
 .seller-detail-title {
+    text-transform: uppercase;
   font-size: 2rem;
   font-weight: 700;
   color: #1e3a8a;
@@ -675,6 +676,7 @@
   }
 
   .seller-detail-title {
+    text-transform: uppercase;
     font-size: 1.5rem;
   }
 
@@ -729,6 +731,7 @@
   }
 
   .seller-detail-title {
+    text-transform: uppercase;
     font-size: 1.25rem;
   }
 

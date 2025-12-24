@@ -323,6 +323,7 @@
   color: var(--text-primary);
   margin-bottom: 0.5rem;
   display: -webkit-box;
+  text-transform: uppercase;
  
   -webkit-box-orient: vertical;
   overflow: hidden;
