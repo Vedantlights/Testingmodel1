@@ -136,10 +136,22 @@ try {
     }
     
     // Create secure admin session
-    createAdminSession($validatedMobile, $admin['id'], $admin['role'], $admin['email']);
+    $sessionCreated = createAdminSession($validatedMobile, $admin['id'], $admin['role'], $admin['email']);
+    
+    if (!$sessionCreated) {
+        error_log("Failed to create admin session for mobile: " . substr($validatedMobile, 0, 4) . "****");
+        sendError('Failed to create session. Please try again.', null, 500);
+    }
+    
+    // Verify session was created
+    $session = getAdminSession();
+    if (!$session) {
+        error_log("Session verification failed after creation for mobile: " . substr($validatedMobile, 0, 4) . "****");
+        sendError('Session creation failed. Please try again.', null, 500);
+    }
     
     // Log successful login
-    error_log("Admin login successful via MSG91 OTP - Mobile: " . substr($validatedMobile, 0, 4) . "****");
+    error_log("Admin login successful via MSG91 OTP - Mobile: " . substr($validatedMobile, 0, 4) . "**** - Session ID: " . session_id());
     
     sendSuccess('OTP verified successfully. Admin session created.', [
         'admin' => [
@@ -148,7 +160,8 @@ try {
             'email' => $admin['email'],
             'full_name' => $admin['full_name'],
             'role' => $admin['role']
-        ]
+        ],
+        'session_id' => session_id() // Include session ID for debugging
     ]);
     
 } catch (Exception $e) {

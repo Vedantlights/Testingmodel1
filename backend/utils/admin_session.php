@@ -16,7 +16,8 @@ function initSecureSession() {
         // Configure secure session
         ini_set('session.cookie_httponly', '1');
         ini_set('session.cookie_secure', defined('ENVIRONMENT') && ENVIRONMENT === 'production' ? '1' : '0');
-        ini_set('session.cookie_samesite', 'Strict');
+        // Use 'Lax' instead of 'Strict' to allow cookies in cross-site navigation (like redirects)
+        ini_set('session.cookie_samesite', 'Lax');
         ini_set('session.use_strict_mode', '1');
         ini_set('session.use_only_cookies', '1');
         
@@ -80,16 +81,31 @@ function createAdminSession($adminMobile, $adminId, $adminRole, $adminEmail) {
     $_SESSION['admin_last_activity'] = $now;
     
     // Set secure HTTP-only cookie
+    // Determine domain based on environment
+    $domain = '';
+    if (defined('ENVIRONMENT') && ENVIRONMENT === 'production') {
+        // In production, set domain to allow subdomains
+        $host = $_SERVER['HTTP_HOST'] ?? '';
+        if (strpos($host, 'demo1.indiapropertys.com') !== false || 
+            strpos($host, 'indiapropertys.com') !== false) {
+            // Use parent domain to allow cookies across subdomains
+            $domain = '.indiapropertys.com';
+        }
+    }
+    
     $cookieParams = [
         'lifetime' => SESSION_EXPIRY / 1000, // Convert milliseconds to seconds
         'path' => '/',
-        'domain' => '',
+        'domain' => $domain,
         'secure' => defined('ENVIRONMENT') && ENVIRONMENT === 'production',
         'httponly' => true,
-        'samesite' => 'Strict'
+        'samesite' => 'Lax' // Use 'Lax' to allow cookies in cross-site navigation
     ];
     
     session_set_cookie_params($cookieParams);
+    
+    // Regenerate session ID for security after login
+    session_regenerate_id(true);
     
     return true;
 }

@@ -249,8 +249,48 @@ const AdminLogin = () => {
 
       if (data.success) {
         // Login successful - session created via HTTP-only cookie
-        // Redirect to dashboard
-        navigate('/admin/dashboard', { replace: true });
+        // Clear loading state
+        setLoading(false);
+        
+        // Wait a moment for cookie to be set, then verify session before redirecting
+        setTimeout(async () => {
+          try {
+            // Verify session was created successfully
+            const verifyResponse = await fetch(`${API_BASE_URL}/admin/auth/verify.php`, {
+              method: 'GET',
+              credentials: 'include', // CRITICAL: Must include credentials to send cookies
+              headers: {
+                'Content-Type': 'application/json',
+              },
+            });
+
+            if (verifyResponse.ok) {
+              const contentType = verifyResponse.headers.get('content-type');
+              if (contentType && contentType.includes('application/json')) {
+                const verifyData = await verifyResponse.json();
+                if (verifyData.success && verifyData.data && verifyData.data.admin) {
+                  // Session verified - safe to redirect
+                  console.log('Session verified successfully, redirecting to dashboard');
+                  navigate('/admin/dashboard', { replace: true });
+                  return;
+                }
+              }
+            }
+            
+            // If we get here, session verification failed
+            console.error('Session verification failed. Status:', verifyResponse.status);
+            setError('Session verification failed. Please try logging in again.');
+            setStep('mobile');
+            setValidationToken(null);
+            setMobileLocked(false);
+            widgetInitializedRef.current = false;
+          } catch (verifyErr) {
+            console.error('Session verification error:', verifyErr);
+            // Try redirect anyway - session might be valid but verification request failed
+            console.log('Attempting redirect despite verification error');
+            navigate('/admin/dashboard', { replace: true });
+          }
+        }, 800); // Wait 800ms for cookie to be set and propagated
       } else {
         setError(data.message || 'OTP verification failed. Please try again.');
         // Reset to mobile step on failure
