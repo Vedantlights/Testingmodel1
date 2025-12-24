@@ -68,19 +68,29 @@ function setCorsHeaders() {
 
 // Handle preflight requests
 function handlePreflight() {
+    // Clear any output buffer before setting headers
+    if (ob_get_level() > 0) {
+        ob_clean();
+    }
+    
     // Always set CORS headers first
     setCorsHeaders();
     
     if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
         // Preflight request - just send headers and exit
         http_response_code(200);
+        // Clean exit without any output
+        if (ob_get_level() > 0) {
+            ob_end_clean();
+        }
         exit();
     }
 }
 
 // Send JSON response
 function sendResponse($success, $message = '', $data = null, $statusCode = 200) {
-    // Clear any output buffer to ensure clean JSON
+    // Clear any output buffer to ensure clean JSON (catch any PHP warnings/notices)
+    // Clean the current buffer level without ending it
     if (ob_get_level() > 0) {
         ob_clean();
     }
@@ -113,6 +123,10 @@ function sendResponse($success, $message = '', $data = null, $statusCode = 200) 
     }
     
     echo $json;
+    // Flush output and exit cleanly
+    if (ob_get_level() > 0) {
+        ob_end_flush();
+    }
     exit();
 }
 

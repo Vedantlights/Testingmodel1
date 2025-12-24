@@ -5,6 +5,9 @@
  * Verifies admin session (HTTP-only cookie based)
  */
 
+// Start output buffering early to prevent any PHP warnings/notices from breaking JSON
+ob_start();
+
 require_once __DIR__ . '/../../../config/config.php';
 require_once __DIR__ . '/../../../config/database.php';
 require_once __DIR__ . '/../../../config/admin-config.php';
