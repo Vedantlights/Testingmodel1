@@ -230,7 +230,7 @@
 }
 
 /* Share Toast Notification */
-.buyer-share-toast {
+.buyer-detail-share-toast {
     position: fixed;
     bottom: 30px;
     right: 30px;
@@ -269,7 +269,7 @@
 }
 
 /* Property Location */
-.buyer-property-location {
+.buyer-detail-property-location {
     display: flex;
     align-items: center;
     gap: 10px;
@@ -279,7 +279,7 @@
     font-weight: 700;
 }
 
-.buyer-property-location::before {
+.buyer-detail-property-location::before {
     font-size: 1.4rem;
     filter: drop-shadow(0 2px 4px rgba(0,0,0,0.2));
 }
@@ -779,7 +779,7 @@
         height: 18px;
     }
 
-    .buyer-share-toast {
+    .buyer-detail-share-toast {
         bottom: 20px;
         right: 20px;
         padding: 10px 20px;
@@ -809,7 +809,7 @@
         min-height: 300px;
     }
 
-    .buyer-property-location {
+    .buyer-detail-property-location {
         font-size: 1rem;
     }
 

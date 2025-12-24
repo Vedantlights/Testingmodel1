@@ -1016,7 +1016,7 @@ const ViewDetailsPage = () => {
                             </button>
                         </div>
                         <h1>{propertyData.title}</h1>
-                        <p className="buyer-property-location">
+                        <p className="buyer-detail-property-location">
                             {propertyData.location}
                         </p>
                         <div className="buyer-property-meta-info">
@@ -1188,7 +1188,7 @@ const ViewDetailsPage = () => {
 
             {/* Toast notification for share */}
             {showToast && (
-                <div className="buyer-share-toast">
+                <div className="buyer-detail-share-toast">
                     Link copied!
                 </div>
             )}
