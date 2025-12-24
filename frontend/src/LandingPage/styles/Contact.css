@@ -6,7 +6,7 @@
   background: linear-gradient(180deg, #f8f9fa 0%, #ffffff 50%, #f8f9fa 100%);
   position: relative;
   overflow-x: hidden;
-  overflow-y: auto;
+  overflow-y: visible; /* Changed from auto to visible to remove extra scrollbar */
 }
 
 /* Decorative Background Elements */
@@ -82,7 +82,7 @@
 .info-section {
   display: flex;
   justify-content: center;
-  align-items: center;
+  align-items: stretch; /* Changed from center to stretch - makes cards same height */
   gap: 2rem;
   margin-bottom: 4rem;
   max-width: 800px;
@@ -104,6 +104,8 @@
   animation: fadeInUp 0.8s ease forwards;
   opacity: 0;
   will-change: transform, opacity;
+  flex: 1; /* Makes cards equal width and allows stretching */
+  min-width: 280px; /* Minimum width for responsiveness */
 }
 
 .info-card:nth-child(1) { animation-delay: 0.2s; }
@@ -133,6 +135,8 @@
   animation: fadeInUp 0.8s ease forwards;
   opacity: 0;
   will-change: transform, opacity;
+  flex: 1; /* Makes cards equal width and allows stretching */
+  min-width: 280px; /* Minimum width for responsiveness */
 }
 
 .info-card-clickable:nth-child(2) { animation-delay: 0.4s; }

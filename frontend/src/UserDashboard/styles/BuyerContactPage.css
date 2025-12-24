@@ -77,7 +77,7 @@
 .buyer-info-section {
   display: flex;
   justify-content: center;
-  align-items: center;
+  align-items: stretch; /* Changed from center to stretch - makes cards same height */
   gap: 2rem;
   margin-bottom: 4rem;
   max-width: 800px;
@@ -98,6 +98,8 @@
   border: 2px solid #8b5cf6; /* Added visible border */
   animation: buyer-fadeInUp 0.8s ease forwards;
   opacity: 0;
+  flex: 1; /* Makes cards equal width and allows stretching */
+  min-width: 280px; /* Minimum width for responsiveness */
 }
 
 .buyer-info-card:nth-child(1) { animation-delay: 0.2s; }
@@ -125,6 +127,8 @@
   border: 2px solid #8b5cf6;
   animation: buyer-fadeInUp 0.8s ease forwards;
   opacity: 0;
+  flex: 1; /* Makes cards equal width and allows stretching */
+  min-width: 280px; /* Minimum width for responsiveness */
 }
 
 .buyer-info-card-clickable:nth-child(2) { animation-delay: 0.4s; }

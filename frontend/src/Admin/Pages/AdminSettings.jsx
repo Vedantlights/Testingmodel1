@@ -188,7 +188,6 @@ const AdminSettings = () => {
               <input 
                 type="password" 
                 name="currentPassword"
-                placeholder="Enter current password"
                 value={passwords.currentPassword}
                 onChange={handlePasswordChange}
                 disabled={loading}
@@ -201,7 +200,6 @@ const AdminSettings = () => {
                 <input 
                   type="password" 
                   name="newPassword"
-                  placeholder="Enter new password (min 8 characters)"
                   value={passwords.newPassword}
                   onChange={handlePasswordChange}
                   disabled={loading}
@@ -213,7 +211,6 @@ const AdminSettings = () => {
                 <input 
                   type="password" 
                   name="confirmPassword"
-                  placeholder="Confirm new password"
                   value={passwords.confirmPassword}
                   onChange={handlePasswordChange}
                   disabled={loading}

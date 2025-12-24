@@ -297,15 +297,11 @@ const AdminLogin = () => {
                   name="mobile"
                   value={mobile}
                   onChange={handleMobileChange}
-                  placeholder="+917888076881"
                   required
                   autoComplete="tel"
                   disabled={loading || mobileLocked}
                   pattern="^\+91[6-9]\d{9}$"
                 />
-                <small className="admin-form-hint">
-                  Enter mobile number with country code (e.g., +917888076881)
-                </small>
               </div>
 
               <button
@@ -329,9 +325,6 @@ const AdminLogin = () => {
                   className="admin-mobile-locked"
                   readOnly
                 />
-                <small className="admin-form-hint">
-                  OTP widget will open automatically. Enter the OTP sent to your mobile number.
-                </small>
               </div>
 
               {loading && (
