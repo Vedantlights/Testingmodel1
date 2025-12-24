@@ -6,10 +6,6 @@
   background: linear-gradient(180deg, #f8f9fa 0%, #ffffff 50%, #f8f9fa 100%);
   position: relative;
   overflow-x: hidden;
-<<<<<<< Updated upstream
-  overflow-y: visible; /* Changed from auto to visible to remove extra scrollbar */
-=======
->>>>>>> Stashed changes
 }
 
 /* Decorative Background Elements */
