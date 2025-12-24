@@ -8,16 +8,26 @@ import '../style/AdminLogin.css';
 const MSG91_WIDGET_ID = '356c73693735333838393730';
 const MSG91_AUTH_TOKEN = '481618T5XOC0xYx9t6936b319P1';
 
+// HARDCODED ADMIN MOBILE NUMBER - Only this number can login
+const ADMIN_MOBILE_NUMBER = '+917888076881';
+
 const AdminLogin = () => {
   const navigate = useNavigate();
   const [step, setStep] = useState('mobile'); // 'mobile', 'otp'
   const [mobile, setMobile] = useState('');
-  const [validatedMobile, setValidatedMobile] = useState(null); // Store validated mobile from backend (internal use only)
+  const [validatedMobile, setValidatedMobile] = useState(null); // Store validated mobile (internal use only)
   const [maskedMobile, setMaskedMobile] = useState(''); // Masked version to display
   const [validationToken, setValidationToken] = useState(null);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const [mobileLocked, setMobileLocked] = useState(false);
+
+  // Helper function to normalize mobile number for comparison (remove spaces, dashes, etc.)
+  const normalizeMobile = (mobileNumber) => {
+    if (!mobileNumber) return '';
+    // Remove all non-digit characters except +
+    return mobileNumber.replace(/[^0-9+]/g, '');
+  };
 
   // Helper function to mask mobile number
   const maskMobileNumber = (mobileNumber) => {
@@ -60,8 +70,8 @@ const AdminLogin = () => {
     checkAuth();
   }, [navigate]);
 
-  // Step 1: Validate mobile number with backend
-  const handleValidateMobile = async (e) => {
+  // Step 1: Validate mobile number against hardcoded admin number (frontend-only validation)
+  const handleValidateMobile = (e) => {
     e.preventDefault();
     setError('');
     setLoading(true);
@@ -72,69 +82,51 @@ const AdminLogin = () => {
       return;
     }
 
-    try {
-      const response = await fetch(`${API_BASE_URL}/admin/auth/validate-mobile.php`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        credentials: 'include',
-        body: JSON.stringify({ mobile: mobile.trim() }),
-      });
+    // Normalize both mobile numbers for comparison
+    const enteredMobile = normalizeMobile(mobile.trim());
+    const adminMobile = normalizeMobile(ADMIN_MOBILE_NUMBER);
 
-      // Check if response is JSON before parsing
-      const contentType = response.headers.get('content-type');
-      if (!contentType || !contentType.includes('application/json')) {
-        const text = await response.text();
-        console.error('Non-JSON response:', text.substring(0, 500));
-        setError('Server returned an invalid response. Please try again or contact support.');
-        setLoading(false);
-        return;
-      }
-
-      const data = await response.json();
-
-      if (data.success && data.data && data.data.validationToken) {
-        // Store validation token
-        setValidationToken(data.data.validationToken);
-        // Store the validated mobile (keep it for internal use but don't display it)
-        const mobileToStore = mobile.trim();
-        setValidatedMobile(mobileToStore);
-        // Create masked version for display only
-        setMaskedMobile(maskMobileNumber(mobileToStore));
-        // Clear the actual mobile number from the input field
-        setMobile('');
-        setMobileLocked(true); // Lock mobile number
-        setStep('otp');
-        
-        // Initialize MSG91 widget after backend approval
-        setTimeout(() => {
-          initializeMSG91Widget();
-        }, 100);
-      } else {
-        setError(data.message || 'Failed to validate mobile number');
-      }
-    } catch (err) {
-      console.error('Validation error:', err);
-      if (err.message && err.message.includes('JSON')) {
-        setError('Server returned an invalid response. The API endpoint may not be available.');
-      } else {
-        setError('Connection error. Please check your internet connection and try again.');
-      }
+    // Compare the normalized mobile numbers
+    if (enteredMobile !== adminMobile) {
+      // Mobile number doesn't match - show error popup
+      setError('Invalid mobile number. Access denied.');
+      setLoading(false);
+      return;
     }
 
+    // Mobile number matches - proceed to OTP widget
+    // Generate a simple local validation token (not used by backend, just for local state)
+    const localToken = 'local_' + Date.now();
+    setValidationToken(localToken);
+    
+    // Store the validated mobile (keep it for internal use but don't display it)
+    const mobileToStore = mobile.trim();
+    setValidatedMobile(mobileToStore);
+    
+    // Create masked version for display only
+    setMaskedMobile(maskMobileNumber(mobileToStore));
+    
+    // Clear the actual mobile number from the input field
+    setMobile('');
+    setMobileLocked(true); // Lock mobile number
+    setStep('otp');
     setLoading(false);
+    
+    // Initialize MSG91 widget immediately after frontend validation
+    setTimeout(() => {
+      initializeMSG91Widget();
+    }, 100);
   };
 
-  // Step 2: Initialize MSG91 Widget (only after backend approval)
+  // Step 2: Initialize MSG91 Widget (after frontend validation)
   const initializeMSG91Widget = () => {
     if (!window.initSendOTP) {
       setError('MSG91 widget is not loaded. Please refresh the page and try again.');
       return;
     }
 
-    if (!validationToken) {
-      setError('Validation token missing. Please restart the login process.');
+    if (!validatedMobile) {
+      setError('Mobile number validation missing. Please restart the login process.');
       return;
     }
 
@@ -191,13 +183,27 @@ const AdminLogin = () => {
     setError('');
     setLoading(true);
 
-    if (!validationToken || !widgetToken) {
+    if (!validatedMobile || !widgetToken) {
       setError('Missing verification data. Please restart the login process.');
       setLoading(false);
       return;
     }
 
+    // Re-validate mobile number against hardcoded admin number before sending to backend
+    const enteredMobile = normalizeMobile(validatedMobile);
+    const adminMobile = normalizeMobile(ADMIN_MOBILE_NUMBER);
+    
+    if (enteredMobile !== adminMobile) {
+      setError('Invalid mobile number. Access denied.');
+      setStep('mobile');
+      setValidationToken(null);
+      setMobileLocked(false);
+      setLoading(false);
+      return;
+    }
+
     try {
+      // Send to backend for session creation (backend will still verify mobile against whitelist)
       const response = await fetch(`${API_BASE_URL}/admin/auth/verify-otp.php`, {
         method: 'POST',
         headers: {
@@ -205,8 +211,8 @@ const AdminLogin = () => {
         },
         credentials: 'include',
         body: JSON.stringify({
-          validationToken: validationToken,
-          mobile: validatedMobile || mobile.trim(), // Use validated mobile
+          validationToken: validationToken || 'frontend_validated', // Use local token or fallback
+          mobile: validatedMobile, // Use validated mobile
           widgetToken: widgetToken,
         }),
       });

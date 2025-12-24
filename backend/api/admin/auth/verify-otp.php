@@ -22,10 +22,6 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
 try {
     $data = json_decode(file_get_contents('php://input'), true);
     
-    if (!isset($data['validationToken']) || empty($data['validationToken'])) {
-        sendError('Validation token is required', null, 400);
-    }
-    
     if (!isset($data['mobile']) || empty($data['mobile'])) {
         sendError('Mobile number is required', null, 400);
     }
@@ -34,41 +30,46 @@ try {
         sendError('Widget verification token is required', null, 400);
     }
     
-    $validationToken = trim($data['validationToken']);
+    $validationToken = isset($data['validationToken']) ? trim($data['validationToken']) : null;
     $mobile = trim($data['mobile']);
     $widgetToken = trim($data['widgetToken']);
     
     $db = getDB();
     
-    // Validate and retrieve validation token
-    $stmt = $db->prepare("SELECT * FROM validation_tokens WHERE token = ? AND expires_at > NOW() AND used = 0");
-    $stmt->execute([$validationToken]);
-    $tokenRecord = $stmt->fetch(PDO::FETCH_ASSOC);
-    
-    if (!$tokenRecord) {
-        error_log("Invalid or expired validation token attempt");
-        sendError('Invalid or expired validation token. Please restart the login process.', null, 400);
-    }
-    
-    // CRITICAL: Verify mobile matches token
+    // CRITICAL: Validate mobile format and check whitelist FIRST
     $validatedMobile = validateMobileFormat($mobile);
     if (!$validatedMobile) {
         sendError('Invalid mobile number format', null, 400);
     }
     
-    // Normalize both mobiles for comparison
-    $tokenMobile = normalizeMobile($tokenRecord['mobile']);
-    $requestMobile = normalizeMobile($validatedMobile);
-    
-    if ($tokenMobile !== $requestMobile) {
-        error_log("SECURITY ALERT - Mobile mismatch: token mobile " . substr($tokenMobile, 0, 4) . "**** vs request mobile " . substr($requestMobile, 0, 4) . "****");
-        sendError('Mobile number mismatch. Please restart the login process.', null, 403);
+    // CRITICAL: Verify mobile is whitelisted (primary security check)
+    if (!isWhitelistedMobile($validatedMobile)) {
+        error_log("SECURITY ALERT - Mobile not whitelisted: " . substr($validatedMobile, 0, 4) . "****");
+        sendError('Unauthorized access. Only registered admin mobile number is allowed.', null, 403);
     }
     
-    // CRITICAL: Re-check whitelist
-    if (!isWhitelistedMobile($validatedMobile)) {
-        error_log("SECURITY ALERT - Mobile no longer whitelisted: " . substr($validatedMobile, 0, 4) . "****");
-        sendError('Unauthorized access. Only registered admin mobile number is allowed.', null, 403);
+    // Optional: If validation token is provided, verify it (for backwards compatibility)
+    // But if not provided, we'll proceed if mobile is whitelisted
+    if ($validationToken && strpos($validationToken, 'local_') !== 0) {
+        // Only check database token if it's not a local frontend token
+        $stmt = $db->prepare("SELECT * FROM validation_tokens WHERE token = ? AND expires_at > NOW() AND used = 0");
+        $stmt->execute([$validationToken]);
+        $tokenRecord = $stmt->fetch(PDO::FETCH_ASSOC);
+        
+        if ($tokenRecord) {
+            // Verify mobile matches token
+            $tokenMobile = normalizeMobile($tokenRecord['mobile']);
+            $requestMobile = normalizeMobile($validatedMobile);
+            
+            if ($tokenMobile !== $requestMobile) {
+                error_log("SECURITY ALERT - Mobile mismatch: token mobile " . substr($tokenMobile, 0, 4) . "**** vs request mobile " . substr($requestMobile, 0, 4) . "****");
+                sendError('Mobile number mismatch. Please restart the login process.', null, 403);
+            }
+            
+            // Mark token as used
+            $stmt = $db->prepare("UPDATE validation_tokens SET used = 1 WHERE token = ?");
+            $stmt->execute([$validationToken]);
+        }
     }
     
     // Rate limiting: OTP verification attempts per mobile
