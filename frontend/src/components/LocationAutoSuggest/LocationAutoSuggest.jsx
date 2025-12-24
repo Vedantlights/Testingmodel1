@@ -382,7 +382,7 @@ const LocationAutoSuggest = ({
           setIsOpen(fallback.length > 0);
           setHighlightedIndex(fallback.length > 0 ? 0 : -1);
           if (!fallback.length) {
-            setErrorState('Unable to load suggestions. Please check your internet connection or Mapbox token.');
+            setErrorState('Unable to load suggestions. Please check your internet connection.');
           } else {
             setErrorState(null);
           }

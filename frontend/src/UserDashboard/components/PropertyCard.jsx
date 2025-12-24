@@ -124,15 +124,71 @@ const PropertyCard = ({ property, onFavoriteToggle }) => {
         }
     };
 
+    // Helper function to copy to clipboard with fallback
+    const copyToClipboard = async (text) => {
+        try {
+            // Try modern Clipboard API first (requires HTTPS or localhost)
+            if (navigator.clipboard && navigator.clipboard.writeText) {
+                await navigator.clipboard.writeText(text);
+                setShowToast(true);
+                setTimeout(() => setShowToast(false), 2000);
+                return;
+            }
+            
+            // Fallback to execCommand for older browsers or non-HTTPS
+            const textArea = document.createElement('textarea');
+            textArea.value = text;
+            textArea.style.position = 'fixed';
+            textArea.style.left = '-999999px';
+            textArea.style.top = '-999999px';
+            document.body.appendChild(textArea);
+            textArea.focus();
+            textArea.select();
+            
+            try {
+                const successful = document.execCommand('copy');
+                if (successful) {
+                    setShowToast(true);
+                    setTimeout(() => setShowToast(false), 2000);
+                } else {
+                    throw new Error('execCommand failed');
+                }
+            } finally {
+                document.body.removeChild(textArea);
+            }
+        } catch (error) {
+            console.error('Failed to copy to clipboard:', error);
+            // Last resort: show the link in a prompt
+            const userConfirmed = window.confirm(`Share this property link:\n\n${text}\n\nClick OK to copy, then paste it manually.`);
+            if (userConfirmed) {
+                // Try one more time with clipboard API
+                try {
+                    if (navigator.clipboard && navigator.clipboard.writeText) {
+                        await navigator.clipboard.writeText(text);
+                        setShowToast(true);
+                        setTimeout(() => setShowToast(false), 2000);
+                    }
+                } catch (finalError) {
+                    console.error('Final clipboard attempt failed:', finalError);
+                }
+            }
+        }
+    };
+
     // Handle share button click
     const handleShareClick = async (e) => {
         e.preventDefault();
         e.stopPropagation();
 
+        if (!property || !property.id) {
+            console.error('Cannot share: property ID is missing');
+            return;
+        }
+
         const shareUrl = `${window.location.origin}/details/${property.id}`;
         const shareData = {
-            title: property.title,
-            text: `Check out this property: ${property.title}`,
+            title: property.title || 'Property Listing',
+            text: `Check out this property: ${property.title || 'Amazing Property'}`,
             url: shareUrl
         };
 
@@ -140,29 +196,18 @@ const PropertyCard = ({ property, onFavoriteToggle }) => {
         if (navigator.share) {
             try {
                 await navigator.share(shareData);
+                console.log('Share successful');
             } catch (error) {
                 // User cancelled or error occurred
                 if (error.name !== 'AbortError') {
                     console.error('Error sharing:', error);
                     // Fallback to clipboard
-                    copyToClipboard(shareUrl);
+                    await copyToClipboard(shareUrl);
                 }
             }
         } else {
             // Fallback: Copy to clipboard for desktop
-            copyToClipboard(shareUrl);
-        }
-    };
-
-    // Helper function to copy to clipboard
-    const copyToClipboard = async (text) => {
-        try {
-            await navigator.clipboard.writeText(text);
-            setShowToast(true);
-            setTimeout(() => setShowToast(false), 2000);
-        } catch (error) {
-            console.error('Failed to copy:', error);
-            alert('Link: ' + text);
+            await copyToClipboard(shareUrl);
         }
     };
 

@@ -675,6 +675,7 @@ background: #ffffff;
   z-index: 10;
   transition: all 0.2s ease;
   box-shadow: 0 1px 4px rgba(0, 0, 0, 0.1);
+  pointer-events: auto;
 }
 
 .buyer-share-btn:hover {
@@ -685,6 +686,7 @@ background: #ffffff;
 .buyer-share-btn svg {
   color: #475569;
   transition: color 0.2s ease;
+  pointer-events: none;
 }
 
 .buyer-share-btn:hover svg {

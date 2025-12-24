@@ -501,6 +501,25 @@
   color: #1a1a1a;
 }
 
+.buyer-input-wrapper input.buyer-disabled-input,
+.buyer-input-wrapper input:disabled {
+  background: transparent !important;
+  cursor: not-allowed;
+  opacity: 0.7;
+  -webkit-text-fill-color: #1a1a1a;
+}
+
+/* Keep disabled wrapper styling consistent with other fields */
+.buyer-input-wrapper.buyer-disabled-wrapper {
+  background: rgb(222, 220, 220) !important;
+  border-color: transparent !important;
+}
+
+.buyer-input-wrapper.buyer-disabled-wrapper:focus-within {
+  background: rgb(222, 220, 220) !important;
+  border-color: transparent !important;
+}
+
 .buyer-form-actions {
   display: flex;
   justify-content: flex-end;
