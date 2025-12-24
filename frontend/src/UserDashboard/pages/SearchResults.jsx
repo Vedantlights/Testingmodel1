@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import PropertyCard from '../components/PropertyCard';
 import { propertiesAPI } from '../../services/api.service';
@@ -13,11 +13,21 @@ const SearchResults = () => {
   
   const [filteredProperties, setFilteredProperties] = useState([]);
   const [loading, setLoading] = useState(true);
+  const resultsHeaderRef = useRef(null);
 
-  // Scroll to top when component mounts or search params change
+  // Scroll to results section when search completes
   useEffect(() => {
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-  }, [searchParams]);
+    if (!loading && resultsHeaderRef.current) {
+      // Small delay to ensure DOM is updated and results are rendered
+      const timer = setTimeout(() => {
+        resultsHeaderRef.current?.scrollIntoView({ 
+          behavior: 'smooth', 
+          block: 'start' 
+        });
+      }, 150);
+      return () => clearTimeout(timer);
+    }
+  }, [loading, filteredProperties.length]);
   const [activeFilters, setActiveFilters] = useState({
     city: '',
     location: '',
@@ -350,7 +360,7 @@ const SearchResults = () => {
       {/* ========== SEARCH BAR WITH BACK BUTTON - END ========== */}
 
       {/* Results Header */}
-      <div className="buyer-results-header">
+      <div className="buyer-results-header" ref={resultsHeaderRef}>
         <div className="buyer-results-header-content">
           <h1 className="buyer-results-title">Search Results</h1>
           <p className="buyer-results-count">

@@ -127,8 +127,19 @@ try {
     }
     
     if ($propertyType) {
-        $query .= " AND p.property_type = ?";
-        $params[] = $propertyType;
+        // Handle compound property types (e.g., "Plot / Land / Industrial Property")
+        // Split by " / " and match any of the individual types
+        $types = array_map('trim', explode(' / ', $propertyType));
+        if (count($types) > 1) {
+            // Multiple types - use IN clause
+            $placeholders = implode(',', array_fill(0, count($types), '?'));
+            $query .= " AND p.property_type IN ($placeholders)";
+            $params = array_merge($params, $types);
+        } else {
+            // Single type - exact match
+            $query .= " AND p.property_type = ?";
+            $params[] = $propertyType;
+        }
     }
     
     // Use location if provided, otherwise use city
@@ -203,8 +214,19 @@ try {
         $countParams[] = $status;
     }
     if ($propertyType) {
-        $countQuery .= " AND p.property_type = ?";
-        $countParams[] = $propertyType;
+        // Handle compound property types (e.g., "Plot / Land / Industrial Property")
+        // Split by " / " and match any of the individual types
+        $types = array_map('trim', explode(' / ', $propertyType));
+        if (count($types) > 1) {
+            // Multiple types - use IN clause
+            $placeholders = implode(',', array_fill(0, count($types), '?'));
+            $countQuery .= " AND p.property_type IN ($placeholders)";
+            $countParams = array_merge($countParams, $types);
+        } else {
+            // Single type - exact match
+            $countQuery .= " AND p.property_type = ?";
+            $countParams[] = $propertyType;
+        }
     }
     // Use location if provided, otherwise use city
     $locationFilter = $location ? $location : $city;
