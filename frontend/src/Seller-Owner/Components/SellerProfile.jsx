@@ -466,10 +466,9 @@ const SellerProfile = () => {
         linkedin: formData.linkedin || ''
       };
       
+      // Exclude email and phone from update - they cannot be changed after login
       const updateData = {
         full_name: fullName,
-        email: formData.email,
-        phone: formData.phone,
         address: formData.address || formData.agencyAddress || null,
         company_name: formData.agencyName || null,
         license_number: formData.reraNumber || null,
@@ -772,11 +771,11 @@ const SellerProfile = () => {
                         type="email"
                         name="email"
                         value={formData.email}
-                        onChange={handleChange}
-                        disabled={!isEditing}
+                        readOnly
+                        disabled
+                        style={{ backgroundColor: '#f3f4f6', cursor: 'not-allowed' }}
                         className={errors.email ? 'error' : ''}
                       />
-                      {errors.email && <span className="seller-profile-error-text">{errors.email}</span>}
                     </div>
                   </div>
 
@@ -790,12 +789,12 @@ const SellerProfile = () => {
                         type="tel"
                         name="phone"
                         value={formData.phone}
-                        onChange={handleChange}
-                        disabled={!isEditing}
+                        readOnly
+                        disabled
+                        style={{ backgroundColor: '#f3f4f6', cursor: 'not-allowed' }}
                         className={errors.phone ? 'error' : ''}
                         placeholder="+91 98765 43210"
                       />
-                      {errors.phone && <span className="seller-profile-error-text">{errors.phone}</span>}
                     </div>
                   </div>
 

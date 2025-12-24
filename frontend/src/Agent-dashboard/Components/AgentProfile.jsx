@@ -188,10 +188,9 @@ const AgentProfile = () => {
         linkedin: formData.linkedin || ''
       };
       
+      // Exclude email and phone from update - they cannot be changed after login
       const updateData = {
         full_name: fullName,
-        email: formData.email,
-        phone: formData.phone,
         address: formData.agencyAddress || null,
         company_name: formData.agencyName || null,
         license_number: formData.reraNumber || null,
@@ -485,8 +484,9 @@ const AgentProfile = () => {
                       type="email"
                       name="email"
                       value={formData.email}
-                      onChange={handleChange}
-                      disabled={!isEditing}
+                      readOnly
+                      disabled
+                      style={{ backgroundColor: '#f3f4f6', cursor: 'not-allowed' }}
                     />
                   </div>
 
@@ -496,8 +496,9 @@ const AgentProfile = () => {
                       type="text"
                       name="phone"
                       value={formData.phone}
-                      onChange={handleChange}
-                      disabled={!isEditing}
+                      readOnly
+                      disabled
+                      style={{ backgroundColor: '#f3f4f6', cursor: 'not-allowed' }}
                     />
                   </div>
 

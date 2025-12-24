@@ -381,11 +381,9 @@ const BuyerProfile = () => {
     setSaving(true);
     
     try {
-      // Prepare profile data for API
+      // Prepare profile data for API (exclude email and phone - cannot be changed after login)
       const profileData = {
         full_name: `${formData.firstName} ${formData.lastName}`.trim(),
-        email: formData.email,
-        phone: formData.phone,
         address: formData.address
       };
       
@@ -393,13 +391,11 @@ const BuyerProfile = () => {
       const response = await buyerProfileAPI.update(profileData);
       
       if (response.success) {
-        // Update user data in localStorage
+        // Update user data in localStorage (preserve email and phone - they cannot be changed)
         if (user) {
           const updatedUser = {
             ...user,
-            full_name: profileData.full_name,
-            email: profileData.email,
-            phone: profileData.phone
+            full_name: profileData.full_name
           };
           localStorage.setItem('userData', JSON.stringify(updatedUser));
         }
@@ -639,7 +635,9 @@ const BuyerProfile = () => {
                     type="email" 
                     name="email"
                     value={formData.email}
-                    onChange={handleChange}
+                    readOnly
+                    disabled
+                    style={{ backgroundColor: '#f3f4f6', cursor: 'not-allowed' }}
                   />
                 </div>
               </div>
@@ -654,7 +652,9 @@ const BuyerProfile = () => {
                     type="tel" 
                     name="phone"
                     value={formData.phone}
-                    onChange={handleChange}
+                    readOnly
+                    disabled
+                    style={{ backgroundColor: '#f3f4f6', cursor: 'not-allowed' }}
                   />
                 </div>
               </div>

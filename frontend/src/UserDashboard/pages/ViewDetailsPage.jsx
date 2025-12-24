@@ -979,7 +979,6 @@ const ViewDetailsPage = () => {
                             {/* Contact Form Card */}
                             <div className="buyer-detail-contact-card">
                                 <h3>Get in Touch</h3>
-                                <p className="buyer-contact-card-subtitle">Send your inquiry about this property</p>
                                 
                                 {/* Chat with Owner Button - Only show if user is buyer AND not the property owner */}
                                 {user && user.user_type === 'buyer' && property && property.seller_id && Number(user.id) !== Number(property.seller_id) && (
@@ -1010,88 +1009,6 @@ const ViewDetailsPage = () => {
                                         <FaComments />
                                         Chat with Owner
                                     </button>
-                                )}
-                                
-                                {!isSubmitted ? (
-                                    <form className="buyer-detail-contact-form" onSubmit={handleSubmitInquiry}>
-                                        {/* Name Field */}
-                                        <div className="buyer-contact-field-group">
-                                            <label htmlFor="name">Full Name *</label>
-                                            <div className="buyer-contact-input-box">
-                                                <FaUser className="buyer-contact-field-icon" />
-                                                <input
-                                                    type="text"
-                                                    id="name"
-                                                    name="name"
-                                                    value={formData.name}
-                                                    onChange={handleInputChange}
-                                                    placeholder="Your full name"
-                                                    required
-                                                />
-                                            </div>
-                                        </div>
-
-                                        {/* Email Field */}
-                                        <div className="buyer-contact-field-group">
-                                            <label htmlFor="email">Email Address *</label>
-                                            <div className="buyer-contact-input-box">
-                                                <FaEnvelope className="buyer-contact-field-icon" />
-                                                <input
-                                                    type="email"
-                                                    id="email"
-                                                    name="email"
-                                                    value={formData.email}
-                                                    onChange={handleInputChange}
-                                                    placeholder="your.email@example.com"
-                                                    required
-                                                />
-                                            </div>
-                                        </div>
-
-                                        {/* Mobile Field */}
-                                        <div className="buyer-contact-field-group">
-                                            <label htmlFor="mobile">Mobile Number *</label>
-                                            <div className="buyer-contact-input-box">
-                                                <FaPhone className="buyer-contact-field-icon" />
-                                                <input
-                                                    type="tel"
-                                                    id="mobile"
-                                                    name="mobile"
-                                                    value={formData.mobile}
-                                                    onChange={handleInputChange}
-                                                    placeholder="+91 XXXXX XXXXX"
-                                                    required
-                                                />
-                                            </div>
-                                        </div>
-
-                                        {/* Message Field */}
-                                        <div className="buyer-contact-field-group">
-                                            <label htmlFor="message">Your Message</label>
-                                            <div className="buyer-contact-input-box buyer-contact-textarea-box">
-                                                <FaCommentAlt className="buyer-contact-field-icon buyer-contact-textarea-icon" />
-                                                <textarea
-                                                    id="message"
-                                                    name="message"
-                                                    value={formData.message}
-                                                    onChange={handleInputChange}
-                                                    placeholder="I'm interested in this property..."
-                                                    rows="4"
-                                                ></textarea>
-                                            </div>
-                                        </div>
-
-                                        {/* Submit Button */}
-                                        <button type="submit" className="buyer-contact-send-button">
-                                            Send Inquiry
-                                        </button>
-                                    </form>
-                                ) : (
-                                    <div className="buyer-contact-success-message">
-                                        <FaCheckCircle className="buyer-contact-success-icon" />
-                                        <h4>Inquiry Sent Successfully!</h4>
-                                        <p>Thank you for your interest. The owner will contact you soon.</p>
-                                    </div>
                                 )}
                             </div>
                         </aside>
