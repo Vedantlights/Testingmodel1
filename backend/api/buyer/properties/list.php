@@ -33,7 +33,7 @@ try {
     $offset = ($page - 1) * $limit;
     
     $status = isset($_GET['status']) ? sanitizeInput($_GET['status']) : null;
-    $propertyType = isset($_GET['property_type']) ? sanitizeInput($_GET['property_type']) : null;
+    $propertyType = isset($_GET['property_type']) ? urldecode(sanitizeInput($_GET['property_type'])) : null;
     $city = isset($_GET['city']) ? sanitizeInput($_GET['city']) : null;
     $location = isset($_GET['location']) ? sanitizeInput($_GET['location']) : null;
     $minPrice = isset($_GET['min_price']) ? floatval($_GET['min_price']) : null;
@@ -134,7 +134,12 @@ try {
         // - DB has: "Villa", "Row House", "Villa / Banglow", "Row House/ Farm House", etc.
         // - Also handles typos: "Industrial" vs "Indusrtial", "Bungalow" vs "Banglow"
         
+        // Ensure property type is properly decoded and trimmed
+        $propertyType = trim($propertyType);
+        
         // Normalize: replace " / " and "/" with a consistent delimiter for splitting
+        // Also handle URL-encoded slashes (%2F) and plus signs (+) from URL encoding
+        $propertyType = str_replace(['+', '%2F', '%2f'], [' ', '/', '/'], $propertyType);
         $normalized = preg_replace('/\s*\/\s*/', ' / ', $propertyType);
         $types = array_map('trim', explode(' / ', $normalized));
         
@@ -273,14 +278,16 @@ try {
         // - DB has: "Villa", "Row House", "Villa / Banglow", "Row House/ Farm House", etc.
         // - Also handles typos: "Industrial" vs "Indusrtial", "Bungalow" vs "Banglow"
         
-        // Normalize: replace " / " and "/" with a consistent delimiter for splitting
-        $normalized = preg_replace('/\s*\/\s*/', ' / ', $propertyType);
-        $types = array_map('trim', explode(' / ', $normalized));
+        // Ensure property type is properly decoded and trimmed (re-process for count query)
+        $propertyTypeForCount = trim($propertyType);
+        $propertyTypeForCount = str_replace(['+', '%2F', '%2f'], [' ', '/', '/'], $propertyTypeForCount);
+        $normalizedForCount = preg_replace('/\s*\/\s*/', ' / ', $propertyTypeForCount);
+        $typesForCount = array_map('trim', explode(' / ', $normalizedForCount));
         
-        if (count($types) > 1) {
+        if (count($typesForCount) > 1) {
             // Multiple types - use LIKE with OR to match any type that contains any search term
             $likeConditions = [];
-            foreach ($types as $type) {
+            foreach ($typesForCount as $type) {
                 // Handle common typos and variations
                 $searchTerms = [$type];
                 
