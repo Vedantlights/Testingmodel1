@@ -7,13 +7,13 @@
 
 // MSG91 Widget Configuration
 // Get from environment variables or use defaults
-define('MSG91_WIDGET_ID', getenv('MSG91_WIDGET_ID') ?: '356c73693735333838393730');
-define('MSG91_AUTH_TOKEN', getenv('MSG91_AUTH_TOKEN') ?: '481618T5XOC0xYx9t6936b319P1');
+define('MSG91_WIDGET_ID', getenv('MSG91_WIDGET_ID') ?: '356c786a314c303532313736');
+define('MSG91_AUTH_TOKEN', getenv('MSG91_AUTH_TOKEN') ?: '481618TheXzNLL2u694bc65aP1');
 
 // MSG91 API Credentials (for server-side verification)
 define('MSG91_AUTH_KEY', '481618A2cCSUpaZHTW6936c356P1');
 define('MSG91_TEMPLATE_ID', '356c6c6c4141303836323334');
-define('MSG91_TOKEN', '481618T5XOC0xYx9t6936b319P1');
+define('MSG91_TOKEN', '481618TheXzNLL2u694bc65aP1');
 
 // MSG91 API Endpoints
 define('MSG91_SEND_OTP_URL', 'https://control.msg91.com/api/v5/otp');

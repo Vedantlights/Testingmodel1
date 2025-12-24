@@ -5,8 +5,8 @@ import '../style/AdminLogin.css';
 
 // MSG91 Widget Configuration
 // These should match backend config
-const MSG91_WIDGET_ID = '356c73693735333838393730';
-const MSG91_AUTH_TOKEN = '481618T5XOC0xYx9t6936b319P1';
+const MSG91_WIDGET_ID = '356c786a314c303532313736';
+const MSG91_AUTH_TOKEN = '481618TheXzNLL2u694bc65aP1';
 
 // HARDCODED ADMIN MOBILE NUMBER - Only this number can login
 const ADMIN_MOBILE_NUMBER = '+917888076881';
