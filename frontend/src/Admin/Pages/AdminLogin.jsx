@@ -265,8 +265,6 @@ const AdminLogin = () => {
           await handleVerifyOTP(widgetToken);
         },
         failure: (error) => {
-          console.error('MSG91 Widget Error:', error);
-          
           // Extract error message from various possible formats
           let errorMessage = 'OTP verification failed. Please try again.';
           
@@ -294,6 +292,16 @@ const AdminLogin = () => {
             } else {
               errorMessage = error.toString() || errorMessage;
             }
+          }
+          
+          // Don't log IPBlocked errors (they're expected and handled gracefully)
+          const isIPBlocked = 
+            errorMessage.toLowerCase().includes('ipblocked') || 
+            errorMessage.toLowerCase().includes('ip blocked') ||
+            (error && typeof error === 'object' && (error.code === '408' || error.message === 'IPBlocked'));
+          
+          if (!isIPBlocked) {
+            console.error('MSG91 Widget Error:', error);
           }
           
           setError(errorMessage);
