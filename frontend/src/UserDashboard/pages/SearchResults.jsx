@@ -59,51 +59,121 @@ const SearchResults = () => {
           apiParams.status = status.toLowerCase().replace('for ', '');
         }
         
-        console.log('🔍 Search parameters:', { city, location, type, budget, bedrooms, area, status });
-        console.log('📡 API params:', apiParams);
+        console.log('🔍 Search parameters from URL:', { city, location, type, budget, bedrooms, area, status });
+        console.log('📡 API params being sent:', apiParams);
         
         const response = await propertiesAPI.list(apiParams);
         
-        console.log('✅ API response:', response);
+        console.log('✅ API response received:', response);
+        console.log('📊 Response success:', response.success);
+        console.log('📦 Response data:', response.data);
         
-        if (response.success && response.data && response.data.properties) {
-          // Convert backend properties to frontend format
-          const backendProperties = response.data.properties.map(prop => {
-            // Get the best image (cover_image or first image from array)
-            let imageUrl = prop.cover_image || 
-                          (Array.isArray(prop.images) && prop.images.length > 0 ? prop.images[0] : null) ||
-                          'https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?w=500';
-            
-            return {
-              id: prop.id,
-              image: imageUrl,
-              title: prop.title,
-              price: parseFloat(prop.price),
-              location: prop.location,
-              bedrooms: prop.bedrooms || '0',
-              bathrooms: prop.bathrooms || '0',
-              area: parseFloat(prop.area),
-              type: prop.property_type,
-              status: prop.status === 'sale' ? 'For Sale' : (prop.status === 'rent' ? 'For Rent' : prop.status),
-              propertyType: prop.property_type,
-              description: prop.description || '',
-              amenities: prop.amenities || [],
-              images: prop.images || [],
-              latitude: prop.latitude,
-              longitude: prop.longitude,
-              createdAt: prop.created_at,
-              seller_name: prop.seller_name,
-              seller_phone: prop.seller_phone
-            };
-          });
+        if (response.success && response.data) {
+          // Handle different response structures
+          let properties = [];
           
-          setFilteredProperties(backendProperties);
+          if (Array.isArray(response.data.properties)) {
+            properties = response.data.properties;
+          } else if (Array.isArray(response.data.property)) {
+            properties = response.data.property;
+          } else if (Array.isArray(response.data)) {
+            properties = response.data;
+          } else if (response.data.properties && typeof response.data.properties === 'object') {
+            // If properties is an object, try to convert to array
+            properties = Object.values(response.data.properties);
+          }
+          
+          console.log(`📋 Found ${properties.length} properties`);
+          
+          if (Array.isArray(properties) && properties.length > 0) {
+            // Convert backend properties to frontend format
+            const backendProperties = properties.map(prop => {
+              // Get the best image (cover_image or first image from array)
+              let imageUrl = prop.cover_image || 
+                            (Array.isArray(prop.images) && prop.images.length > 0 ? prop.images[0] : null) ||
+                            'https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?w=500';
+              
+              return {
+                id: prop.id,
+                image: imageUrl,
+                title: prop.title || 'Untitled Property',
+                price: parseFloat(prop.price) || 0,
+                location: prop.location || 'Location not specified',
+                bedrooms: prop.bedrooms || '0',
+                bathrooms: prop.bathrooms || '0',
+                area: parseFloat(prop.area) || 0,
+                type: prop.property_type || prop.type || 'Unknown',
+                status: prop.status === 'sale' ? 'For Sale' : (prop.status === 'rent' ? 'For Rent' : prop.status || 'For Sale'),
+                propertyType: prop.property_type || prop.type || 'Unknown',
+                description: prop.description || '',
+                amenities: Array.isArray(prop.amenities) ? prop.amenities : (prop.amenities ? [prop.amenities] : []),
+                images: Array.isArray(prop.images) ? prop.images : (prop.images ? [prop.images] : []),
+                latitude: prop.latitude,
+                longitude: prop.longitude,
+                createdAt: prop.created_at,
+                seller_name: prop.seller_name,
+                seller_phone: prop.seller_phone
+              };
+            });
+            
+            console.log(`✅ Setting ${backendProperties.length} properties to state`);
+            setFilteredProperties(backendProperties);
+          } else {
+            console.log('⚠️ No properties found in response array');
+            setFilteredProperties([]);
+          }
         } else {
+          console.warn('⚠️ API response not successful:', response);
           setFilteredProperties([]);
         }
       } catch (error) {
-        console.error('Error fetching properties:', error);
-        setFilteredProperties([]);
+        console.error('❌ Error fetching properties:', error);
+        console.error('Error details:', {
+          message: error.message,
+          status: error.status,
+          errors: error.errors
+        });
+        
+        // On error, try to fetch all properties as fallback
+        try {
+          console.log('🔄 Attempting fallback: fetching all properties');
+          const fallbackResponse = await propertiesAPI.list({ limit: 100 });
+          if (fallbackResponse.success && fallbackResponse.data) {
+            const fallbackProperties = fallbackResponse.data.properties || fallbackResponse.data.property || [];
+            if (Array.isArray(fallbackProperties) && fallbackProperties.length > 0) {
+              const convertedProperties = fallbackProperties.map(prop => ({
+                id: prop.id,
+                image: prop.cover_image || (Array.isArray(prop.images) && prop.images[0]) || 'https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?w=500',
+                title: prop.title || 'Untitled Property',
+                price: parseFloat(prop.price) || 0,
+                location: prop.location || 'Location not specified',
+                bedrooms: prop.bedrooms || '0',
+                bathrooms: prop.bathrooms || '0',
+                area: parseFloat(prop.area) || 0,
+                type: prop.property_type || prop.type || 'Unknown',
+                status: prop.status === 'sale' ? 'For Sale' : (prop.status === 'rent' ? 'For Rent' : prop.status || 'For Sale'),
+                propertyType: prop.property_type || prop.type || 'Unknown',
+                description: prop.description || '',
+                amenities: Array.isArray(prop.amenities) ? prop.amenities : [],
+                images: Array.isArray(prop.images) ? prop.images : [],
+                latitude: prop.latitude,
+                longitude: prop.longitude,
+                createdAt: prop.created_at,
+                seller_name: prop.seller_name,
+                seller_phone: prop.seller_phone
+              }));
+              console.log(`✅ Fallback: Setting ${convertedProperties.length} properties`);
+              setFilteredProperties(convertedProperties);
+            } else {
+              setFilteredProperties([]);
+            }
+          } else {
+            setFilteredProperties([]);
+          }
+        } catch (fallbackError) {
+          console.error('❌ Fallback fetch also failed:', fallbackError);
+          setFilteredProperties([]);
+        }
       } finally {
         setLoading(false);
       }
@@ -380,7 +450,12 @@ const SearchResults = () => {
 
       {/* Results Content */}
       <div className="buyer-results-content">
-        {filteredProperties.length > 0 ? (
+        {loading ? (
+          <div className="buyer-loading-results">
+            <div className="buyer-loading-spinner"></div>
+            <p>Searching properties...</p>
+          </div>
+        ) : filteredProperties.length > 0 ? (
           <div className="buyer-results-grid">
             {filteredProperties.map(property => (
               <PropertyCard key={property.id} property={property} />

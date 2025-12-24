@@ -169,39 +169,64 @@ const SearchBar = () => {
       e.stopPropagation(); // Prevent event bubbling
     }
 
+    console.log('🔍 Search initiated with data:', searchData);
+    console.log('📍 Selected location:', selectedLocation);
+
     const queryParams = new URLSearchParams();
     const loc = selectedLocation;
 
+    // Add city if available
     if (loc && loc.city) {
       queryParams.append('city', loc.city);
+      console.log('✅ Added city:', loc.city);
     }
+    
+    // Add location (prefer placeName from selectedLocation, fallback to searchData.location)
     if (loc && loc.placeName) {
       queryParams.append('location', loc.placeName);
-    } else if (searchData.location) {
-      queryParams.append('location', searchData.location);
+      console.log('✅ Added location (placeName):', loc.placeName);
+    } else if (searchData.location && searchData.location.trim() !== '') {
+      queryParams.append('location', searchData.location.trim());
+      console.log('✅ Added location (searchData):', searchData.location);
     }
 
+    // Add coordinates if available
     if (loc && loc.coordinates && loc.coordinates.lat && loc.coordinates.lng) {
       queryParams.append('lat', String(loc.coordinates.lat));
       queryParams.append('lng', String(loc.coordinates.lng));
       queryParams.append('radius', '10');
+      console.log('✅ Added coordinates:', loc.coordinates);
     }
 
-    if (searchData.propertyType) {
+    // Add property type
+    if (searchData.propertyType && searchData.propertyType.trim() !== '') {
       queryParams.append('property_type', searchData.propertyType);
+      console.log('✅ Added property_type:', searchData.propertyType);
     }
-    if (searchData.budget) {
+    
+    // Add budget
+    if (searchData.budget && searchData.budget.trim() !== '') {
       queryParams.append('budget', searchData.budget);
+      console.log('✅ Added budget:', searchData.budget);
     }
 
-    if (isBedroomBased && searchData.bedrooms) {
+    // Add bedrooms or area based on property type
+    if (isBedroomBased && searchData.bedrooms && searchData.bedrooms.trim() !== '') {
       queryParams.append('bedrooms', searchData.bedrooms);
-    } else if (isAreaBased && searchData.area) {
+      console.log('✅ Added bedrooms:', searchData.bedrooms);
+    } else if (isAreaBased && searchData.area && searchData.area.trim() !== '') {
       queryParams.append('area', searchData.area);
+      console.log('✅ Added area:', searchData.area);
     }
+
+    const queryString = queryParams.toString();
+    const searchUrl = queryString ? `/searchresults?${queryString}` : '/searchresults';
+    
+    console.log('🚀 Navigating to:', searchUrl);
+    console.log('📋 Query params:', queryString);
 
     // Navigate to search results and scroll to top
-    navigate(`/searchresults?${queryParams.toString()}`);
+    navigate(searchUrl);
     
     // Scroll to top after navigation to show search results
     setTimeout(() => {
@@ -230,17 +255,11 @@ const SearchBar = () => {
 
         <form 
           className="buyer-search-form" 
-          onSubmit={handleSearch}
-          onKeyDown={(e) => {
-            // Prevent Enter key from causing scroll jump (except in textarea/select)
-            if (e.key === 'Enter' && e.target.tagName !== 'TEXTAREA' && e.target.tagName !== 'SELECT') {
-              // Allow form submission but prevent default scroll behavior
-              const scrollPosition = window.pageYOffset || document.documentElement.scrollTop;
-              setTimeout(() => {
-                window.scrollTo(0, scrollPosition);
-              }, 0);
-            }
+          onSubmit={(e) => {
+            console.log('📝 Form submitted');
+            handleSearch(e);
           }}
+          noValidate
         >
           <div className="buyer-search-inputs">
             {/* Location Input */}
@@ -392,7 +411,15 @@ const SearchBar = () => {
             </div>
           </div>
 
-          <button type="submit" className="buyer-search-button">
+          <button 
+            type="submit" 
+            className="buyer-search-button"
+            onClick={(e) => {
+              // Ensure form submission happens
+              console.log('🔘 Search button clicked');
+              // Let the form onSubmit handle it, but log for debugging
+            }}
+          >
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
             </svg>
