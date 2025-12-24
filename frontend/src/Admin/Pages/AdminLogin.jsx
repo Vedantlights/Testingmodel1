@@ -266,7 +266,36 @@ const AdminLogin = () => {
         },
         failure: (error) => {
           console.error('MSG91 Widget Error:', error);
-          const errorMessage = error?.message || error?.error || error?.toString() || 'OTP verification failed. Please try again.';
+          
+          // Extract error message from various possible formats
+          let errorMessage = 'OTP verification failed. Please try again.';
+          
+          if (error) {
+            if (typeof error === 'string') {
+              errorMessage = error;
+            } else if (error.message) {
+              errorMessage = error.message;
+            } else if (error.error) {
+              errorMessage = typeof error.error === 'string' ? error.error : error.error.message || errorMessage;
+            } else if (error.reason) {
+              errorMessage = error.reason;
+            } else if (error.description) {
+              errorMessage = error.description;
+            } else if (typeof error === 'object') {
+              // Try to stringify and extract meaningful info
+              try {
+                const errorStr = JSON.stringify(error);
+                if (errorStr !== '{}') {
+                  errorMessage = `OTP verification failed: ${errorStr}`;
+                }
+              } catch (e) {
+                errorMessage = error.toString() || errorMessage;
+              }
+            } else {
+              errorMessage = error.toString() || errorMessage;
+            }
+          }
+          
           setError(errorMessage);
           widgetInitializedRef.current = false; // Reset on failure so user can retry
         },
