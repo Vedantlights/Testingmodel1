@@ -33,13 +33,6 @@ const AdminDashboard = () => {
 
   const fetchDashboardStats = async () => {
     try {
-      const token = localStorage.getItem('adminToken');
-      if (!token) {
-        setError('Not authenticated');
-        setLoading(false);
-        return;
-      }
-
       const params = new URLSearchParams();
       if (dateRange !== 'all') {
         params.append('date_range', dateRange);
@@ -50,9 +43,9 @@ const AdminDashboard = () => {
       const response = await fetch(url, {
         method: 'GET',
         headers: {
-          'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json',
-        }
+        },
+        credentials: 'include' // Use HTTP-only cookie for authentication
       });
 
       const data = await response.json();

@@ -25,13 +25,6 @@ const AdminAgents = () => {
     setError(null);
     
     try {
-      const token = localStorage.getItem('adminToken');
-      if (!token) {
-        setError('Not authenticated');
-        setLoading(false);
-        return;
-      }
-
       const params = new URLSearchParams({
         page: pagination.page.toString(),
         limit: pageSize.toString()
@@ -44,9 +37,9 @@ const AdminAgents = () => {
       const response = await fetch(`${API_BASE_URL}${API_ENDPOINTS.ADMIN_AGENTS_LIST}?${params}`, {
         method: 'GET',
         headers: {
-          'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json',
-        }
+        },
+        credentials: 'include' // Use HTTP-only cookie for authentication
       });
 
       const data = await response.json();
@@ -67,13 +60,12 @@ const AdminAgents = () => {
 
   const handleVerify = async (agentId) => {
     try {
-      const token = localStorage.getItem('adminToken');
       const response = await fetch(`${API_BASE_URL}${API_ENDPOINTS.ADMIN_AGENTS_VERIFY}?id=${agentId}`, {
         method: 'POST',
         headers: {
-          'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json',
-        }
+        },
+        credentials: 'include' // Use HTTP-only cookie for authentication
       });
 
       const data = await response.json();
@@ -91,13 +83,12 @@ const AdminAgents = () => {
 
   const handleUnverify = async (agentId) => {
     try {
-      const token = localStorage.getItem('adminToken');
       const response = await fetch(`${API_BASE_URL}${API_ENDPOINTS.ADMIN_AGENTS_UNVERIFY}?id=${agentId}`, {
         method: 'POST',
         headers: {
-          'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json',
-        }
+        },
+        credentials: 'include' // Use HTTP-only cookie for authentication
       });
 
       const data = await response.json();

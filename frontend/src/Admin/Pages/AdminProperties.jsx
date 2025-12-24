@@ -27,13 +27,6 @@ const AdminProperties = () => {
     setError(null);
     
     try {
-      const token = localStorage.getItem('adminToken');
-      if (!token) {
-        setError('Not authenticated');
-        setLoading(false);
-        return;
-      }
-
       const params = new URLSearchParams({
         page: pagination.page.toString(),
         limit: pageSize.toString()
@@ -54,9 +47,9 @@ const AdminProperties = () => {
       const response = await fetch(`${API_BASE_URL}${API_ENDPOINTS.ADMIN_PROPERTIES_LIST}?${params}`, {
         method: 'GET',
         headers: {
-          'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json',
-        }
+        },
+        credentials: 'include' // Use HTTP-only cookie for authentication
       });
 
       const data = await response.json();
@@ -77,13 +70,12 @@ const AdminProperties = () => {
 
   const handleApprove = async (propertyId) => {
     try {
-      const token = localStorage.getItem('adminToken');
       const response = await fetch(`${API_BASE_URL}${API_ENDPOINTS.ADMIN_PROPERTIES_APPROVE}?id=${propertyId}`, {
         method: 'POST',
         headers: {
-          'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json',
-        }
+        },
+        credentials: 'include' // Use HTTP-only cookie for authentication
       });
 
       const data = await response.json();
@@ -104,13 +96,12 @@ const AdminProperties = () => {
     if (reason === null) return; // User cancelled
 
     try {
-      const token = localStorage.getItem('adminToken');
       const response = await fetch(`${API_BASE_URL}${API_ENDPOINTS.ADMIN_PROPERTIES_REJECT}?id=${propertyId}`, {
         method: 'POST',
         headers: {
-          'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json',
         },
+        credentials: 'include', // Use HTTP-only cookie for authentication
         body: JSON.stringify({ reason: reason || 'Property rejected by admin' })
       });
 
@@ -133,13 +124,12 @@ const AdminProperties = () => {
     }
 
     try {
-      const token = localStorage.getItem('adminToken');
       const response = await fetch(`${API_BASE_URL}${API_ENDPOINTS.ADMIN_PROPERTIES_DELETE}?id=${propertyId}`, {
         method: 'DELETE',
         headers: {
-          'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json',
-        }
+        },
+        credentials: 'include' // Use HTTP-only cookie for authentication
       });
 
       const data = await response.json();
