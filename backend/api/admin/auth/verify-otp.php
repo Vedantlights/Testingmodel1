@@ -85,10 +85,7 @@ try {
     // Verify widget token with MSG91 (server-side verification)
     // Note: MSG91 widget handles OTP verification client-side, but we verify the token here
     // For widget-based OTP, the widgetToken is the proof that OTP was verified
-    
-    // Mark validation token as used
-    $stmt = $db->prepare("UPDATE validation_tokens SET used = 1 WHERE token = ?");
-    $stmt->execute([$validationToken]);
+    // (Validation token was already marked as used above if it existed in the database)
     
     // Get or create admin user
     $stmt = $db->prepare("SELECT id, username, email, full_name, role, is_active FROM admin_users WHERE phone = ? OR email LIKE ? LIMIT 1");
