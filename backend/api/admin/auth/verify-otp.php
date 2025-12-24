@@ -8,6 +8,35 @@
 // Start output buffering early to prevent any PHP warnings/notices from breaking JSON
 ob_start();
 
+// Set up error handler to ensure JSON response on fatal errors
+set_error_handler(function($severity, $message, $file, $line) {
+    if (error_reporting() & $severity) {
+        throw new ErrorException($message, 0, $severity, $file, $line);
+    }
+    return false;
+});
+
+// Set up shutdown handler to catch fatal errors
+register_shutdown_function(function() {
+    $error = error_get_last();
+    if ($error !== null && in_array($error['type'], [E_ERROR, E_CORE_ERROR, E_COMPILE_ERROR, E_PARSE, E_RECOVERABLE_ERROR])) {
+        // Clean output buffer
+        if (ob_get_level() > 0) {
+            ob_clean();
+        }
+        
+        // Try to send JSON error response
+        header('Content-Type: application/json');
+        http_response_code(500);
+        echo json_encode([
+            'success' => false,
+            'message' => 'A fatal error occurred. Please check server logs.',
+            'error_type' => 'fatal_error'
+        ], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+        exit();
+    }
+});
+
 require_once __DIR__ . '/../../../config/config.php';
 require_once __DIR__ . '/../../../config/database.php';
 require_once __DIR__ . '/../../../config/admin-config.php';
@@ -164,7 +193,30 @@ try {
         'session_id' => session_id() // Include session ID for debugging
     ]);
     
+} catch (PDOException $e) {
+    error_log("Verify OTP Database Error: " . $e->getMessage());
+    error_log("SQL State: " . ($e->errorInfo[0] ?? 'N/A'));
+    error_log("Error Info: " . print_r($e->errorInfo ?? [], true));
+    error_log("Stack Trace: " . $e->getTraceAsString());
+    sendError('Database error occurred. Please try again.', null, 500);
+} catch (ErrorException $e) {
+    error_log("Verify OTP Error Exception: " . $e->getMessage());
+    error_log("File: " . $e->getFile() . " | Line: " . $e->getLine());
+    error_log("Stack Trace: " . $e->getTraceAsString());
+    sendError('An error occurred. Please try again.', null, 500);
+} catch (Error $e) {
+    error_log("Verify OTP Fatal Error: " . $e->getMessage());
+    error_log("File: " . $e->getFile() . " | Line: " . $e->getLine());
+    error_log("Stack Trace: " . $e->getTraceAsString());
+    sendError('A server error occurred. Please try again.', null, 500);
 } catch (Exception $e) {
-    error_log("Verify OTP Error: " . $e->getMessage());
+    error_log("Verify OTP Exception: " . $e->getMessage());
+    error_log("File: " . $e->getFile() . " | Line: " . $e->getLine());
+    error_log("Stack Trace: " . $e->getTraceAsString());
     sendError('Failed to verify OTP. Please try again.', null, 500);
+} catch (Throwable $e) {
+    error_log("Verify OTP Throwable: " . $e->getMessage());
+    error_log("File: " . $e->getFile() . " | Line: " . $e->getLine());
+    error_log("Stack Trace: " . $e->getTraceAsString());
+    sendError('An unexpected error occurred. Please try again.', null, 500);
 }

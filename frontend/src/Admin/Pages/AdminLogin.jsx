@@ -356,6 +356,45 @@ const AdminLogin = () => {
         }),
       });
 
+      // Check response status first
+      if (!response.ok) {
+        // Try to get error message from response
+        let errorMessage = 'OTP verification failed. Please try again.';
+        try {
+          const contentType = response.headers.get('content-type');
+          if (contentType && contentType.includes('application/json')) {
+            const errorData = await response.json();
+            errorMessage = errorData.message || errorMessage;
+          } else {
+            const text = await response.text();
+            if (text) {
+              // Try to parse as JSON even if content-type is wrong
+              try {
+                const errorData = JSON.parse(text);
+                errorMessage = errorData.message || errorMessage;
+              } catch (e) {
+                // Not JSON, use text or default message
+                errorMessage = text.substring(0, 200) || errorMessage;
+              }
+            }
+          }
+        } catch (parseError) {
+          // If we can't parse the error, use status-based message
+          if (response.status === 500) {
+            errorMessage = 'Server error occurred. Please try again or contact support.';
+          } else if (response.status === 403) {
+            errorMessage = 'Access denied. Please check your credentials.';
+          }
+        }
+        
+        setError(errorMessage);
+        setStep('mobile');
+        setValidationToken(null);
+        setMobileLocked(false);
+        setLoading(false);
+        return;
+      }
+
       // Check if response is JSON before parsing
       const contentType = response.headers.get('content-type');
       if (!contentType || !contentType.includes('application/json')) {
@@ -369,7 +408,28 @@ const AdminLogin = () => {
         return;
       }
 
-      const data = await response.json();
+      // Try to parse JSON, handle empty responses
+      let data;
+      try {
+        const text = await response.text();
+        if (!text || text.trim() === '') {
+          setError('Server returned an empty response. Please try again.');
+          setStep('mobile');
+          setValidationToken(null);
+          setMobileLocked(false);
+          setLoading(false);
+          return;
+        }
+        data = JSON.parse(text);
+      } catch (jsonError) {
+        console.error('JSON parse error:', jsonError);
+        setError('Server returned an invalid response. Please try again or contact support.');
+        setStep('mobile');
+        setValidationToken(null);
+        setMobileLocked(false);
+        setLoading(false);
+        return;
+      }
 
       if (data.success) {
         // Login successful - session created via HTTP-only cookie
