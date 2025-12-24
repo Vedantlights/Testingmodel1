@@ -4,7 +4,16 @@ import './LocationAutoSuggest.css';
 // Reuse existing Mapbox token env variable used by map components
 const MAPBOX_TOKEN =
   process.env.REACT_APP_MAPBOX_ACCESS_TOKEN ||
-  'pk.eyJ1Ijoic3VkaGFrYXBvdWwiLCJhIjoiY21penRmYWs1MDFpNDNkc2I4M2tid2x1MCJ9.YTMezksySLU7ZpcYkvXyqg';
+  'pk.eyJ1Ijoic3VkaGFrYXJwb3VsIiwiYSI6ImNtaXp0ZmFrNTAxaTQzZHNiODNrYndsdTAifQ.YTMezksySLU7ZpcYkvXyqg';
+
+// Log token status for debugging (only in development)
+if (process.env.NODE_ENV === 'development') {
+  console.log('🗺️ Mapbox Token Status:', {
+    hasEnvToken: !!process.env.REACT_APP_MAPBOX_ACCESS_TOKEN,
+    tokenLength: MAPBOX_TOKEN ? MAPBOX_TOKEN.length : 0,
+    tokenPrefix: MAPBOX_TOKEN ? MAPBOX_TOKEN.substring(0, 20) + '...' : 'missing'
+  });
+}
 
 const MIN_QUERY_LENGTH = 2;
 const DEBOUNCE_MS = 300;
@@ -338,14 +347,37 @@ const LocationAutoSuggest = ({
 
       setIsLoading(true);
       try {
+        // Validate token before making request
+        if (!MAPBOX_TOKEN || MAPBOX_TOKEN.trim() === '') {
+          throw new Error('Mapbox token is not configured');
+        }
+
         // Search all of India - removed types restriction to get all location types including smaller cities
         // Increased limit to 30 and enabled autocomplete for better matching
         const url = `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(
           query
         )}.json?access_token=${MAPBOX_TOKEN}&country=in&limit=30&autocomplete=true`;
 
+        if (process.env.NODE_ENV === 'development') {
+          console.log('🔍 Fetching Mapbox suggestions for:', query);
+        }
+
         const response = await fetch(url, { signal: controller.signal });
-        if (!response.ok) throw new Error('Failed to fetch locations');
+        
+        if (!response.ok) {
+          const errorText = await response.text();
+          console.error('❌ Mapbox API error:', {
+            status: response.status,
+            statusText: response.statusText,
+            error: errorText.substring(0, 200)
+          });
+          
+          // Check if it's a token-related error
+          if (response.status === 401 || response.status === 403) {
+            throw new Error('Invalid Mapbox token. Please check your configuration.');
+          }
+          throw new Error(`Failed to fetch locations: ${response.status} ${response.statusText}`);
+        }
 
         const data = await response.json();
 
@@ -375,16 +407,34 @@ const LocationAutoSuggest = ({
         setErrorState(null);
       } catch (err) {
         if (err.name !== 'AbortError') {
-          console.error('Location suggestions error:', err);
+          console.error('❌ Location suggestions error:', err);
+          console.error('Error details:', {
+            message: err.message,
+            name: err.name,
+            hasToken: !!MAPBOX_TOKEN,
+            tokenLength: MAPBOX_TOKEN ? MAPBOX_TOKEN.length : 0
+          });
+          
           // On error, try static fallback suggestions
           const fallback = getStaticFallbackSuggestions(query);
           setSuggestions(fallback);
           setIsOpen(fallback.length > 0);
           setHighlightedIndex(fallback.length > 0 ? 0 : -1);
+          
+          // Provide more specific error messages
           if (!fallback.length) {
-            setErrorState('Unable to load suggestions. Please check your internet connection.');
+            if (err.message && err.message.includes('token')) {
+              setErrorState('Mapbox token error. Please check your configuration.');
+            } else if (err.message && err.message.includes('network') || err.message.includes('fetch')) {
+              setErrorState('Unable to load suggestions. Please check your internet connection.');
+            } else {
+              setErrorState(`Unable to load suggestions: ${err.message}`);
+            }
           } else {
             setErrorState(null);
+            if (process.env.NODE_ENV === 'development') {
+              console.log('✅ Using fallback suggestions:', fallback.length);
+            }
           }
         }
       } finally {
