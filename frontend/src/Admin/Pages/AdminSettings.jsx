@@ -18,15 +18,12 @@ const AdminSettings = () => {
   useEffect(() => {
     const loadAdminProfile = async () => {
       try {
-        const token = localStorage.getItem('adminToken');
-        if (!token) return;
-
         const response = await fetch(`${API_BASE_URL}${API_ENDPOINTS.ADMIN_VERIFY}`, {
           method: 'GET',
           headers: {
-            'Authorization': `Bearer ${token}`,
             'Content-Type': 'application/json',
           },
+          credentials: 'include', // Use HTTP-only cookie for authentication
         });
 
         const data = await response.json();
@@ -76,19 +73,13 @@ const AdminSettings = () => {
     setMessage({ type: '', text: '' });
 
     try {
-      const token = localStorage.getItem('adminToken');
-      if (!token) {
-        setMessage({ type: 'error', text: 'Not authenticated' });
-        setLoading(false);
-        return;
-      }
 
       const response = await fetch(`${API_BASE_URL}${API_ENDPOINTS.ADMIN_CHANGE_PASSWORD}`, {
         method: 'POST',
         headers: {
-          'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json',
         },
+        credentials: 'include', // Use HTTP-only cookie for authentication
         body: JSON.stringify({
           current_password: passwords.currentPassword,
           new_password: passwords.newPassword,

@@ -28,13 +28,6 @@ const AdminUsers = () => {
     setError(null);
     
     try {
-      const token = localStorage.getItem('adminToken');
-      if (!token) {
-        setError('Not authenticated');
-        setLoading(false);
-        return;
-      }
-
       const params = new URLSearchParams({
         page: pagination.page.toString(),
         limit: pageSize.toString()
@@ -51,9 +44,9 @@ const AdminUsers = () => {
       const response = await fetch(`${API_BASE_URL}${API_ENDPOINTS.ADMIN_USERS_LIST}?${params}`, {
         method: 'GET',
         headers: {
-          'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json',
-        }
+        },
+        credentials: 'include' // Use HTTP-only cookie for authentication
       });
 
       // Get response text first to see if it's JSON
@@ -126,13 +119,12 @@ const AdminUsers = () => {
     }
 
     try {
-      const token = localStorage.getItem('adminToken');
       const response = await fetch(`${API_BASE_URL}${API_ENDPOINTS.ADMIN_USERS_DELETE}?id=${userId}`, {
         method: 'DELETE',
         headers: {
-          'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json',
-        }
+        },
+        credentials: 'include' // Use HTTP-only cookie for authentication
       });
 
       const data = await response.json();
@@ -150,13 +142,12 @@ const AdminUsers = () => {
 
   const handleBanToggle = async (user, isBanned) => {
     try {
-      const token = localStorage.getItem('adminToken');
       const response = await fetch(`${API_BASE_URL}${API_ENDPOINTS.ADMIN_USERS_UPDATE}?id=${user.id}`, {
         method: 'PUT',
         headers: {
-          'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json',
         },
+        credentials: 'include', // Use HTTP-only cookie for authentication
         body: JSON.stringify({
           is_banned: !isBanned
         })
