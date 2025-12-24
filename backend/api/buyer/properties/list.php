@@ -128,17 +128,24 @@ try {
     
     if ($propertyType) {
         // Handle compound property types (e.g., "Plot / Land / Industrial Property")
-        // Split by " / " and match any of the individual types
+        // Split by " / " and match any property that contains any of the individual types
+        // This handles cases where:
+        // - Search: "Villa / Row House / Bungalow / Farm House"
+        // - DB has: "Villa", "Row House", "Villa / Banglow", "Row House/ Farm House", etc.
         $types = array_map('trim', explode(' / ', $propertyType));
+        
         if (count($types) > 1) {
-            // Multiple types - use IN clause
-            $placeholders = implode(',', array_fill(0, count($types), '?'));
-            $query .= " AND p.property_type IN ($placeholders)";
-            $params = array_merge($params, $types);
+            // Multiple types - use LIKE with OR to match any type that contains any search term
+            $likeConditions = [];
+            foreach ($types as $type) {
+                $likeConditions[] = "p.property_type LIKE ?";
+                $params[] = "%" . $type . "%";
+            }
+            $query .= " AND (" . implode(" OR ", $likeConditions) . ")";
         } else {
-            // Single type - exact match
-            $query .= " AND p.property_type = ?";
-            $params[] = $propertyType;
+            // Single type - use LIKE to match exact or compound types containing this type
+            $query .= " AND p.property_type LIKE ?";
+            $params[] = "%" . $propertyType . "%";
         }
     }
     
@@ -215,17 +222,24 @@ try {
     }
     if ($propertyType) {
         // Handle compound property types (e.g., "Plot / Land / Industrial Property")
-        // Split by " / " and match any of the individual types
+        // Split by " / " and match any property that contains any of the individual types
+        // This handles cases where:
+        // - Search: "Villa / Row House / Bungalow / Farm House"
+        // - DB has: "Villa", "Row House", "Villa / Banglow", "Row House/ Farm House", etc.
         $types = array_map('trim', explode(' / ', $propertyType));
+        
         if (count($types) > 1) {
-            // Multiple types - use IN clause
-            $placeholders = implode(',', array_fill(0, count($types), '?'));
-            $countQuery .= " AND p.property_type IN ($placeholders)";
-            $countParams = array_merge($countParams, $types);
+            // Multiple types - use LIKE with OR to match any type that contains any search term
+            $likeConditions = [];
+            foreach ($types as $type) {
+                $likeConditions[] = "p.property_type LIKE ?";
+                $countParams[] = "%" . $type . "%";
+            }
+            $countQuery .= " AND (" . implode(" OR ", $likeConditions) . ")";
         } else {
-            // Single type - exact match
-            $countQuery .= " AND p.property_type = ?";
-            $countParams[] = $propertyType;
+            // Single type - use LIKE to match exact or compound types containing this type
+            $countQuery .= " AND p.property_type LIKE ?";
+            $countParams[] = "%" . $propertyType . "%";
         }
     }
     // Use location if provided, otherwise use city
