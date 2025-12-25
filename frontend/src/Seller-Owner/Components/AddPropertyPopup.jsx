@@ -786,7 +786,7 @@ newErrors.description = "Description is required";
           fontSize: '14px',
           lineHeight: '1.5'
         }}>
-          ⚠️ This property was created more than 24 hours ago. You can only edit the <strong>Title</strong> and <strong>Price-related fields</strong> (price, price negotiable, maintenance charges, deposit amount). All other fields are locked.
+          ⚠️ This property was created more than 24 hours ago. You can only edit the <strong>Title</strong> and <strong>Price-related fields</strong> (price, price negotiable, maintenance charges, deposit amount). Location-related fields (location, state, additional address) and all other fields are locked.
         </div>
       )}
       <h3 className="step-heading">Basic Information</h3>
@@ -880,7 +880,7 @@ newErrors.description = "Description is required";
           fontSize: '14px',
           lineHeight: '1.5'
         }}>
-          ⚠️ This property was created more than 24 hours ago. You can only edit the <strong>Title</strong> and <strong>Price-related fields</strong>. All other fields are locked.
+          ⚠️ This property was created more than 24 hours ago. You can only edit the <strong>Title</strong> and <strong>Price-related fields</strong>. Location-related fields (location, state, additional address) and all other fields are locked.
         </div>
       )}
       <h3 className="step-heading">Property Details</h3>
@@ -1285,7 +1285,7 @@ newErrors.description = "Description is required";
             fontSize: '14px',
             lineHeight: '1.5'
           }}>
-            ⚠️ This property was created more than 24 hours ago. You can only edit the <strong>Title</strong> and <strong>Price-related fields</strong>. All other fields are locked.
+            ⚠️ This property was created more than 24 hours ago. You can only edit the <strong>Title</strong> and <strong>Price-related fields</strong>. Location-related fields (location, state, additional address) and all other fields are locked.
           </div>
         )}
         <h3 className="step-heading">Amenities & Description</h3>
@@ -1345,7 +1345,7 @@ newErrors.description = "Description is required";
           fontSize: '14px',
           lineHeight: '1.5'
         }}>
-          ⚠️ This property was created more than 24 hours ago. You can only edit the <strong>Title</strong> and <strong>Price-related fields</strong>. All other fields are locked.
+          ⚠️ This property was created more than 24 hours ago. You can only edit the <strong>Title</strong> and <strong>Price-related fields</strong>. Location-related fields (location, state, additional address) and all other fields are locked.
         </div>
       )}
       <h3 className="step-heading">Upload Photos</h3>
@@ -1428,7 +1428,7 @@ newErrors.description = "Description is required";
           fontSize: '14px',
           lineHeight: '1.5'
         }}>
-          ⚠️ This property was created more than 24 hours ago. You can only edit the <strong>Title</strong> and <strong>Price-related fields</strong> (price, price negotiable, maintenance charges, deposit amount).
+          ⚠️ This property was created more than 24 hours ago. You can only edit the <strong>Title</strong> and <strong>Price-related fields</strong> (price, price negotiable, maintenance charges, deposit amount). Location-related fields (location, state, additional address) and all other fields are locked.
         </div>
       )}
       <h3 className="step-heading">Pricing Details</h3>

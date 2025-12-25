@@ -3,6 +3,7 @@ import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useProperty } from "./PropertyContext";
 import AddPropertyPopup from "./AddPropertyPopup";
+import DeletePropertyModal from "../../components/DeletePropertyModal/DeletePropertyModal";
 import "../styles/SellerProperties.css";
 
 const MAX_PROPERTIES = 3;
@@ -16,6 +17,8 @@ const SellerProperties = () => {
   const [filterStatus, setFilterStatus] = useState('all');
   const [sortBy, setSortBy] = useState('newest');
   const [searchTerm, setSearchTerm] = useState('');
+  const [deleteModalOpen, setDeleteModalOpen] = useState(false);
+  const [propertyToDelete, setPropertyToDelete] = useState(null);
 
   // Filter and sort properties
   const filteredProperties = properties
@@ -54,10 +57,16 @@ const SellerProperties = () => {
     setShowForm(true);
   };
 
-  const handleDelete = async (id) => {
-    if (!window.confirm("Make sure you have deleted your property. Are you sure you want to delete this property?")) return;
+  const handleDeleteClick = (id) => {
+    setPropertyToDelete(id);
+    setDeleteModalOpen(true);
+  };
+
+  const handleDeleteConfirm = async () => {
+    if (!propertyToDelete) return;
     try {
-      await deleteProperty(id);
+      await deleteProperty(propertyToDelete);
+      setPropertyToDelete(null);
     } catch (error) {
       console.error('Error deleting property:', error);
       alert('Failed to delete property. Please try again.');
@@ -217,7 +226,7 @@ const SellerProperties = () => {
                       <path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z" stroke="currentColor" strokeWidth="2"/>
                     </svg>
                   </button>
-                  <button className="seller-props-overlay-btn delete" onClick={() => handleDelete(property.id)}>
+                  <button className="seller-props-overlay-btn delete" onClick={() => handleDeleteClick(property.id)}>
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
                       <path d="M3 6h18M8 6V4a2 2 0 012-2h4a2 2 0 012 2v2M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6" stroke="currentColor" strokeWidth="2"/>
                     </svg>
@@ -305,7 +314,7 @@ const SellerProperties = () => {
                       </svg>
                       Edit
                     </button>
-                    <button className="seller-props-delete-btn" onClick={() => handleDelete(property.id)}>
+                    <button className="seller-props-delete-btn" onClick={() => handleDeleteClick(property.id)}>
                       <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
                         <path d="M3 6h18M8 6V4a2 2 0 012-2h4a2 2 0 012 2v2M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6" stroke="currentColor" strokeWidth="2"/>
                       </svg>
@@ -342,6 +351,16 @@ const SellerProperties = () => {
           initialData={editIndex !== null ? properties[editIndex] : null}
         />
       )}
+
+      {/* Delete Confirmation Modal */}
+      <DeletePropertyModal
+        isOpen={deleteModalOpen}
+        onClose={() => {
+          setDeleteModalOpen(false);
+          setPropertyToDelete(null);
+        }}
+        onConfirm={handleDeleteConfirm}
+      />
     </div>
   );
 };

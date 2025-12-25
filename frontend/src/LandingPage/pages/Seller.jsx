@@ -65,8 +65,8 @@ const Seller = () => {
         <h1 className="seller-hero-title">Find Your Dream Home Without Any Brokerage</h1>
         <p className="seller-hero-subtitle">Browse 35,000+ verified properties. Connect directly with owners. Move in faster.</p>
         <div className="seller-cta-buttons">
-          <button className="seller-btn seller-btn-primary" onClick={() => navigate('/login')}>Login</button>
-          <button className="seller-btn seller-btn-secondary" onClick={() => navigate('/register')}>Register Free</button>
+          <button className="seller-btn seller-btn-primary" onClick={() => navigate('/login?role=seller')}>Login</button>
+          <button className="seller-btn seller-btn-secondary" onClick={() => navigate('/register?role=seller')}>Register Free</button>
         </div>
       </div>
 

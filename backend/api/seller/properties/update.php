@@ -52,18 +52,33 @@ try {
     $input = json_decode(file_get_contents('php://input'), true);
     
     // If property is older than 24 hours, only allow price and title to be updated
+    // Location-related fields (location, latitude, longitude, state, additional_address) are also restricted
     if ($isOlderThan24Hours) {
         $allowedFieldsAfter24Hours = ['title', 'price', 'price_negotiable', 'maintenance_charges', 'deposit_amount'];
         $restrictedFields = [];
         
+        // Explicitly check for location-related fields
+        $locationFields = ['location', 'latitude', 'longitude', 'state', 'additional_address'];
+        foreach ($locationFields as $field) {
+            if (isset($input[$field])) {
+                $restrictedFields[] = $field;
+            }
+        }
+        
+        // Check all other fields
         foreach ($input as $field => $value) {
-            if (!in_array($field, $allowedFieldsAfter24Hours)) {
+            if (!in_array($field, $allowedFieldsAfter24Hours) && !in_array($field, $locationFields)) {
                 $restrictedFields[] = $field;
             }
         }
         
         if (!empty($restrictedFields)) {
-            sendError('After 24 hours, you can only edit the title and price-related fields (price, price negotiable, maintenance charges, deposit amount). Other fields cannot be modified.', null, 403);
+            $locationFieldsFound = array_intersect($restrictedFields, $locationFields);
+            if (!empty($locationFieldsFound)) {
+                sendError('After 24 hours, location-related fields (location, state, additional address) cannot be modified. You can only edit the title and price-related fields (price, price negotiable, maintenance charges, deposit amount).', null, 403);
+            } else {
+                sendError('After 24 hours, you can only edit the title and price-related fields (price, price negotiable, maintenance charges, deposit amount). Other fields cannot be modified.', null, 403);
+            }
         }
     }
     
