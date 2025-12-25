@@ -159,7 +159,10 @@ const getPropertyDetails = (property) => {
         description: description,
         amenities: amenities,
         images: images,
-        listedSince: formatListedDate(property.created_at)
+        listedSince: formatListedDate(property.created_at),
+        priceNegotiable: property.price_negotiable || property.priceNegotiable || false,
+        maintenanceCharges: property.maintenance_charges || property.maintenanceCharges || null,
+        depositAmount: property.deposit_amount || property.depositAmount || null
     };
 }
 
@@ -549,6 +552,9 @@ const ViewDetailsPage = () => {
                         latitude: prop.latitude,
                         longitude: prop.longitude,
                         created_at: prop.created_at || prop.createdAt || null,
+                        price_negotiable: prop.price_negotiable || prop.priceNegotiable || false,
+                        maintenance_charges: prop.maintenance_charges || prop.maintenanceCharges || null,
+                        deposit_amount: prop.deposit_amount || prop.depositAmount || null,
                         seller_id: receiverId, // Keep for backward compatibility
                         agent_id: ownerUserType === 'agent' ? receiverId : null,
                         user_type: ownerUserType, // Property owner's user_type
@@ -921,6 +927,7 @@ const ViewDetailsPage = () => {
                                 {/* Status Text on Left */}
                                 <div className="header-status-left">
                                     <span className="property-status-text">{propertyData.status}</span>
+                                    <span className="listed-since-text">Listed since {propertyData.listedSince || 'Recently'}</span>
                                 </div>
                                 
                                 {/* Title and Location Centered */}
@@ -1029,14 +1036,6 @@ const ViewDetailsPage = () => {
 
                             <hr className="divider" />
 
-                            {/* Description */}
-                            <div className="description-section">
-                                <h2>About this place</h2>
-                                <p>{propertyData.description}</p>
-                            </div>
-
-                            <hr className="divider" />
-
                             {/* Amenities */}
                             <div className="amenities-section">
                                 <h2>What this place offers</h2>
@@ -1050,6 +1049,41 @@ const ViewDetailsPage = () => {
                                 </div>
                             </div>
                         </section>
+
+                        {/* Pricing Details - Full Width */}
+                        <div className="pricing-details-section">
+                            <h2>Pricing Details</h2>
+                            <div className="pricing-details-grid">
+                                <div className="pricing-detail-item">
+                                    <span className="pricing-label">Price Negotiable</span>
+                                    <span className={`pricing-value ${propertyData.priceNegotiable ? 'negotiable-yes' : 'negotiable-no'}`}>
+                                        {propertyData.priceNegotiable ? 'Yes' : 'No'}
+                                    </span>
+                                </div>
+                                {propertyData.maintenanceCharges && (
+                                    <div className="pricing-detail-item">
+                                        <span className="pricing-label">Maintenance Charge</span>
+                                        <span className="pricing-value">
+                                            ₹ {propertyData.maintenanceCharges.toLocaleString('en-IN')}/Month
+                                        </span>
+                                    </div>
+                                )}
+                                {propertyData.depositAmount && (
+                                    <div className="pricing-detail-item">
+                                        <span className="pricing-label">Deposit Amount</span>
+                                        <span className="pricing-value">
+                                            ₹ {propertyData.depositAmount.toLocaleString('en-IN')}
+                                        </span>
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+
+                        {/* Description - Full Width */}
+                        <div className="description-section">
+                            <h2>About this place</h2>
+                            <p>{propertyData.description}</p>
+                        </div>
 
                         {/* --- Right Column (Sticky Booking Card) --- */}
                         <aside className="agent-sidebar">
