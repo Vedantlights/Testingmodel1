@@ -598,15 +598,6 @@ const ViewDetailsPage = () => {
     // Share State
     const [showToast, setShowToast] = useState(false);
     
-    // Inquiry Form States
-    const [formData, setFormData] = useState({
-        name: '',
-        email: '',
-        mobile: '',
-        message: ''
-    });
-    const [isSubmitted, setIsSubmitted] = useState(false);
-    
     // --- 2. DEFINE ALL CALLBACK HOOKS UNCONDITIONALLY ---
     
     const openSlider = useCallback((index) => {
@@ -822,50 +813,6 @@ const ViewDetailsPage = () => {
         }
     };
     
-    // Handle form input changes
-    const handleInputChange = (e) => {
-        const { name, value } = e.target;
-        setFormData(prev => ({
-            ...prev,
-            [name]: value
-        }));
-    };
-
-    // Handle form submission
-    const handleSubmitInquiry = async (e) => {
-        e.preventDefault();
-        
-        try {
-            const response = await propertiesAPI.sendInquiry({
-                property_id: propertyId,
-                name: formData.name,
-                email: formData.email,
-                mobile: formData.mobile,
-                message: formData.message || ''
-            });
-            
-            if (response.success) {
-                // Show success message
-                setIsSubmitted(true);
-                
-                // Reset form after 3 seconds
-                setTimeout(() => {
-                    setIsSubmitted(false);
-                    setFormData({
-                        name: '',
-                        email: '',
-                        mobile: '',
-                        message: ''
-                    });
-                }, 3000);
-            } else {
-                alert('Failed to send inquiry: ' + (response.message || 'Unknown error'));
-            }
-        } catch (error) {
-            console.error('Failed to send inquiry:', error);
-            alert('Failed to send inquiry. Please try again.');
-        }
-    };
 
     // --- 3. DEFINE ALL useEffect HOOKS UNCONDITIONALLY ---
     
@@ -1081,26 +1028,16 @@ const ViewDetailsPage = () => {
                                 </div>
                             </div>
 
-                            {/* Key Features using .features-grid */}
+                            {/* Property Statistics */}
                             {(() => {
                                 // Count visible features
                                 const showBedrooms = shouldShowFeature(propertyData.type, 'bedrooms');
                                 const showBathrooms = shouldShowFeature(propertyData.type, 'bathrooms');
-                                const featureCount = 1 + (showBedrooms ? 1 : 0) + (showBathrooms ? 1 : 0) + 1; // Price + Bedrooms + Bathrooms + Area
+                                const featureCount = (showBedrooms ? 1 : 0) + (showBathrooms ? 1 : 0) + 1; // Bedrooms + Bathrooms + Area
                                 const gridClass = featureCount === 2 ? 'buyer-features-grid buyer-features-grid-2' : 'buyer-features-grid';
                                 
                                 return (
                                     <div className={gridClass}>
-                                        {/* Price/Rent */}
-                                        <div className="buyer-feature-item">
-                                            <div className="buyer-feature-icon">
-                                                {/* Using an icon placeholder for the price block */}
-                                                <span role="img" aria-label="price">💰</span>
-                                            </div>
-                                            <span className="buyer-feature-value">{propertyData.price}</span>
-                                            <span className="buyer-feature-label">{propertyData.status === 'For Rent' ? 'Monthly Rent' : 'Total Price'}</span>
-                                        </div>
-
                                         {/* Bedrooms - Only show if property type supports it */}
                                         {showBedrooms && (
                                             <div className="buyer-feature-item">
@@ -1108,7 +1045,7 @@ const ViewDetailsPage = () => {
                                                     <FaBed />
                                                 </div>
                                                 <span className="buyer-feature-value">{propertyData.bedrooms}</span>
-                                                <span className="buyer-feature-label">Bedrooms</span>
+                                                <span className="buyer-feature-label">bedrooms</span>
                                             </div>
                                         )}
 
@@ -1119,7 +1056,7 @@ const ViewDetailsPage = () => {
                                                     <FaShower />
                                                 </div>
                                                 <span className="buyer-feature-value">{propertyData.bathrooms}</span>
-                                                <span className="buyer-feature-label">Bathrooms</span>
+                                                <span className="buyer-feature-label">bathrooms</span>
                                             </div>
                                         )}
 
@@ -1129,25 +1066,25 @@ const ViewDetailsPage = () => {
                                                 <FaRulerCombined />
                                             </div>
                                             <span className="buyer-feature-value">{propertyData.area}</span>
-                                            <span className="buyer-feature-label">Area</span>
+                                            <span className="buyer-feature-label">area</span>
                                         </div>
                                     </div>
                                 );
                             })()}
-                            {/* END of Key Features */}
+                            {/* END of Property Statistics */}
 
                             <hr className="buyer-divider" />
 
-                            {/* Description */}
+                            {/* About this place */}
                             <div className="buyer-description-section">
-                                <h2>Description</h2>
+                                <h2>About this place</h2>
                                 <p>{propertyData.description}</p>
                             </div>
                             <hr className="buyer-divider" />
 
-                            {/* Amenities */}
+                            {/* What this place offers */}
                             <div className="buyer-amenities-section">
-                                <h2>Amenities</h2>
+                                <h2>What this place offers</h2>
                                 <div className="buyer-amenities-grid">
                                     {propertyData.amenities.map((amenity, index) => (
                                         <div key={index} className="buyer-amenity-item">
@@ -1157,17 +1094,23 @@ const ViewDetailsPage = () => {
                                     ))}
                                 </div>
                             </div>
+                            <hr className="buyer-divider" />
+
+                            {/* Property Location */}
+                            <div className="buyer-property-location-section">
+                                <h2>Property Location</h2>
+                                <PropertyMapFeature property={property} />
+                            </div>
                         </section>
 
-                        {/* --- Right Column (Inquiry Form) --- */}
+                        {/* --- Right Column (Price & Actions) --- */}
                         <aside className="buyer-agent-sidebar">
                             
-                            {/* Map Feature Card */}
-                            <PropertyMapFeature property={property} /> 
-
-                            {/* Contact Form Card */}
-                            <div className="buyer-detail-contact-card">
-                                <h3>Get in Touch</h3>
+                            {/* Price Card */}
+                            <div className="buyer-price-card">
+                                <div className="buyer-price-display">
+                                    <span className="buyer-price-value">{propertyData.price}</span>
+                                </div>
                                 
                                 {/* Chat with Owner Button - Only show if user is buyer AND not the property owner */}
                                 {user && user.user_type === 'buyer' && property && property.seller_id && Number(user.id) !== Number(property.seller_id) && (
@@ -1175,25 +1118,6 @@ const ViewDetailsPage = () => {
                                         type="button"
                                         onClick={handleChatWithOwner}
                                         className="buyer-chat-owner-button"
-                                        style={{
-                                            width: '100%',
-                                            padding: '12px 20px',
-                                            marginBottom: '20px',
-                                            backgroundColor: '#003B73',
-                                            color: 'white',
-                                            border: 'none',
-                                            borderRadius: '8px',
-                                            fontSize: '16px',
-                                            fontWeight: '600',
-                                            cursor: 'pointer',
-                                            display: 'flex',
-                                            alignItems: 'center',
-                                            justifyContent: 'center',
-                                            gap: '8px',
-                                            transition: 'background-color 0.3s'
-                                        }}
-                                        onMouseOver={(e) => e.target.style.backgroundColor = '#0056b3'}
-                                        onMouseOut={(e) => e.target.style.backgroundColor = '#003B73'}
                                     >
                                         <FaComments />
                                         Chat with Owner

@@ -408,20 +408,43 @@
 }
 
 .buyer-agent-sidebar {
-    flex: 1.9;
+    flex: 1;
+    min-width: 300px;
     position: sticky;
     top: 100px;
     align-self: flex-start;
 }
 
 /* --- Section Headers --- */
-.buyer-description-section h2, .buyer-amenities-section h2 {
+.buyer-description-section h2, 
+.buyer-amenities-section h2,
+.buyer-property-location-section h2 {
     font-size: 1.8rem;
     color: #011a3d;
     font-weight: 700;
     margin-bottom: 1.5rem;
     border-left: 5px solid #886ace;
     padding-left: 15px;
+}
+
+.buyer-property-location-section {
+    margin-top: 0;
+}
+
+.buyer-property-location-section .buyer-map-card-container {
+    margin-bottom: 0;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    padding: 20px;
+    background: #ffffff;
+    border-radius: 12px;
+}
+
+.buyer-property-location-section .buyer-map-card-container h3 {
+    display: none;
+}
+
+.buyer-property-location-section .buyer-map-embed-area {
+    height: 400px;
 }
 
 /* --- Key Features Section --- */
@@ -508,29 +531,55 @@
 }
 
 /* ============================================================================
- * DETAIL PAGE CONTACT FORM CARD STYLES
+ * PRICE CARD STYLES (Right Sidebar)
  * ============================================================================ */
 
-.buyer-detail-contact-card {
+.buyer-price-card {
     background-color: #ffffff;
     border-radius: 16px;
     padding: 2.5rem;
     box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+    position: sticky;
+    top: 100px;
 }
 
-.buyer-detail-contact-card h3 {
-    font-size: 1.5rem;
-    color: #040404;
-    margin-bottom: 0.5rem;
-    text-align: center;
-    font-weight: 700;
-}
-
-.buyer-contact-card-subtitle {
-    text-align: center;
-    color: #666;
-    font-size: 0.95rem;
+.buyer-price-display {
     margin-bottom: 2rem;
+}
+
+.buyer-price-value {
+    font-size: 2rem;
+    font-weight: 700;
+    color: #011a3d;
+    display: block;
+    text-align: center;
+}
+
+.buyer-chat-owner-button {
+    width: 100%;
+    padding: 14px 20px;
+    background-color: #886ace;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    transition: all 0.3s ease;
+}
+
+.buyer-chat-owner-button:hover {
+    background-color: #7a5dbd;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(136, 106, 206, 0.3);
+}
+
+.buyer-chat-owner-button:active {
+    transform: translateY(0);
 }
 
 /* Contact Form Styles */
@@ -750,8 +799,13 @@
         margin-bottom: 20px;
     }
 
-    .buyer-detail-contact-card {
+    .buyer-price-card {
         padding: 2rem;
+        position: static;
+    }
+
+    .buyer-price-value {
+        font-size: 1.75rem;
     }
 
     /* Responsive Property Header */
@@ -872,40 +926,14 @@
     .buyer-amenities-grid {
         grid-template-columns: 1fr;
     }
-    .buyer-detail-contact-card {
+    .buyer-price-card {
         padding: 1.5rem;
     }
-    .buyer-detail-contact-form {
-        gap: 1.25rem;
+    .buyer-price-value {
+        font-size: 1.5rem;
     }
-    .buyer-contact-field-group label {
-        font-size: 0.85rem;
-    }
-    .buyer-contact-input-box {
-        padding: 10px 12px;
-        gap: 8px;
-    }
-    .buyer-contact-field-icon {
-        font-size: 0.95rem;
-        min-width: 14px;
-        width: 14px;
-        height: 14px;
-    }
-    .buyer-contact-input-box input,
-    .buyer-contact-input-box textarea {
-        font-size: 0.95rem;
-    }
-    .buyer-contact-send-button {
+    .buyer-chat-owner-button {
         padding: 12px;
-        font-size: 1rem;
-    }
-    .buyer-contact-success-icon {
-        font-size: 3rem;
-    }
-    .buyer-contact-success-message h4 {
-        font-size: 1.2rem;
-    }
-    .buyer-contact-success-message p {
         font-size: 0.95rem;
     }
 }
@@ -1027,6 +1055,22 @@
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
   padding: 20px;
   margin-bottom: 24px;
+}
+
+.buyer-property-location-section .buyer-map-card-container {
+  margin-bottom: 0;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  padding: 20px;
+  background: #ffffff;
+  border-radius: 12px;
+}
+
+.buyer-property-location-section .buyer-map-card-container h3 {
+  display: none;
+}
+
+.buyer-property-location-section .buyer-map-embed-area {
+  height: 400px;
 }
 
 .buyer-map-card-container h3 {
