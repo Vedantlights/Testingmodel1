@@ -4,11 +4,14 @@
  */
 
 // Validate email
+if (!function_exists('validateEmail')) {
 function validateEmail($email) {
     return filter_var($email, FILTER_VALIDATE_EMAIL) !== false;
 }
+}
 
 // Validate phone (Indian format)
+if (!function_exists('validatePhone')) {
 function validatePhone($phone) {
     // Remove all non-digit characters
     $digits = preg_replace('/\D/', '', $phone);
@@ -25,8 +28,10 @@ function validatePhone($phone) {
     
     return false;
 }
+}
 
 // Validate mobile number format (supports international format)
+if (!function_exists('validateMobileFormat')) {
 function validateMobileFormat($mobile) {
     // Remove spaces and normalize
     $mobile = trim($mobile);
@@ -53,8 +58,10 @@ function validateMobileFormat($mobile) {
     
     return false;
 }
+}
 
 // Validate password strength
+if (!function_exists('validatePassword')) {
 function validatePassword($password) {
     // At least 6 characters
     if (strlen($password) < 6) {
@@ -62,16 +69,20 @@ function validatePassword($password) {
     }
     return true;
 }
+}
 
 // Sanitize input
+if (!function_exists('sanitizeInput')) {
 function sanitizeInput($data) {
     if (is_array($data)) {
         return array_map('sanitizeInput', $data);
     }
     return htmlspecialchars(strip_tags(trim($data)), ENT_QUOTES, 'UTF-8');
 }
+}
 
 // Validate required fields
+if (!function_exists('validateRequired')) {
 function validateRequired($data, $requiredFields) {
     $errors = [];
     
@@ -83,8 +94,10 @@ function validateRequired($data, $requiredFields) {
     
     return $errors;
 }
+}
 
 // Validate file upload
+if (!function_exists('validateFileUpload')) {
 function validateFileUpload($file, $allowedTypes, $maxSize) {
     $errors = [];
     
@@ -109,14 +122,19 @@ function validateFileUpload($file, $allowedTypes, $maxSize) {
     
     return $errors;
 }
+}
 
 // Generate OTP
+if (!function_exists('generateOTP')) {
 function generateOTP($length = 6) {
     return str_pad(random_int(0, pow(10, $length) - 1), $length, '0', STR_PAD_LEFT);
 }
+}
 
 // Validate OTP format
+if (!function_exists('validateOTP')) {
 function validateOTP($otp) {
     return preg_match('/^\d{6}$/', $otp);
+}
 }
 

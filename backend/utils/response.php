@@ -4,6 +4,7 @@
  */
 
 // Set CORS headers
+if (!function_exists('setCorsHeaders')) {
 function setCorsHeaders() {
     // Allowed origins - add production URLs here
     $allowedOrigins = [
@@ -77,8 +78,10 @@ function setCorsHeaders() {
     // Content-Security-Policy for API responses (minimal since it's JSON)
     header("Content-Security-Policy: default-src 'self'");
 }
+}
 
 // Handle preflight requests
+if (!function_exists('handlePreflight')) {
 function handlePreflight() {
     // Clear any output buffer before setting headers
     if (ob_get_level() > 0) {
@@ -98,8 +101,10 @@ function handlePreflight() {
         exit();
     }
 }
+}
 
 // Send JSON response
+if (!function_exists('sendResponse')) {
 function sendResponse($success, $message = '', $data = null, $statusCode = 200) {
     // Clear any output buffer to ensure clean JSON (catch any PHP warnings/notices)
     // Clean the current buffer level without ending it
@@ -141,19 +146,26 @@ function sendResponse($success, $message = '', $data = null, $statusCode = 200) 
     }
     exit();
 }
+}
 
 // Send success response
+if (!function_exists('sendSuccess')) {
 function sendSuccess($message = 'Success', $data = null, $statusCode = 200) {
     sendResponse(true, $message, $data, $statusCode);
 }
+}
 
 // Send error response
+if (!function_exists('sendError')) {
 function sendError($message = 'Error', $data = null, $statusCode = 400) {
     sendResponse(false, $message, $data, $statusCode);
 }
+}
 
 // Send validation error response
+if (!function_exists('sendValidationError')) {
 function sendValidationError($errors, $message = 'Validation failed') {
     sendResponse(false, $message, ['errors' => $errors], 422);
+}
 }
 

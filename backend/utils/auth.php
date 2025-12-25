@@ -19,6 +19,7 @@ if (!function_exists('getallheaders')) {
 }
 
 // Simple JWT-like token generation (For production, use a proper JWT library)
+if (!function_exists('generateToken')) {
 function generateToken($userId, $userType, $email) {
     $payload = [
         'user_id' => $userId,
@@ -34,8 +35,10 @@ function generateToken($userId, $userType, $email) {
     
     return "$header.$payload_encoded.$signature";
 }
+}
 
 // Verify token
+if (!function_exists('verifyToken')) {
 function verifyToken($token) {
     try {
         $parts = explode('.', $token);
@@ -64,8 +67,10 @@ function verifyToken($token) {
         return null;
     }
 }
+}
 
 // Get current user from token
+if (!function_exists('getCurrentUser')) {
 function getCurrentUser() {
     $authHeader = null;
     
@@ -104,51 +109,15 @@ function getCurrentUser() {
         require_once __DIR__ . '/../config/database.php';
         $db = getDB();
         
-        // Check if profile_image exists in users table or user_profiles table
-        $hasProfileImageInUsers = false;
-        $hasProfileImageInProfiles = false;
-        
-        try {
-            $checkStmt = $db->query("SHOW COLUMNS FROM users LIKE 'profile_image'");
-            $hasProfileImageInUsers = $checkStmt->rowCount() > 0;
-        } catch (PDOException $e) {
-            $hasProfileImageInUsers = false;
-        }
-        
-        try {
-            $checkStmt = $db->query("SHOW COLUMNS FROM user_profiles LIKE 'profile_image'");
-            $hasProfileImageInProfiles = $checkStmt->rowCount() > 0;
-        } catch (PDOException $e) {
-            $hasProfileImageInProfiles = false;
-        }
-        
-        // Build SELECT query based on where profile_image column exists
-        if ($hasProfileImageInUsers) {
-            // profile_image is in users table (primary location)
-            $stmt = $db->prepare("
-                SELECT u.id, u.full_name, u.email, u.phone, u.user_type, u.email_verified, u.phone_verified,
-                       u.profile_image
-                FROM users u
-                WHERE u.id = ?
-            ");
-        } elseif ($hasProfileImageInProfiles) {
-            // profile_image is in user_profiles table (legacy)
-            $stmt = $db->prepare("
-                SELECT u.id, u.full_name, u.email, u.phone, u.user_type, u.email_verified, u.phone_verified,
-                       up.profile_image
-                FROM users u
-                LEFT JOIN user_profiles up ON u.id = up.user_id
-                WHERE u.id = ?
-            ");
-        } else {
-            // profile_image doesn't exist in either table
-            $stmt = $db->prepare("
-                SELECT u.id, u.full_name, u.email, u.phone, u.user_type, u.email_verified, u.phone_verified,
-                       NULL as profile_image
-                FROM users u
-                WHERE u.id = ?
-            ");
-        }
+        // profile_image is in user_profiles table, not users table
+        // Always join with user_profiles to get profile_image
+        $stmt = $db->prepare("
+            SELECT u.id, u.full_name, u.email, u.phone, u.user_type, u.email_verified, u.phone_verified,
+                   up.profile_image
+            FROM users u
+            LEFT JOIN user_profiles up ON u.id = up.user_id
+            WHERE u.id = ?
+        ");
         
         $stmt->execute([$payload['user_id']]);
         $user = $stmt->fetch();
@@ -180,8 +149,10 @@ function getCurrentUser() {
     error_log("getCurrentUser: Could not extract token from Authorization header");
     return null;
 }
+}
 
 // Require authentication
+if (!function_exists('requireAuth')) {
 function requireAuth() {
     // Clear any output buffer before sending error
     if (ob_get_level() > 0) {
@@ -195,8 +166,10 @@ function requireAuth() {
     }
     return $user;
 }
+}
 
 // Require specific user type
+if (!function_exists('requireUserType')) {
 function requireUserType($allowedTypes) {
     $user = requireAuth();
     
@@ -272,13 +245,18 @@ function requireUserType($allowedTypes) {
     
     return $user;
 }
+}
 
 // Helper functions for base64 URL encoding
+if (!function_exists('base64UrlEncode')) {
 function base64UrlEncode($data) {
     return rtrim(strtr(base64_encode($data), '+/', '-_'), '=');
 }
+}
 
+if (!function_exists('base64UrlDecode')) {
 function base64UrlDecode($data) {
     return base64_decode(strtr($data, '-_', '+/'));
+}
 }
 

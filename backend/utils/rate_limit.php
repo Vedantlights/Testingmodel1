@@ -35,6 +35,7 @@ if (!function_exists('getClientIP')) {
 /**
  * Check rate limit using database (more persistent than in-memory)
  */
+if (!function_exists('checkRateLimit')) {
 function checkRateLimit($key, $maxAttempts, $windowSeconds) {
     $db = getDB();
     $ip = getClientIP();
@@ -99,19 +100,24 @@ function checkRateLimit($key, $maxAttempts, $windowSeconds) {
         return ['allowed' => true, 'remaining' => $maxAttempts - 1, 'reset_at' => $now + $windowSeconds];
     }
 }
+}
 
 /**
  * Check rate limit for mobile number
  */
+if (!function_exists('checkMobileRateLimit')) {
 function checkMobileRateLimit($mobile, $maxAttempts, $windowSeconds) {
     $normalized = preg_replace('/[^0-9]/', '', $mobile);
     return checkRateLimit('mobile:' . $normalized, $maxAttempts, $windowSeconds);
+}
 }
 
 /**
  * Check rate limit for IP address
  */
+if (!function_exists('checkIPRateLimit')) {
 function checkIPRateLimit($maxAttempts, $windowSeconds) {
     return checkRateLimit('ip', $maxAttempts, $windowSeconds);
+}
 }
 
