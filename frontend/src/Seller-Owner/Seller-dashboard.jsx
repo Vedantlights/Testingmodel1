@@ -26,6 +26,7 @@ const SellerDashboardContent = () => {
   const [showUserMenu, setShowUserMenu] = useState(false);
   const [imageError, setImageError] = useState(false);
   const userMenuRef = useRef(null);
+  const sellerMainRef = useRef(null);
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -38,6 +39,14 @@ const SellerDashboardContent = () => {
   const notifications = useMemo(() => {
     return unreadChatMessages;
   }, [unreadChatMessages]);
+
+  // Add body class to hide browser scrollbar when seller dashboard is active
+  useEffect(() => {
+    document.body.classList.add('seller-dashboard-active');
+    return () => {
+      document.body.classList.remove('seller-dashboard-active');
+    };
+  }, []);
 
   // Update active tab based on route
   useEffect(() => {
@@ -63,14 +72,18 @@ const SellerDashboardContent = () => {
   }, [location.pathname]);
 
   // Handle scroll for header shadow effect - Optimized with throttling
+  // Now listens to seller-main scroll instead of window scroll
   useEffect(() => {
+    const mainElement = sellerMainRef.current;
+    if (!mainElement) return;
+    
     let ticking = false;
     let currentScrolled = false;
     
     const handleScroll = () => {
       if (!ticking) {
         window.requestAnimationFrame(() => {
-          const newScrolled = window.scrollY > 10;
+          const newScrolled = mainElement.scrollTop > 10;
           // Only update state if the value actually changed
           if (newScrolled !== currentScrolled) {
             currentScrolled = newScrolled;
@@ -82,8 +95,8 @@ const SellerDashboardContent = () => {
       }
     };
     
-    window.addEventListener('scroll', handleScroll, { passive: true });
-    return () => window.removeEventListener('scroll', handleScroll);
+    mainElement.addEventListener('scroll', handleScroll, { passive: true });
+    return () => mainElement.removeEventListener('scroll', handleScroll);
   }, []);
 
   // Close user menu when clicking outside
@@ -174,7 +187,10 @@ const SellerDashboardContent = () => {
     console.log('Tab changed to:', tab);
     setActiveTab(tab);
     setIsSidebarOpen(false);
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+    // Scroll seller-main to top instead of window
+    if (sellerMainRef.current) {
+      sellerMainRef.current.scrollTo({ top: 0, behavior: 'smooth' });
+    }
     
     // Navigate to the appropriate route
     if (tab === 'overview') {
@@ -459,7 +475,7 @@ const SellerDashboardContent = () => {
       </aside>
 
       {/* Main Content */}
-      <main className="seller-main">
+      <main className="seller-main" ref={sellerMainRef}>
         <div className="main-content-wrapper" key={location.pathname}>
           {renderContent()}
         </div>
