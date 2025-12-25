@@ -980,34 +980,6 @@ const ViewDetailsPage = () => {
                     </div>
                 </div>
 
-                {/* Image Gallery Container - Separate Container */}
-                <div className="image-gallery-container">
-                    <div className="image-gallery">
-                        {/* Main Image (Large Left) */}
-                        <div className="main-image" onClick={() => openSlider(0)}>
-                            <img src={propertyData.images[0]?.url || ''} alt={propertyData.images[0]?.alt || propertyData.title} />
-                        </div>
-
-                        {/* Thumbnails Grid (Right Side) */}
-                        <div className="thumbnail-gallery">
-                            {thumbnailImages.map((image, index) => (
-                                <div 
-                                    key={image.id} 
-                                    className="thumbnail" 
-                                    onClick={() => openSlider(index + 1)} 
-                                >
-                                    <img src={image.url} alt={image.alt} />
-                                    {index === 3 && remainingCount >= 0 && (
-                                        <div className="view-more-overlay">
-                                            <span>Show all {propertyData.images.length} photos</span>
-                                        </div>
-                                    )}
-                                </div>
-                            ))}
-                        </div>
-                    </div>
-                </div>
-
                 <div className="details-container">
                     <div className="main-content-area">
                         {/* --- Left Column (Details) --- */}
