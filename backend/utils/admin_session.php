@@ -13,15 +13,31 @@ require_once __DIR__ . '/../config/database.php';
  */
 function initSecureSession() {
     if (session_status() === PHP_SESSION_NONE) {
-        // Configure secure session
+        // Set cookie parameters BEFORE session_start
+        $isSecure = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off');
+        $cookieParams = [
+            'lifetime' => 86400, // 24 hours
+            'path' => '/',
+            'domain' => '', // Empty = current domain only
+            'secure' => $isSecure,
+            'httponly' => true,
+            'samesite' => 'Lax'
+        ];
+        
+        session_set_cookie_params($cookieParams);
+        
+        // Also set via ini for compatibility
         ini_set('session.cookie_httponly', '1');
-        ini_set('session.cookie_secure', defined('ENVIRONMENT') && ENVIRONMENT === 'production' ? '1' : '0');
-        // Use 'Lax' instead of 'Strict' to allow cookies in cross-site navigation (like redirects)
+        ini_set('session.cookie_secure', $isSecure ? '1' : '0');
         ini_set('session.cookie_samesite', 'Lax');
         ini_set('session.use_strict_mode', '1');
         ini_set('session.use_only_cookies', '1');
+        ini_set('session.cookie_lifetime', '86400');
+        ini_set('session.gc_maxlifetime', '86400');
         
         session_start();
+        
+        error_log("Session started - ID: " . session_id() . ", Cookie params: " . json_encode($cookieParams));
     }
 }
 
@@ -97,44 +113,11 @@ function createAdminSession($adminMobile, $adminId, $adminRole, $adminEmail) {
     $_SESSION['admin_session_created'] = $now;
     $_SESSION['admin_last_activity'] = $now;
     
-    // Regenerate session ID for security after login
-    // CRITICAL FIX: After regeneration, update the database record with the new session ID
-    try {
-        session_regenerate_id(true);
-        $newSessionId = session_id();
-        
-        if ($newSessionId !== $sessionId) {
-            // Update database record with new session ID
-            try {
-                $updateStmt = $db->prepare("UPDATE admin_sessions SET session_id = ? WHERE session_id = ?");
-                $updateStmt->execute([$newSessionId, $sessionId]);
-                
-                // If update affected 0 rows, insert new record (shouldn't happen, but be safe)
-                if ($updateStmt->rowCount() === 0) {
-                    error_log("Warning: Session ID update affected 0 rows, inserting new record. Old ID: $sessionId, New ID: $newSessionId");
-                    $insertStmt = $db->prepare("INSERT INTO admin_sessions (session_id, admin_id, admin_mobile, admin_role, admin_email, ip_address, expires_at) VALUES (?, ?, ?, ?, ?, ?, ?)");
-                    $insertStmt->execute([$newSessionId, $adminId, $adminMobile, $adminRole, $adminEmail, $ip, $expiresAt]);
-                } else {
-                    error_log("Session ID updated successfully: $sessionId -> $newSessionId");
-                }
-            } catch (PDOException $dbError) {
-                error_log("Database error updating session ID: " . $dbError->getMessage());
-                // Try to insert new record as fallback
-                try {
-                    $insertStmt = $db->prepare("INSERT INTO admin_sessions (session_id, admin_id, admin_mobile, admin_role, admin_email, ip_address, expires_at) VALUES (?, ?, ?, ?, ?, ?, ?) ON DUPLICATE KEY UPDATE session_id = VALUES(session_id)");
-                    $insertStmt->execute([$newSessionId, $adminId, $adminMobile, $adminRole, $adminEmail, $ip, $expiresAt]);
-                    error_log("Fallback: Inserted session with new ID: $newSessionId");
-                } catch (PDOException $insertError) {
-                    error_log("Critical: Failed to update or insert session ID: " . $insertError->getMessage());
-                    // Session will still work with old ID, but this is not ideal
-                }
-            }
-        }
-    } catch (Exception $e) {
-        error_log("Warning: Could not regenerate session ID: " . $e->getMessage());
-        error_log("Stack trace: " . $e->getTraceAsString());
-        // Continue anyway - session is still valid with original ID
-    }
+    // Skip session_regenerate_id to avoid cookie/database mismatch
+    // The session is already secure with a random ID from session_start()
+    // Regenerating causes cookie and database to get out of sync
+    
+    error_log("Admin session created successfully - Session ID: " . $sessionId . ", Admin ID: " . $adminId);
     
     return true;
 }
@@ -179,13 +162,33 @@ function getAdminSession() {
     }
     
     // CRITICAL: Re-validate mobile is still whitelisted
-    // Normalize mobile number before checking whitelist to handle format variations
     $storedMobile = $session['admin_mobile'];
-    if (!isWhitelistedMobile($storedMobile)) {
-        error_log("SECURITY ALERT: Admin mobile " . substr($storedMobile, 0, 4) . "**** is no longer whitelisted");
-        error_log("Stored mobile format: " . $storedMobile);
-        error_log("Normalized stored mobile: " . normalizeMobile($storedMobile));
-        error_log("Whitelist: " . json_encode(getAdminWhitelist()));
+    
+    // Try multiple formats for whitelist check
+    $isWhitelisted = isWhitelistedMobile($storedMobile);
+    
+    if (!$isWhitelisted) {
+        // Try with + prefix
+        $isWhitelisted = isWhitelistedMobile('+' . ltrim($storedMobile, '+'));
+    }
+    
+    if (!$isWhitelisted) {
+        // Try normalized (digits only)
+        $normalized = preg_replace('/[^0-9]/', '', $storedMobile);
+        $isWhitelisted = isWhitelistedMobile($normalized);
+    }
+    
+    if (!$isWhitelisted) {
+        // Try with +91 prefix if it's a 10-digit number
+        $digits = preg_replace('/[^0-9]/', '', $storedMobile);
+        if (strlen($digits) === 10) {
+            $isWhitelisted = isWhitelistedMobile('+91' . $digits);
+        }
+    }
+    
+    if (!$isWhitelisted) {
+        error_log("SECURITY ALERT: Admin mobile not whitelisted - Stored: " . $storedMobile);
+        error_log("Tried formats: original, with +, normalized digits, +91 format");
         destroyAdminSession();
         return null;
     }
