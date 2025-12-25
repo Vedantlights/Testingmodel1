@@ -151,11 +151,12 @@
   flex-shrink: 0;
 }
 
-.buyer-property-info {
+/* Scoped to avoid conflicts with PropertyCard.css */
+.buyer-owner-card .buyer-property-info {
   margin-bottom: 0.5rem;
 }
 
-.buyer-property-title {
+.buyer-owner-card .buyer-property-title {
   font-size: 0.85rem;
   color: #040404;
   margin: 0 0 0.25rem 0;
@@ -278,7 +279,8 @@
   gap: 0.75rem;
 }
 
-.buyer-property-type-badge {
+/* Scoped to avoid conflicts with PropertyCard.css */
+.buyer-chat-us-container .buyer-property-type-badge {
   background: rgba(255, 255, 255, 0.2);
   color: white;
   font-size: 0.75rem;
@@ -288,7 +290,7 @@
   margin: 0;
 }
 
-.buyer-property-price {
+.buyer-chat-us-container .buyer-property-price {
   color: rgba(255, 255, 255, 0.9);
   font-size: 0.9rem;
   font-weight: 600;
@@ -683,12 +685,12 @@
     font-size: 1rem;
   }
 
-  .buyer-property-type-badge {
+  .buyer-chat-us-container .buyer-property-type-badge {
     font-size: 0.7rem;
     padding: 0.2rem 0.6rem;
   }
 
-  .buyer-property-price {
+  .buyer-chat-us-container .buyer-property-price {
     font-size: 0.85rem;
   }
 
