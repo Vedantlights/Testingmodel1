@@ -1,7 +1,6 @@
 <?php
 /**
- * Admin Session Management
- * Secure HTTP-only cookie-based session management
+ * Admin Session Management - FIXED VERSION
  */
 
 require_once __DIR__ . '/../config/config.php';
@@ -13,95 +12,93 @@ require_once __DIR__ . '/../config/database.php';
  */
 function initSecureSession() {
     if (session_status() === PHP_SESSION_NONE) {
-        // Set cookie parameters BEFORE session_start
         $isSecure = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off');
-        $cookieParams = [
-            'lifetime' => 86400, // 24 hours
+        
+        session_set_cookie_params([
+            'lifetime' => 86400,
             'path' => '/',
-            'domain' => '', // Empty = current domain only
+            'domain' => '',
             'secure' => $isSecure,
             'httponly' => true,
             'samesite' => 'Lax'
-        ];
-        
-        session_set_cookie_params($cookieParams);
-        
-        // Also set via ini for compatibility
-        ini_set('session.cookie_httponly', '1');
-        ini_set('session.cookie_secure', $isSecure ? '1' : '0');
-        ini_set('session.cookie_samesite', 'Lax');
-        ini_set('session.use_strict_mode', '1');
-        ini_set('session.use_only_cookies', '1');
-        ini_set('session.cookie_lifetime', '86400');
-        ini_set('session.gc_maxlifetime', '86400');
+        ]);
         
         session_start();
-        
-        error_log("Session started - ID: " . session_id() . ", Cookie params: " . json_encode($cookieParams));
     }
 }
 
 /**
- * Create admin session
+ * Get client IP
+ */
+if (!function_exists('getClientIP')) {
+    function getClientIP() {
+        if (!empty($_SERVER['HTTP_CLIENT_IP'])) {
+            return $_SERVER['HTTP_CLIENT_IP'];
+        } elseif (!empty($_SERVER['HTTP_X_FORWARDED_FOR'])) {
+            return explode(',', $_SERVER['HTTP_X_FORWARDED_FOR'])[0];
+        }
+        return $_SERVER['REMOTE_ADDR'] ?? '0.0.0.0';
+    }
+}
+
+/**
+ * Create admin session - SIMPLIFIED AND FIXED
  */
 function createAdminSession($adminMobile, $adminId, $adminRole, $adminEmail) {
+    error_log("=== createAdminSession CALLED ===");
+    error_log("Params - Mobile: $adminMobile, ID: $adminId, Role: $adminRole, Email: $adminEmail");
+    
+    // Start session
     initSecureSession();
-    
-    $db = getDB();
-    $ip = getClientIP();
     $sessionId = session_id();
-    $now = time();
+    $ip = getClientIP();
     
-    // Create admin_sessions table if it doesn't exist (matches schema requirements)
+    error_log("Session ID: $sessionId");
+    error_log("Client IP: $ip");
+    
+    // Get DB connection
     try {
-        $db->exec("CREATE TABLE IF NOT EXISTS admin_sessions (
-            id INT(11) NOT NULL AUTO_INCREMENT,
-            session_id VARCHAR(255) NOT NULL UNIQUE,
-            admin_id INT(11) NOT NULL,
-            admin_mobile VARCHAR(20) NOT NULL,
-            admin_role VARCHAR(50) NOT NULL,
-            admin_email VARCHAR(255) NOT NULL,
-            ip_address VARCHAR(45) NOT NULL,
-            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-            last_activity TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-            expires_at TIMESTAMP NOT NULL,
-            PRIMARY KEY (id),
-            INDEX idx_session_id (session_id),
-            INDEX idx_admin_id (admin_id),
-            INDEX idx_expires_at (expires_at),
-            FOREIGN KEY (admin_id) REFERENCES admin_users(id) ON DELETE CASCADE
-        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci");
-    } catch (PDOException $e) {
-        // Table might already exist, ignore error
-        error_log("Note: admin_sessions table creation: " . $e->getMessage());
+        $db = getDB();
+        error_log("DB connection: OK");
+    } catch (Exception $e) {
+        error_log("DB connection FAILED: " . $e->getMessage());
+        return false;
     }
     
-    // Clean expired sessions
+    // Calculate expiry (24 hours)
+    $expiresAt = date('Y-m-d H:i:s', time() + 86400);
+    error_log("Expires at: $expiresAt");
+    
+    // Delete any existing sessions for this admin
     try {
-        $db->exec("DELETE FROM admin_sessions WHERE expires_at < NOW()");
+        $deleteStmt = $db->prepare("DELETE FROM admin_sessions WHERE admin_id = ?");
+        $deleteStmt->execute([$adminId]);
+        error_log("Deleted old sessions: " . $deleteStmt->rowCount());
     } catch (PDOException $e) {
-        // Ignore errors
+        error_log("Delete old sessions error (non-fatal): " . $e->getMessage());
     }
     
-    // Calculate expiry (24 hours from now per requirements, or use SESSION_EXPIRY constant)
-    $expirySeconds = defined('SESSION_EXPIRY') ? (SESSION_EXPIRY / 1000) : 86400; // Default 24 hours if not defined
-    $expiresAt = date('Y-m-d H:i:s', $now + $expirySeconds);
-    error_log("Session expiry calculated: " . $expiresAt . " (in " . $expirySeconds . " seconds)");
-    
-    // Store session in database (match exact schema)
-    error_log("Inserting session into admin_sessions - Session ID: " . $sessionId . ", Admin ID: " . $adminId);
+    // Insert new session
     try {
-        $stmt = $db->prepare("INSERT INTO admin_sessions (session_id, admin_id, admin_mobile, admin_role, admin_email, ip_address, expires_at) VALUES (?, ?, ?, ?, ?, ?, ?) ON DUPLICATE KEY UPDATE admin_id = VALUES(admin_id), admin_mobile = VALUES(admin_mobile), admin_role = VALUES(admin_role), admin_email = VALUES(admin_email), ip_address = VALUES(ip_address), expires_at = VALUES(expires_at), last_activity = NOW()");
-        $stmt->execute([$sessionId, $adminId, $adminMobile, $adminRole, $adminEmail, $ip, $expiresAt]);
-        error_log("Session inserted successfully - Rows affected: " . $stmt->rowCount());
+        $sql = "INSERT INTO admin_sessions (session_id, admin_id, admin_mobile, admin_role, admin_email, ip_address, created_at, last_activity, expires_at) VALUES (?, ?, ?, ?, ?, ?, NOW(), NOW(), ?)";
+        error_log("SQL: $sql");
+        error_log("Values: [$sessionId, $adminId, $adminMobile, $adminRole, $adminEmail, $ip, $expiresAt]");
+        
+        $stmt = $db->prepare($sql);
+        $result = $stmt->execute([$sessionId, $adminId, $adminMobile, $adminRole, $adminEmail, $ip, $expiresAt]);
+        
+        error_log("INSERT result: " . ($result ? 'TRUE' : 'FALSE'));
+        error_log("Rows affected: " . $stmt->rowCount());
+        
+        if (!$result || $stmt->rowCount() === 0) {
+            error_log("ERROR: INSERT did not affect any rows!");
+            return false;
+        }
     } catch (PDOException $e) {
-        error_log("ERROR inserting session: " . $e->getMessage());
-        error_log("SQL State: " . ($e->errorInfo[0] ?? 'N/A'));
-        error_log("SQL Error Info: " . print_r($e->errorInfo ?? [], true));
-        error_log("Session ID: " . $sessionId);
-        error_log("Admin ID: " . $adminId);
-        error_log("Admin Mobile: " . $adminMobile);
-        throw $e; // Re-throw to be caught by caller
+        error_log("INSERT FAILED: " . $e->getMessage());
+        error_log("SQL State: " . $e->errorInfo[0]);
+        error_log("Error Info: " . print_r($e->errorInfo, true));
+        return false;
     }
     
     // Store in PHP session
@@ -110,15 +107,21 @@ function createAdminSession($adminMobile, $adminId, $adminRole, $adminEmail) {
     $_SESSION['admin_mobile'] = $adminMobile;
     $_SESSION['admin_role'] = $adminRole;
     $_SESSION['admin_email'] = $adminEmail;
-    $_SESSION['admin_session_created'] = $now;
-    $_SESSION['admin_last_activity'] = $now;
+    $_SESSION['admin_session_created'] = time();
     
-    // Skip session_regenerate_id to avoid cookie/database mismatch
-    // The session is already secure with a random ID from session_start()
-    // Regenerating causes cookie and database to get out of sync
+    error_log("PHP Session data set: " . print_r($_SESSION, true));
     
-    error_log("Admin session created successfully - Session ID: " . $sessionId . ", Admin ID: " . $adminId);
+    // Verify session was created
+    try {
+        $verifyStmt = $db->prepare("SELECT id FROM admin_sessions WHERE session_id = ?");
+        $verifyStmt->execute([$sessionId]);
+        $verified = $verifyStmt->fetch();
+        error_log("Session verification: " . ($verified ? "FOUND (ID: " . $verified['id'] . ")" : "NOT FOUND!"));
+    } catch (PDOException $e) {
+        error_log("Verify error: " . $e->getMessage());
+    }
     
+    error_log("=== createAdminSession COMPLETE ===");
     return true;
 }
 
@@ -128,13 +131,17 @@ function createAdminSession($adminMobile, $adminId, $adminRole, $adminEmail) {
 function getAdminSession() {
     initSecureSession();
     
+    error_log("=== getAdminSession CALLED ===");
+    error_log("Session ID: " . session_id());
+    error_log("PHP Session data: " . print_r($_SESSION, true));
+    
     if (!isset($_SESSION['admin_authenticated']) || !$_SESSION['admin_authenticated']) {
+        error_log("PHP session not authenticated");
         return null;
     }
     
     $db = getDB();
     $sessionId = session_id();
-    $now = time();
     
     // Check database session
     $stmt = $db->prepare("SELECT * FROM admin_sessions WHERE session_id = ? AND expires_at > NOW()");
@@ -142,26 +149,14 @@ function getAdminSession() {
     $session = $stmt->fetch(PDO::FETCH_ASSOC);
     
     if (!$session) {
-        // Session expired or invalid
+        error_log("Session not found in DB or expired");
         destroyAdminSession();
         return null;
     }
     
-    // Check inactivity timeout (1 hour)
-    $lastActivity = strtotime($session['last_activity']);
-    if (($now - $lastActivity) > (SESSION_EXPIRY / 1000)) {
-        destroyAdminSession();
-        return null;
-    }
+    error_log("Session found in DB: " . print_r($session, true));
     
-    // Check absolute expiry (8 hours)
-    $createdAt = strtotime($session['created_at']);
-    if (($now - $createdAt) > 28800) { // 8 hours
-        destroyAdminSession();
-        return null;
-    }
-    
-    // CRITICAL: Re-validate mobile is still whitelisted
+    // Re-validate mobile is still whitelisted
     $storedMobile = $session['admin_mobile'];
     
     // Try multiple formats for whitelist check
@@ -188,7 +183,6 @@ function getAdminSession() {
     
     if (!$isWhitelisted) {
         error_log("SECURITY ALERT: Admin mobile not whitelisted - Stored: " . $storedMobile);
-        error_log("Tried formats: original, with +, normalized digits, +91 format");
         destroyAdminSession();
         return null;
     }
@@ -196,7 +190,6 @@ function getAdminSession() {
     // Update last activity
     $stmt = $db->prepare("UPDATE admin_sessions SET last_activity = NOW() WHERE session_id = ?");
     $stmt->execute([$sessionId]);
-    $_SESSION['admin_last_activity'] = $now;
     
     return [
         'admin_id' => $session['admin_id'],
@@ -218,45 +211,18 @@ function destroyAdminSession() {
     $db = getDB();
     $sessionId = session_id();
     
-    // Remove from database
     try {
         $stmt = $db->prepare("DELETE FROM admin_sessions WHERE session_id = ?");
         $stmt->execute([$sessionId]);
     } catch (PDOException $e) {
-        // Ignore errors
+        error_log("Error deleting session: " . $e->getMessage());
     }
     
-    // Clear PHP session
     $_SESSION = [];
     
-    // Destroy session cookie
     if (isset($_COOKIE[session_name()])) {
         setcookie(session_name(), '', time() - 3600, '/');
     }
     
     session_destroy();
 }
-
-/**
- * Get client IP address
- * Wrapped in function_exists check to prevent redeclaration errors
- */
-if (!function_exists('getClientIP')) {
-    function getClientIP() {
-        $ipKeys = ['HTTP_CLIENT_IP', 'HTTP_X_FORWARDED_FOR', 'HTTP_X_FORWARDED', 'HTTP_X_CLUSTER_CLIENT_IP', 'HTTP_FORWARDED_FOR', 'HTTP_FORWARDED', 'REMOTE_ADDR'];
-        
-        foreach ($ipKeys as $key) {
-            if (array_key_exists($key, $_SERVER) === true) {
-                foreach (explode(',', $_SERVER[$key]) as $ip) {
-                    $ip = trim($ip);
-                    if (filter_var($ip, FILTER_VALIDATE_IP, FILTER_FLAG_NO_PRIV_RANGE | FILTER_FLAG_NO_RES_RANGE) !== false) {
-                        return $ip;
-                    }
-                }
-            }
-        }
-        
-        return $_SERVER['REMOTE_ADDR'] ?? '0.0.0.0';
-    }
-}
-

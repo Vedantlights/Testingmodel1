@@ -462,13 +462,24 @@ try {
     error_log("Step 11: Creating admin session...");
     error_log("Creating session for admin ID: " . $admin['id']);
     try {
+        error_log("=== CALLING createAdminSession ===");
+        error_log("validatedMobile: " . $validatedMobile);
+        error_log("admin id: " . $admin['id']);
+        error_log("admin role: " . $admin['role']);
+        error_log("admin email: " . $admin['email']);
+        
         // Use validated mobile for session (keep original format)
         $sessionCreated = createAdminSession($validatedMobile, $admin['id'], $admin['role'], $admin['email']);
         
+        error_log("createAdminSession returned: " . ($sessionCreated ? 'TRUE' : 'FALSE'));
+        
         if (!$sessionCreated) {
-            error_log("ERROR: createAdminSession returned false");
+            error_log("ERROR: createAdminSession returned false - sending error response");
             sendError('Failed to create session. Please try again.', null, 500);
+            exit; // Make sure we stop here
         }
+        
+        error_log("Session created successfully, proceeding to success response");
         
         // Log successful session creation
         $sessionId = session_id();
