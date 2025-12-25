@@ -1063,7 +1063,6 @@ const ViewDetailsPage = () => {
                         </div>
 
                         {/* Amenities Section */}
-                        <section className="property-details-section">
                             <div className="amenities-section">
                                 <h2>What this place offers</h2>
                                 <div className="amenities-grid">
@@ -1075,8 +1074,7 @@ const ViewDetailsPage = () => {
                                     ))}
                                 </div>
                             </div>
-                        </section>
-
+                        
                         {/* Pricing Details - Full Width */}
                         <div className="pricing-details-section">
                             <h2>Pricing Details</h2>
