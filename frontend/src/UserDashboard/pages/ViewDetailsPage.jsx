@@ -924,43 +924,17 @@ const ViewDetailsPage = () => {
                         <FaAngleLeft />
                     </button>
 
-                    {/* Property Header - ENHANCED */}
+                    {/* Property Header */}
                     <header className="buyer-property-header">
-                        <div className="buyer-header-badges">
-                            <button 
-                                className={`buyer-status-badge ${propertyData.status === 'For Sale' ? 'buyer-for-sale' : 'buyer-for-rent'}`}
-                            >
-                                {propertyData.status}
-                            </button>
-                            <span className="buyer-premium-badge">
-                                🏠 Premium Property
-                            </span>
-                            {/* Share Button */}
-                            <button 
-                                className="buyer-detail-share-btn"
-                                onClick={handleShareClick}
-                                aria-label="Share property"
-                                title="Share property"
-                            >
-                                <svg 
-                                    xmlns="http://www.w3.org/2000/svg" 
-                                    width="20" 
-                                    height="20" 
-                                    viewBox="0 0 24 24" 
-                                    fill="none"
-                                    stroke="currentColor" 
-                                    strokeWidth="2" 
-                                    strokeLinecap="round" 
-                                    strokeLinejoin="round"
-                                >
-                                    <circle cx="18" cy="5" r="3"></circle>
-                                    <circle cx="6" cy="12" r="3"></circle>
-                                    <circle cx="18" cy="19" r="3"></circle>
-                                    <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"></line>
-                                    <line x1="15.41" y1="6.51" x2="8.59" y2="10.49"></line>
-                                </svg>
-                            </button>
-                            {/* Favorite Button */}
+                        <div className="buyer-header-top">
+                            {/* Breadcrumb Navigation */}
+                            <div className="buyer-breadcrumb">
+                                <span className="buyer-breadcrumb-location">{propertyData.location}</span>
+                                <span className="buyer-breadcrumb-separator">•</span>
+                                <span className="buyer-breadcrumb-status">{propertyData.status}</span>
+                            </div>
+                            
+                            {/* Save Button */}
                             <button 
                                 className={`buyer-detail-favourite-btn ${isFavorited ? 'active' : ''}`}
                                 onClick={handleFavoriteClick}
@@ -980,20 +954,12 @@ const ViewDetailsPage = () => {
                                 >
                                     <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path>
                                 </svg>
+                                <span className="buyer-save-text">Save</span>
                             </button>
                         </div>
-                        <h1>{propertyData.title}</h1>
-                        <p className="buyer-detail-property-location">
-                            {propertyData.location}
-                        </p>
-                        <div className="buyer-property-meta-info">
-                            <div className="buyer-meta-divider"></div>
-                            <div className="buyer-meta-item">
-                                <span className="buyer-meta-label">Listed Since</span>
-                                <span className="buyer-meta-value">{propertyData.listedSince || 'Recently'}</span>
-                            </div>
-                            <div className="buyer-meta-divider"></div>
-                        </div>
+                        
+                        {/* Title - Centrally Aligned */}
+                        <h1 className="buyer-property-title">{propertyData.title}</h1>
                     </header>
 
                     <div className="buyer-main-content-area">
@@ -1029,48 +995,38 @@ const ViewDetailsPage = () => {
                             </div>
 
                             {/* Property Statistics */}
-                            {(() => {
-                                // Count visible features
-                                const showBedrooms = shouldShowFeature(propertyData.type, 'bedrooms');
-                                const showBathrooms = shouldShowFeature(propertyData.type, 'bathrooms');
-                                const featureCount = (showBedrooms ? 1 : 0) + (showBathrooms ? 1 : 0) + 1; // Bedrooms + Bathrooms + Area
-                                const gridClass = featureCount === 2 ? 'buyer-features-grid buyer-features-grid-2' : 'buyer-features-grid';
-                                
-                                return (
-                                    <div className={gridClass}>
-                                        {/* Bedrooms - Only show if property type supports it */}
-                                        {showBedrooms && (
-                                            <div className="buyer-feature-item">
-                                                <div className="buyer-feature-icon">
-                                                    <FaBed />
+                            <div className="buyer-property-stats">
+                                {(() => {
+                                    const showBedrooms = shouldShowFeature(propertyData.type, 'bedrooms');
+                                    const showBathrooms = shouldShowFeature(propertyData.type, 'bathrooms');
+                                    
+                                    return (
+                                        <>
+                                            {/* Bedrooms - Only show if property type supports it */}
+                                            {showBedrooms && (
+                                                <div className="buyer-stat-item">
+                                                    <FaBed className="buyer-stat-icon" />
+                                                    <span className="buyer-stat-text">{propertyData.bedrooms} bedrooms</span>
                                                 </div>
-                                                <span className="buyer-feature-value">{propertyData.bedrooms}</span>
-                                                <span className="buyer-feature-label">bedrooms</span>
-                                            </div>
-                                        )}
+                                            )}
 
-                                        {/* Bathrooms - Only show if property type supports it */}
-                                        {showBathrooms && (
-                                            <div className="buyer-feature-item">
-                                                <div className="buyer-feature-icon">
-                                                    <FaShower />
+                                            {/* Bathrooms - Only show if property type supports it */}
+                                            {showBathrooms && (
+                                                <div className="buyer-stat-item">
+                                                    <FaShower className="buyer-stat-icon" />
+                                                    <span className="buyer-stat-text">{propertyData.bathrooms} bathrooms</span>
                                                 </div>
-                                                <span className="buyer-feature-value">{propertyData.bathrooms}</span>
-                                                <span className="buyer-feature-label">bathrooms</span>
-                                            </div>
-                                        )}
+                                            )}
 
-                                        {/* Area */}
-                                        <div className="buyer-feature-item">
-                                            <div className="buyer-feature-icon">
-                                                <FaRulerCombined />
+                                            {/* Area */}
+                                            <div className="buyer-stat-item">
+                                                <FaRulerCombined className="buyer-stat-icon" />
+                                                <span className="buyer-stat-text">{propertyData.area} area</span>
                                             </div>
-                                            <span className="buyer-feature-value">{propertyData.area}</span>
-                                            <span className="buyer-feature-label">area</span>
-                                        </div>
-                                    </div>
-                                );
-                            })()}
+                                        </>
+                                    );
+                                })()}
+                            </div>
                             {/* END of Property Statistics */}
 
                             <hr className="buyer-divider" />
