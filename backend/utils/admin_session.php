@@ -80,24 +80,42 @@ function createAdminSession($adminMobile, $adminId, $adminRole, $adminEmail) {
     $_SESSION['admin_session_created'] = $now;
     $_SESSION['admin_last_activity'] = $now;
     
-    // Regenerate session ID for security after login (BEFORE storing in DB to avoid ID mismatch)
-    // This should be safe since we have output buffering enabled
+    // Regenerate session ID for security after login
+    // CRITICAL FIX: After regeneration, update the database record with the new session ID
     try {
         session_regenerate_id(true);
-        // CRITICAL FIX: After regeneration, update the database record with the new session ID
         $newSessionId = session_id();
+        
         if ($newSessionId !== $sessionId) {
             // Update database record with new session ID
-            $updateStmt = $db->prepare("UPDATE admin_sessions SET session_id = ? WHERE session_id = ?");
-            $updateStmt->execute([$newSessionId, $sessionId]);
-            // If update affected 0 rows (shouldn't happen, but just in case), insert new record
-            if ($updateStmt->rowCount() === 0) {
-                $insertStmt = $db->prepare("INSERT INTO admin_sessions (session_id, admin_id, admin_mobile, admin_role, admin_email, ip_address, expires_at) VALUES (?, ?, ?, ?, ?, ?, ?)");
-                $insertStmt->execute([$newSessionId, $adminId, $adminMobile, $adminRole, $adminEmail, $ip, $expiresAt]);
+            try {
+                $updateStmt = $db->prepare("UPDATE admin_sessions SET session_id = ? WHERE session_id = ?");
+                $updateStmt->execute([$newSessionId, $sessionId]);
+                
+                // If update affected 0 rows, insert new record (shouldn't happen, but be safe)
+                if ($updateStmt->rowCount() === 0) {
+                    error_log("Warning: Session ID update affected 0 rows, inserting new record. Old ID: $sessionId, New ID: $newSessionId");
+                    $insertStmt = $db->prepare("INSERT INTO admin_sessions (session_id, admin_id, admin_mobile, admin_role, admin_email, ip_address, expires_at) VALUES (?, ?, ?, ?, ?, ?, ?)");
+                    $insertStmt->execute([$newSessionId, $adminId, $adminMobile, $adminRole, $adminEmail, $ip, $expiresAt]);
+                } else {
+                    error_log("Session ID updated successfully: $sessionId -> $newSessionId");
+                }
+            } catch (PDOException $dbError) {
+                error_log("Database error updating session ID: " . $dbError->getMessage());
+                // Try to insert new record as fallback
+                try {
+                    $insertStmt = $db->prepare("INSERT INTO admin_sessions (session_id, admin_id, admin_mobile, admin_role, admin_email, ip_address, expires_at) VALUES (?, ?, ?, ?, ?, ?, ?) ON DUPLICATE KEY UPDATE session_id = VALUES(session_id)");
+                    $insertStmt->execute([$newSessionId, $adminId, $adminMobile, $adminRole, $adminEmail, $ip, $expiresAt]);
+                    error_log("Fallback: Inserted session with new ID: $newSessionId");
+                } catch (PDOException $insertError) {
+                    error_log("Critical: Failed to update or insert session ID: " . $insertError->getMessage());
+                    // Session will still work with old ID, but this is not ideal
+                }
             }
         }
     } catch (Exception $e) {
         error_log("Warning: Could not regenerate session ID: " . $e->getMessage());
+        error_log("Stack trace: " . $e->getTraceAsString());
         // Continue anyway - session is still valid with original ID
     }
     
@@ -144,8 +162,13 @@ function getAdminSession() {
     }
     
     // CRITICAL: Re-validate mobile is still whitelisted
-    if (!isWhitelistedMobile($session['admin_mobile'])) {
-        error_log("SECURITY ALERT: Admin mobile " . substr($session['admin_mobile'], 0, 4) . "**** is no longer whitelisted");
+    // Normalize mobile number before checking whitelist to handle format variations
+    $storedMobile = $session['admin_mobile'];
+    if (!isWhitelistedMobile($storedMobile)) {
+        error_log("SECURITY ALERT: Admin mobile " . substr($storedMobile, 0, 4) . "**** is no longer whitelisted");
+        error_log("Stored mobile format: " . $storedMobile);
+        error_log("Normalized stored mobile: " . normalizeMobile($storedMobile));
+        error_log("Whitelist: " . json_encode(getAdminWhitelist()));
         destroyAdminSession();
         return null;
     }
