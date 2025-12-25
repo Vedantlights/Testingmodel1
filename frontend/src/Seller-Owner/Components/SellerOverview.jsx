@@ -110,7 +110,11 @@ const SellerOverview = ({ onNavigate }) => {
 
       {/* Stats Grid */}
       <div className="seller-overview-stats-grid">
-        <div className="seller-overview-stat-card seller-overview-stat-primary">
+        <div 
+          className="seller-overview-stat-card seller-overview-stat-primary" 
+          onClick={() => onNavigate && onNavigate('properties')}
+          style={{ cursor: 'pointer' }}
+        >
           <div className="seller-overview-stat-icon-wrapper">
             <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
               <path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z" stroke="currentColor" strokeWidth="2"/>

@@ -93,6 +93,12 @@
   border-color: rgba(124, 58, 237, 0.1);
 }
 
+.seller-overview-stat-card[style*="cursor: pointer"]:hover,
+.seller-overview-stat-card.seller-overview-stat-primary:hover {
+  cursor: pointer;
+  border-color: rgba(124, 58, 237, 0.2);
+}
+
 .seller-overview-stat-primary {
   background: linear-gradient(135deg, #7C3AED 0%, #9D5CFF 100%);
   color: white;
