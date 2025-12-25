@@ -1,5 +1,6 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import "../styles/PlainTimerPage.css";
+import { sellerDashboardAPI } from '../../../services/api.service';
 
 const PlainTimerPage = () => {
   const [timeLeft, setTimeLeft] = useState({
@@ -8,30 +9,105 @@ const PlainTimerPage = () => {
     minutes: 0,
     seconds: 0
   });
+  const [loading, setLoading] = useState(true);
+  const timerRef = useRef(null);
 
   useEffect(() => {
-    const endDate = new Date();
-    endDate.setMonth(endDate.getMonth() + 3);
+    const fetchAndStartTimer = async () => {
+      try {
+        const response = await sellerDashboardAPI.getStats();
+        
+        let endDate;
+        
+        if (response.success && response.data?.subscription?.end_date) {
+          // Use actual subscription end_date from database
+          endDate = new Date(response.data.subscription.end_date);
+          
+          if (isNaN(endDate.getTime())) {
+            throw new Error('Invalid end date format');
+          }
+        } else {
+          // Fallback: 3 months from now (shouldn't happen if subscription exists)
+          endDate = new Date();
+          endDate.setMonth(endDate.getMonth() + 3);
+        }
+        
+        // Clear any existing timer
+        if (timerRef.current) {
+          clearInterval(timerRef.current);
+        }
+        
+        // Start timer
+        timerRef.current = setInterval(() => {
+          const now = new Date().getTime();
+          const distance = endDate.getTime() - now;
 
-    const timer = setInterval(() => {
-      const now = new Date().getTime();
-      const distance = endDate.getTime() - now;
+          if (distance < 0) {
+            if (timerRef.current) clearInterval(timerRef.current);
+            setTimeLeft({ days: 0, hours: 0, minutes: 0, seconds: 0 });
+          } else {
+            setTimeLeft({
+              days: Math.floor(distance / (1000 * 60 * 60 * 24)),
+              hours: Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60)),
+              minutes: Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60)),
+              seconds: Math.floor((distance % (1000 * 60)) / 1000)
+            });
+          }
+        }, 1000);
+        
+        setLoading(false);
+      } catch (err) {
+        console.error('Error fetching subscription data:', err);
+        // Fallback to 3 months from now
+        const endDate = new Date();
+        endDate.setMonth(endDate.getMonth() + 3);
+        
+        if (timerRef.current) {
+          clearInterval(timerRef.current);
+        }
+        
+        timerRef.current = setInterval(() => {
+          const now = new Date().getTime();
+          const distance = endDate.getTime() - now;
 
-      if (distance < 0) {
-        clearInterval(timer);
-        setTimeLeft({ days: 0, hours: 0, minutes: 0, seconds: 0 });
-      } else {
-        setTimeLeft({
-          days: Math.floor(distance / (1000 * 60 * 60 * 24)),
-          hours: Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60)),
-          minutes: Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60)),
-          seconds: Math.floor((distance % (1000 * 60)) / 1000)
-        });
+          if (distance < 0) {
+            if (timerRef.current) clearInterval(timerRef.current);
+            setTimeLeft({ days: 0, hours: 0, minutes: 0, seconds: 0 });
+          } else {
+            setTimeLeft({
+              days: Math.floor(distance / (1000 * 60 * 60 * 24)),
+              hours: Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60)),
+              minutes: Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60)),
+              seconds: Math.floor((distance % (1000 * 60)) / 1000)
+            });
+          }
+        }, 1000);
+        
+        setLoading(false);
       }
-    }, 1000);
+    };
 
-    return () => clearInterval(timer);
+    fetchAndStartTimer();
+    
+    // Cleanup on unmount
+    return () => {
+      if (timerRef.current) {
+        clearInterval(timerRef.current);
+      }
+    };
   }, []);
+
+  if (loading) {
+    return (
+      <div className="timer-page">
+        <div className="timer-content">
+          <div style={{ textAlign: 'center', padding: '2rem' }}>
+            <p>Loading subscription data...</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="timer-page">

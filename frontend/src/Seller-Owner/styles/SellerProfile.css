@@ -466,6 +466,8 @@
   margin-top: 2rem;
   padding-top: 1.5rem;
   border-top: 1px solid var(--border-color);
+  position: relative;
+  z-index: 10;
 }
 
 .seller-profile-cancel-btn {
@@ -499,6 +501,9 @@
   cursor: pointer;
   transition: all var(--transition-normal);
   box-shadow: 0 4px 12px rgba(124, 58, 237, 0.35);
+  pointer-events: auto;
+  position: relative;
+  z-index: 10;
 }
 
 .seller-profile-save-btn:hover {
