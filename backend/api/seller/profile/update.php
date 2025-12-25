@@ -110,9 +110,12 @@ try {
             continue; // Silently skip or you could throw an error
         }
         
+        // Check if field is set (including empty strings to allow clearing fields)
         if (isset($input[$field])) {
             $updateProfileFields[] = "$field = ?";
-            $profileParams[] = sanitizeInput($input[$field]);
+            // Allow empty strings to clear fields, but sanitize non-empty values
+            $value = $input[$field];
+            $profileParams[] = $value === '' ? '' : sanitizeInput($value);
         }
     }
     

@@ -460,36 +460,85 @@ const SellerProfile = () => {
       
       // Prepare data for backend
       const fullName = `${formData.firstName} ${formData.lastName}`.trim();
-      const socialLinks = {
-        facebook: formData.facebook || '',
-        instagram: formData.instagram || '',
-        linkedin: formData.linkedin || ''
-      };
+      
+      // Prepare address - use address field, fallback to agencyAddress, or empty string
+      const addressValue = (formData.address || formData.agencyAddress || '').trim();
       
       // Exclude email and phone from update - they cannot be changed after login
       const updateData = {
         full_name: fullName,
-        address: formData.address || formData.agencyAddress || null
+        address: addressValue // Always send address, even if empty, so it can be cleared
       };
+      
+      console.log('Sending update data:', updateData);
       
       const response = await sellerProfileAPI.update(updateData);
       
+      console.log('Update response:', response);
+      
       if (response.success) {
         setShowSuccess(true);
-        setTimeout(() => setShowSuccess(false), 3000);
+        // Hide toast after 3 seconds with fade-out effect
+        setTimeout(() => {
+          setShowSuccess(false);
+        }, 3000);
         
-        // Update formData with response to ensure consistency
-        if (response.data && response.data.profile) {
-          const profile = response.data.profile;
-          const nameParts = (profile.full_name || '').split(' ');
-          setFormData(prev => ({
-            ...prev,
-            firstName: nameParts[0] || '',
-            lastName: nameParts.slice(1).join(' ') || '',
-            address: profile.address || prev.address,
-            email: profile.email || prev.email,
-            phone: profile.phone || prev.phone
-          }));
+        // Refetch profile to ensure we have the latest data
+        try {
+          const profileResponse = await sellerProfileAPI.get();
+          if (profileResponse.success && profileResponse.data && profileResponse.data.profile) {
+            const profile = profileResponse.data.profile;
+            
+            // Split full_name into firstName and lastName
+            const nameParts = (profile.full_name || '').split(' ');
+            const firstName = nameParts[0] || '';
+            const lastName = nameParts.slice(1).join(' ') || '';
+            
+            // Parse social_links if needed
+            let socialLinks = profile.social_links || {};
+            if (typeof socialLinks === 'string') {
+              try {
+                socialLinks = JSON.parse(socialLinks);
+              } catch (e) {
+                socialLinks = {};
+              }
+            }
+            
+            // Update all form data with fresh data from backend
+            setFormData(prev => ({
+              ...prev,
+              firstName: firstName,
+              lastName: lastName,
+              address: profile.address || '',
+              email: profile.email || prev.email,
+              phone: profile.phone || prev.phone,
+              agencyName: profile.company_name || '',
+              agencyAddress: profile.address || '',
+              reraNumber: profile.license_number || '',
+              website: profile.website || '',
+              facebook: socialLinks.facebook || '',
+              instagram: socialLinks.instagram || '',
+              linkedin: socialLinks.linkedin || ''
+            }));
+            
+            // Update profile image if returned
+            if (profile.profile_image) {
+              setProfileImage(profile.profile_image);
+            }
+          }
+        } catch (fetchError) {
+          console.error('Error refetching profile:', fetchError);
+          // Still update with response data if refetch fails
+          if (response.data && response.data.profile) {
+            const profile = response.data.profile;
+            const nameParts = (profile.full_name || '').split(' ');
+            setFormData(prev => ({
+              ...prev,
+              firstName: nameParts[0] || '',
+              lastName: nameParts.slice(1).join(' ') || '',
+              address: profile.address || prev.address || ''
+            }));
+          }
         }
       } else {
         alert(response.message || 'Failed to update profile');
@@ -497,7 +546,7 @@ const SellerProfile = () => {
       }
     } catch (error) {
       console.error('Error updating profile:', error);
-      alert('Failed to update profile. Please try again.');
+      alert(error.message || 'Failed to update profile. Please try again.');
       setIsEditing(true); // Re-enable editing on error
     }
   };
