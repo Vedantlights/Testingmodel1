@@ -1044,11 +1044,6 @@ const ViewDetailsPage = () => {
                                     ))}
                                 </div>
                             </div>
-
-                            <hr className="divider" />
-
-                            {/* Location Map */}
-                            <PropertyMapFeature property={property} />
                         </section>
 
                         {/* --- Right Column (Sticky Booking Card) --- */}
@@ -1079,6 +1074,9 @@ const ViewDetailsPage = () => {
                             </div>
                         </aside>
                     </div>
+
+                    {/* Location Map - Outside property-details-section */}
+                    <PropertyMapFeature property={property} />
                 </div>
             </main>
 
