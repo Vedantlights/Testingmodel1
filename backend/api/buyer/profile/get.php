@@ -47,7 +47,7 @@ try {
                    u.created_at, u.updated_at,
                    up.id as profile_id, up.full_name as profile_full_name, up.user_type as profile_user_type,
                    COALESCE(u.profile_image, up.profile_image) as profile_image, 
-                   up.address,
+                   up.address, up.whatsapp_number, up.alternate_mobile,
                    up.created_at as profile_created_at, up.updated_at as profile_updated_at
             FROM users u
             LEFT JOIN user_profiles up ON u.id = up.user_id
@@ -61,7 +61,7 @@ try {
                    u.created_at, u.updated_at,
                    up.id as profile_id, up.full_name as profile_full_name, up.user_type as profile_user_type,
                    u.profile_image, 
-                   up.address,
+                   up.address, up.whatsapp_number, up.alternate_mobile,
                    up.created_at as profile_created_at, up.updated_at as profile_updated_at
             FROM users u
             LEFT JOIN user_profiles up ON u.id = up.user_id
@@ -89,7 +89,7 @@ try {
                    u.created_at, u.updated_at,
                    up.id as profile_id, up.full_name as profile_full_name, up.user_type as profile_user_type,
                    NULL as profile_image, 
-                   up.address,
+                   up.address, up.whatsapp_number, up.alternate_mobile,
                    up.created_at as profile_created_at, up.updated_at as profile_updated_at
             FROM users u
             LEFT JOIN user_profiles up ON u.id = up.user_id

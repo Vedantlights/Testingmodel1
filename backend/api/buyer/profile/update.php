@@ -93,16 +93,29 @@ try {
     }
     
     // Update or insert user profile
-    // Only allow address (not agent-only fields)
-    $allowedProfileFields = ['address'];
+    // Only allow address and contact numbers (not agent-only fields)
+    $allowedProfileFields = ['address', 'whatsapp_number', 'alternate_mobile'];
     
     $updateProfileFields = [];
     $profileParams = [];
     
     foreach ($allowedProfileFields as $field) {
         if (isset($input[$field])) {
+            $value = $input[$field];
+            
+            // Validate phone number fields if provided
+            if (($field === 'whatsapp_number' || $field === 'alternate_mobile') && !empty($value)) {
+                $phone = preg_replace('/\D/', '', $value);
+                if (strlen($phone) < 10 || strlen($phone) > 15) {
+                    sendError("Invalid {$field} format. Must be 10-15 digits.", null, 400);
+                }
+                // Normalize to digits only for storage
+                $value = $phone;
+            }
+            
             $updateProfileFields[] = "$field = ?";
-            $profileParams[] = sanitizeInput($input[$field]);
+            // Allow empty strings to clear fields, but sanitize non-empty values
+            $profileParams[] = $value === '' ? '' : sanitizeInput($value);
         }
     }
     
@@ -143,7 +156,7 @@ try {
                u.is_banned, u.ban_reason, u.agent_verified, u.verification_documents,
                u.created_at, u.updated_at,
                up.id as profile_id, up.full_name as profile_full_name, up.user_type as profile_user_type,
-               up.profile_image, up.address,
+               up.profile_image, up.address, up.whatsapp_number, up.alternate_mobile,
                up.created_at as profile_created_at, up.updated_at as profile_updated_at
         FROM users u
         LEFT JOIN user_profiles up ON u.id = up.user_id

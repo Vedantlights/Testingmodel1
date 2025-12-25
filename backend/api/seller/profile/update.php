@@ -95,7 +95,8 @@ try {
     // Update or insert user profile
     // Agent-only fields: company_name, license_number, website
     // Business fields: gst_number (available for all seller/agent types)
-    $allowedProfileFields = ['address', 'company_name', 'license_number', 'gst_number', 'website'];
+    // Contact fields: whatsapp_number, alternate_mobile (available for all user types)
+    $allowedProfileFields = ['address', 'whatsapp_number', 'alternate_mobile', 'company_name', 'license_number', 'gst_number', 'website'];
     
     // Enforce agent-only fields - only allow if user_type is 'agent'
     $userType = $user['user_type'] ?? null;
@@ -112,9 +113,20 @@ try {
         
         // Check if field is set (including empty strings to allow clearing fields)
         if (isset($input[$field])) {
+            $value = $input[$field];
+            
+            // Validate phone number fields if provided
+            if (($field === 'whatsapp_number' || $field === 'alternate_mobile') && !empty($value)) {
+                $phone = preg_replace('/\D/', '', $value);
+                if (strlen($phone) < 10 || strlen($phone) > 15) {
+                    sendError("Invalid {$field} format. Must be 10-15 digits.", null, 400);
+                }
+                // Normalize to digits only for storage
+                $value = $phone;
+            }
+            
             $updateProfileFields[] = "$field = ?";
             // Allow empty strings to clear fields, but sanitize non-empty values
-            $value = $input[$field];
             $profileParams[] = $value === '' ? '' : sanitizeInput($value);
         }
     }
@@ -156,8 +168,8 @@ try {
                u.is_banned, u.ban_reason, u.agent_verified, u.verification_documents,
                u.created_at, u.updated_at,
                up.id as profile_id, up.full_name as profile_full_name, up.user_type as profile_user_type,
-               up.profile_image, up.address, up.company_name, up.license_number, up.gst_number,
-               up.website,
+               up.profile_image, up.address, up.whatsapp_number, up.alternate_mobile,
+               up.company_name, up.license_number, up.gst_number, up.website,
                up.created_at as profile_created_at, up.updated_at as profile_updated_at
         FROM users u
         LEFT JOIN user_profiles up ON u.id = up.user_id

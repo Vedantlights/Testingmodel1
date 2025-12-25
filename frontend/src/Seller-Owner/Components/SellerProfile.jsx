@@ -40,7 +40,8 @@ const SellerProfile = () => {
     lastName: '',
     email: '',
     phone: '',
-    alternatePhone: '',
+    whatsappNumber: '',
+    alternateMobile: '',
     agencyName: '',
     agencyAddress: '',
     gstNumber: '',
@@ -101,10 +102,11 @@ const SellerProfile = () => {
             lastName: lastName,
             email: profile.email || '',
             phone: profile.phone || '',
-            alternatePhone: '', // Not in backend yet
+            whatsappNumber: profile.whatsapp_number || '',
+            alternateMobile: profile.alternate_mobile || '',
             agencyName: profile.company_name || '',
             agencyAddress: profile.address || '',
-            gstNumber: '', // Not in backend yet
+            gstNumber: profile.gst_number || '',
             reraNumber: profile.license_number || '',
             address: profile.address || '',
             website: profile.website || '',
@@ -194,11 +196,19 @@ const SellerProfile = () => {
       newErrors.phone = phoneValidation.message;
     }
     
-    // Alternate Phone validation (optional)
-    if (formData.alternatePhone) {
-      const altPhoneValidation = validateIndianPhone(formData.alternatePhone);
-      if (!altPhoneValidation.valid) {
-        newErrors.alternatePhone = altPhoneValidation.message;
+    // WhatsApp Number validation (optional)
+    if (formData.whatsappNumber) {
+      const whatsappValidation = validateIndianPhone(formData.whatsappNumber);
+      if (!whatsappValidation.valid) {
+        newErrors.whatsappNumber = whatsappValidation.message;
+      }
+    }
+    
+    // Alternate Mobile validation (optional)
+    if (formData.alternateMobile) {
+      const altMobileValidation = validateIndianPhone(formData.alternateMobile);
+      if (!altMobileValidation.valid) {
+        newErrors.alternateMobile = altMobileValidation.message;
       }
     }
     
@@ -467,7 +477,9 @@ const SellerProfile = () => {
       // Exclude email and phone from update - they cannot be changed after login
       const updateData = {
         full_name: fullName,
-        address: addressValue // Always send address, even if empty, so it can be cleared
+        address: addressValue, // Always send address, even if empty, so it can be cleared
+        whatsapp_number: formData.whatsappNumber.trim() || '',
+        alternate_mobile: formData.alternateMobile.trim() || ''
       };
       
       console.log('Sending update data:', updateData);
@@ -512,8 +524,11 @@ const SellerProfile = () => {
               address: profile.address || '',
               email: profile.email || prev.email,
               phone: profile.phone || prev.phone,
+              whatsappNumber: profile.whatsapp_number || '',
+              alternateMobile: profile.alternate_mobile || '',
               agencyName: profile.company_name || '',
               agencyAddress: profile.address || '',
+              gstNumber: profile.gst_number || '',
               reraNumber: profile.license_number || '',
               website: profile.website || '',
               facebook: socialLinks.facebook || '',
@@ -842,6 +857,47 @@ const SellerProfile = () => {
                         placeholder="+91 98765 43210"
                       />
                     </div>
+                    <small style={{ color: '#6b7280', fontSize: '0.75rem', marginTop: '0.25rem', display: 'block' }}>
+                      Login mobile number (cannot be changed)
+                    </small>
+                  </div>
+
+                  <div className="seller-profile-form-group">
+                    <label>WhatsApp Number <span style={{ color: '#6b7280', fontWeight: 'normal' }}>(Optional)</span></label>
+                    <div className="seller-profile-input-with-icon">
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+                        <path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07 19.5 19.5 0 01-6-6 19.79 19.79 0 01-3.07-8.67A2 2 0 014.11 2h3a2 2 0 012 1.72 12.84 12.84 0 00.7 2.81 2 2 0 01-.45 2.11L8.09 9.91a16 16 0 006 6l1.27-1.27a2 2 0 012.11-.45 12.84 12.84 0 002.81.7A2 2 0 0122 16.92z" stroke="currentColor" strokeWidth="2"/>
+                      </svg>
+                      <input
+                        type="tel"
+                        name="whatsappNumber"
+                        value={formData.whatsappNumber}
+                        onChange={handleChange}
+                        disabled={!isEditing}
+                        placeholder="+91 98765 43210"
+                        className={errors.whatsappNumber ? 'error' : ''}
+                      />
+                    </div>
+                    {errors.whatsappNumber && <span className="seller-profile-error-text">{errors.whatsappNumber}</span>}
+                  </div>
+
+                  <div className="seller-profile-form-group">
+                    <label>Alternate Mobile Number <span style={{ color: '#6b7280', fontWeight: 'normal' }}>(Optional)</span></label>
+                    <div className="seller-profile-input-with-icon">
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+                        <path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07 19.5 19.5 0 01-6-6 19.79 19.79 0 01-3.07-8.67A2 2 0 014.11 2h3a2 2 0 012 1.72 12.84 12.84 0 00.7 2.81 2 2 0 01-.45 2.11L8.09 9.91a16 16 0 006 6l1.27-1.27a2 2 0 012.11-.45 12.84 12.84 0 002.81.7A2 2 0 0122 16.92z" stroke="currentColor" strokeWidth="2"/>
+                      </svg>
+                      <input
+                        type="tel"
+                        name="alternateMobile"
+                        value={formData.alternateMobile}
+                        onChange={handleChange}
+                        disabled={!isEditing}
+                        placeholder="+91 98765 43210"
+                        className={errors.alternateMobile ? 'error' : ''}
+                      />
+                    </div>
+                    {errors.alternateMobile && <span className="seller-profile-error-text">{errors.alternateMobile}</span>}
                   </div>
 
                   <div className="seller-profile-form-group seller-profile-full-width">
