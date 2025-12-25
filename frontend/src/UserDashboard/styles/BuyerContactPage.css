@@ -5,11 +5,15 @@
   background: rgb(222, 220, 220);
   position: relative;
   overflow-x: hidden;
+  /* CRITICAL: No overflow-y - let body handle scrolling to prevent double scrollbar */
+  overflow-y: visible;
   /* Removed scroll-behavior: smooth for better performance - can cause lag */
   scroll-padding-top: 100px; /* Prevent scroll jumps when focusing inputs */
   /* Enable hardware acceleration */
   transform: translateZ(0);
   -webkit-transform: translateZ(0);
+  /* Ensure no height constraint that creates scrollbar */
+  height: auto;
 }
 
 /* Decorative Background Elements */

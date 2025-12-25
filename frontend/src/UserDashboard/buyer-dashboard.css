@@ -55,15 +55,20 @@
 /* HTML & Body - Allow Scrolling for Sticky Navbar */
 html {
   scroll-behavior: smooth;
-  height: 100%;
+  /* Changed from height: 100% to allow natural height - prevents double scrollbar */
+  min-height: 100%;
+  height: auto;
 }
 
 html, body {
   overflow-x: hidden;
+  /* Only body should scroll, not nested containers */
   overflow-y: auto;  /* ← CRITICAL: Allow vertical scrolling for sticky */
   width: 100%;
   max-width: 100vw;
   min-height: 100vh;
+  /* Ensure no double scrollbar */
+  height: auto;
 }
 
 /* Add padding to prevent content hiding behind fixed navbar */
@@ -77,6 +82,7 @@ body {
   overflow-y: visible;  /* ← CRITICAL: Changed from hidden to visible for sticky */
   width: 100%;
   min-height: 100vh;
+  height: auto; /* CRITICAL: No fixed height to prevent double scrollbar */
   display: flex;
   flex-direction: column;
 }
@@ -96,6 +102,9 @@ body {
   flex: 1;
   overflow: visible;  /* ← CRITICAL: Allow sticky navbar to work */
   width: 100%;
+  /* CRITICAL: No height constraint that could create scrollbar */
+  height: auto;
+  min-height: auto;
 }
 
 /* Page Wrappers - Allow Sticky to Function */

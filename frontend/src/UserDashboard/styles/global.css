@@ -9,14 +9,22 @@
 html {
   overflow-x: hidden;
   scroll-behavior: smooth;
+  /* Ensure html doesn't constrain height */
+  height: auto;
+  min-height: 100%;
 }
 
 body {
   overflow-x: hidden;
+  /* CRITICAL: Only body should have vertical scroll, not nested containers */
+  overflow-y: auto;
   width: 100%;
   max-width: 100vw;
   margin: 0;
   padding: 0;
+  /* Ensure body doesn't constrain height */
+  height: auto;
+  min-height: 100vh;
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
     'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
     sans-serif;
@@ -26,8 +34,11 @@ body {
 
 #root {
   overflow-x: hidden;
+  /* CRITICAL: No overflow-y - let body handle scrolling */
+  overflow-y: visible;
   width: 100%;
   min-height: 100vh;
+  height: auto;
 }
 
 /* Prevent elements from overflowing */
@@ -46,6 +57,9 @@ div {
   display: flex;
   flex-direction: column;
   min-height: 100vh;
+  /* CRITICAL: No overflow - let body handle all scrolling */
+  overflow: visible;
+  height: auto;
 }
 
 /* Main content area - add padding to push content below fixed navbar */
@@ -53,6 +67,10 @@ div {
   padding-top: 7.5rem; /* 7.5rem navbar height + 0.5rem extra spacing */
   flex: 1;
   width: 100%;
+  /* CRITICAL: No overflow - let body handle all scrolling */
+  overflow: visible;
+  height: auto;
+  min-height: auto;
 }
 
 /* Mobile adjustments */
