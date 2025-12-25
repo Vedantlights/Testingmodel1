@@ -989,7 +989,7 @@ const ViewDetailsPage = () => {
                                         title="Share"
                                     >
                                         <FaShare />
-                                        <span>Share</span>
+                                       
                                     </button>
                                     <button 
                                         className={`header-action-btn favorite-btn ${isFavorited ? 'active' : ''}`}
@@ -998,7 +998,7 @@ const ViewDetailsPage = () => {
                                         title={isFavorited ? 'Remove from favorites' : 'Add to favorites'}
                                     >
                                         <FaHeart />
-                                        <span>Save</span>
+                                       
                                     </button>
                                 </div>
                             </div>
