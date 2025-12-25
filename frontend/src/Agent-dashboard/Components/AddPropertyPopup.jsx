@@ -599,9 +599,12 @@ export default function AddPropertyPopup({ onClose, editIndex = null, initialDat
         const propertyId = properties[editIndex]?.id;
         if (propertyId) {
           await updateProperty(propertyId, formData);
+          alert('Property updated successfully!');
         }
       } else {
         await addProperty(formData);
+        // Show alert after successful property publication
+        alert('Property published successfully! You can edit your property within 24 hours of creation.');
       }
       
       // Close popup on success

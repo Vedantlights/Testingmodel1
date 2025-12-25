@@ -28,11 +28,37 @@ try {
     
     $db = getDB();
     
-    // Check if property exists and belongs to user
-    $stmt = $db->prepare("SELECT id FROM properties WHERE id = ? AND user_id = ?");
+    // Check if property exists, belongs to user, and get its creation timestamp
+    // Each property is tracked independently by its ID and created_at
+    $stmt = $db->prepare("SELECT id, created_at FROM properties WHERE id = ? AND user_id = ?");
     $stmt->execute([$propertyId, $user['id']]);
-    if (!$stmt->fetch()) {
+    $property = $stmt->fetch();
+    
+    if (!$property) {
         sendError('Property not found or access denied', null, 404);
+    }
+    
+    // Check if THIS specific property was created within 24 hours
+    // This works correctly for multiple properties because each property has its own created_at
+    $createdAt = new DateTime($property['created_at']);
+    $now = new DateTime();
+    $interval = $now->diff($createdAt);
+    
+    // Calculate total hours since creation
+    $hoursSinceCreation = ($interval->days * 24) + $interval->h + ($interval->i / 60);
+    
+    if ($hoursSinceCreation >= 24) {
+        // Provide clear error message with time remaining/expired
+        $daysAgo = $interval->days;
+        $hoursAgo = $interval->h;
+        
+        if ($daysAgo > 0) {
+            $message = "You can only edit your property within 24 hours of creation. This property was created {$daysAgo} day(s) and {$hoursAgo} hour(s) ago.";
+        } else {
+            $message = "You can only edit your property within 24 hours of creation. This property was created {$hoursAgo} hour(s) ago.";
+        }
+        
+        sendError($message, null, 403);
     }
     
     // Get input data

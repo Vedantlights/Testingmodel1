@@ -85,6 +85,19 @@ const AgentProperties = () => {
     return properties.findIndex(p => p.id === propertyId);
   };
 
+  // Helper function to check if property can be edited (within 24 hours)
+  const canEditProperty = (property) => {
+    if (!property || !property.createdAt) {
+      return true; // Allow if no timestamp (backward compatibility)
+    }
+    
+    const createdAt = new Date(property.createdAt);
+    const now = new Date();
+    const hoursSinceCreation = (now.getTime() - createdAt.getTime()) / (1000 * 60 * 60);
+    
+    return hoursSinceCreation < 24;
+  };
+
   const handleViewDetails = (propertyId) => {
     console.log('Navigating to property:', propertyId);
     // Use buyer's ViewDetailsPage route (same layout for all users)
@@ -290,22 +303,27 @@ const AgentProperties = () => {
         </div>
       ) : (
         <div className={`properties-container ${viewMode}`}>
-          {filteredProperties.map((property, index) => (
-            <div 
-              key={property.id} 
-              className={`property-card ${viewMode}`}
-              style={{ animationDelay: `${index * 0.05}s` }}
-            >
-              <div className="property-image">
-                <img src={property.images?.[0]} alt={property.title} />
-                <div className="image-overlay">
-                  <button className="overlay-btn" onClick={() => openEdit(getPropertyIndex(property.id))}>
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
-                      <path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7" stroke="currentColor" strokeWidth="2"/>
-                      <path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z" stroke="currentColor" strokeWidth="2"/>
-                    </svg>
-                  </button>
-                  <button 
+          {filteredProperties.map((property, index) => {
+            const isEditable = canEditProperty(property);
+            
+            return (
+              <div 
+                key={property.id} 
+                className={`property-card ${viewMode}`}
+                style={{ animationDelay: `${index * 0.05}s` }}
+              >
+                <div className="property-image">
+                  <img src={property.images?.[0]} alt={property.title} />
+                  <div className="image-overlay">
+                    {isEditable && (
+                      <button className="overlay-btn" onClick={() => openEdit(getPropertyIndex(property.id))}>
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+                          <path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7" stroke="currentColor" strokeWidth="2"/>
+                          <path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z" stroke="currentColor" strokeWidth="2"/>
+                        </svg>
+                      </button>
+                    )}
+                    <button 
                     className="overlay-btn delete" 
                     onClick={() => handleDelete(property.id)}
                     disabled={deletingId === property.id}
@@ -429,9 +447,11 @@ const AgentProperties = () => {
                       </svg>
                       View
                     </button>
-                    <button className="edit-btn" onClick={() => openEdit(getPropertyIndex(property.id))}>
-                      Edit
-                    </button>
+                    {isEditable && (
+                      <button className="edit-btn" onClick={() => openEdit(getPropertyIndex(property.id))}>
+                        Edit
+                      </button>
+                    )}
                     <button 
                       className="delete-btn" 
                       onClick={() => handleDelete(property.id)}
@@ -443,7 +463,8 @@ const AgentProperties = () => {
                 </div>
               </div>
             </div>
-          ))}
+            );
+          })}
 
           {/* Add Property Card */}
           {properties.length < MAX_PROPERTIES && viewMode === 'grid' && (
