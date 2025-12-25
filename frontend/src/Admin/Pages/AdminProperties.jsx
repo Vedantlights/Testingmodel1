@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Search, Filter, Eye, Edit, Trash2, X, Check } from 'lucide-react';
+import { Search, Filter, Eye, Trash2, X, Check } from 'lucide-react';
 import { API_BASE_URL, API_ENDPOINTS } from '../../config/api.config';
 import '../style/AdminProperties.css';
 

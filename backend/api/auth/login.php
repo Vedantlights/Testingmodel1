@@ -49,44 +49,15 @@ try {
     // Normalize email (lowercase, trim) - same as registration
     $emailNormalized = strtolower(trim($email));
     
-    // Check if profile_image exists in users table or user_profiles table
-    $hasProfileImageInUsers = false;
-    $hasProfileImageInProfiles = false;
-    
-    try {
-        $checkStmt = $db->query("SHOW COLUMNS FROM users LIKE 'profile_image'");
-        $hasProfileImageInUsers = $checkStmt->rowCount() > 0;
-    } catch (PDOException $e) {
-        $hasProfileImageInUsers = false;
-    }
-    
-    try {
-        $checkStmt = $db->query("SHOW COLUMNS FROM user_profiles LIKE 'profile_image'");
-        $hasProfileImageInProfiles = $checkStmt->rowCount() > 0;
-    } catch (PDOException $e) {
-        $hasProfileImageInProfiles = false;
-    }
-    
-    // Build SELECT query based on where profile_image column exists
-    if ($hasProfileImageInUsers) {
-        // profile_image is in users table (primary location)
-        $stmt = $db->prepare("
-            SELECT u.id, u.full_name, u.email, u.phone, u.password, u.user_type, u.email_verified, u.phone_verified,
-                   u.profile_image
-            FROM users u
-            WHERE LOWER(TRIM(u.email)) = ?
-        ");
-    } elseif ($hasProfileImageInProfiles) {
-        // profile_image is in user_profiles table (legacy)
-        $stmt = $db->prepare("
-            SELECT u.id, u.full_name, u.email, u.phone, u.password, u.user_type, u.email_verified, u.phone_verified,
-                   up.profile_image
-            FROM users u
-            LEFT JOIN user_profiles up ON u.id = up.user_id
-            WHERE LOWER(TRIM(u.email)) = ?
-        ");
-    } else {
-        // profile_image doesn't exist in either table
+    // profile_image is in user_profiles table, not users table
+    // Always join with user_profiles to get profile_image
+    $stmt = $db->prepare("
+        SELECT u.id, u.full_name, u.email, u.phone, u.password, u.user_type, u.email_verified, u.phone_verified,
+               up.profile_image
+        FROM users u
+        LEFT JOIN user_profiles up ON u.id = up.user_id
+        WHERE LOWER(TRIM(u.email)) = ?
+    ");
         $stmt = $db->prepare("
             SELECT u.id, u.full_name, u.email, u.phone, u.password, u.user_type, u.email_verified, u.phone_verified,
                    NULL as profile_image

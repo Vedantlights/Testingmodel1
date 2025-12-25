@@ -69,15 +69,6 @@ try {
         $hasIsBanned = false;
     }
     
-    // Check if user_profiles table has profile_image column
-    $hasProfileImageInProfiles = false;
-    try {
-        $checkStmt = $db->query("SHOW COLUMNS FROM user_profiles LIKE 'profile_image'");
-        $hasProfileImageInProfiles = $checkStmt->rowCount() > 0;
-    } catch (Exception $e) {
-        $hasProfileImageInProfiles = false;
-    }
-    
     // Build WHERE clause (use u. prefix for user table fields)
     // Users page should ONLY show buyers and sellers (NOT agents)
     $where = ["u.user_type IN ('buyer', 'seller')"];
@@ -124,24 +115,15 @@ try {
         $queryParams = $params;
     }
     
-    // Build SELECT columns - profile_image is in users table, not user_profiles
-    if ($hasProfileImageInProfiles) {
-        // If profile_image exists in user_profiles, use it
-        $selectColumns = "u.id, u.full_name, u.email, u.phone, u.user_type, u.email_verified, u.phone_verified, COALESCE(up.profile_image, u.profile_image) as profile_image, u.created_at";
-        if ($hasIsBanned) {
-            $selectColumns = "u.id, u.full_name, u.email, u.phone, u.user_type, u.email_verified, u.phone_verified, COALESCE(up.profile_image, u.profile_image) as profile_image, u.is_banned, u.created_at";
-        }
-        $joinClause = "LEFT JOIN user_profiles up ON u.id = up.user_id";
-    } else {
-        // profile_image is in users table
-        $selectColumns = "u.id, u.full_name, u.email, u.phone, u.user_type, u.email_verified, u.phone_verified, u.profile_image, u.created_at";
-        if ($hasIsBanned) {
-            $selectColumns = "u.id, u.full_name, u.email, u.phone, u.user_type, u.email_verified, u.phone_verified, u.profile_image, u.is_banned, u.created_at";
-        }
-        $joinClause = "";
+    // Build SELECT columns - profile_image is in user_profiles table, not users table
+    // Always join with user_profiles to get profile_image
+    $selectColumns = "u.id, u.full_name, u.email, u.phone, u.user_type, u.email_verified, u.phone_verified, up.profile_image, u.created_at";
+    if ($hasIsBanned) {
+        $selectColumns = "u.id, u.full_name, u.email, u.phone, u.user_type, u.email_verified, u.phone_verified, up.profile_image, u.is_banned, u.created_at";
     }
+    $joinClause = "LEFT JOIN user_profiles up ON u.id = up.user_id";
     
-    // Get users with profile_image
+    // Get users with profile_image from user_profiles table
     $query = "SELECT {$selectColumns} FROM users u {$joinClause} {$whereClause} ORDER BY u.created_at DESC LIMIT " . intval($limit) . " OFFSET " . intval($offset);
     
     $stmt = $db->prepare($query);

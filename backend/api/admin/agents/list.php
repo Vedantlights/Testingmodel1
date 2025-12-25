@@ -93,25 +93,10 @@ try {
     
     $whereClause = "WHERE " . implode(" AND ", $where);
     
-    // Check if user_profiles table has profile_image column
-    $hasProfileImageInProfiles = false;
-    try {
-        $checkStmt = $db->query("SHOW COLUMNS FROM user_profiles LIKE 'profile_image'");
-        $hasProfileImageInProfiles = $checkStmt->rowCount() > 0;
-    } catch (Exception $e) {
-        $hasProfileImageInProfiles = false;
-    }
-    
-    // Build SELECT columns - profile_image is in users table, not user_profiles
-    if ($hasProfileImageInProfiles) {
-        // If profile_image exists in user_profiles, use it
-        $selectColumns = ["u.id", "u.full_name", "u.email", "u.phone", "u.user_type", "u.email_verified", "u.phone_verified", "COALESCE(up.profile_image, u.profile_image) as profile_image", "u.created_at"];
-        $joinClause = "LEFT JOIN user_profiles up ON u.id = up.user_id";
-    } else {
-        // profile_image is in users table
-        $selectColumns = ["u.id", "u.full_name", "u.email", "u.phone", "u.user_type", "u.email_verified", "u.phone_verified", "u.profile_image", "u.created_at"];
-        $joinClause = "";
-    }
+    // Build SELECT columns - profile_image is in user_profiles table, not users table
+    // Always join with user_profiles to get profile_image
+    $selectColumns = ["u.id", "u.full_name", "u.email", "u.phone", "u.user_type", "u.email_verified", "u.phone_verified", "up.profile_image", "u.created_at"];
+    $joinClause = "LEFT JOIN user_profiles up ON u.id = up.user_id";
     
     if ($hasIsBanned) {
         $selectColumns[] = "u.is_banned";
@@ -122,7 +107,7 @@ try {
     
     $selectColumnsStr = implode(", ", $selectColumns);
     
-    // Get agents with profile_image
+    // Get agents with profile_image from user_profiles table
     $query = "
         SELECT 
             {$selectColumnsStr},

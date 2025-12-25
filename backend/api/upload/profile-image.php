@@ -56,37 +56,13 @@ try {
     // Delete old profile image if exists
     $db = getDB();
     
-    // Check where profile_image column exists (users or user_profiles)
-    $hasProfileImageInUsers = false;
-    $hasProfileImageInProfiles = false;
-    
-    try {
-        $checkStmt = $db->query("SHOW COLUMNS FROM users LIKE 'profile_image'");
-        $hasProfileImageInUsers = $checkStmt->rowCount() > 0;
-    } catch (PDOException $e) {
-        $hasProfileImageInUsers = false;
-    }
-    
-    try {
-        $checkStmt = $db->query("SHOW COLUMNS FROM user_profiles LIKE 'profile_image'");
-        $hasProfileImageInProfiles = $checkStmt->rowCount() > 0;
-    } catch (PDOException $e) {
-        $hasProfileImageInProfiles = false;
-    }
-    
-    // Get old profile image URL
+    // profile_image is in user_profiles table, not users table
+    // Get old profile image URL from user_profiles
     $oldImageUrl = null;
-    if ($hasProfileImageInUsers) {
-        $stmt = $db->prepare("SELECT profile_image FROM users WHERE id = ?");
-        $stmt->execute([$user['id']]);
-        $result = $stmt->fetch();
-        $oldImageUrl = $result['profile_image'] ?? null;
-    } elseif ($hasProfileImageInProfiles) {
-        $stmt = $db->prepare("SELECT profile_image FROM user_profiles WHERE user_id = ?");
-        $stmt->execute([$user['id']]);
-        $result = $stmt->fetch();
-        $oldImageUrl = $result['profile_image'] ?? null;
-    }
+    $stmt = $db->prepare("SELECT profile_image FROM user_profiles WHERE user_id = ?");
+    $stmt->execute([$user['id']]);
+    $result = $stmt->fetch();
+    $oldImageUrl = $result['profile_image'] ?? null;
     
     // Delete old image file if exists
     if ($oldImageUrl) {
@@ -119,28 +95,19 @@ try {
     
     $url = UPLOAD_BASE_URL . '/users/profiles/' . $filename;
     
-    // Update profile_image in the correct table
-    if ($hasProfileImageInUsers) {
-        // Update in users table
-        $stmt = $db->prepare("UPDATE users SET profile_image = ?, updated_at = NOW() WHERE id = ?");
-        $stmt->execute([$url, $user['id']]);
-    } elseif ($hasProfileImageInProfiles) {
-        // Ensure user_profiles record exists
-        $stmt = $db->prepare("SELECT id FROM user_profiles WHERE user_id = ?");
+    // profile_image is in user_profiles table, not users table
+    // Ensure user_profiles record exists
+    $stmt = $db->prepare("SELECT id FROM user_profiles WHERE user_id = ?");
+    $stmt->execute([$user['id']]);
+    if (!$stmt->fetch()) {
+        // Create user_profiles record if it doesn't exist
+        $stmt = $db->prepare("INSERT INTO user_profiles (user_id) VALUES (?)");
         $stmt->execute([$user['id']]);
-        if (!$stmt->fetch()) {
-            // Create user_profiles record if it doesn't exist
-            $stmt = $db->prepare("INSERT INTO user_profiles (user_id) VALUES (?)");
-            $stmt->execute([$user['id']]);
-        }
-        
-        // Update profile_image in user_profiles table
-        $stmt = $db->prepare("UPDATE user_profiles SET profile_image = ?, updated_at = NOW() WHERE user_id = ?");
-        $stmt->execute([$url, $user['id']]);
-    } else {
-        // Neither table has profile_image column - just log and continue
-        error_log("Warning: profile_image column not found in users or user_profiles table");
     }
+    
+    // Update profile_image in user_profiles table
+    $stmt = $db->prepare("UPDATE user_profiles SET profile_image = ?, updated_at = NOW() WHERE user_id = ?");
+    $stmt->execute([$url, $user['id']]);
     
     sendSuccess('Profile image uploaded successfully', [
         'url' => $url,

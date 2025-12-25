@@ -356,52 +356,15 @@ try {
         // Generate token
         $token = generateToken($userId, $userType, $email);
         
-        // Get user data with profile_image from users table (not user_profiles)
-        // Check if profile_image column exists in users table
-        $hasProfileImageInUsers = false;
-        try {
-            $checkStmt = $db->query("SHOW COLUMNS FROM users LIKE 'profile_image'");
-            $hasProfileImageInUsers = $checkStmt->rowCount() > 0;
-        } catch (PDOException $e) {
-            $hasProfileImageInUsers = false;
-        }
-        
-        // Check if profile_image exists in user_profiles (for backward compatibility)
-        $hasProfileImageInProfiles = false;
-        try {
-            $checkStmt = $db->query("SHOW COLUMNS FROM user_profiles LIKE 'profile_image'");
-            $hasProfileImageInProfiles = $checkStmt->rowCount() > 0;
-        } catch (PDOException $e) {
-            $hasProfileImageInProfiles = false;
-        }
-        
-        // Build SELECT query based on where profile_image column exists
-        if ($hasProfileImageInUsers) {
-            // profile_image is in users table
-            $stmt = $db->prepare("
-                SELECT u.id, u.full_name, u.email, u.phone, u.user_type, u.email_verified, u.phone_verified, 
-                       u.profile_image 
-                FROM users u
-                WHERE u.id = ?
-            ");
-        } elseif ($hasProfileImageInProfiles) {
-            // profile_image is in user_profiles table (legacy)
-            $stmt = $db->prepare("
-                SELECT u.id, u.full_name, u.email, u.phone, u.user_type, u.email_verified, u.phone_verified, 
-                       up.profile_image 
-                FROM users u
-                LEFT JOIN user_profiles up ON u.id = up.user_id
-                WHERE u.id = ?
-            ");
-        } else {
-            // profile_image doesn't exist in either table
-            $stmt = $db->prepare("
-                SELECT u.id, u.full_name, u.email, u.phone, u.user_type, u.email_verified, u.phone_verified, 
-                       NULL as profile_image 
-                FROM users u
-                WHERE u.id = ?
-            ");
-        }
+        // Get user data with profile_image from user_profiles table (not users table)
+        // profile_image is in user_profiles table, always join with it
+        $stmt = $db->prepare("
+            SELECT u.id, u.full_name, u.email, u.phone, u.user_type, u.email_verified, u.phone_verified, 
+                   up.profile_image 
+            FROM users u
+            LEFT JOIN user_profiles up ON u.id = up.user_id
+            WHERE u.id = ?
+        ");
         
         $stmt->execute([$userId]);
         $user = $stmt->fetch();

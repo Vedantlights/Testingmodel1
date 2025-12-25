@@ -37,16 +37,7 @@ try {
         error_log("Could not check user_profiles table: " . $e->getMessage());
     }
     
-    // Check if users table has profile_image column
-    $hasProfileImageInUsers = false;
-    try {
-        $checkStmt = $db->query("SHOW COLUMNS FROM users LIKE 'profile_image'");
-        $hasProfileImageInUsers = $checkStmt->rowCount() > 0;
-    } catch (Exception $e) {
-        $hasProfileImageInUsers = false;
-    }
-    
-    // Build query based on available tables
+    // Build query - profile_image is in user_profiles table, not users table
     if ($hasUserProfilesTable) {
         // user_profiles table exists - use it
         $query = "
@@ -66,26 +57,8 @@ try {
             LEFT JOIN user_profiles up ON u.id = up.user_id
             WHERE i.seller_id = ?
         ";
-    } elseif ($hasProfileImageInUsers) {
-        // user_profiles doesn't exist, but users has profile_image column
-        $query = "
-            SELECT i.*,
-                   p.id as property_id,
-                   p.title as property_title,
-                   p.location as property_location,
-                   p.price as property_price,
-                   p.cover_image as property_image,
-                   u.full_name as buyer_name,
-                   u.email as buyer_email,
-                   u.phone as buyer_phone,
-                   u.profile_image as buyer_profile_image
-            FROM inquiries i
-            INNER JOIN properties p ON i.property_id = p.id
-            LEFT JOIN users u ON i.buyer_id = u.id
-            WHERE i.seller_id = ?
-        ";
     } else {
-        // Neither user_profiles table nor profile_image column exists
+        // user_profiles table doesn't exist - no profile_image available
         $query = "
             SELECT i.*,
                    p.id as property_id,
