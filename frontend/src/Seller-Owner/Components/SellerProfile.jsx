@@ -805,7 +805,9 @@ const SellerProfile = () => {
                       value={formData.firstName}
                       onChange={handleChange}
                       disabled={!isEditing}
+                      className={errors.firstName ? 'error' : ''}
                     />
+                    {errors.firstName && <span className="seller-profile-error-text">{errors.firstName}</span>}
                   </div>
 
                   <div className="seller-profile-form-group">

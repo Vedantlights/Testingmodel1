@@ -83,7 +83,8 @@ try {
                    u.created_at, u.updated_at,
                    up.id as profile_id, up.full_name as profile_full_name, up.user_type as profile_user_type,
                    up.profile_image, 
-                   up.address, up.company_name, up.license_number, up.gst_number,
+                   up.address, up.whatsapp_number, up.alternate_mobile,
+                   up.company_name, up.license_number, up.gst_number,
                    up.website,
                    up.created_at as profile_created_at, up.updated_at as profile_updated_at
             FROM users u

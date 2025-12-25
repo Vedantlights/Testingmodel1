@@ -189,12 +189,13 @@ const AgentProfile = () => {
       };
       
       // Exclude email and phone from update - they cannot be changed after login
+      // Send empty strings instead of null to allow clearing fields
       const updateData = {
         full_name: fullName,
-        address: formData.agencyAddress || null,
-        company_name: formData.agencyName || null,
-        license_number: formData.reraNumber || null,
-        website: formData.website || null,
+        address: (formData.agencyAddress || '').trim(),
+        company_name: (formData.agencyName || '').trim(),
+        license_number: (formData.reraNumber || '').trim(),
+        website: (formData.website || '').trim(),
         social_links: socialLinks
       };
       
