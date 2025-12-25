@@ -93,19 +93,17 @@ function createAdminSession($adminMobile, $adminId, $adminRole, $adminEmail) {
         }
     }
     
-    $cookieParams = [
-        'lifetime' => SESSION_EXPIRY / 1000, // Convert milliseconds to seconds
-        'path' => '/',
-        'domain' => $domain,
-        'secure' => defined('ENVIRONMENT') && ENVIRONMENT === 'production',
-        'httponly' => true,
-        'samesite' => 'Lax' // Use 'Lax' to allow cookies in cross-site navigation
-    ];
-    
-    session_set_cookie_params($cookieParams);
+    // Note: Cookie parameters should be set BEFORE session_start()
+    // They are already set in initSecureSession() via ini_set(), so we don't need to set them again here
     
     // Regenerate session ID for security after login
-    session_regenerate_id(true);
+    // This should be safe since we have output buffering enabled
+    try {
+        session_regenerate_id(true);
+    } catch (Exception $e) {
+        error_log("Warning: Could not regenerate session ID: " . $e->getMessage());
+        // Continue anyway - session is still valid
+    }
     
     return true;
 }
