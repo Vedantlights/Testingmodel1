@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from "react";
 import "../styles/PlainTimerPage.css";
-import { sellerDashboardAPI } from '../../../services/api.service';
+import { sellerDashboardAPI } from '../../services/api.service';
 
 const PlainTimerPage = () => {
   const [timeLeft, setTimeLeft] = useState({
