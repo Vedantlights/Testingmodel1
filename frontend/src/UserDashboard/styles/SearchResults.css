@@ -387,17 +387,20 @@
 .search-results-split-layout {
   display: flex;
   flex: 1;
-  overflow: hidden;
+  overflow: visible;
   min-height: calc(100vh - 200px);
+  align-items: flex-start;
 }
 
 /* Left Side - Scrollable Listings */
 .search-results-listings {
   width: 55%;
   overflow-y: auto;
+  overflow-x: hidden;
   background: #f9fafb;
   padding: 1.5rem;
   box-sizing: border-box;
+  height: calc(100vh - 200px);
 }
 
 /* Results Header */
@@ -659,14 +662,19 @@
   width: 45%;
   position: sticky;
   top: 0;
-  height: calc(100vh - 120px);
+  height: calc(100vh - 200px);
   min-height: 500px;
+  max-height: calc(100vh - 200px);
   background: #f7f7f7;
-  border-left: 1px solid #ebebeb;
+  border: 1px solid #ebebeb;
+  border-radius: 8px;
   z-index: 10;
   overflow: hidden;
   display: flex;
   flex-direction: column;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+  margin: 0;
+  align-self: flex-start;
 }
 
 .search-results-map .map-wrapper {
@@ -880,11 +888,14 @@
 @media (max-width: 1024px) {
   .search-results-split-layout {
     flex-direction: column;
+    overflow: visible;
   }
 
   .search-results-listings {
     width: 100%;
     padding: 1rem;
+    height: auto;
+    overflow-y: visible;
   }
 
   .search-results-grid {
