@@ -5,10 +5,15 @@
  * Verifies MSG91 widget token and creates secure admin session
  */
 
-// Enable error logging
+// TEMPORARY DEBUG - REMOVE AFTER FIXING
+ini_set('display_errors', 1);
+ini_set('display_startup_errors', 1);
 error_reporting(E_ALL);
-ini_set('display_errors', 0); // Don't display, but log
+
+// Log to file
 ini_set('log_errors', 1);
+$debugLogPath = __DIR__ . '/debug.log';
+ini_set('error_log', $debugLogPath);
 
 // Start output buffering early to prevent any PHP warnings/notices from breaking JSON
 if (ob_get_level() == 0) {
@@ -16,21 +21,64 @@ if (ob_get_level() == 0) {
 }
 
 // Log incoming request
-error_log("=== VERIFY OTP REQUEST START ===");
+error_log("========== NEW REQUEST ==========");
+error_log("Time: " . date('Y-m-d H:i:s'));
 error_log("Method: " . ($_SERVER['REQUEST_METHOD'] ?? 'UNKNOWN'));
 $rawInputDebug = file_get_contents('php://input');
-error_log("Request Body: " . $rawInputDebug);
+error_log("Raw Input: " . $rawInputDebug);
 
 // Header for JSON response
 header('Content-Type: application/json');
 
+error_log("Loading config files...");
+if (!file_exists(__DIR__ . '/../../../config/config.php')) {
+    error_log("ERROR: config.php not found!");
+    throw new Exception("Config file not found: " . __DIR__ . '/../../../config/config.php');
+}
 require_once __DIR__ . '/../../../config/config.php';
+error_log("✓ config.php loaded");
+
+if (!file_exists(__DIR__ . '/../../../config/database.php')) {
+    error_log("ERROR: database.php not found!");
+    throw new Exception("Database file not found: " . __DIR__ . '/../../../config/database.php');
+}
 require_once __DIR__ . '/../../../config/database.php';
+error_log("✓ database.php loaded");
+
+if (!file_exists(__DIR__ . '/../../../config/admin-config.php')) {
+    error_log("ERROR: admin-config.php not found!");
+    throw new Exception("Admin config file not found: " . __DIR__ . '/../../../config/admin-config.php');
+}
 require_once __DIR__ . '/../../../config/admin-config.php';
+error_log("✓ admin-config.php loaded");
+
+if (!file_exists(__DIR__ . '/../../../utils/response.php')) {
+    error_log("ERROR: response.php not found!");
+    throw new Exception("Response file not found: " . __DIR__ . '/../../../utils/response.php');
+}
 require_once __DIR__ . '/../../../utils/response.php';
+error_log("✓ response.php loaded");
+
+if (!file_exists(__DIR__ . '/../../../utils/validation.php')) {
+    error_log("ERROR: validation.php not found!");
+    throw new Exception("Validation file not found: " . __DIR__ . '/../../../utils/validation.php');
+}
 require_once __DIR__ . '/../../../utils/validation.php';
+error_log("✓ validation.php loaded");
+
+if (!file_exists(__DIR__ . '/../../../utils/admin_session.php')) {
+    error_log("ERROR: admin_session.php not found!");
+    throw new Exception("Admin session file not found: " . __DIR__ . '/../../../utils/admin_session.php');
+}
 require_once __DIR__ . '/../../../utils/admin_session.php';
+error_log("✓ admin_session.php loaded");
+
+if (!file_exists(__DIR__ . '/../../../utils/rate_limit.php')) {
+    error_log("ERROR: rate_limit.php not found!");
+    throw new Exception("Rate limit file not found: " . __DIR__ . '/../../../utils/rate_limit.php');
+}
 require_once __DIR__ . '/../../../utils/rate_limit.php';
+error_log("✓ rate_limit.php loaded");
 
 error_log("All files loaded successfully");
 
@@ -66,13 +114,18 @@ function normalizePhone($phone) {
     return '+' . $phone;
 }
 
-handlePreflight();
-
-if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
-    sendError('Method not allowed', null, 405);
-}
-
 try {
+    error_log("Step 1: Loading required files...");
+    
+    handlePreflight();
+    
+    error_log("Step 2: Checking request method...");
+    if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+        error_log("ERROR: Method not allowed - " . $_SERVER['REQUEST_METHOD']);
+        sendError('Method not allowed', null, 405);
+    }
+    
+    error_log("Step 3: Request method is POST - proceeding...");
     $rawInput = file_get_contents('php://input');
     error_log("Raw input: " . $rawInput);
     
@@ -84,15 +137,17 @@ try {
         sendError('Invalid JSON in request body', null, 400);
     }
     
-    error_log("Parsed data: " . json_encode($data));
+    error_log("Step 5: Parsing request data...");
+    error_log("Parsed data: " . print_r($data, true));
     
     if (!isset($data['mobile']) || empty($data['mobile'])) {
-        error_log("Mobile number missing in request");
+        error_log("ERROR: Mobile number missing in request");
+        error_log("Data keys: " . implode(', ', array_keys($data ?? [])));
         sendError('Mobile number is required', null, 400);
     }
     
-    if (!isset($data['widgetToken']) || empty($data['widgetToken'])) {
-        error_log("Widget token missing in request");
+    if (!isset($data['widgetToken']) && !isset($data['message']) && !isset($data['token'])) {
+        error_log("ERROR: Widget token missing in request");
         sendError('Widget verification token is required', null, 400);
     }
     
@@ -106,21 +161,28 @@ try {
     error_log("Widget token present: " . (!empty($widgetToken) ? 'YES (' . substr($widgetToken, 0, 20) . '...)' : 'NO'));
     
     // Get database connection
+    error_log("Step 4: Connecting to database...");
     try {
         $db = getDB();
         if (!$db) {
             error_log("ERROR: getDB() returned null");
             sendError('Database connection failed', null, 500);
         }
-        error_log("Database connection successful");
+        error_log("DB Connected: YES");
     } catch (Exception $e) {
         error_log("ERROR: Database connection exception: " . $e->getMessage());
+        error_log("File: " . $e->getFile() . " Line: " . $e->getLine());
         error_log("Stack trace: " . $e->getTraceAsString());
+        sendError('Database connection failed: ' . $e->getMessage(), null, 500);
+    } catch (Error $e) {
+        error_log("FATAL ERROR: Database connection error: " . $e->getMessage());
+        error_log("File: " . $e->getFile() . " Line: " . $e->getLine());
         sendError('Database connection failed: ' . $e->getMessage(), null, 500);
     }
     
     // CRITICAL: Normalize and validate mobile format FIRST
-    error_log("Normalizing mobile: " . $mobile);
+    error_log("Step 6: Normalizing mobile...");
+    error_log("Original mobile: " . $mobile);
     $normalizedMobile = normalizePhone($mobile);
     error_log("Normalized mobile: " . $normalizedMobile);
     
@@ -139,6 +201,7 @@ try {
     error_log("Mobile for DB (digits only): " . $mobileDigitsOnly);
     
     // CRITICAL: Verify mobile is whitelisted (primary security check)
+    error_log("Step 7: Checking whitelist...");
     error_log("Checking whitelist for: " . $validatedMobile);
     
     // Try direct whitelist query with both formats
@@ -259,6 +322,7 @@ try {
     }
     
     // Get admin user - check phone first (handle NULL phone case)
+    error_log("Step 8: Looking up admin user...");
     error_log("Looking up admin user by phone: " . $validatedMobile);
     
     // Try multiple phone formats to match database
@@ -276,6 +340,7 @@ try {
             $admin = $stmt->fetch(PDO::FETCH_ASSOC);
             if ($admin) {
                 error_log("Admin found with phone format: " . $phoneFormat . " - ID: " . $admin['id']);
+                error_log("Admin details: " . print_r($admin, true));
                 break;
             }
         } catch (PDOException $e) {
@@ -285,7 +350,7 @@ try {
     
     // If not found by phone, try to find any active admin (for first-time setup or NULL phone case)
     if (!$admin) {
-        error_log("Admin not found by phone, trying to find any active admin");
+        error_log("Step 9: Admin not found by phone, trying email lookup...");
         try {
             // First try admin email
             $stmt = $db->prepare("SELECT id, username, email, phone, full_name, role, is_active FROM admin_users WHERE (email LIKE ? OR email = 'admin@indiapropertys.com') AND is_active = 1 ORDER BY id ASC LIMIT 1");
@@ -390,10 +455,12 @@ try {
         sendError('Admin account not found. Please contact support.', null, 401);
     }
     
-    error_log("Admin user ready - ID: " . $admin['id'] . ", Role: " . ($admin['role'] ?? 'N/A'));
+    error_log("Step 10: Admin user ready - ID: " . $admin['id'] . ", Role: " . ($admin['role'] ?? 'N/A'));
+    error_log("Admin found: " . ($admin ? "YES - ID: " . $admin['id'] : "NO"));
     
     // Create secure admin session
-    error_log("Creating admin session for admin ID: " . $admin['id']);
+    error_log("Step 11: Creating admin session...");
+    error_log("Creating session for admin ID: " . $admin['id']);
     try {
         // Use validated mobile for session (keep original format)
         $sessionCreated = createAdminSession($validatedMobile, $admin['id'], $admin['role'], $admin['email']);
@@ -458,37 +525,66 @@ try {
     ]);
     
 } catch (PDOException $e) {
-    error_log("Verify OTP Database Error: " . $e->getMessage());
+    error_log("========== PDO EXCEPTION ==========");
+    error_log("EXCEPTION: " . $e->getMessage());
+    error_log("File: " . $e->getFile() . " Line: " . $e->getLine());
     error_log("SQL State: " . ($e->errorInfo[0] ?? 'N/A'));
     error_log("Error Info: " . print_r($e->errorInfo ?? [], true));
-    error_log("Stack Trace: " . $e->getTraceAsString());
+    error_log("Trace: " . $e->getTraceAsString());
     
     // Clean any output before sending error
     if (ob_get_level() > 0) {
         ob_clean();
     }
     
-    sendError('Database error occurred. Please try again.', null, 500);
+    http_response_code(500);
+    echo json_encode([
+        'success' => false,
+        'error' => $e->getMessage(),
+        'file' => $e->getFile(),
+        'line' => $e->getLine(),
+        'sql_state' => $e->errorInfo[0] ?? null,
+        'type' => 'PDOException'
+    ]);
+    exit;
 } catch (Error $e) {
-    error_log("Verify OTP Fatal Error: " . $e->getMessage());
-    error_log("File: " . $e->getFile() . " | Line: " . $e->getLine());
-    error_log("Stack Trace: " . $e->getTraceAsString());
+    error_log("========== FATAL ERROR ==========");
+    error_log("ERROR: " . $e->getMessage());
+    error_log("File: " . $e->getFile() . " Line: " . $e->getLine());
+    error_log("Trace: " . $e->getTraceAsString());
     
     // Clean any output before sending error
     if (ob_get_level() > 0) {
         ob_clean();
     }
     
-    sendError('A server error occurred. Please try again.', null, 500);
+    http_response_code(500);
+    echo json_encode([
+        'success' => false,
+        'error' => $e->getMessage(),
+        'file' => $e->getFile(),
+        'line' => $e->getLine(),
+        'type' => 'FatalError'
+    ]);
+    exit;
 } catch (Exception $e) {
-    error_log("Verify OTP Exception: " . $e->getMessage());
-    error_log("File: " . $e->getFile() . " | Line: " . $e->getLine());
-    error_log("Stack Trace: " . $e->getTraceAsString());
+    error_log("========== GENERAL EXCEPTION ==========");
+    error_log("EXCEPTION: " . $e->getMessage());
+    error_log("File: " . $e->getFile() . " Line: " . $e->getLine());
+    error_log("Trace: " . $e->getTraceAsString());
     
     // Clean any output before sending error
     if (ob_get_level() > 0) {
         ob_clean();
     }
     
-    sendError('Failed to verify OTP. Please try again.', null, 500);
+    http_response_code(500);
+    echo json_encode([
+        'success' => false,
+        'error' => $e->getMessage(),
+        'file' => $e->getFile(),
+        'line' => $e->getLine(),
+        'type' => 'Exception'
+    ]);
+    exit;
 }
