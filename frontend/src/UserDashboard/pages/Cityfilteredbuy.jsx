@@ -228,11 +228,11 @@ const CityFilteredBuy = () => {
     queryParams.append('status', 'For Sale');
     
     // Navigate to search results page
-    navigate(`/search?${queryParams.toString()}`);
+    navigate(`/searchresults?${queryParams.toString()}`);
   };
 
   const handleQuickSearch = (city) => {
-    navigate(`/search?location=${city}&status=For Sale`);
+    navigate(`/searchresults?location=${city}&status=For Sale`);
   };
 
   const handleBackClick = () => {

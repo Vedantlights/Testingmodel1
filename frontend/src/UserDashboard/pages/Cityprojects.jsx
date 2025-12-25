@@ -67,11 +67,11 @@ const CityProjects = () => {
     if (searchData.bedrooms) queryParams.append('bedrooms', searchData.bedrooms);
     
     // Navigate to search results page
-    navigate(`/search?${queryParams.toString()}`);
+    navigate(`/searchresults?${queryParams.toString()}`);
   };
 
   const handleQuickSearch = (city) => {
-    navigate(`/search?location=${city}`);
+    navigate(`/searchresults?location=${city}`);
   };
 
   const handleBackClick = () => {

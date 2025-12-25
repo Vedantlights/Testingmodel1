@@ -225,11 +225,11 @@ const CityFilteredRent = () => {
     queryParams.append('status', 'For Rent');
     
     // Navigate to search results page
-    navigate(`/search?${queryParams.toString()}`);
+    navigate(`/searchresults?${queryParams.toString()}`);
   };
 
   const handleQuickSearch = (city) => {
-    navigate(`/search?location=${city}&status=For Rent`);
+    navigate(`/searchresults?location=${city}&status=For Rent`);
   };
 
   const handleBackClick = () => {
