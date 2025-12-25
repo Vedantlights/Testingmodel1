@@ -1,14 +1,21 @@
-import React, { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import React, { useState, useEffect } from "react";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { Eye, EyeOff, User, Building2, Home } from "lucide-react";
 import { useAuth } from "../../context/AuthContext";
 import "../styles/Login.css";
 
 const Login = () => {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const { login } = useAuth();
 
-  const [userType, setUserType] = useState("buyer");
+  // Get role from URL query parameter, default to "buyer"
+  const roleFromUrl = searchParams.get("role");
+  const initialUserType = roleFromUrl && ["buyer", "seller", "agent"].includes(roleFromUrl) 
+    ? roleFromUrl 
+    : "buyer";
+
+  const [userType, setUserType] = useState(initialUserType);
   const [showPassword, setShowPassword] = useState(false);
   const [loginError, setLoginError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
@@ -18,6 +25,14 @@ const Login = () => {
     password: "",
     rememberMe: false,
   });
+
+  // Update userType when role query parameter changes
+  useEffect(() => {
+    const roleFromUrl = searchParams.get("role");
+    if (roleFromUrl && ["buyer", "seller", "agent"].includes(roleFromUrl)) {
+      setUserType(roleFromUrl);
+    }
+  }, [searchParams]);
 
   // Validate if the user can login with selected role
   const validateRoleAccess = (registeredUserType, attemptedLoginType) => {

@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Search, Filter, Eye, Trash2, X, Check } from 'lucide-react';
 import { API_BASE_URL, API_ENDPOINTS } from '../../config/api.config';
+import DeletePropertyModal from '../../components/DeletePropertyModal/DeletePropertyModal';
 import '../style/AdminProperties.css';
 
 const AdminProperties = () => {
@@ -17,6 +18,8 @@ const AdminProperties = () => {
   const [error, setError] = useState(null);
   const [pagination, setPagination] = useState({ page: 1, total: 0, pages: 0 });
   const [pageSize, setPageSize] = useState(20);
+  const [deleteModalOpen, setDeleteModalOpen] = useState(false);
+  const [propertyToDelete, setPropertyToDelete] = useState(null);
 
   useEffect(() => {
     // Reset to page 1 when filters or page size change
@@ -145,13 +148,16 @@ const AdminProperties = () => {
     }
   };
 
-  const handleDelete = async (propertyId) => {
-    if (!window.confirm('Are you sure you want to delete this property? This action cannot be undone.')) {
-      return;
-    }
+  const handleDeleteClick = (propertyId) => {
+    setPropertyToDelete(propertyId);
+    setDeleteModalOpen(true);
+  };
+
+  const handleDeleteConfirm = async () => {
+    if (!propertyToDelete) return;
 
     try {
-      const response = await fetch(`${API_BASE_URL}${API_ENDPOINTS.ADMIN_PROPERTIES_DELETE}?id=${propertyId}`, {
+      const response = await fetch(`${API_BASE_URL}${API_ENDPOINTS.ADMIN_PROPERTIES_DELETE}?id=${propertyToDelete}`, {
         method: 'DELETE',
         headers: {
           'Content-Type': 'application/json',
@@ -163,6 +169,7 @@ const AdminProperties = () => {
 
       if (data.success) {
         fetchProperties();
+        setPropertyToDelete(null);
       } else {
         alert(data.message || 'Failed to delete property');
       }
@@ -427,7 +434,7 @@ const AdminProperties = () => {
                         <button 
                           className="admin-properties-icon-btn admin-danger" 
                           title="Delete"
-                          onClick={() => handleDelete(property.id)}
+                          onClick={() => handleDeleteClick(property.id)}
                         >
                           <Trash2 />
                         </button>
@@ -445,6 +452,16 @@ const AdminProperties = () => {
           </div>
         )}
       </div>
+
+      {/* Delete Confirmation Modal */}
+      <DeletePropertyModal
+        isOpen={deleteModalOpen}
+        onClose={() => {
+          setDeleteModalOpen(false);
+          setPropertyToDelete(null);
+        }}
+        onConfirm={handleDeleteConfirm}
+      />
     </div>
   );
 };

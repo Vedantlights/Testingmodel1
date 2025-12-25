@@ -3,6 +3,7 @@ import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useProperty } from "./PropertyContext";
 import AddPropertyPopup from "./AddPropertyPopup";
+import DeletePropertyModal from "../../components/DeletePropertyModal/DeletePropertyModal";
 import "../styles/AgentProperties.css";
 
 const MAX_PROPERTIES = 10;
@@ -17,6 +18,8 @@ const AgentProperties = () => {
   const [sortBy, setSortBy] = useState('newest');
   const [searchTerm, setSearchTerm] = useState('');
   const [deletingId, setDeletingId] = useState(null);
+  const [deleteModalOpen, setDeleteModalOpen] = useState(false);
+  const [propertyToDelete, setPropertyToDelete] = useState(null);
 
   // Filter and sort properties
   const filteredProperties = properties
@@ -55,12 +58,18 @@ const AgentProperties = () => {
     setShowForm(true);
   };
 
-  const handleDelete = async (id) => {
-    if (!window.confirm("Make sure you have deleted your property. Are you sure you want to delete this property?")) return;
+  const handleDeleteClick = (id) => {
+    setPropertyToDelete(id);
+    setDeleteModalOpen(true);
+  };
+
+  const handleDeleteConfirm = async () => {
+    if (!propertyToDelete) return;
     try {
-      setDeletingId(id);
-      await deleteProperty(id);
+      setDeletingId(propertyToDelete);
+      await deleteProperty(propertyToDelete);
       // Data will be automatically refreshed by PropertyContext
+      setPropertyToDelete(null);
     } catch (error) {
       console.error('Error deleting property:', error);
       alert(error.message || 'Failed to delete property. Please try again.');
@@ -149,69 +158,28 @@ const AgentProperties = () => {
   };
 
   return (
-    <div className="agent-properties">
+    <div className="seller-properties">
       {/* Header */}
-      <div className="properties-header">
-        <div className="header-content">
+      <div className="seller-props-header">
+        <div className="seller-props-header-content">
           <div>
             <h1>My Properties</h1>
-            <p className="subtitle">
+            <p className="seller-props-subtitle">
               {loading ? 'Loading...' : `${properties.length} of ${MAX_PROPERTIES} properties listed`}
             </p>
           </div>
-          <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
-            {error && (
-              <button 
-                className="refresh-btn" 
-                onClick={refreshData}
-                title="Refresh data"
-                style={{ 
-                  padding: '8px 12px', 
-                  background: '#f0f0f0', 
-                  border: '1px solid #ddd', 
-                  borderRadius: '6px',
-                  cursor: 'pointer'
-                }}
-              >
-                🔄 Refresh
-              </button>
-            )}
-            <button className="add-btn" onClick={openNew}>
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
-                <path d="M12 5v14M5 12h14" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
-              </svg>
-              Add Property
-            </button>
-          </div>
+          <button className="seller-props-add-btn" onClick={openNew}>
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+              <path d="M12 5v14M5 12h14" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+            </svg>
+            Add Property
+          </button>
         </div>
       </div>
 
-      {/* Error Message */}
-      {error && (
-        <div style={{ 
-          margin: '16px', 
-          padding: '12px', 
-          background: '#fee', 
-          border: '1px solid #fcc', 
-          borderRadius: '6px',
-          color: '#c33'
-        }}>
-          ⚠️ {error}
-        </div>
-      )}
-
-      {/* Loading State */}
-      {loading && properties.length === 0 && (
-        <div className="loading-state">
-          <div className="loading-spinner"></div>
-          <h3>Loading Properties...</h3>
-          <p>Please wait while we fetch your properties</p>
-        </div>
-      )}
-
       {/* Toolbar */}
-      <div className="toolbar">
-        <div className="search-box">
+      <div className="seller-props-toolbar">
+        <div className="seller-props-search-box">
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
             <circle cx="11" cy="11" r="8" stroke="currentColor" strokeWidth="2"/>
             <path d="M21 21l-4.35-4.35" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
@@ -224,8 +192,8 @@ const AgentProperties = () => {
           />
         </div>
 
-        <div className="toolbar-actions">
-          <div className="filter-group">
+        <div className="seller-props-toolbar-actions">
+          <div className="seller-props-filter-group">
             <select value={filterStatus} onChange={(e) => setFilterStatus(e.target.value)}>
               <option value="all">All Status</option>
               <option value="sale">For Sale</option>
@@ -240,9 +208,9 @@ const AgentProperties = () => {
             </select>
           </div>
 
-          <div className="view-toggle">
+          <div className="seller-props-view-toggle">
             <button 
-              className={`view-btn ${viewMode === 'grid' ? 'active' : ''}`}
+              className={`seller-props-view-btn ${viewMode === 'grid' ? 'active' : ''}`}
               onClick={() => setViewMode('grid')}
             >
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
@@ -253,7 +221,7 @@ const AgentProperties = () => {
               </svg>
             </button>
             <button 
-              className={`view-btn ${viewMode === 'list' ? 'active' : ''}`}
+              className={`seller-props-view-btn ${viewMode === 'list' ? 'active' : ''}`}
               onClick={() => setViewMode('list')}
             >
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
@@ -266,8 +234,8 @@ const AgentProperties = () => {
 
       {/* Properties Grid/List */}
       {filteredProperties.length === 0 ? (
-        <div className="empty-state">
-          <div className="empty-icon">
+        <div className="seller-props-empty-state">
+          <div className="seller-props-empty-icon">
             <svg width="64" height="64" viewBox="0 0 24 24" fill="none">
               <path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z" stroke="currentColor" strokeWidth="1.5"/>
               <path d="M9 22V12h6v10" stroke="currentColor" strokeWidth="1.5"/>
@@ -280,7 +248,7 @@ const AgentProperties = () => {
               : 'Start by adding your first property listing'}
           </p>
           {!searchTerm && filterStatus === 'all' && (
-            <button className="empty-action-btn" onClick={openNew}>
+            <button className="seller-props-empty-action-btn" onClick={openNew}>
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
                 <path d="M12 5v14M5 12h14" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
               </svg>
@@ -289,25 +257,25 @@ const AgentProperties = () => {
           )}
         </div>
       ) : (
-        <div className={`properties-container ${viewMode}`}>
+        <div className={`seller-props-container ${viewMode}`}>
           {filteredProperties.map((property, index) => (
             <div 
               key={property.id} 
-              className={`property-card ${viewMode}`}
+              className={`seller-props-card ${viewMode}`}
               style={{ animationDelay: `${index * 0.05}s` }}
             >
-              <div className="property-image">
+              <div className="seller-props-image">
                 <img src={property.images?.[0]} alt={property.title} />
-                <div className="image-overlay">
-                  <button className="overlay-btn" onClick={() => openEdit(getPropertyIndex(property.id))}>
+                <div className="seller-props-image-overlay">
+                  <button className="seller-props-overlay-btn" onClick={() => openEdit(getPropertyIndex(property.id))}>
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
                       <path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7" stroke="currentColor" strokeWidth="2"/>
                       <path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z" stroke="currentColor" strokeWidth="2"/>
                     </svg>
                   </button>
                   <button 
-                    className="overlay-btn delete" 
-                    onClick={() => handleDelete(property.id)}
+                    className="seller-props-overlay-btn delete" 
+                    onClick={() => handleDeleteClick(property.id)}
                     disabled={deletingId === property.id}
                     title={deletingId === property.id ? 'Deleting...' : 'Delete property'}
                   >
@@ -328,17 +296,17 @@ const AgentProperties = () => {
                     )}
                   </button>
                 </div>
-                <span className={`property-badge ${property.status}`}>
+                <span className={`seller-props-badge ${property.status}`}>
                   {property.status === 'sale' ? 'For Sale' : 'For Rent'}
                 </span>
                 {property.featured && (
-                  <span className="featured-badge">Featured</span>
+                  <span className="seller-props-featured-badge">Featured</span>
                 )}
               </div>
 
-              <div className="property-content">
-                <h3 className="property-title">{property.title}</h3>
-                <p className="property-location">
+              <div className="seller-props-content">
+                <h3 className="seller-props-title">{property.title}</h3>
+                <p className="seller-props-location">
                   <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
                     <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z" stroke="currentColor" strokeWidth="2"/>
                     <circle cx="12" cy="10" r="3" stroke="currentColor" strokeWidth="2"/>
@@ -346,49 +314,25 @@ const AgentProperties = () => {
                   {property.location}
                 </p>
 
-                <div className="property-feature">
-                  {getPropertyFeatures(property).map((feat, idx) => (
-                    <span key={idx} className="property-feature-item">
+                <div className="seller-props-features">
+                  {getPropertyFeatures(property).slice(0, 3).map((feat, idx) => (
+                    <span key={idx} className="seller-props-feature">
                       {feat.icon === 'bed' && (
-                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
                           <path d="M3 22V8l9-6 9 6v14H3z" stroke="currentColor" strokeWidth="2"/>
                           <path d="M9 22v-6h6v6" stroke="currentColor" strokeWidth="2"/>
                         </svg>
                       )}
                       {feat.icon === 'bath' && (
-                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
                           <path d="M4 12h16v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5z" stroke="currentColor" strokeWidth="2"/>
                           <path d="M6 12V5a2 2 0 012-2h2v9" stroke="currentColor" strokeWidth="2"/>
                         </svg>
                       )}
                       {feat.icon === 'area' && (
-                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
                           <rect x="3" y="3" width="18" height="18" rx="2" stroke="currentColor" strokeWidth="2"/>
                           <path d="M3 9h18M9 21V9" stroke="currentColor" strokeWidth="2"/>
-                        </svg>
-                      )}
-                      {feat.icon === 'floor' && (
-                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
-                          <path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z" stroke="currentColor" strokeWidth="2"/>
-                          <path d="M9 22V12h6v10" stroke="currentColor" strokeWidth="2"/>
-                        </svg>
-                      )}
-                      {feat.icon === 'furnishing' && (
-                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
-                          <rect x="3" y="3" width="18" height="18" rx="2" stroke="currentColor" strokeWidth="2"/>
-                          <path d="M3 9h18M9 21V9" stroke="currentColor" strokeWidth="2"/>
-                        </svg>
-                      )}
-                      {feat.icon === 'balcony' && (
-                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
-                          <path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z" stroke="currentColor" strokeWidth="2"/>
-                          <path d="M9 22V12h6v10" stroke="currentColor" strokeWidth="2"/>
-                        </svg>
-                      )}
-                      {feat.icon === 'facing' && (
-                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
-                          <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="2"/>
-                          <path d="M12 2v4M12 18v4M2 12h4M18 12h4" stroke="currentColor" strokeWidth="2"/>
                         </svg>
                       )}
                       {feat.label}
@@ -396,15 +340,15 @@ const AgentProperties = () => {
                   ))}
                 </div>
 
-                <div className="property-stats">
-                  <div className="stat-item">
+                <div className="seller-props-stats">
+                  <div className="seller-props-stat-item" title={`${property.views || 0} people showed interest in this property`}>
                     <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
                       <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" stroke="currentColor" strokeWidth="2"/>
                       <circle cx="12" cy="12" r="3" stroke="currentColor" strokeWidth="2"/>
                     </svg>
-                    <span>{property.views || 0} views</span>
+                    <span>{property.views || 0} {property.views === 1 ? 'person' : 'people'} interested</span>
                   </div>
-                  <div className="stat-item">
+                  <div className="seller-props-stat-item">
                     <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
                       <path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z" stroke="currentColor" strokeWidth="2"/>
                     </svg>
@@ -412,14 +356,14 @@ const AgentProperties = () => {
                   </div>
                 </div>
 
-                <div className="property-footer">
-                  <div className="price-section">
-                    <span className="price">{formatPrice(property.price)}</span>
-                    {property.status === 'rent' && <span className="per-month">/month</span>}
+                <div className="seller-props-footer">
+                  <div className="seller-props-price-section">
+                    <span className="seller-props-price">{formatPrice(property.price)}</span>
+                    {property.status === 'rent' && <span className="seller-props-per-month">/month</span>}
                   </div>
-                  <div className="action-buttons">
+                  <div className="seller-props-action-btns">
                     <button 
-                      className="view-details-btn" 
+                      className="seller-props-view-details-btn" 
                       onClick={() => handleViewDetails(property.id)}
                       title="View Details"
                     >
@@ -429,15 +373,18 @@ const AgentProperties = () => {
                       </svg>
                       View
                     </button>
-                    <button className="edit-btn" onClick={() => openEdit(getPropertyIndex(property.id))}>
+                    <button className="seller-props-edit-btn" onClick={() => openEdit(getPropertyIndex(property.id))}>
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+                        <path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7" stroke="currentColor" strokeWidth="2"/>
+                        <path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z" stroke="currentColor" strokeWidth="2"/>
+                      </svg>
                       Edit
                     </button>
-                    <button 
-                      className="delete-btn" 
-                      onClick={() => handleDelete(property.id)}
-                      disabled={deletingId === property.id}
-                    >
-                      {deletingId === property.id ? 'Deleting...' : 'Delete'}
+                    <button className="seller-props-delete-btn" onClick={() => handleDeleteClick(property.id)}>
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+                        <path d="M3 6h18M8 6V4a2 2 0 012-2h4a2 2 0 012 2v2M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6" stroke="currentColor" strokeWidth="2"/>
+                      </svg>
+                      Delete
                     </button>
                   </div>
                 </div>
@@ -447,9 +394,9 @@ const AgentProperties = () => {
 
           {/* Add Property Card */}
           {properties.length < MAX_PROPERTIES && viewMode === 'grid' && (
-            <div className="property-card add-card" onClick={openNew}>
-              <div className="add-card-content">
-                <div className="add-icon">
+            <div className="seller-props-card seller-props-add-card" onClick={openNew}>
+              <div className="seller-props-add-card-content">
+                <div className="seller-props-add-icon">
                   <svg width="32" height="32" viewBox="0 0 24 24" fill="none">
                     <path d="M12 5v14M5 12h14" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
                   </svg>
@@ -470,6 +417,16 @@ const AgentProperties = () => {
           initialData={editIndex !== null ? properties[editIndex] : null}
         />
       )}
+
+      {/* Delete Confirmation Modal */}
+      <DeletePropertyModal
+        isOpen={deleteModalOpen}
+        onClose={() => {
+          setDeleteModalOpen(false);
+          setPropertyToDelete(null);
+        }}
+        onConfirm={handleDeleteConfirm}
+      />
     </div>
   );
 };

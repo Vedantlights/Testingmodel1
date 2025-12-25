@@ -1,5 +1,5 @@
-import React, { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import React, { useState, useEffect } from "react";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { User, Building2, Home } from "lucide-react";
 import { otpAPI, authAPI } from "../../services/api.service";
 import "../styles/Register.css";
@@ -14,8 +14,23 @@ const MSG91_EMAIL_AUTH_TOKEN = "481618TX6cdMp7Eg69414e7eP1"; // Token ID
 
 const Register = () => {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
 
-  const [userType, setUserType] = useState("buyer");
+  // Get role from URL query parameter, default to "buyer"
+  const roleFromUrl = searchParams.get("role");
+  const initialUserType = roleFromUrl && ["buyer", "seller", "agent"].includes(roleFromUrl) 
+    ? roleFromUrl 
+    : "buyer";
+
+  const [userType, setUserType] = useState(initialUserType);
+
+  // Update userType when role query parameter changes
+  useEffect(() => {
+    const roleFromUrl = searchParams.get("role");
+    if (roleFromUrl && ["buyer", "seller", "agent"].includes(roleFromUrl)) {
+      setUserType(roleFromUrl);
+    }
+  }, [searchParams]);
 
   const [formData, setFormData] = useState({
     fullName: "",
