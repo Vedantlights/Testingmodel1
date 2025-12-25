@@ -73,7 +73,7 @@ try {
     
     $allowedFields = [
         'title', 'status', 'property_type', 'location', 'latitude', 'longitude',
-        'bedrooms', 'bathrooms', 'balconies', 'area', 'carpet_area', 'floor',
+        'state', 'additional_address', 'bedrooms', 'bathrooms', 'balconies', 'area', 'carpet_area', 'floor',
         'total_floors', 'facing', 'age', 'furnishing', 'description', 'price',
         'price_negotiable', 'maintenance_charges', 'deposit_amount',
         'cover_image', 'video_url', 'brochure_url', 'is_active'

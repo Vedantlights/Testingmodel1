@@ -271,6 +271,8 @@ export default function AddPropertyPopup({ onClose, editIndex = null, initialDat
     location: "",
     latitude: "",
     longitude: "",
+    state: "",
+    additionalAddress: "",
     bedrooms: "",
     bathrooms: "",
     balconies: "",
@@ -988,6 +990,31 @@ newErrors.description = "Description is required";
             </div>
           </div>
         )}
+      </div>
+
+      {/* State and Additional Address Fields */}
+      <div className="form-row two-cols">
+        <div className="seller-popup-form-group">
+          <label>State (Optional)</label>
+          <input
+            type="text"
+            placeholder="Enter state"
+            value={formData.state || ''}
+            onChange={(e) => !isRestrictedEdit && handleChange('state', e.target.value)}
+            disabled={isRestrictedEdit}
+          />
+        </div>
+
+        <div className="seller-popup-form-group">
+          <label>Additional Address (Optional)</label>
+          <input
+            type="text"
+            placeholder="Enter additional address details"
+            value={formData.additionalAddress || ''}
+            onChange={(e) => !isRestrictedEdit && handleChange('additionalAddress', e.target.value)}
+            disabled={isRestrictedEdit}
+          />
+        </div>
       </div>
 
       {/* Dynamic fields based on property type */}

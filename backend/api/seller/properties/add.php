@@ -138,6 +138,8 @@ try {
     $facing = isset($input['facing']) && !empty($input['facing']) ? sanitizeInput($input['facing']) : null;
     $age = isset($input['age']) && !empty($input['age']) ? sanitizeInput($input['age']) : null;
     $furnishing = isset($input['furnishing']) && !empty($input['furnishing']) ? sanitizeInput($input['furnishing']) : null;
+    $state = isset($input['state']) && !empty($input['state']) ? sanitizeInput($input['state']) : null;
+    $additionalAddress = isset($input['additional_address']) && !empty($input['additional_address']) ? sanitizeInput($input['additional_address']) : null;
     $description = sanitizeInput($input['description']);
     $price = floatval($input['price']);
     $priceNegotiable = isset($input['price_negotiable']) ? (bool)$input['price_negotiable'] : false;
@@ -175,17 +177,17 @@ try {
         $stmt = $db->prepare("
             INSERT INTO properties (
                 user_id, user_full_name, title, status, property_type, location, latitude, longitude,
-                bedrooms, bathrooms, balconies, area, carpet_area, floor, total_floors,
+                state, additional_address, bedrooms, bathrooms, balconies, area, carpet_area, floor, total_floors,
                 facing, age, furnishing, description, price, price_negotiable,
                 maintenance_charges, deposit_amount, cover_image, video_url, brochure_url, is_active
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         ");
         
         $coverImage = !empty($images[0]) ? $images[0] : null;
         
         $stmt->execute([
             $user['id'], $userFullName, $title, $status, $propertyType, $location, $latitude, $longitude,
-            $bedrooms, $bathrooms, $balconies, $area, $carpetArea, $floor, $totalFloors,
+            $state, $additionalAddress, $bedrooms, $bathrooms, $balconies, $area, $carpetArea, $floor, $totalFloors,
             $facing, $age, $furnishing, $description, $price, $priceNegotiable,
             $maintenanceCharges, $depositAmount, $coverImage, $videoUrl, $brochureUrl, 1
         ]);
