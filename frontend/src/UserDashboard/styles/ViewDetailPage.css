@@ -43,7 +43,7 @@
     padding: 8px 16px;
     border: 1px solid #b0b0b0;
     border-radius: 8px;
-    background-color: #dedcdc;
+    background-color: #ffffff;
     color: #222222;
     font-size: 14px;
     font-weight: 600;
@@ -108,7 +108,7 @@
 /* --- Title and Location Container (Above Photos) --- */
 .title-location-container {
     width: 100%;
-    background-color: #dedcdc;
+    background-color: #ffffff;
     padding: 40px 0 24px 0;
 }
 
@@ -441,7 +441,7 @@
  * ============================================================================ */
 
 .detail-contact-card {
-    background-color: #dedcdc;
+    background-color: #ffffff;
     border: 1px solid #dddddd;
     border-radius: 12px;
     padding: 24px;
