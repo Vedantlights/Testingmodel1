@@ -216,6 +216,20 @@ export default function AddPropertyPopup({ onClose, editIndex = null, initialDat
   const imagesRef = useRef();
   const videoRef = useRef();
   const brochureRef = useRef();
+  const popupBodyRef = useRef(null);
+
+  // Check if property is older than 24 hours (only allow title and price editing)
+  const isPropertyOlderThan24Hours = () => {
+    if (editIndex === null || !initialData?.createdAt) {
+      return false;
+    }
+    const createdAt = new Date(initialData.createdAt);
+    const now = new Date();
+    const hoursSinceCreation = (now.getTime() - createdAt.getTime()) / (1000 * 60 * 60);
+    return hoursSinceCreation >= 24;
+  };
+
+  const isRestrictedEdit = isPropertyOlderThan24Hours();
 
   const [formData, setFormData] = useState(initialData || {
     // Step 1: Basic Info
@@ -491,7 +505,33 @@ export default function AddPropertyPopup({ onClose, editIndex = null, initialDat
         }
         break;
       case 3:
-        if (!formData.description?.trim()) newErrors.description = "Please add a description";
+        // Description validation
+        if (!formData.description || !formData.description.trim()) {
+          newErrors.description = "Description is required";
+        } else {
+          // Check minimum word count (100 words)
+          const wordCount = formData.description.trim().split(/\s+/).filter(word => word.length > 0).length;
+          if (wordCount < 100) {
+            newErrors.description = `Description must contain at least 100 words. Currently: ${wordCount} words.`;
+          }
+          
+          // Check for mobile numbers (Indian format: 10 digits, may have +91, spaces, dashes)
+          const mobilePattern = /(\+91[\s-]?)?[6-9]\d{9}/g;
+          if (mobilePattern.test(formData.description)) {
+            newErrors.description = "Description cannot contain mobile numbers. Please remove any phone numbers.";
+          }
+          
+          // Check for email addresses
+          const emailPattern = /[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/g;
+          if (emailPattern.test(formData.description)) {
+            newErrors.description = "Description cannot contain email addresses. Please remove any email addresses.";
+          }
+          
+          // Check maximum character length
+          if (formData.description.length > 1000) {
+            newErrors.description = "Description cannot exceed 1000 characters.";
+          }
+        }
         break;
       case 4:
         // require at least 1 image (existing behaviour)
@@ -516,15 +556,19 @@ export default function AddPropertyPopup({ onClose, editIndex = null, initialDat
   const handleNext = () => {
     if (validateStep(currentStep)) {
       setCurrentStep(prev => Math.min(prev + 1, 5));
-      // scroll to top of popup body to ensure user sees the step (no scroll to media specifically)
-      const body = document.querySelector(".popup-body");
-      if (body) body.scrollTop = 0;
     }
   };
 
   const handleBack = () => {
     setCurrentStep(prev => Math.max(prev - 1, 1));
   };
+
+  // Scroll to top when step changes
+  useEffect(() => {
+    if (popupBodyRef.current) {
+      popupBodyRef.current.scrollTop = 0;
+    }
+  }, [currentStep]);
 
   const handleSubmit = async () => {
     if (!validateStep(currentStep)) return;
@@ -1081,13 +1125,16 @@ export default function AddPropertyPopup({ onClose, editIndex = null, initialDat
         <div className="form-group">
           <label>Property Description <span className="required">*</span></label>
           <textarea
-            placeholder="Describe your property in detail. Mention unique features, nearby landmarks, connectivity, etc."
+            placeholder="Describe your property in detail (minimum 100 words required). Mention unique features, nearby landmarks, connectivity, etc. Note: Mobile numbers and email addresses are not allowed."
             value={formData.description}
             onChange={(e) => handleChange('description', e.target.value)}
             rows={5}
             className={errors.description ? 'error' : ''}
           />
-          <span className="char-count">{(formData.description || '').length}/1000</span>
+          <span className="char-count">
+            Words: {formData.description ? formData.description.trim().split(/\s+/).filter(word => word.length > 0).length : 0}/100 (min) | 
+            Characters: {(formData.description || '').length}/1000
+          </span>
           {errors.description && <span className="error-text">{errors.description}</span>}
         </div>
       </div>
@@ -1313,6 +1360,11 @@ export default function AddPropertyPopup({ onClose, editIndex = null, initialDat
                 onChange={(e) => handleChange('depositAmount', e.target.value)}
               />
             </div>
+            {formData.depositAmount && (
+              <span className="price-words">
+                {formatPriceInWords(formData.depositAmount)}
+              </span>
+            )}
           </div>
 
           <div className="form-group">
@@ -1326,6 +1378,11 @@ export default function AddPropertyPopup({ onClose, editIndex = null, initialDat
                 onChange={(e) => handleChange('maintenanceCharges', e.target.value)}
               />
             </div>
+            {formData.maintenanceCharges && (
+              <span className="price-words">
+                {formatPriceInWords(formData.maintenanceCharges)}
+              </span>
+            )}
           </div>
         </div>
       )}
@@ -1342,6 +1399,11 @@ export default function AddPropertyPopup({ onClose, editIndex = null, initialDat
               onChange={(e) => handleChange('maintenanceCharges', e.target.value)}
             />
           </div>
+          {formData.maintenanceCharges && (
+            <span className="price-words">
+              {formatPriceInWords(formData.maintenanceCharges)}
+            </span>
+          )}
         </div>
       )}  
 
@@ -1433,7 +1495,7 @@ export default function AddPropertyPopup({ onClose, editIndex = null, initialDat
         {renderStepIndicator()}
 
         {/* Form Content */}
-        <div className="popup-body">
+        <div className="popup-body" ref={popupBodyRef}>
           {renderCurrentStep()}
         </div>
 

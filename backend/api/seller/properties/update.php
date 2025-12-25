@@ -46,23 +46,26 @@ try {
     
     // Calculate total hours since creation
     $hoursSinceCreation = ($interval->days * 24) + $interval->h + ($interval->i / 60);
-    
-    if ($hoursSinceCreation >= 24) {
-        // Provide clear error message with time remaining/expired
-        $daysAgo = $interval->days;
-        $hoursAgo = $interval->h;
-        
-        if ($daysAgo > 0) {
-            $message = "You can only edit your property within 24 hours of creation. This property was created {$daysAgo} day(s) and {$hoursAgo} hour(s) ago.";
-        } else {
-            $message = "You can only edit your property within 24 hours of creation. This property was created {$hoursAgo} hour(s) ago.";
-        }
-        
-        sendError($message, null, 403);
-    }
+    $isOlderThan24Hours = $hoursSinceCreation >= 24;
     
     // Get input data
     $input = json_decode(file_get_contents('php://input'), true);
+    
+    // If property is older than 24 hours, only allow price and title to be updated
+    if ($isOlderThan24Hours) {
+        $allowedFieldsAfter24Hours = ['title', 'price', 'price_negotiable', 'maintenance_charges', 'deposit_amount'];
+        $restrictedFields = [];
+        
+        foreach ($input as $field => $value) {
+            if (!in_array($field, $allowedFieldsAfter24Hours)) {
+                $restrictedFields[] = $field;
+            }
+        }
+        
+        if (!empty($restrictedFields)) {
+            sendError('After 24 hours, you can only edit the title and price-related fields (price, price negotiable, maintenance charges, deposit amount). Other fields cannot be modified.', null, 403);
+        }
+    }
     
     // Build update query dynamically
     $updateFields = [];

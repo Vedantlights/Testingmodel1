@@ -227,11 +227,25 @@ export default function AddPropertyPopup({ onClose, editIndex = null, initialDat
   const [imageFiles, setImageFiles] = useState([]); // Store actual File objects
   const [showLocationPicker, setShowLocationPicker] = useState(false);
   const fileRef = useRef();
+  const popupBodyRef = useRef(null);
 
   // Check property limit (3 properties max for free users)
   const PROPERTY_LIMIT = 3;
   const currentPropertyCount = properties?.length || 0;
   const hasReachedLimit = editIndex === null && currentPropertyCount >= PROPERTY_LIMIT;
+
+  // Check if property is older than 24 hours (only allow title and price editing)
+  const isPropertyOlderThan24Hours = () => {
+    if (editIndex === null || !initialData?.createdAt) {
+      return false;
+    }
+    const createdAt = new Date(initialData.createdAt);
+    const now = new Date();
+    const hoursSinceCreation = (now.getTime() - createdAt.getTime()) / (1000 * 60 * 60);
+    return hoursSinceCreation >= 24;
+  };
+
+  const isRestrictedEdit = isPropertyOlderThan24Hours();
 
   // Show limit warning if user has reached the limit
   useEffect(() => {
@@ -239,6 +253,13 @@ export default function AddPropertyPopup({ onClose, editIndex = null, initialDat
       setShowLimitWarning(true);
     }
   }, [hasReachedLimit]);
+
+  // Scroll to top when step changes
+  useEffect(() => {
+    if (popupBodyRef.current) {
+      popupBodyRef.current.scrollTop = 0;
+    }
+  }, [currentStep]);
 
   const [formData, setFormData] = useState(initialData || {
     // Step 1: Basic Info
@@ -516,9 +537,31 @@ export default function AddPropertyPopup({ onClose, editIndex = null, initialDat
         
       case 3:
         // Description validation
-        const descValidation = validateTextLength(formData.description, 50, 1000, 'Description');
-        if (!descValidation.valid) {
-          newErrors.description = descValidation.message;
+        if (!formData.description || !formData.description.trim()) {
+          newErrors.description = "Description is required";
+        } else {
+          // Check minimum word count (100 words)
+          const wordCount = formData.description.trim().split(/\s+/).filter(word => word.length > 0).length;
+          if (wordCount < 100) {
+            newErrors.description = `Description must contain at least 100 words. Currently: ${wordCount} words.`;
+          }
+          
+          // Check for mobile numbers (Indian format: 10 digits, may have +91, spaces, dashes)
+          const mobilePattern = /(\+91[\s-]?)?[6-9]\d{9}/g;
+          if (mobilePattern.test(formData.description)) {
+            newErrors.description = "Description cannot contain mobile numbers. Please remove any phone numbers.";
+          }
+          
+          // Check for email addresses
+          const emailPattern = /[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/g;
+          if (emailPattern.test(formData.description)) {
+            newErrors.description = "Description cannot contain email addresses. Please remove any email addresses.";
+          }
+          
+          // Check maximum character length
+          if (formData.description.length > 1000) {
+            newErrors.description = "Description cannot exceed 1000 characters.";
+          }
         }
         break;
         
@@ -729,6 +772,20 @@ export default function AddPropertyPopup({ onClose, editIndex = null, initialDat
 
   const renderStep1 = () => (
     <div className="seller-popup-step-content">
+      {isRestrictedEdit && (
+        <div className="restricted-edit-warning" style={{
+          padding: '12px 16px',
+          backgroundColor: '#fff3cd',
+          border: '1px solid #ffc107',
+          borderRadius: '8px',
+          marginBottom: '20px',
+          color: '#856404',
+          fontSize: '14px',
+          lineHeight: '1.5'
+        }}>
+          ⚠️ This property was created more than 24 hours ago. You can only edit the <strong>Title</strong> and <strong>Price-related fields</strong> (price, price negotiable, maintenance charges, deposit amount). All other fields are locked.
+        </div>
+      )}
       <h3 className="step-heading">Basic Information</h3>
       <p className="step-subheading">Let's start with the basic details of your property</p>
 
@@ -740,6 +797,7 @@ export default function AddPropertyPopup({ onClose, editIndex = null, initialDat
           value={formData.title}
           onChange={(e) => handleChange('title', e.target.value)}
           className={errors.title ? 'error' : ''}
+          disabled={false}
         />
         {errors.title && <span className="seller-popup-error-text">{errors.title}</span>}
       </div>
@@ -750,7 +808,9 @@ export default function AddPropertyPopup({ onClose, editIndex = null, initialDat
           <button
             type="button"
             className={`toggle-btn ${formData.status === 'sale' ? 'active' : ''}`}
-            onClick={() => handleChange('status', 'sale')}
+            onClick={() => !isRestrictedEdit && handleChange('status', 'sale')}
+            disabled={isRestrictedEdit}
+            style={{ opacity: isRestrictedEdit ? 0.5 : 1, cursor: isRestrictedEdit ? 'not-allowed' : 'pointer' }}
           >
             <span className="toggle-icon">🏷️</span>
             Sell
@@ -758,7 +818,9 @@ export default function AddPropertyPopup({ onClose, editIndex = null, initialDat
           <button
             type="button"
             className={`toggle-btn ${formData.status === 'rent' ? 'active' : ''}`}
-            onClick={() => handleChange('status', 'rent')}
+            onClick={() => !isRestrictedEdit && handleChange('status', 'rent')}
+            disabled={isRestrictedEdit}
+            style={{ opacity: isRestrictedEdit ? 0.5 : 1, cursor: isRestrictedEdit ? 'not-allowed' : 'pointer' }}
           >
             <span className="toggle-icon">🔑</span>
             Rent / Lease
@@ -774,7 +836,9 @@ export default function AddPropertyPopup({ onClose, editIndex = null, initialDat
               key={type.value}
               type="button"
               className={`property-type-btn ${formData.propertyType === type.value ? 'active' : ''}`}
-              onClick={() => handleChange('propertyType', type.value)}
+              onClick={() => !isRestrictedEdit && handleChange('propertyType', type.value)}
+              disabled={isRestrictedEdit}
+              style={{ opacity: isRestrictedEdit ? 0.5 : 1, cursor: isRestrictedEdit ? 'not-allowed' : 'pointer' }}
             >
               <span className="seller-popup-type-icon">{type.icon}</span>
               <span className="seller-popup-type-label">{type.value}</span>
@@ -802,6 +866,20 @@ export default function AddPropertyPopup({ onClose, editIndex = null, initialDat
 
   const renderStep2 = () => (
     <div className="seller-popup-step-content">
+      {isRestrictedEdit && (
+        <div className="restricted-edit-warning" style={{
+          padding: '12px 16px',
+          backgroundColor: '#fff3cd',
+          border: '1px solid #ffc107',
+          borderRadius: '8px',
+          marginBottom: '20px',
+          color: '#856404',
+          fontSize: '14px',
+          lineHeight: '1.5'
+        }}>
+          ⚠️ This property was created more than 24 hours ago. You can only edit the <strong>Title</strong> and <strong>Price-related fields</strong>. All other fields are locked.
+        </div>
+      )}
       <h3 className="step-heading">Property Details</h3>
       <p className="step-subheading">Tell us more about your property specifications</p>
 
@@ -811,6 +889,7 @@ export default function AddPropertyPopup({ onClose, editIndex = null, initialDat
           placeholder="Enter locality, area or landmark"
           value={formData.location}
           onChange={(locationData) => {
+            if (isRestrictedEdit) return;
             if (!locationData) {
               setFormData(prev => ({ ...prev, location: "", latitude: "", longitude: "" }));
               return;
@@ -824,6 +903,7 @@ export default function AddPropertyPopup({ onClose, editIndex = null, initialDat
           }}
           className={errors.location ? "seller-location-error" : ""}
           error={errors.location}
+          disabled={isRestrictedEdit}
         />
       </div>
 
@@ -832,11 +912,13 @@ export default function AddPropertyPopup({ onClose, editIndex = null, initialDat
         <label>Property Location on Map (Optional)</label>
         {!formData.latitude || !formData.longitude ? (
           <>
-            <button
-              type="button"
-              className="location-picker-btn"
-              onClick={() => setShowLocationPicker(true)}
-            >
+              <button
+                type="button"
+                className="location-picker-btn"
+                onClick={() => !isRestrictedEdit && setShowLocationPicker(true)}
+                disabled={isRestrictedEdit}
+                style={{ opacity: isRestrictedEdit ? 0.5 : 1, cursor: isRestrictedEdit ? 'not-allowed' : 'pointer' }}
+              >
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none" style={{ marginRight: '8px' }}>
                 <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z" stroke="currentColor" strokeWidth="2"/>
                 <circle cx="12" cy="10" r="3" stroke="currentColor" strokeWidth="2"/>
@@ -928,7 +1010,9 @@ export default function AddPropertyPopup({ onClose, editIndex = null, initialDat
                       key={num}
                       type="button"
                       className={`num-btn ${formData.bedrooms === num ? 'active' : ''}`}
-                      onClick={() => handleChange('bedrooms', num)}
+                      onClick={() => !isRestrictedEdit && handleChange('bedrooms', num)}
+                      disabled={isRestrictedEdit}
+                      style={{ opacity: isRestrictedEdit ? 0.5 : 1, cursor: isRestrictedEdit ? 'not-allowed' : 'pointer' }}
                     >
                       {num}
                     </button>
@@ -944,14 +1028,16 @@ export default function AddPropertyPopup({ onClose, editIndex = null, initialDat
               <label>Bathrooms {fieldConfig.bathroomsRequired && <span className="required">*</span>}</label>
               <div className="number-selector">
                 {['1', '2', '3', '4', '4+'].map(num => (
-                  <button
-                    key={num}
-                    type="button"
-                    className={`num-btn ${formData.bathrooms === num ? 'active' : ''}`}
-                    onClick={() => handleChange('bathrooms', num)}
-                  >
-                    {num}
-                  </button>
+                    <button
+                      key={num}
+                      type="button"
+                      className={`num-btn ${formData.bathrooms === num ? 'active' : ''}`}
+                      onClick={() => !isRestrictedEdit && handleChange('bathrooms', num)}
+                      disabled={isRestrictedEdit}
+                      style={{ opacity: isRestrictedEdit ? 0.5 : 1, cursor: isRestrictedEdit ? 'not-allowed' : 'pointer' }}
+                    >
+                      {num}
+                    </button>
                 ))}
               </div>
               {errors.bathrooms && <span className="seller-popup-error-text">{errors.bathrooms}</span>}
@@ -963,14 +1049,16 @@ export default function AddPropertyPopup({ onClose, editIndex = null, initialDat
               <label>Balconies</label>
               <div className="number-selector">
                 {['0', '1', '2', '3', '3+'].map(num => (
-                  <button
-                    key={num}
-                    type="button"
-                    className={`num-btn ${formData.balconies === num ? 'active' : ''}`}
-                    onClick={() => handleChange('balconies', num)}
-                  >
-                    {num}
-                  </button>
+                    <button
+                      key={num}
+                      type="button"
+                      className={`num-btn ${formData.balconies === num ? 'active' : ''}`}
+                      onClick={() => !isRestrictedEdit && handleChange('balconies', num)}
+                      disabled={isRestrictedEdit}
+                      style={{ opacity: isRestrictedEdit ? 0.5 : 1, cursor: isRestrictedEdit ? 'not-allowed' : 'pointer' }}
+                    >
+                      {num}
+                    </button>
                 ))}
               </div>
             </div>
@@ -989,8 +1077,9 @@ export default function AddPropertyPopup({ onClose, editIndex = null, initialDat
               type="number"
               placeholder={formData.propertyType === 'Plot / Land / Indusrtial Property' ? 'Enter plot area' : 'Enter area'}
               value={formData.area}
-              onChange={(e) => handleChange('area', e.target.value)}
+              onChange={(e) => !isRestrictedEdit && handleChange('area', e.target.value)}
               className={errors.area ? 'error' : ''}
+              disabled={isRestrictedEdit}
             />
             <span className="suffix">sq.ft</span>
           </div>
@@ -1005,7 +1094,8 @@ export default function AddPropertyPopup({ onClose, editIndex = null, initialDat
                 type="number"
                 placeholder="Enter area"
                 value={formData.carpetArea}
-                onChange={(e) => handleChange('carpetArea', e.target.value)}
+                onChange={(e) => !isRestrictedEdit && handleChange('carpetArea', e.target.value)}
+                disabled={isRestrictedEdit}
               />
               <span className="suffix">sq.ft</span>
             </div>
@@ -1022,7 +1112,8 @@ export default function AddPropertyPopup({ onClose, editIndex = null, initialDat
                 type="text"
                 placeholder="e.g., 5 or Ground"
                 value={formData.floor}
-                onChange={(e) => handleChange('floor', e.target.value)}
+                onChange={(e) => !isRestrictedEdit && handleChange('floor', e.target.value)}
+                disabled={isRestrictedEdit}
               />
             </div>
           )}
@@ -1034,7 +1125,8 @@ export default function AddPropertyPopup({ onClose, editIndex = null, initialDat
                 type="number"
                 placeholder="Total floors in building"
                 value={formData.totalFloors}
-                onChange={(e) => handleChange('totalFloors', e.target.value)}
+                onChange={(e) => !isRestrictedEdit && handleChange('totalFloors', e.target.value)}
+                disabled={isRestrictedEdit}
               />
             </div>
           )}
@@ -1048,7 +1140,8 @@ export default function AddPropertyPopup({ onClose, editIndex = null, initialDat
               <label>Facing</label>
               <select
                 value={formData.facing}
-                onChange={(e) => handleChange('facing', e.target.value)}
+                onChange={(e) => !isRestrictedEdit && handleChange('facing', e.target.value)}
+                disabled={isRestrictedEdit}
               >
                 <option value="">Select</option>
                 {FACING_OPTIONS.map(opt => (
@@ -1063,7 +1156,8 @@ export default function AddPropertyPopup({ onClose, editIndex = null, initialDat
               <label>Property Age</label>
               <select
                 value={formData.age}
-                onChange={(e) => handleChange('age', e.target.value)}
+                onChange={(e) => !isRestrictedEdit && handleChange('age', e.target.value)}
+                disabled={isRestrictedEdit}
               >
                 <option value="">Select</option>
                 {AGE_OPTIONS.map(opt => (
@@ -1078,7 +1172,8 @@ export default function AddPropertyPopup({ onClose, editIndex = null, initialDat
               <label>Furnishing</label>
               <select
                 value={formData.furnishing}
-                onChange={(e) => handleChange('furnishing', e.target.value)}
+                onChange={(e) => !isRestrictedEdit && handleChange('furnishing', e.target.value)}
+                disabled={isRestrictedEdit}
               >
                 <option value="">Select</option>
                 {FURNISHING_OPTIONS.map(opt => (
@@ -1145,6 +1240,20 @@ export default function AddPropertyPopup({ onClose, editIndex = null, initialDat
     
     return (
       <div className="seller-popup-step-content">
+        {isRestrictedEdit && (
+          <div className="restricted-edit-warning" style={{
+            padding: '12px 16px',
+            backgroundColor: '#fff3cd',
+            border: '1px solid #ffc107',
+            borderRadius: '8px',
+            marginBottom: '20px',
+            color: '#856404',
+            fontSize: '14px',
+            lineHeight: '1.5'
+          }}>
+            ⚠️ This property was created more than 24 hours ago. You can only edit the <strong>Title</strong> and <strong>Price-related fields</strong>. All other fields are locked.
+          </div>
+        )}
         <h3 className="step-heading">Amenities & Description</h3>
         <p className="step-subheading">Select the amenities available and describe your property</p>
 
@@ -1156,7 +1265,9 @@ export default function AddPropertyPopup({ onClose, editIndex = null, initialDat
                 key={amenity.id}
                 type="button"
                 className={`amenity-btn ${formData.amenities.includes(amenity.id) ? 'active' : ''}`}
-                onClick={() => toggleAmenity(amenity.id)}
+                onClick={() => !isRestrictedEdit && toggleAmenity(amenity.id)}
+                disabled={isRestrictedEdit}
+                style={{ opacity: isRestrictedEdit ? 0.5 : 1, cursor: isRestrictedEdit ? 'not-allowed' : 'pointer' }}
               >
                 <span className="seller-popup-amenity-icon">{amenity.icon}</span>
                 <span className="seller-popup-amenity-label">{amenity.label}</span>
@@ -1171,13 +1282,17 @@ export default function AddPropertyPopup({ onClose, editIndex = null, initialDat
         <div className="seller-popup-form-group">
           <label>Property Description <span className="required">*</span></label>
           <textarea
-            placeholder="Describe your property in detail. Mention unique features, nearby landmarks, connectivity, etc."
+            placeholder="Describe your property in detail (minimum 100 words required). Mention unique features, nearby landmarks, connectivity, etc. Note: Mobile numbers and email addresses are not allowed."
             value={formData.description}
-            onChange={(e) => handleChange('description', e.target.value)}
+            onChange={(e) => !isRestrictedEdit && handleChange('description', e.target.value)}
             rows={5}
             className={errors.description ? 'error' : ''}
+            disabled={isRestrictedEdit}
           />
-          <span className="char-count">{(formData.description || '').length}/1000</span>
+          <span className="char-count">
+            Words: {formData.description ? formData.description.trim().split(/\s+/).filter(word => word.length > 0).length : 0}/100 (min) | 
+            Characters: {(formData.description || '').length}/1000
+          </span>
           {errors.description && <span className="seller-popup-error-text">{errors.description}</span>}
         </div>
       </div>
@@ -1186,12 +1301,27 @@ export default function AddPropertyPopup({ onClose, editIndex = null, initialDat
 
   const renderStep4 = () => (
     <div className="seller-popup-step-content">
+      {isRestrictedEdit && (
+        <div className="restricted-edit-warning" style={{
+          padding: '12px 16px',
+          backgroundColor: '#fff3cd',
+          border: '1px solid #ffc107',
+          borderRadius: '8px',
+          marginBottom: '20px',
+          color: '#856404',
+          fontSize: '14px',
+          lineHeight: '1.5'
+        }}>
+          ⚠️ This property was created more than 24 hours ago. You can only edit the <strong>Title</strong> and <strong>Price-related fields</strong>. All other fields are locked.
+        </div>
+      )}
       <h3 className="step-heading">Upload Photos</h3>
       <p className="step-subheading">Add up to 10 high-quality photos of your property</p>
 
       <div 
         className={`upload-zone ${errors.images ? 'error' : ''}`}
-        onClick={() => fileRef.current?.click()}
+        onClick={() => !isRestrictedEdit && fileRef.current?.click()}
+        style={{ opacity: isRestrictedEdit ? 0.5 : 1, cursor: isRestrictedEdit ? 'not-allowed' : 'pointer' }}
       >
         <input
           ref={fileRef}
@@ -1221,7 +1351,9 @@ export default function AddPropertyPopup({ onClose, editIndex = null, initialDat
             <button 
               type="button" 
               className="add-more-btn"
-              onClick={() => fileRef.current?.click()}
+              onClick={() => !isRestrictedEdit && fileRef.current?.click()}
+              disabled={isRestrictedEdit}
+              style={{ opacity: isRestrictedEdit ? 0.5 : 1, cursor: isRestrictedEdit ? 'not-allowed' : 'pointer' }}
             >
               + Add More
             </button>
@@ -1234,7 +1366,9 @@ export default function AddPropertyPopup({ onClose, editIndex = null, initialDat
                 <button
                   type="button"
                   className="remove-btn"
-                  onClick={() => removeImage(idx)}
+                  onClick={() => !isRestrictedEdit && removeImage(idx)}
+                  disabled={isRestrictedEdit}
+                  style={{ opacity: isRestrictedEdit ? 0.5 : 1, cursor: isRestrictedEdit ? 'not-allowed' : 'pointer' }}
                 >
                   <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
                     <path d="M18 6L6 18M6 6l12 12" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
@@ -1250,6 +1384,20 @@ export default function AddPropertyPopup({ onClose, editIndex = null, initialDat
 
   const renderStep5 = () => (
     <div className="seller-popup-step-content">
+      {isRestrictedEdit && (
+        <div className="restricted-edit-warning" style={{
+          padding: '12px 16px',
+          backgroundColor: '#fff3cd',
+          border: '1px solid #ffc107',
+          borderRadius: '8px',
+          marginBottom: '20px',
+          color: '#856404',
+          fontSize: '14px',
+          lineHeight: '1.5'
+        }}>
+          ⚠️ This property was created more than 24 hours ago. You can only edit the <strong>Title</strong> and <strong>Price-related fields</strong> (price, price negotiable, maintenance charges, deposit amount).
+        </div>
+      )}
       <h3 className="step-heading">Pricing Details</h3>
       <p className="step-subheading">Set the right price for your property</p>
 
@@ -1301,6 +1449,11 @@ export default function AddPropertyPopup({ onClose, editIndex = null, initialDat
                 onChange={(e) => handleChange('depositAmount', e.target.value)}
               />
             </div>
+            {formData.depositAmount && (
+              <span className="price-words">
+                {formatPriceInWords(formData.depositAmount)}
+              </span>
+            )}
           </div>
 
           <div className="seller-popup-form-group">
@@ -1314,6 +1467,11 @@ export default function AddPropertyPopup({ onClose, editIndex = null, initialDat
                 onChange={(e) => handleChange('maintenanceCharges', e.target.value)}
               />
             </div>
+            {formData.maintenanceCharges && (
+              <span className="price-words">
+                {formatPriceInWords(formData.maintenanceCharges)}
+              </span>
+            )}
           </div>
         </div>
       )}
@@ -1330,6 +1488,11 @@ export default function AddPropertyPopup({ onClose, editIndex = null, initialDat
               onChange={(e) => handleChange('maintenanceCharges', e.target.value)}
             />
           </div>
+          {formData.maintenanceCharges && (
+            <span className="price-words">
+              {formatPriceInWords(formData.maintenanceCharges)}
+            </span>
+          )}
         </div>
       )}
 
@@ -1498,7 +1661,7 @@ export default function AddPropertyPopup({ onClose, editIndex = null, initialDat
         {renderStepIndicator()}
 
         {/* Form Content */}
-        <div className="seller-popup-body">
+        <div className="seller-popup-body" ref={popupBodyRef}>
           {renderCurrentStep()}
         </div>
 

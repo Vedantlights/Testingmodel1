@@ -72,17 +72,17 @@ const SellerProperties = () => {
     navigate(path);
   };
 
-  // Helper function to check if property can be edited (within 24 hours)
-  const canEditProperty = (property) => {
+  // Helper function to check if property is older than 24 hours
+  const isPropertyOlderThan24Hours = (property) => {
     if (!property || !property.createdAt) {
-      return true; // Allow if no timestamp (backward compatibility)
+      return false; // If no timestamp, assume it's new (backward compatibility)
     }
     
     const createdAt = new Date(property.createdAt);
     const now = new Date();
     const hoursSinceCreation = (now.getTime() - createdAt.getTime()) / (1000 * 60 * 60);
     
-    return hoursSinceCreation < 24;
+    return hoursSinceCreation >= 24;
   };
 
   const formatPrice = (price) => {
@@ -202,32 +202,27 @@ const SellerProperties = () => {
         </div>
       ) : (
         <div className={`seller-props-container ${viewMode}`}>
-          {filteredProperties.map((property, index) => {
-            const isEditable = canEditProperty(property);
-            
-            return (
-              <div 
-                key={property.id} 
-                className={`seller-props-card ${viewMode}`}
-                style={{ animationDelay: `${index * 0.05}s` }}
-              >
-                <div className="seller-props-image">
-                  <img src={property.images?.[0]} alt={property.title} />
-                  <div className="seller-props-image-overlay">
-                    {isEditable && (
-                      <button className="seller-props-overlay-btn" onClick={() => openEdit(getPropertyIndex(property.id))}>
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
-                          <path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7" stroke="currentColor" strokeWidth="2"/>
-                          <path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z" stroke="currentColor" strokeWidth="2"/>
-                        </svg>
-                      </button>
-                    )}
-                    <button className="seller-props-overlay-btn delete" onClick={() => handleDelete(property.id)}>
-                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
-                        <path d="M3 6h18M8 6V4a2 2 0 012-2h4a2 2 0 012 2v2M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6" stroke="currentColor" strokeWidth="2"/>
-                      </svg>
-                    </button>
-                  </div>
+          {filteredProperties.map((property, index) => (
+            <div 
+              key={property.id} 
+              className={`seller-props-card ${viewMode}`}
+              style={{ animationDelay: `${index * 0.05}s` }}
+            >
+              <div className="seller-props-image">
+                <img src={property.images?.[0]} alt={property.title} />
+                <div className="seller-props-image-overlay">
+                  <button className="seller-props-overlay-btn" onClick={() => openEdit(getPropertyIndex(property.id))}>
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+                      <path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7" stroke="currentColor" strokeWidth="2"/>
+                      <path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z" stroke="currentColor" strokeWidth="2"/>
+                    </svg>
+                  </button>
+                  <button className="seller-props-overlay-btn delete" onClick={() => handleDelete(property.id)}>
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+                      <path d="M3 6h18M8 6V4a2 2 0 012-2h4a2 2 0 012 2v2M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6" stroke="currentColor" strokeWidth="2"/>
+                    </svg>
+                  </button>
+                </div>
                 <span className={`seller-props-badge ${property.status}`}>
                   {property.status === 'sale' ? 'For Sale' : 'For Rent'}
                 </span>
@@ -303,15 +298,13 @@ const SellerProperties = () => {
                       </svg>
                       View
                     </button>
-                    {isEditable && (
-                      <button className="seller-props-edit-btn" onClick={() => openEdit(getPropertyIndex(property.id))}>
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
-                          <path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7" stroke="currentColor" strokeWidth="2"/>
-                          <path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z" stroke="currentColor" strokeWidth="2"/>
-                        </svg>
-                        Edit
-                      </button>
-                    )}
+                    <button className="seller-props-edit-btn" onClick={() => openEdit(getPropertyIndex(property.id))}>
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+                        <path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7" stroke="currentColor" strokeWidth="2"/>
+                        <path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z" stroke="currentColor" strokeWidth="2"/>
+                      </svg>
+                      Edit
+                    </button>
                     <button className="seller-props-delete-btn" onClick={() => handleDelete(property.id)}>
                       <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
                         <path d="M3 6h18M8 6V4a2 2 0 012-2h4a2 2 0 012 2v2M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6" stroke="currentColor" strokeWidth="2"/>
@@ -322,8 +315,7 @@ const SellerProperties = () => {
                 </div>
               </div>
             </div>
-            );
-          })}
+          ))}
 
           {/* Add Property Card */}
           {properties.length < MAX_PROPERTIES && viewMode === 'grid' && (
