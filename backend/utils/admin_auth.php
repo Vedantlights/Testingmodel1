@@ -8,6 +8,7 @@ require_once __DIR__ . '/../config/config.php';
 require_once __DIR__ . '/admin_session.php';
 
 // Get current admin from session
+if (!function_exists('getCurrentAdmin')) {
 function getCurrentAdmin() {
     $session = getAdminSession();
     
@@ -25,8 +26,10 @@ function getCurrentAdmin() {
     
     return $admin ?: null;
 }
+}
 
 // Require admin authentication (session-based)
+if (!function_exists('requireAdmin')) {
 function requireAdmin() {
     $admin = getCurrentAdmin();
     if (!$admin) {
@@ -35,8 +38,10 @@ function requireAdmin() {
     }
     return $admin;
 }
+}
 
 // Require specific admin role
+if (!function_exists('requireAdminRole')) {
 function requireAdminRole($allowedRoles) {
     $admin = requireAdmin();
     

@@ -13,6 +13,7 @@ require_once __DIR__ . '/response.php';
  * Require admin authentication
  * Use this middleware to protect admin routes
  */
+if (!function_exists('requireAdminAuth')) {
 function requireAdminAuth() {
     $session = getAdminSession();
     
@@ -22,11 +23,14 @@ function requireAdminAuth() {
     
     return $session;
 }
+}
 
 /**
  * Check if admin is authenticated (non-blocking)
  */
+if (!function_exists('isAdminAuthenticated')) {
 function isAdminAuthenticated() {
     return getAdminSession() !== null;
+}
 }
 

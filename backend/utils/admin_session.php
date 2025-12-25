@@ -10,6 +10,7 @@ require_once __DIR__ . '/../config/database.php';
 /**
  * Initialize secure session
  */
+if (!function_exists('initSecureSession')) {
 function initSecureSession() {
     if (session_status() === PHP_SESSION_NONE) {
         $isSecure = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off');
@@ -25,6 +26,7 @@ function initSecureSession() {
         
         session_start();
     }
+}
 }
 
 /**
@@ -44,6 +46,7 @@ if (!function_exists('getClientIP')) {
 /**
  * Create admin session - SIMPLIFIED AND FIXED
  */
+if (!function_exists('createAdminSession')) {
 function createAdminSession($adminMobile, $adminId, $adminRole, $adminEmail) {
     error_log("=== createAdminSession CALLED ===");
     error_log("Params - Mobile: $adminMobile, ID: $adminId, Role: $adminRole, Email: $adminEmail");
@@ -124,10 +127,12 @@ function createAdminSession($adminMobile, $adminId, $adminRole, $adminEmail) {
     error_log("=== createAdminSession COMPLETE ===");
     return true;
 }
+}
 
 /**
  * Get current admin session
  */
+if (!function_exists('getAdminSession')) {
 function getAdminSession() {
     initSecureSession();
     
@@ -201,10 +206,12 @@ function getAdminSession() {
         'last_activity' => $session['last_activity']
     ];
 }
+}
 
 /**
  * Destroy admin session
  */
+if (!function_exists('destroyAdminSession')) {
 function destroyAdminSession() {
     initSecureSession();
     
@@ -225,4 +232,5 @@ function destroyAdminSession() {
     }
     
     session_destroy();
+}
 }
