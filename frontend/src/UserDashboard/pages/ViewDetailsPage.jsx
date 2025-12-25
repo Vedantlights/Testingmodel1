@@ -5,7 +5,7 @@
 
 import React, { useState, useCallback, useEffect } from 'react'; 
 import { useParams, Navigate, useNavigate, useLocation } from 'react-router-dom';
-import { FaPhone, FaEnvelope, FaAngleLeft, FaAngleRight, FaBed, FaShower, FaRulerCombined, FaTimes, FaCheckCircle, FaUser, FaCommentAlt, FaComments } from "react-icons/fa";
+import { FaPhone, FaEnvelope, FaAngleLeft, FaAngleRight, FaBed, FaShower, FaRulerCombined, FaTimes, FaCheckCircle, FaUser, FaCommentAlt, FaComments, FaStar, FaChevronDown, FaChevronUp } from "react-icons/fa";
 import '../styles/ViewDetailPage.css';
 import { propertiesAPI, chatAPI } from '../../services/api.service';
 import { useAuth } from '../../context/AuthContext';
@@ -598,6 +598,15 @@ const ViewDetailsPage = () => {
     // Share State
     const [showToast, setShowToast] = useState(false);
     
+    // Description expand/collapse
+    const [showFullDescription, setShowFullDescription] = useState(false);
+    
+    // Booking widget state (UI only)
+    const [checkInDate, setCheckInDate] = useState('');
+    const [checkOutDate, setCheckOutDate] = useState('');
+    const [guestCount, setGuestCount] = useState(1);
+    const [showGuestDropdown, setShowGuestDropdown] = useState(false);
+    
     // --- 2. DEFINE ALL CALLBACK HOOKS UNCONDITIONALLY ---
     
     const openSlider = useCallback((index) => {
@@ -919,47 +928,37 @@ const ViewDetailsPage = () => {
             <main className="buyer-view-details-page">
                 <div className="buyer-details-container">
 
-                    {/* Back Button */}
-                    <button className="buyer-back-button" onClick={handleBack}>
-                        <FaAngleLeft />
-                    </button>
-
-                    {/* Property Header */}
-                    <header className="buyer-property-header">
-                        <div className="buyer-header-top">
-                            {/* Breadcrumb Navigation */}
-                            <div className="buyer-breadcrumb">
-                                <span className="buyer-breadcrumb-location">{propertyData.location}</span>
-                                <span className="buyer-breadcrumb-separator">•</span>
-                                <span className="buyer-breadcrumb-status">{propertyData.status}</span>
-                            </div>
-                            
-                            {/* Save Button */}
-                            <button 
-                                className={`buyer-detail-favourite-btn ${isFavorited ? 'active' : ''}`}
-                                onClick={handleFavoriteClick}
-                                aria-label={isFavorited ? 'Remove from favorites' : 'Add to favorites'}
-                                title={isFavorited ? 'Remove from favorites' : 'Add to favorites'}
-                            >
-                                <svg 
-                                    xmlns="http://www.w3.org/2000/svg" 
-                                    width="22" 
-                                    height="22" 
-                                    viewBox="0 0 24 24" 
-                                    fill={isFavorited ? 'white' : 'none'}
-                                    stroke="currentColor" 
-                                    strokeWidth="2" 
-                                    strokeLinecap="round" 
-                                    strokeLinejoin="round"
+                    {/* Airbnb-style Header */}
+                    <header className="airbnb-header">
+                        <div className="airbnb-header-content">
+                            <h1 className="airbnb-title">{propertyData.title}</h1>
+                            <div className="airbnb-header-actions">
+                                <button 
+                                    className="airbnb-share-btn"
+                                    onClick={handleShareClick}
+                                    aria-label="Share property"
                                 >
-                                    <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path>
-                                </svg>
-                                <span className="buyer-save-text">Save</span>
-                            </button>
+                                    <svg viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" role="presentation" focusable="false" style={{display: 'block', fill: 'none', height: '16px', width: '16px', stroke: 'currentcolor', strokeWidth: '2', overflow: 'visible'}}>
+                                        <g fill="none">
+                                            <path d="M27 18v9a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2v-9"></path>
+                                            <path d="M16 3v23V3z"></path>
+                                            <path d="M6 13l9.293-9.293a1 1 0 0 1 1.414 0L26 13"></path>
+                                        </g>
+                                    </svg>
+                                    <span>Share</span>
+                                </button>
+                                <button 
+                                    className={`airbnb-save-btn ${isFavorited ? 'active' : ''}`}
+                                    onClick={handleFavoriteClick}
+                                    aria-label={isFavorited ? 'Remove from favorites' : 'Add to favorites'}
+                                >
+                                    <svg viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" role="presentation" focusable="false" style={{display: 'block', fill: isFavorited ? 'currentColor' : 'none', height: '16px', width: '16px', stroke: 'currentcolor', strokeWidth: '2', overflow: 'visible'}}>
+                                        <path d="M16 28c7-4.733 14-10 14-17a6.978 6.978 0 0 0-2-5 6.978 6.978 0 0 0-5-2 6.978 6.978 0 0 0-5 2 6.978 6.978 0 0 0-5-2 6.978 6.978 0 0 0-5 2A6.978 6.978 0 0 0 2 11c0 7 7 12.267 14 17z"></path>
+                                    </svg>
+                                    <span>Save</span>
+                                </button>
+                            </div>
                         </div>
-                        
-                        {/* Title - Centrally Aligned */}
-                        <h1 className="buyer-property-title">{propertyData.title}</h1>
                     </header>
 
                     <div className="buyer-main-content-area">
@@ -967,118 +966,240 @@ const ViewDetailsPage = () => {
                         {/* --- Left Column (Details) --- */}
                         <section className="buyer-property-details-section">
 
-                            {/* Image Gallery */}
-                            <div className="buyer-image-gallery">
-                                {/* Main Image (Grid Column 1) */}
-                                <div className="buyer-main-image" onClick={() => openSlider(0)}>
-                                    <img src={propertyData.images[0].url} alt={propertyData.images[0].alt} />
+                            {/* Airbnb-style Image Gallery */}
+                            <div className="airbnb-image-gallery">
+                                {/* Main Image */}
+                                <div className="airbnb-main-image" onClick={() => openSlider(0)}>
+                                    <img src={propertyData.images[0]?.url || ''} alt={propertyData.images[0]?.alt || propertyData.title} />
                                 </div>
-
-                                {/* Thumbnails (Grid Column 2) */}
-                                <div className="buyer-thumbnail-gallery">
-                                    {thumbnailImages.map((image, index) => (
+                                
+                                {/* Thumbnail Grid */}
+                                <div className="airbnb-thumbnail-grid">
+                                    {thumbnailImages.slice(0, 4).map((image, index) => (
                                         <div 
                                             key={image.id} 
-                                            // The index here starts at 0, but corresponds to the original array index (1, 2, 3)
-                                            className="buyer-thumbnail" 
+                                            className="airbnb-thumbnail" 
                                             onClick={() => openSlider(index + 1)} 
                                         >
                                             <img src={image.url} alt={image.alt} />
-                                            {index === 2 && remainingCount > 0 && (
-                                                <div className="buyer-view-more-overlay">
-                                                    <span>+{remainingCount} Photos</span>
-                                                </div>
-                                            )}
                                         </div>
                                     ))}
+                                    {propertyData.images.length > 5 && (
+                                        <button 
+                                            className="airbnb-show-all-photos"
+                                            onClick={() => openSlider(0)}
+                                        >
+                                            <svg viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" role="presentation" focusable="false" style={{display: 'block', fill: 'none', height: '24px', width: '24px', stroke: 'currentcolor', strokeWidth: '2', overflow: 'visible'}}>
+                                                <path d="M4 8h24M4 16h24M4 24h24"></path>
+                                            </svg>
+                                            <span>Show all photos</span>
+                                        </button>
+                                    )}
+                                    {propertyData.images.length === 5 && (
+                                        <div 
+                                            className="airbnb-thumbnail airbnb-last-thumbnail" 
+                                            onClick={() => openSlider(4)} 
+                                        >
+                                            <img src={propertyData.images[4]?.url || ''} alt={propertyData.images[4]?.alt || propertyData.title} />
+                                        </div>
+                                    )}
                                 </div>
                             </div>
 
-                            {/* Property Statistics */}
-                            <div className="buyer-property-stats">
-                                {(() => {
-                                    const showBedrooms = shouldShowFeature(propertyData.type, 'bedrooms');
-                                    const showBathrooms = shouldShowFeature(propertyData.type, 'bathrooms');
-                                    
-                                    return (
-                                        <>
-                                            {/* Bedrooms - Only show if property type supports it */}
-                                            {showBedrooms && (
-                                                <div className="buyer-stat-item">
-                                                    <FaBed className="buyer-stat-icon" />
-                                                    <span className="buyer-stat-text">{propertyData.bedrooms} bedrooms</span>
-                                                </div>
-                                            )}
-
-                                            {/* Bathrooms - Only show if property type supports it */}
-                                            {showBathrooms && (
-                                                <div className="buyer-stat-item">
-                                                    <FaShower className="buyer-stat-icon" />
-                                                    <span className="buyer-stat-text">{propertyData.bathrooms} bathrooms</span>
-                                                </div>
-                                            )}
-
-                                            {/* Area */}
-                                            <div className="buyer-stat-item">
-                                                <FaRulerCombined className="buyer-stat-icon" />
-                                                <span className="buyer-stat-text">{propertyData.area} area</span>
-                                            </div>
-                                        </>
-                                    );
-                                })()}
+                            {/* Property Summary */}
+                            <div className="airbnb-property-summary">
+                                <div className="airbnb-location-type">
+                                    <span>{propertyData.type || 'Property'} in {propertyData.location}</span>
+                                </div>
+                                <div className="airbnb-property-details">
+                                    {(() => {
+                                        const showBedrooms = shouldShowFeature(propertyData.type, 'bedrooms');
+                                        const showBathrooms = shouldShowFeature(propertyData.type, 'bathrooms');
+                                        const parts = [];
+                                        if (showBedrooms && propertyData.bedrooms) {
+                                            parts.push(`${propertyData.bedrooms} bedroom${propertyData.bedrooms !== 1 ? 's' : ''}`);
+                                            parts.push(`${propertyData.bedrooms} bed${propertyData.bedrooms !== 1 ? 's' : ''}`);
+                                        }
+                                        if (showBathrooms && propertyData.bathrooms) {
+                                            parts.push(`${propertyData.bathrooms} bathroom${propertyData.bathrooms !== 1 ? 's' : ''}`);
+                                        }
+                                        return parts.length > 0 ? parts.join(' · ') : propertyData.area;
+                                    })()}
+                                </div>
                             </div>
-                            {/* END of Property Statistics */}
 
-                            <hr className="buyer-divider" />
-
-                            {/* About this place */}
-                            <div className="buyer-description-section">
-                                <h2>About this place</h2>
-                                <p>{propertyData.description}</p>
+                            {/* Ratings & Reviews */}
+                            <div className="airbnb-ratings-section">
+                                <div className="airbnb-guest-favourite">
+                                    <svg viewBox="0 0 24 24" fill="currentColor" style={{width: '24px', height: '24px'}}>
+                                        <path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z"/>
+                                    </svg>
+                                    <div>
+                                        <div className="airbnb-guest-favourite-text">Guest favourite</div>
+                                        <div className="airbnb-guest-favourite-subtext">One of the most loved homes, according to guests</div>
+                                    </div>
+                                </div>
+                                <div className="airbnb-rating">
+                                    <div className="airbnb-rating-value">4.98</div>
+                                    <div className="airbnb-rating-stars">
+                                        <FaStar style={{color: '#FF385C', fontSize: '14px'}} />
+                                        <FaStar style={{color: '#FF385C', fontSize: '14px'}} />
+                                        <FaStar style={{color: '#FF385C', fontSize: '14px'}} />
+                                        <FaStar style={{color: '#FF385C', fontSize: '14px'}} />
+                                        <FaStar style={{color: '#FF385C', fontSize: '14px'}} />
+                                    </div>
+                                    <div className="airbnb-review-count">156 Reviews</div>
+                                </div>
                             </div>
-                            <hr className="buyer-divider" />
+
+                            <hr className="airbnb-divider" />
+
+                            {/* Host Information */}
+                            <div className="airbnb-host-section">
+                                <div className="airbnb-host-info">
+                                    <h2>Hosted by {property.seller_name || 'Property Owner'}</h2>
+                                    <p>Superhost · 2 years hosting</p>
+                                </div>
+                            </div>
+
+                            <hr className="airbnb-divider" />
+
+                            {/* Property Highlights */}
+                            <div className="airbnb-highlights">
+                                <div className="airbnb-highlight-item">
+                                    <div className="airbnb-highlight-title">Top 10% of homes</div>
+                                    <div className="airbnb-highlight-desc">This home is highly ranked based on ratings, reviews and reliability.</div>
+                                </div>
+                                <div className="airbnb-highlight-item">
+                                    <div className="airbnb-highlight-title">Dive right in</div>
+                                    <div className="airbnb-highlight-desc">This is one of the few places in the area with a pool.</div>
+                                </div>
+                                <div className="airbnb-highlight-item">
+                                    <div className="airbnb-highlight-title">Free cancellation before 15 January</div>
+                                    <div className="airbnb-highlight-desc">Get a full refund if you change your mind.</div>
+                                </div>
+                            </div>
+
+                            <hr className="airbnb-divider" />
+
+                            {/* Description */}
+                            <div className="airbnb-description-section">
+                                <div className={`airbnb-description ${showFullDescription ? 'expanded' : ''}`}>
+                                    <p>{propertyData.description}</p>
+                                </div>
+                                {propertyData.description && propertyData.description.length > 200 && (
+                                    <button 
+                                        className="airbnb-show-more-btn"
+                                        onClick={() => setShowFullDescription(!showFullDescription)}
+                                    >
+                                        {showFullDescription ? 'Show less' : 'Show more'}
+                                        {showFullDescription ? <FaChevronUp /> : <FaChevronDown />}
+                                    </button>
+                                )}
+                            </div>
+
+                            <hr className="airbnb-divider" />
 
                             {/* What this place offers */}
-                            <div className="buyer-amenities-section">
+                            <div className="airbnb-amenities-section">
                                 <h2>What this place offers</h2>
-                                <div className="buyer-amenities-grid">
+                                <div className="airbnb-amenities-grid">
                                     {propertyData.amenities.map((amenity, index) => (
-                                        <div key={index} className="buyer-amenity-item">
-                                            <FaCheckCircle className="buyer-check-icon" />
+                                        <div key={index} className="airbnb-amenity-item">
+                                            <FaCheckCircle className="airbnb-check-icon" />
                                             <span>{amenity}</span>
                                         </div>
                                     ))}
                                 </div>
                             </div>
-                            <hr className="buyer-divider" />
+
+                            <hr className="airbnb-divider" />
 
                             {/* Property Location */}
-                            <div className="buyer-property-location-section">
-                                <h2>Property Location</h2>
+                            <div className="airbnb-location-section">
+                                <h2>Where you'll be</h2>
                                 <PropertyMapFeature property={property} />
                             </div>
                         </section>
 
-                        {/* --- Right Column (Price & Actions) --- */}
-                        <aside className="buyer-agent-sidebar">
-                            
-                            {/* Price Card */}
-                            <div className="buyer-price-card">
-                                <div className="buyer-price-display">
-                                    <span className="buyer-price-value">{propertyData.price}</span>
+                        {/* --- Right Column (Booking Widget) --- */}
+                        <aside className="airbnb-sidebar">
+                            <div className="airbnb-booking-card">
+                                {/* Rare find badge */}
+                                <div className="airbnb-rare-find">
+                                    <span>Rare find!</span> This place is usually booked.
                                 </div>
                                 
-                                {/* Chat with Owner Button - Only show if user is buyer AND not the property owner */}
+                                {/* Price */}
+                                <div className="airbnb-price-display">
+                                    <span className="airbnb-price-value">{propertyData.price}</span>
+                                    {propertyData.status === 'For Rent' && <span className="airbnb-price-period">/month</span>}
+                                </div>
+
+                                {/* Booking Widget */}
+                                <div className="airbnb-booking-widget">
+                                    <div className="airbnb-date-inputs">
+                                        <div className="airbnb-date-input">
+                                            <label>CHECK-IN</label>
+                                            <input 
+                                                type="date" 
+                                                value={checkInDate}
+                                                onChange={(e) => setCheckInDate(e.target.value)}
+                                                placeholder="Add date"
+                                            />
+                                        </div>
+                                        <div className="airbnb-date-input">
+                                            <label>CHECKOUT</label>
+                                            <input 
+                                                type="date" 
+                                                value={checkOutDate}
+                                                onChange={(e) => setCheckOutDate(e.target.value)}
+                                                placeholder="Add date"
+                                            />
+                                        </div>
+                                    </div>
+                                    
+                                    <div className="airbnb-guests-input">
+                                        <label>GUESTS</label>
+                                        <div 
+                                            className="airbnb-guests-selector"
+                                            onClick={() => setShowGuestDropdown(!showGuestDropdown)}
+                                        >
+                                            <span>{guestCount} {guestCount === 1 ? 'guest' : 'guests'}</span>
+                                            <FaChevronDown />
+                                        </div>
+                                        {showGuestDropdown && (
+                                            <div className="airbnb-guests-dropdown">
+                                                <button onClick={() => { setGuestCount(Math.max(1, guestCount - 1)); setShowGuestDropdown(false); }}>-</button>
+                                                <span>{guestCount}</span>
+                                                <button onClick={() => { setGuestCount(guestCount + 1); setShowGuestDropdown(false); }}>+</button>
+                                            </div>
+                                        )}
+                                    </div>
+
+                                    <button className="airbnb-reserve-btn">
+                                        Reserve
+                                    </button>
+                                    
+                                    <p className="airbnb-no-charge-text">You won't be charged yet</p>
+                                </div>
+
+                                {/* Chat with Owner Button */}
                                 {user && user.user_type === 'buyer' && property && property.seller_id && Number(user.id) !== Number(property.seller_id) && (
                                     <button 
                                         type="button"
                                         onClick={handleChatWithOwner}
-                                        className="buyer-chat-owner-button"
+                                        className="airbnb-contact-host-btn"
                                     >
                                         <FaComments />
-                                        Chat with Owner
+                                        Contact Host
                                     </button>
                                 )}
+
+                                {/* Report listing */}
+                                <div className="airbnb-report-listing">
+                                    <button className="airbnb-report-link">Report this listing</button>
+                                </div>
                             </div>
                         </aside>
 
