@@ -441,9 +441,12 @@ const SellerProfile = () => {
       }
     };
     
+    // Use both mousedown and click to ensure menu closes properly
     document.addEventListener('mousedown', handleClickOutside);
+    document.addEventListener('click', handleClickOutside);
     return () => {
       document.removeEventListener('mousedown', handleClickOutside);
+      document.removeEventListener('click', handleClickOutside);
     };
   }, [showImageMenu]);
 
@@ -461,6 +464,11 @@ const SellerProfile = () => {
   }, []);
 
   const handleSave = async () => {
+    // Close image menu if open
+    if (showImageMenu) {
+      setShowImageMenu(false);
+    }
+    
     if (!validateProfile()) {
       return; // Don't save if validation fails
     }
@@ -918,10 +926,10 @@ const SellerProfile = () => {
 
                 {isEditing && (
                   <div className="seller-profile-form-actions">
-                    <button className="seller-profile-cancel-btn" onClick={() => setIsEditing(false)}>
+                    <button type="button" className="seller-profile-cancel-btn" onClick={() => setIsEditing(false)}>
                       Cancel
                     </button>
-                    <button className="seller-profile-save-btn" onClick={handleSave}>
+                    <button type="button" className="seller-profile-save-btn" onClick={handleSave}>
                       <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
                         <path d="M19 21H5a2 2 0 01-2-2V5a2 2 0 012-2h11l5 5v11a2 2 0 01-2 2z" stroke="currentColor" strokeWidth="2"/>
                         <path d="M17 21v-8H7v8M7 3v5h8" stroke="currentColor" strokeWidth="2"/>
@@ -991,7 +999,7 @@ const SellerProfile = () => {
                 </div>
 
                 <div className="seller-profile-form-actions">
-                  <button className="seller-profile-save-btn" onClick={handleSave}>
+                  <button type="button" className="seller-profile-save-btn" onClick={handleSave}>
                     Save Preferences
                   </button>
                 </div>
