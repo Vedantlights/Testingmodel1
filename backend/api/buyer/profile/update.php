@@ -27,9 +27,10 @@ try {
     $updateUserFields = [];
     $userParams = [];
     
-    if (isset($input['full_name'])) {
+    if (isset($input['full_name']) && trim($input['full_name']) !== '') {
+        $fullName = trim($input['full_name']);
         $updateUserFields[] = "full_name = ?";
-        $userParams[] = sanitizeInput($input['full_name']);
+        $userParams[] = sanitizeInput($fullName);
     }
     
     if (isset($input['email'])) {
@@ -54,7 +55,7 @@ try {
     // Ensure user_profiles record exists
     $stmt = $db->prepare("SELECT id FROM user_profiles WHERE user_id = ?");
     $stmt->execute([$user['id']]);
-    if (!$stmt->fetch()) {
+    if (!$stmt->fetch(PDO::FETCH_ASSOC)) {
         // Create user_profiles record with current full_name and user_type
         $stmt = $db->prepare("INSERT INTO user_profiles (user_id, full_name, user_type) SELECT id, full_name, user_type FROM users WHERE id = ?");
         $stmt->execute([$user['id']]);
@@ -66,45 +67,63 @@ try {
         $stmt->execute($userParams);
         
         // Sync full_name and user_type to user_profiles when updated in users table
-        if (isset($input['full_name']) || isset($input['user_type'])) {
+        if (isset($input['full_name']) && trim($input['full_name']) !== '') {
+            $fullName = trim($input['full_name']);
             $syncFields = [];
             $syncParams = [];
-            if (isset($input['full_name'])) {
-                $syncFields[] = "full_name = ?";
-                $syncParams[] = sanitizeInput($input['full_name']);
-            }
+            $syncFields[] = "full_name = ?";
+            $syncParams[] = sanitizeInput($fullName);
+            
             if (isset($input['user_type'])) {
                 $syncFields[] = "user_type = ?";
                 $syncParams[] = sanitizeInput($input['user_type']);
             }
+            
             if (!empty($syncFields)) {
                 $syncParams[] = $user['id'];
                 $stmt = $db->prepare("UPDATE user_profiles SET " . implode(', ', $syncFields) . " WHERE user_id = ?");
                 $stmt->execute($syncParams);
                 
                 // If full_name changed, update properties.user_full_name
-                if (isset($input['full_name'])) {
-                    $newFullName = sanitizeInput($input['full_name']);
-                    $stmt = $db->prepare("UPDATE properties SET user_full_name = ? WHERE user_id = ?");
-                    $stmt->execute([$newFullName, $user['id']]);
-                }
+                $newFullName = sanitizeInput($fullName);
+                $stmt = $db->prepare("UPDATE properties SET user_full_name = ? WHERE user_id = ?");
+                $stmt->execute([$newFullName, $user['id']]);
             }
+        } elseif (isset($input['user_type'])) {
+            // Only update user_type if full_name is not being updated
+            $syncFields = ["user_type = ?"];
+            $syncParams = [sanitizeInput($input['user_type']), $user['id']];
+            $stmt = $db->prepare("UPDATE user_profiles SET " . implode(', ', $syncFields) . " WHERE user_id = ?");
+            $stmt->execute($syncParams);
         }
     }
     
     // Update or insert user profile
-    // Only allow address and contact numbers (not agent-only fields)
+    // Contact fields: whatsapp_number, alternate_mobile (available for all user types)
+    // Address field: available for all user types
     $allowedProfileFields = ['address', 'whatsapp_number', 'alternate_mobile'];
     
     $updateProfileFields = [];
     $profileParams = [];
     
     foreach ($allowedProfileFields as $field) {
-        if (isset($input[$field])) {
+        // Check if field is set (including empty strings to allow clearing fields)
+        // Use array_key_exists to check for the key even if value is empty string or null
+        if (array_key_exists($field, $input)) {
             $value = $input[$field];
             
-            // Validate phone number fields if provided
-            if (($field === 'whatsapp_number' || $field === 'alternate_mobile') && !empty($value)) {
+            // Convert null to empty string (consistent with seller API)
+            if ($value === null) {
+                $value = '';
+            }
+            
+            // Trim whitespace for all fields
+            if (is_string($value)) {
+                $value = trim($value);
+            }
+            
+            // Validate phone number fields if provided (non-empty)
+            if (($field === 'whatsapp_number' || $field === 'alternate_mobile') && $value !== '') {
                 $phone = preg_replace('/\D/', '', $value);
                 if (strlen($phone) < 10 || strlen($phone) > 15) {
                     sendError("Invalid {$field} format. Must be 10-15 digits.", null, 400);
@@ -130,11 +149,16 @@ try {
         $stmt = $db->prepare("SELECT id FROM user_profiles WHERE user_id = ?");
         $stmt->execute([$user['id']]);
         
-        if ($stmt->fetch()) {
+        if ($stmt->fetch(PDO::FETCH_ASSOC)) {
             // Update
             $profileParams[] = $user['id'];
             $stmt = $db->prepare("UPDATE user_profiles SET " . implode(', ', $updateProfileFields) . ", updated_at = NOW() WHERE user_id = ?");
-            $stmt->execute($profileParams);
+            $result = $stmt->execute($profileParams);
+            if (!$result) {
+                $errorInfo = $stmt->errorInfo();
+                error_log("Update user_profiles failed: " . print_r($errorInfo, true));
+                sendError('Failed to update profile: ' . ($errorInfo[2] ?? 'Unknown error'), null, 500);
+            }
         } else {
             // Insert - build field names and values
             $fieldNames = [];
@@ -146,7 +170,12 @@ try {
             
             $placeholders = str_repeat('?,', count($profileParams) - 1) . '?';
             $stmt = $db->prepare("INSERT INTO user_profiles (" . implode(', ', $fieldNames) . ") VALUES ($placeholders)");
-            $stmt->execute($profileParams);
+            $result = $stmt->execute($profileParams);
+            if (!$result) {
+                $errorInfo = $stmt->errorInfo();
+                error_log("Insert user_profiles failed: " . print_r($errorInfo, true));
+                sendError('Failed to create profile: ' . ($errorInfo[2] ?? 'Unknown error'), null, 500);
+            }
         }
     }
     
@@ -163,7 +192,11 @@ try {
         WHERE u.id = ?
     ");
     $stmt->execute([$user['id']]);
-    $profile = $stmt->fetch();
+    $profile = $stmt->fetch(PDO::FETCH_ASSOC);
+    
+    if (!$profile) {
+        sendError('Failed to retrieve updated profile', null, 500);
+    }
     
     unset($profile['password']);
     
