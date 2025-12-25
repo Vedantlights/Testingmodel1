@@ -126,13 +126,6 @@ try {
         LEFT JOIN user_profiles up ON u.id = up.user_id
         WHERE LOWER(TRIM(u.email)) = ?
     ");
-        $stmt = $db->prepare("
-            SELECT u.id, u.full_name, u.email, u.phone, u.password, u.user_type, u.email_verified, u.phone_verified,
-                   NULL as profile_image
-            FROM users u
-            WHERE LOWER(TRIM(u.email)) = ?
-        ");
-    }
     
     $stmt->execute([$emailNormalized]);
     $user = $stmt->fetch();
