@@ -67,12 +67,26 @@ function createAdminSession($adminMobile, $adminId, $adminRole, $adminEmail) {
         // Ignore errors
     }
     
-    // Calculate expiry (1 hour from now)
-    $expiresAt = date('Y-m-d H:i:s', $now + (SESSION_EXPIRY / 1000));
+    // Calculate expiry (24 hours from now per requirements, or use SESSION_EXPIRY constant)
+    $expirySeconds = defined('SESSION_EXPIRY') ? (SESSION_EXPIRY / 1000) : 86400; // Default 24 hours if not defined
+    $expiresAt = date('Y-m-d H:i:s', $now + $expirySeconds);
+    error_log("Session expiry calculated: " . $expiresAt . " (in " . $expirySeconds . " seconds)");
     
-    // Store session in database
-    $stmt = $db->prepare("INSERT INTO admin_sessions (session_id, admin_id, admin_mobile, admin_role, admin_email, ip_address, expires_at) VALUES (?, ?, ?, ?, ?, ?, ?) ON DUPLICATE KEY UPDATE admin_id = VALUES(admin_id), admin_mobile = VALUES(admin_mobile), admin_role = VALUES(admin_role), admin_email = VALUES(admin_email), ip_address = VALUES(ip_address), expires_at = VALUES(expires_at), last_activity = NOW()");
-    $stmt->execute([$sessionId, $adminId, $adminMobile, $adminRole, $adminEmail, $ip, $expiresAt]);
+    // Store session in database (match exact schema)
+    error_log("Inserting session into admin_sessions - Session ID: " . $sessionId . ", Admin ID: " . $adminId);
+    try {
+        $stmt = $db->prepare("INSERT INTO admin_sessions (session_id, admin_id, admin_mobile, admin_role, admin_email, ip_address, expires_at) VALUES (?, ?, ?, ?, ?, ?, ?) ON DUPLICATE KEY UPDATE admin_id = VALUES(admin_id), admin_mobile = VALUES(admin_mobile), admin_role = VALUES(admin_role), admin_email = VALUES(admin_email), ip_address = VALUES(ip_address), expires_at = VALUES(expires_at), last_activity = NOW()");
+        $stmt->execute([$sessionId, $adminId, $adminMobile, $adminRole, $adminEmail, $ip, $expiresAt]);
+        error_log("Session inserted successfully - Rows affected: " . $stmt->rowCount());
+    } catch (PDOException $e) {
+        error_log("ERROR inserting session: " . $e->getMessage());
+        error_log("SQL State: " . ($e->errorInfo[0] ?? 'N/A'));
+        error_log("SQL Error Info: " . print_r($e->errorInfo ?? [], true));
+        error_log("Session ID: " . $sessionId);
+        error_log("Admin ID: " . $adminId);
+        error_log("Admin Mobile: " . $adminMobile);
+        throw $e; // Re-throw to be caught by caller
+    }
     
     // Store in PHP session
     $_SESSION['admin_authenticated'] = true;

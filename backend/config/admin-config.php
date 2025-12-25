@@ -63,34 +63,48 @@ function normalizeMobile($mobile) {
 function isWhitelistedMobile($mobile) {
     try {
         $db = getDB();
-        $normalized = normalizeMobile($mobile);
+        $normalized = normalizeMobile($mobile); // Gets digits only: 917888076881
         
-        // Query admin_whitelist table
-        $stmt = $db->prepare("SELECT COUNT(*) FROM admin_whitelist WHERE phone = ? AND is_active = 1");
-        $stmt->execute([$normalized]);
-        $count = $stmt->fetchColumn();
+        // Database stores phone as +917888076881 (with +), try both formats
+        $phoneFormats = [
+            '+' . $normalized,  // +917888076881 (preferred format)
+            $normalized,        // 917888076881 (digits only)
+        ];
         
-        // If not found, try with + prefix (for +917888076881 format)
-        if ($count === 0 && strpos($normalized, '+') !== 0) {
-            $stmt = $db->prepare("SELECT COUNT(*) FROM admin_whitelist WHERE phone = ? AND is_active = 1");
-            $stmt->execute(['+' . $normalized]);
-            $count = $stmt->fetchColumn();
-        }
+        error_log("Checking whitelist for mobile: " . $mobile . " (normalized: " . $normalized . ")");
         
-        // Fallback to hardcoded list if table doesn't exist or is empty
-        if ($count === 0) {
-            error_log("Warning: admin_whitelist table query returned 0, falling back to hardcoded whitelist");
-            $whitelist = getAdminWhitelist();
-            foreach ($whitelist as $whitelisted) {
-                if (normalizeMobile($whitelisted) === $normalized) {
+        foreach ($phoneFormats as $phoneFormat) {
+            try {
+                // Query admin_whitelist table (column name is "phone")
+                $stmt = $db->prepare("SELECT COUNT(*) FROM admin_whitelist WHERE phone = ? AND is_active = 1");
+                $stmt->execute([$phoneFormat]);
+                $count = $stmt->fetchColumn();
+                
+                if ($count > 0) {
+                    error_log("Mobile found in whitelist with format: " . $phoneFormat);
                     return true;
                 }
+            } catch (PDOException $e) {
+                error_log("Error querying whitelist with format '" . $phoneFormat . "': " . $e->getMessage());
             }
         }
         
-        return $count > 0;
+        // Fallback to hardcoded list if table doesn't exist or is empty
+        error_log("Mobile not found in database whitelist, checking hardcoded fallback");
+        $whitelist = getAdminWhitelist();
+        foreach ($whitelist as $whitelisted) {
+            if (normalizeMobile($whitelisted) === $normalized) {
+                error_log("Mobile found in hardcoded whitelist");
+                return true;
+            }
+        }
+        
+        error_log("Mobile NOT in whitelist - Access denied");
+        return false;
+        
     } catch (Exception $e) {
         error_log("Error checking whitelist: " . $e->getMessage());
+        error_log("Stack trace: " . $e->getTraceAsString());
         // Fallback to hardcoded whitelist on error
         $whitelist = getAdminWhitelist();
         $normalized = normalizeMobile($mobile);
