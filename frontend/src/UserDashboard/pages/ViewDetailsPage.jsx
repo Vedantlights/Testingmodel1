@@ -111,6 +111,24 @@ const shouldShowFeature = (propertyType, feature) => {
     return true; // Show other features by default
 };
 
+// --- Helper function to format date as "MMM YYYY" ---
+const formatListedDate = (dateString) => {
+    if (!dateString) return 'Recently';
+    
+    try {
+        const date = new Date(dateString);
+        if (isNaN(date.getTime())) return 'Recently';
+        
+        const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+        const month = months[date.getMonth()];
+        const year = date.getFullYear();
+        return `${month} ${year}`;
+    } catch (error) {
+        console.error('Error formatting date:', error);
+        return 'Recently';
+    }
+};
+
 // --- Helper function to map property data to ViewDetailsPage structure ---
 const getPropertyDetails = (property) => {
     window.scrollTo(0,0);
@@ -140,7 +158,8 @@ const getPropertyDetails = (property) => {
         type: property.type, // Include type for feature filtering
         description: description,
         amenities: amenities,
-        images: images
+        images: images,
+        listedSince: formatListedDate(property.created_at)
     };
 }
 
@@ -533,6 +552,7 @@ const ViewDetailsPage = () => {
                             : (prop.cover_image ? [{ id: 1, url: prop.cover_image, alt: prop.title }] : []),
                         latitude: prop.latitude,
                         longitude: prop.longitude,
+                        created_at: prop.created_at || prop.createdAt || null,
                         seller_id: receiverId, // Keep for backward compatibility
                         agent_id: ownerUserType === 'agent' ? receiverId : null,
                         user_type: ownerUserType, // Property owner's user_type
@@ -1023,7 +1043,7 @@ const ViewDetailsPage = () => {
                             <div className="buyer-meta-divider"></div>
                             <div className="buyer-meta-item">
                                 <span className="buyer-meta-label">Listed Since</span>
-                                <span className="buyer-meta-value">Dec 2024</span>
+                                <span className="buyer-meta-value">{propertyData.listedSince || 'Recently'}</span>
                             </div>
                             <div className="buyer-meta-divider"></div>
                         </div>

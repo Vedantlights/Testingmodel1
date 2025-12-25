@@ -81,6 +81,10 @@ html, body {
   transition: background-color 0.3s ease, 
               box-shadow 0.3s ease,
               backdrop-filter 0.3s ease;
+  
+  /* Performance optimization: create compositing layer */
+  will-change: backdrop-filter, box-shadow;
+  transform: translateZ(0);
 }
 
 /* Scrolled state - only background and shadow change, NO size change */

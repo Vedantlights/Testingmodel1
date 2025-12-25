@@ -61,12 +61,27 @@ const SellerDashboardContent = () => {
     }
   }, [location.pathname]);
 
-  // Handle scroll for header shadow effect
+  // Handle scroll for header shadow effect - Optimized with throttling
   useEffect(() => {
+    let ticking = false;
+    let currentScrolled = false;
+    
     const handleScroll = () => {
-      setScrolled(window.scrollY > 10);
+      if (!ticking) {
+        window.requestAnimationFrame(() => {
+          const newScrolled = window.scrollY > 10;
+          // Only update state if the value actually changed
+          if (newScrolled !== currentScrolled) {
+            currentScrolled = newScrolled;
+            setScrolled(newScrolled);
+          }
+          ticking = false;
+        });
+        ticking = true;
+      }
     };
-    window.addEventListener('scroll', handleScroll);
+    
+    window.addEventListener('scroll', handleScroll, { passive: true });
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 

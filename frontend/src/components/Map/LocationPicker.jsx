@@ -270,6 +270,32 @@ const LocationPicker = ({
             📍
           </button>
         </div>
+        
+        <div className="location-picker-actions">
+          <button type="button" className="cancel-btn" onClick={onClose} disabled={isSaving}>
+            Cancel
+          </button>
+          <button 
+            type="button" 
+            className={`save-btn ${coordinates ? 'save-btn-active' : ''}`}
+            onClick={handleSave}
+            disabled={!coordinates || isLoading || isSaving}
+          >
+            {isSaving ? (
+              <>
+                <span className="saving-spinner"></span>
+                Saving...
+              </>
+            ) : (
+              <>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" style={{ marginRight: '6px' }}>
+                  <path d="M20 6L9 17l-5-5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                </svg>
+                Save Location
+              </>
+            )}
+          </button>
+        </div>
       </div>
 
       <div ref={mapContainer} className="location-picker-map" />
@@ -313,32 +339,6 @@ const LocationPicker = ({
               </div>
             </>
           )}
-        </div>
-        
-        <div className="location-picker-actions">
-          <button type="button" className="cancel-btn" onClick={onClose} disabled={isSaving}>
-            Cancel
-          </button>
-          <button 
-            type="button" 
-            className={`save-btn ${coordinates ? 'save-btn-active' : ''}`}
-            onClick={handleSave}
-            disabled={!coordinates || isLoading || isSaving}
-          >
-            {isSaving ? (
-              <>
-                <span className="saving-spinner"></span>
-                Saving...
-              </>
-            ) : (
-              <>
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" style={{ marginRight: '6px' }}>
-                  <path d="M20 6L9 17l-5-5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                </svg>
-                Save Location
-              </>
-            )}
-          </button>
         </div>
       </div>
 

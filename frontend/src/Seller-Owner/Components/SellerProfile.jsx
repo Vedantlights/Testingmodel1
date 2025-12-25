@@ -469,11 +469,7 @@ const SellerProfile = () => {
       // Exclude email and phone from update - they cannot be changed after login
       const updateData = {
         full_name: fullName,
-        address: formData.address || formData.agencyAddress || null,
-        company_name: formData.agencyName || null,
-        license_number: formData.reraNumber || null,
-        website: formData.website || null,
-        social_links: socialLinks
+        address: formData.address || formData.agencyAddress || null
       };
       
       const response = await sellerProfileAPI.update(updateData);
@@ -482,7 +478,7 @@ const SellerProfile = () => {
         setShowSuccess(true);
         setTimeout(() => setShowSuccess(false), 3000);
         
-        // Update formData with response if needed
+        // Update formData with response to ensure consistency
         if (response.data && response.data.profile) {
           const profile = response.data.profile;
           const nameParts = (profile.full_name || '').split(' ');
@@ -490,6 +486,7 @@ const SellerProfile = () => {
             ...prev,
             firstName: nameParts[0] || '',
             lastName: nameParts.slice(1).join(' ') || '',
+            address: profile.address || prev.address,
             email: profile.email || prev.email,
             phone: profile.phone || prev.phone
           }));

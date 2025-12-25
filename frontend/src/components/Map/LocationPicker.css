@@ -112,6 +112,9 @@
   border-bottom: 1px solid #e0e0e0;
   background: white;
   flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
 }
 
 .search-box {
@@ -254,6 +257,15 @@
   color: #888;
   font-style: italic;
   font-size: 14px;
+}
+
+.location-picker-search-section .location-picker-actions {
+  display: flex;
+  gap: 12px;
+  justify-content: flex-end;
+  flex-shrink: 0;
+  width: 100%;
+  margin-top: 0;
 }
 
 .location-picker-actions {
@@ -411,12 +423,16 @@
     padding: 16px;
   }
 
+  .location-picker-search-section .location-picker-actions,
   .location-picker-actions {
-    flex-direction: column;
+    flex-direction: row;
+    justify-content: flex-end;
   }
 
   .cancel-btn,
   .save-btn {
-    width: 100%;
+    min-width: auto;
+    padding: 10px 20px;
+    font-size: 13px;
   }
 }
