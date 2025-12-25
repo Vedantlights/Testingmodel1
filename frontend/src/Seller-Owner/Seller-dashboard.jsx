@@ -12,6 +12,7 @@ import Subscription from './Components/PlainTimerPage';
 import ViewDetailsPage from '../UserDashboard/pages/ViewDetailsPage';
 
 import { PropertyProvider, useProperty } from './Components/PropertyContext';
+import { sellerDashboardAPI } from '../services/api.service';
 
 import './Seller-dashboard.css';
 
@@ -111,20 +112,55 @@ const SellerDashboardContent = () => {
     handleTabChange('profile');
   };
 
-  // Fetch subscription data on mount
+  // Fetch subscription data on mount and update remaining days
   useEffect(() => {
-    // TODO: Fetch actual subscription data from backend
-    // For now, calculate from trial start date if available
-    const trialStartDate = localStorage.getItem('trialStartDate');
-    if (trialStartDate) {
-      const start = new Date(trialStartDate);
-      const end = new Date(start);
-      end.setMonth(end.getMonth() + 3);
-      const now = new Date();
-      const diffTime = end - now;
-      const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-      setDaysRemaining(Math.max(0, diffDays));
-    }
+    const fetchSubscriptionData = async () => {
+      try {
+        const response = await sellerDashboardAPI.getStats();
+        
+        if (response.success && response.data?.subscription?.end_date) {
+          const endDate = new Date(response.data.subscription.end_date);
+          const now = new Date();
+          const diffTime = endDate.getTime() - now.getTime();
+          const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+          setDaysRemaining(Math.max(0, diffDays));
+        } else {
+          // Fallback: calculate from trial start date if available
+          const trialStartDate = localStorage.getItem('trialStartDate');
+          if (trialStartDate) {
+            const start = new Date(trialStartDate);
+            const end = new Date(start);
+            end.setMonth(end.getMonth() + 3);
+            const now = new Date();
+            const diffTime = end - now;
+            const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+            setDaysRemaining(Math.max(0, diffDays));
+          }
+        }
+      } catch (error) {
+        console.error('Error fetching subscription data:', error);
+        // Fallback: calculate from trial start date if available
+        const trialStartDate = localStorage.getItem('trialStartDate');
+        if (trialStartDate) {
+          const start = new Date(trialStartDate);
+          const end = new Date(start);
+          end.setMonth(end.getMonth() + 3);
+          const now = new Date();
+          const diffTime = end - now;
+          const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+          setDaysRemaining(Math.max(0, diffDays));
+        }
+      }
+    };
+
+    fetchSubscriptionData();
+    
+    // Update remaining days every minute to keep it accurate
+    const interval = setInterval(() => {
+      fetchSubscriptionData();
+    }, 60000); // Update every minute
+
+    return () => clearInterval(interval);
   }, []);
 
   const handleLogout = () => {
