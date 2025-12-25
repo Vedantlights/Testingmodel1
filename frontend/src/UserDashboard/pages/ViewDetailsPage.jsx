@@ -1031,7 +1031,7 @@ const ViewDetailsPage = () => {
                             {/* Ratings & Reviews */}
                             <div className="airbnb-ratings-section">
                                 <div className="airbnb-guest-favourite">
-                                    <svg viewBox="0 0 24 24" fill="currentColor" style={{width: '24px', height: '24px'}}>
+                                    <svg viewBox="0 0 24 24" fill="currentColor" style={{width: '24px', height: '24px', color: '#886ace'}}>
                                         <path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z"/>
                                     </svg>
                                     <div>
@@ -1042,11 +1042,11 @@ const ViewDetailsPage = () => {
                                 <div className="airbnb-rating">
                                     <div className="airbnb-rating-value">4.98</div>
                                     <div className="airbnb-rating-stars">
-                                        <FaStar style={{color: '#FF385C', fontSize: '14px'}} />
-                                        <FaStar style={{color: '#FF385C', fontSize: '14px'}} />
-                                        <FaStar style={{color: '#FF385C', fontSize: '14px'}} />
-                                        <FaStar style={{color: '#FF385C', fontSize: '14px'}} />
-                                        <FaStar style={{color: '#FF385C', fontSize: '14px'}} />
+                                        <FaStar style={{color: '#886ace', fontSize: '14px'}} />
+                                        <FaStar style={{color: '#886ace', fontSize: '14px'}} />
+                                        <FaStar style={{color: '#886ace', fontSize: '14px'}} />
+                                        <FaStar style={{color: '#886ace', fontSize: '14px'}} />
+                                        <FaStar style={{color: '#886ace', fontSize: '14px'}} />
                                     </div>
                                     <div className="airbnb-review-count">156 Reviews</div>
                                 </div>

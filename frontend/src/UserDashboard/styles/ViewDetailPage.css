@@ -321,7 +321,7 @@
 }
 
 /* ============================================================================
- * AIRBNB-STYLE PROPERTY SUMMARY
+ * AIRBNB-STYLE PROPERTY SUMMARY (Your Theme Colors)
  * ============================================================================ */
 .airbnb-property-summary {
     margin-bottom: 2rem;
@@ -329,26 +329,26 @@
 
 .airbnb-location-type {
     font-size: 0.875rem;
-    color: #717171;
+    color: #6b7280;
     margin-bottom: 0.5rem;
 }
 
 .airbnb-property-details {
     font-size: 0.875rem;
-    color: #222222;
+    color: #374151;
     font-weight: 400;
 }
 
 /* ============================================================================
- * AIRBNB-STYLE RATINGS SECTION
+ * AIRBNB-STYLE RATINGS SECTION (Your Theme Colors)
  * ============================================================================ */
 .airbnb-ratings-section {
     display: flex;
     justify-content: space-between;
     align-items: flex-start;
     padding: 2rem 0;
-    border-top: 1px solid #DDDDDD;
-    border-bottom: 1px solid #DDDDDD;
+    border-top: 1px solid #e5e7eb;
+    border-bottom: 1px solid #e5e7eb;
     margin-bottom: 2rem;
 }
 
@@ -359,20 +359,20 @@
 }
 
 .airbnb-guest-favourite svg {
-    color: #FF385C;
+    color: #886ace;
     flex-shrink: 0;
 }
 
 .airbnb-guest-favourite-text {
     font-size: 1rem;
     font-weight: 600;
-    color: #222222;
+    color: #1e3a8a;
     margin-bottom: 0.25rem;
 }
 
 .airbnb-guest-favourite-subtext {
     font-size: 0.875rem;
-    color: #717171;
+    color: #6b7280;
 }
 
 .airbnb-rating {
@@ -385,7 +385,7 @@
 .airbnb-rating-value {
     font-size: 1.375rem;
     font-weight: 600;
-    color: #222222;
+    color: #1e3a8a;
 }
 
 .airbnb-rating-stars {
@@ -395,13 +395,13 @@
 
 .airbnb-review-count {
     font-size: 0.875rem;
-    color: #717171;
+    color: #6b7280;
     text-decoration: underline;
     cursor: pointer;
 }
 
 /* ============================================================================
- * AIRBNB-STYLE HOST SECTION
+ * AIRBNB-STYLE HOST SECTION (Your Theme Colors)
  * ============================================================================ */
 .airbnb-host-section {
     padding: 2rem 0;
@@ -410,18 +410,18 @@
 .airbnb-host-info h2 {
     font-size: 1.375rem;
     font-weight: 600;
-    color: #222222;
+    color: #1e3a8a;
     margin-bottom: 0.5rem;
 }
 
 .airbnb-host-info p {
     font-size: 1rem;
-    color: #717171;
+    color: #6b7280;
     margin: 0;
 }
 
 /* ============================================================================
- * AIRBNB-STYLE HIGHLIGHTS
+ * AIRBNB-STYLE HIGHLIGHTS (Your Theme Colors)
  * ============================================================================ */
 .airbnb-highlights {
     padding: 2rem 0;
@@ -438,18 +438,18 @@
 .airbnb-highlight-title {
     font-size: 1rem;
     font-weight: 600;
-    color: #222222;
+    color: #1e3a8a;
     margin-bottom: 0.5rem;
 }
 
 .airbnb-highlight-desc {
     font-size: 0.875rem;
-    color: #717171;
+    color: #6b7280;
     line-height: 1.5;
 }
 
 /* ============================================================================
- * AIRBNB-STYLE DESCRIPTION
+ * AIRBNB-STYLE DESCRIPTION (Your Theme Colors)
  * ============================================================================ */
 .airbnb-description-section {
     padding: 2rem 0;
@@ -457,7 +457,7 @@
 
 .airbnb-description {
     font-size: 1rem;
-    color: #222222;
+    color: #374151;
     line-height: 1.6;
     margin-bottom: 1rem;
 }
@@ -475,7 +475,7 @@
     gap: 0.5rem;
     background: none;
     border: none;
-    color: #222222;
+    color: #1e3a8a;
     font-size: 1rem;
     font-weight: 600;
     cursor: pointer;
@@ -484,20 +484,20 @@
 }
 
 .airbnb-show-more-btn:hover {
-    color: #000000;
+    color: #886ace;
 }
 
 /* ============================================================================
- * AIRBNB-STYLE DIVIDER
+ * AIRBNB-STYLE DIVIDER (Your Theme Colors)
  * ============================================================================ */
 .airbnb-divider {
     border: none;
-    border-top: 1px solid #DDDDDD;
+    border-top: 1px solid #e5e7eb;
     margin: 0;
 }
 
 /* ============================================================================
- * AIRBNB-STYLE AMENITIES
+ * AIRBNB-STYLE AMENITIES (Your Theme Colors)
  * ============================================================================ */
 .airbnb-amenities-section {
     padding: 2rem 0;
@@ -506,7 +506,7 @@
 .airbnb-amenities-section h2 {
     font-size: 1.375rem;
     font-weight: 600;
-    color: #222222;
+    color: #1e3a8a;
     margin-bottom: 1.5rem;
 }
 
@@ -521,17 +521,17 @@
     align-items: center;
     gap: 1rem;
     font-size: 1rem;
-    color: #222222;
+    color: #374151;
 }
 
 .airbnb-check-icon {
-    color: #222222;
+    color: #00b894;
     font-size: 1.25rem;
     flex-shrink: 0;
 }
 
 /* ============================================================================
- * AIRBNB-STYLE LOCATION SECTION
+ * AIRBNB-STYLE LOCATION SECTION (Your Theme Colors)
  * ============================================================================ */
 .airbnb-location-section {
     padding: 2rem 0;
@@ -540,34 +540,35 @@
 .airbnb-location-section h2 {
     font-size: 1.375rem;
     font-weight: 600;
-    color: #222222;
+    color: #1e3a8a;
     margin-bottom: 1.5rem;
 }
 
 /* ============================================================================
- * AIRBNB-STYLE BOOKING CARD (Right Sidebar)
+ * AIRBNB-STYLE BOOKING CARD (Right Sidebar - Your Theme Colors)
  * ============================================================================ */
 .airbnb-sidebar {
     width: 100%;
 }
 
 .airbnb-booking-card {
-    border: 1px solid #DDDDDD;
+    border: 1px solid #e5e7eb;
     border-radius: 12px;
     padding: 1.5rem;
-    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.12);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
     position: sticky;
     top: 100px;
+    background: #ffffff;
 }
 
 .airbnb-rare-find {
-    background: #FFF7ED;
-    border: 1px solid #FFE4CC;
+    background: rgba(136, 106, 206, 0.1);
+    border: 1px solid rgba(136, 106, 206, 0.3);
     border-radius: 8px;
     padding: 0.75rem 1rem;
     margin-bottom: 1.5rem;
     font-size: 0.875rem;
-    color: #222222;
+    color: #1e3a8a;
 }
 
 .airbnb-rare-find span {
@@ -581,13 +582,13 @@
 .airbnb-price-value {
     font-size: 1.375rem;
     font-weight: 600;
-    color: #222222;
+    color: #1e3a8a;
 }
 
 .airbnb-price-period {
     font-size: 1rem;
     font-weight: 400;
-    color: #717171;
+    color: #6b7280;
 }
 
 .airbnb-booking-widget {
@@ -597,7 +598,7 @@
 .airbnb-date-inputs {
     display: grid;
     grid-template-columns: 1fr 1fr;
-    border: 1px solid #B0B0B0;
+    border: 1px solid #d1d5db;
     border-radius: 8px;
     overflow: hidden;
     margin-bottom: 1rem;
@@ -605,7 +606,7 @@
 
 .airbnb-date-input {
     padding: 0.75rem;
-    border-right: 1px solid #B0B0B0;
+    border-right: 1px solid #d1d5db;
 }
 
 .airbnb-date-input:last-child {
@@ -616,7 +617,7 @@
     display: block;
     font-size: 0.625rem;
     font-weight: 600;
-    color: #222222;
+    color: #1e3a8a;
     text-transform: uppercase;
     margin-bottom: 0.25rem;
 }
@@ -626,24 +627,25 @@
     border: none;
     outline: none;
     font-size: 0.875rem;
-    color: #222222;
+    color: #374151;
     background: transparent;
     font-family: inherit;
 }
 
 .airbnb-date-input input::placeholder {
-    color: #717171;
+    color: #9ca3af;
 }
 
 .airbnb-guests-input {
     margin-bottom: 1rem;
+    position: relative;
 }
 
 .airbnb-guests-input label {
     display: block;
     font-size: 0.625rem;
     font-weight: 600;
-    color: #222222;
+    color: #1e3a8a;
     text-transform: uppercase;
     margin-bottom: 0.5rem;
 }
@@ -653,31 +655,37 @@
     justify-content: space-between;
     align-items: center;
     padding: 0.75rem;
-    border: 1px solid #B0B0B0;
+    border: 1px solid #d1d5db;
     border-radius: 8px;
     cursor: pointer;
     font-size: 0.875rem;
-    color: #222222;
+    color: #374151;
+    transition: border-color 0.2s ease;
+}
+
+.airbnb-guests-selector:hover {
+    border-color: #886ace;
 }
 
 .airbnb-guests-dropdown {
     position: absolute;
     background: white;
-    border: 1px solid #DDDDDD;
+    border: 1px solid #e5e7eb;
     border-radius: 8px;
     padding: 1rem;
     margin-top: 0.5rem;
     display: flex;
     align-items: center;
     gap: 1rem;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
     z-index: 10;
+    width: 100%;
 }
 
 .airbnb-guests-dropdown button {
     width: 32px;
     height: 32px;
-    border: 1px solid #B0B0B0;
+    border: 1px solid #d1d5db;
     border-radius: 50%;
     background: white;
     cursor: pointer;
@@ -685,12 +693,19 @@
     display: flex;
     align-items: center;
     justify-content: center;
+    color: #1e3a8a;
+    transition: all 0.2s ease;
+}
+
+.airbnb-guests-dropdown button:hover {
+    border-color: #886ace;
+    background: rgba(136, 106, 206, 0.1);
 }
 
 .airbnb-reserve-btn {
     width: 100%;
     padding: 0.875rem;
-    background: linear-gradient(to right, #E61E4D 0%, #E31C5F 50%, #D70466 100%);
+    background: linear-gradient(135deg, #886ace 0%, #B084E0 100%);
     color: white;
     border: none;
     border-radius: 8px;
@@ -702,13 +717,15 @@
 }
 
 .airbnb-reserve-btn:hover {
-    background: linear-gradient(to right, #D70466 0%, #E31C5F 50%, #E61E4D 100%);
+    background: linear-gradient(135deg, #7a5dbd 0%, #886ace 100%);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(136, 106, 206, 0.3);
 }
 
 .airbnb-no-charge-text {
     text-align: center;
     font-size: 0.875rem;
-    color: #717171;
+    color: #6b7280;
     margin: 0;
 }
 
@@ -716,8 +733,8 @@
     width: 100%;
     padding: 0.875rem;
     background: white;
-    color: #222222;
-    border: 1px solid #222222;
+    color: #1e3a8a;
+    border: 1px solid #1e3a8a;
     border-radius: 8px;
     font-size: 1rem;
     font-weight: 600;
@@ -731,24 +748,28 @@
 }
 
 .airbnb-contact-host-btn:hover {
-    background: #222222;
+    background: #1e3a8a;
     color: white;
 }
 
 .airbnb-report-listing {
     margin-top: 1.5rem;
     padding-top: 1.5rem;
-    border-top: 1px solid #DDDDDD;
+    border-top: 1px solid #e5e7eb;
     text-align: center;
 }
 
 .airbnb-report-link {
     background: none;
     border: none;
-    color: #222222;
+    color: #1e3a8a;
     font-size: 0.875rem;
     text-decoration: underline;
     cursor: pointer;
+}
+
+.airbnb-report-link:hover {
+    color: #886ace;
 }
 
 /* Contact Form Styles */
