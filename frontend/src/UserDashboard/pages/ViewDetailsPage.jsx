@@ -994,8 +994,8 @@ const ViewDetailsPage = () => {
 
                 <div className="details-container">
                     <div className="main-content-area">
-                        {/* --- Left Column (Details) --- */}
-                        <section className="property-details-section">
+                        {/* Property Highlights and Contact Card Side by Side */}
+                        <div className="highlights-contact-wrapper">
                             {/* Property Highlights */}
                             <div className="property-highlights">
                                 {(() => {
@@ -1034,9 +1034,36 @@ const ViewDetailsPage = () => {
                                 })()}
                             </div>
 
-                            <hr className="divider" />
+                            {/* Contact Card */}
+                            <aside className="agent-sidebar">
+                                <div className="detail-contact-card">
+                                    <div className="booking-card-header">
+                                        <div className="booking-price">
+                                            <span className="price-amount">{propertyData.price}</span>
+                                            {propertyData.status === 'For Rent' && (
+                                                <span className="price-period">per month</span>
+                                            )}
+                                        </div>
+                                    </div>
+                                    
+                                    {/* Chat with Owner Button - Only show if user is buyer AND not the property owner */}
+                                    {user && user.user_type === 'buyer' && property && property.seller_id && Number(user.id) !== Number(property.seller_id) && (
+                                        <button 
+                                            type="button"
+                                            onClick={handleChatWithOwner}
+                                            className="contact-send-button"
+                                            style={{marginTop: '1rem'}}
+                                        >
+                                            <FaComments style={{marginRight: '8px'}} />
+                                            Contact Owner
+                                        </button>
+                                    )}
+                                </div>
+                            </aside>
+                        </div>
 
-                            {/* Amenities */}
+                        {/* Amenities Section */}
+                        <section className="property-details-section">
                             <div className="amenities-section">
                                 <h2>What this place offers</h2>
                                 <div className="amenities-grid">
@@ -1084,34 +1111,6 @@ const ViewDetailsPage = () => {
                             <h2>About this place</h2>
                             <p>{propertyData.description}</p>
                         </div>
-
-                        {/* --- Right Column (Sticky Booking Card) --- */}
-                        <aside className="agent-sidebar">
-                            {/* Booking/Inquiry Card */}
-                            <div className="detail-contact-card">
-                                <div className="booking-card-header">
-                                    <div className="booking-price">
-                                        <span className="price-amount">{propertyData.price}</span>
-                                        {propertyData.status === 'For Rent' && (
-                                            <span className="price-period">per month</span>
-                                        )}
-                                    </div>
-                                </div>
-                                
-                                {/* Chat with Owner Button - Only show if user is buyer AND not the property owner */}
-                                {user && user.user_type === 'buyer' && property && property.seller_id && Number(user.id) !== Number(property.seller_id) && (
-                                    <button 
-                                        type="button"
-                                        onClick={handleChatWithOwner}
-                                        className="contact-send-button"
-                                        style={{marginTop: '1rem'}}
-                                    >
-                                        <FaComments style={{marginRight: '8px'}} />
-                                        Contact Owner
-                                    </button>
-                                )}
-                            </div>
-                        </aside>
                     </div>
 
                     {/* Location Map - Outside property-details-section */}

@@ -96,8 +96,8 @@
 
 .header-action-btn.favorite-btn svg {
     fill: none;
-    stroke: currentColor;
-    stroke-width: 1.5;
+    stroke: #222222;
+    stroke-width: 2;
 }
 
 @media (max-width: 743px) {
@@ -440,19 +440,31 @@
 }
 
 
-/* --- Main Content Layout (Two Columns - Airbnb Style) --- */
+/* --- Main Content Layout --- */
 .main-content-area {
-    display: grid;
-    grid-template-columns: 1fr 400px;
-    gap: 80px;
+    display: flex;
+    flex-direction: column;
+    gap: 32px;
     background-color: #ffffff;
     border-radius: 12px;
     padding: 32px 40px 48px 40px;
     box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
 }
 
+/* Highlights and Contact Card Wrapper */
+.highlights-contact-wrapper {
+    display: grid;
+    grid-template-columns: 1fr 400px;
+    gap: 32px;
+    align-items: flex-start;
+}
+
 .property-details-section {
     min-width: 0;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+    border-radius: 12px;
+    padding: 24px;
+    background-color: #ffffff;
 }
 
 .agent-sidebar {
@@ -464,14 +476,17 @@
 
 @media (max-width: 1127px) {
     .main-content-area {
-        grid-template-columns: 1fr;
-        gap: 48px;
         padding: 24px;
+    }
+
+    .highlights-contact-wrapper {
+        grid-template-columns: 1fr;
+        gap: 24px;
     }
 
     .agent-sidebar {
         position: static;
-        max-width: 600px;
+        max-width: 100%;
     }
 
     .map-card-container {
@@ -488,7 +503,7 @@
     flex-wrap: wrap;
     background-color: #ffffff;
     border-radius: 12px;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
     margin-bottom: 24px;
 }
 
@@ -567,7 +582,7 @@
     background-color: #ffffff;
     padding: 24px;
     border-radius: 12px;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
     width: 100%;
 }
 
@@ -642,7 +657,7 @@
     background-color: #ffffff;
     padding: 24px;
     border-radius: 12px;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
     width: 100%;
 }
 
@@ -660,7 +675,7 @@
     background-color: #ffffff;
     padding: 24px;
     border-radius: 12px;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
 }
 
 .amenities-grid {
@@ -678,13 +693,7 @@
     align-items: center;
     padding: 8px 12px;
     border-radius: 8px;
-    transition: all 0.2s ease;
     border: none;
-}
-
-.amenity-item:hover {
-    background-color: #f8f8f8;
-    transform: translateX(4px);
 }
 
 .check-icon {
@@ -692,11 +701,6 @@
     font-size: 20px;
     margin-right: 16px;
     flex-shrink: 0;
-    transition: transform 0.2s ease;
-}
-
-.amenity-item:hover .check-icon {
-    transform: scale(1.15);
 }
 
 /* ============================================================================
