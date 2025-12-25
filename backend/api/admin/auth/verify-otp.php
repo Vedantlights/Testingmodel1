@@ -95,10 +95,17 @@ try {
     // For widget-based OTP, the widgetToken is the proof that OTP was verified
     // (Validation token was already marked as used above if it existed in the database)
     
-    // Get or create admin user
-    $stmt = $db->prepare("SELECT id, username, email, full_name, role, is_active FROM admin_users WHERE phone = ? OR email LIKE ? LIMIT 1");
-    $stmt->execute([$validatedMobile, '%admin%']);
+    // Get admin user - check phone first, then fallback to email
+    $stmt = $db->prepare("SELECT id, username, email, full_name, role, is_active FROM admin_users WHERE phone = ? AND is_active = 1 LIMIT 1");
+    $stmt->execute([$validatedMobile]);
     $admin = $stmt->fetch(PDO::FETCH_ASSOC);
+    
+    // If not found by phone, try email
+    if (!$admin) {
+        $stmt = $db->prepare("SELECT id, username, email, full_name, role, is_active FROM admin_users WHERE email LIKE ? AND is_active = 1 LIMIT 1");
+        $stmt->execute(['%admin%']);
+        $admin = $stmt->fetch(PDO::FETCH_ASSOC);
+    }
     
     if (!$admin) {
         // Create default admin user

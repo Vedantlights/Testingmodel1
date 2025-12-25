@@ -47,6 +47,7 @@ try {
     require_once __DIR__ . '/../../../config/database.php';
     require_once __DIR__ . '/../../../config/admin-config.php';
     require_once __DIR__ . '/../../../utils/response.php';
+    require_once __DIR__ . '/../../../utils/validation.php';
 } catch (Throwable $e) {
     error_log("Error loading files: " . $e->getMessage());
     sendJsonResponse(false, 'Server configuration error', null, 500);
@@ -65,12 +66,15 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
 }
 
 try {
-    // Validate constants
-    if (!defined('ADMIN_MOBILE')) {
-        error_log("ADMIN_MOBILE not defined");
-        sendJsonResponse(false, 'Server configuration error: ADMIN_MOBILE not defined', null, 500);
+    // Get input data
+    $input = json_decode(file_get_contents('php://input'), true);
+    $mobile = isset($input['mobile']) ? trim($input['mobile']) : '';
+    
+    if (empty($mobile)) {
+        sendJsonResponse(false, 'Mobile number is required', null, 400);
     }
     
+    // Validate constants
     if (!defined('MSG91_AUTH_KEY')) {
         error_log("MSG91_AUTH_KEY not defined");
         sendJsonResponse(false, 'Server configuration error: MSG91_AUTH_KEY not defined', null, 500);
@@ -86,13 +90,6 @@ try {
         sendJsonResponse(false, 'Server configuration error: MSG91_SEND_OTP_URL not defined', null, 500);
     }
     
-    $mobile = ADMIN_MOBILE;
-    
-    if (empty($mobile)) {
-        error_log("ADMIN_MOBILE is empty");
-        sendJsonResponse(false, 'Server configuration error: Mobile number not configured', null, 500);
-    }
-    
     // Get database connection
     if (!function_exists('getDB')) {
         error_log("getDB function not found");
@@ -106,35 +103,62 @@ try {
         sendJsonResponse(false, 'Database connection failed', null, 500);
     }
     
-    // Create table if needed
+    // Validate and normalize mobile format
+    $validatedMobile = validateMobileFormat($mobile);
+    if (!$validatedMobile) {
+        sendJsonResponse(false, 'Invalid mobile number format', null, 400);
+    }
+    
+    // Check whitelist from database table FIRST (before sending OTP)
+    if (!isWhitelistedMobile($validatedMobile)) {
+        error_log("SECURITY ALERT - Mobile not whitelisted: " . substr($validatedMobile, 0, 4) . "****");
+        sendJsonResponse(false, 'Unauthorized access. Only registered admin mobile number is allowed.', null, 403);
+    }
+    
+    // Create table if needed (with expires_at column)
     try {
         $db->exec("CREATE TABLE IF NOT EXISTS admin_otp_logs (
             id INT AUTO_INCREMENT PRIMARY KEY,
-            mobile VARCHAR(15) NOT NULL,
-            request_id VARCHAR(100),
+            mobile VARCHAR(20) NOT NULL,
+            request_id VARCHAR(100) DEFAULT NULL,
             status ENUM('pending', 'verified', 'expired', 'failed') DEFAULT 'pending',
+            expires_at TIMESTAMP NOT NULL,
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-            verified_at TIMESTAMP NULL,
+            verified_at TIMESTAMP NULL DEFAULT NULL,
             INDEX idx_mobile (mobile),
             INDEX idx_request_id (request_id),
-            INDEX idx_status (status)
-        )");
+            INDEX idx_status (status),
+            INDEX idx_expires_at (expires_at)
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4");
+        
+        // Add expires_at column if table exists but column is missing
+        $db->exec("ALTER TABLE admin_otp_logs ADD COLUMN IF NOT EXISTS expires_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP");
     } catch (PDOException $e) {
-        error_log("Table creation: " . $e->getMessage());
+        // Table might already exist, check if expires_at column exists
+        try {
+            $checkColumn = $db->query("SHOW COLUMNS FROM admin_otp_logs LIKE 'expires_at'");
+            if ($checkColumn->rowCount() === 0) {
+                $db->exec("ALTER TABLE admin_otp_logs ADD COLUMN expires_at TIMESTAMP NOT NULL DEFAULT (DATE_ADD(NOW(), INTERVAL 5 MINUTE)) AFTER status");
+                $db->exec("ALTER TABLE admin_otp_logs ADD INDEX IF NOT EXISTS idx_expires_at (expires_at)");
+            }
+        } catch (PDOException $e2) {
+            error_log("Column addition: " . $e2->getMessage());
+        }
     }
     
-    // Call MSG91 API v5 for Widget-based OTP
-    // For Widget-based OTP, we use widget_id instead of template_id
-    // MSG91 API v5 format: POST with authkey in header, mobile and widget_id in body
+    // Call MSG91 API v5 for OTP
+    // MSG91 API v5 format: POST with authkey in header, mobile and template_id in body
+    // Use template_id for direct API calls (not widget_id)
+    $templateId = defined('MSG91_TEMPLATE_ID') ? MSG91_TEMPLATE_ID : MSG91_WIDGET_ID;
     $requestData = [
-        'mobile' => $mobile,
-        'widget_id' => MSG91_WIDGET_ID  // Using widget_id for widget-based OTP
+        'mobile' => $validatedMobile,
+        'template_id' => $templateId
     ];
     
-    error_log("=== MSG91 OTP REQUEST (Widget-based) ===");
+    error_log("=== MSG91 OTP REQUEST ===");
     error_log("URL: " . MSG91_SEND_OTP_URL);
-    error_log("Mobile: " . $mobile);
-    error_log("Widget ID: " . MSG91_WIDGET_ID);
+    error_log("Mobile: " . $validatedMobile);
+    error_log("Template ID: " . $templateId);
     error_log("Auth Key: " . substr(MSG91_AUTH_KEY, 0, 15) . "...");
     error_log("Request Body: " . json_encode($requestData));
     
@@ -176,20 +200,24 @@ try {
     $requestId = isset($msg91Response['request_id']) ? $msg91Response['request_id'] : null;
     $status = ($httpCode === 200 && isset($msg91Response['type']) && $msg91Response['type'] === 'success') ? 'pending' : 'failed';
     
-    // Log OTP request
-    $mobileLast4 = substr($mobile, -4);
+    // Calculate expiry (5 minutes from now)
+    $expiresAt = date('Y-m-d H:i:s', time() + 300); // 5 minutes = 300 seconds
+    
+    // Log OTP request to admin_otp_logs table
     try {
-        $stmt = $db->prepare("INSERT INTO admin_otp_logs (mobile, request_id, status) VALUES (?, ?, ?)");
-        $stmt->execute([$mobileLast4, $requestId, $status]);
+        $stmt = $db->prepare("INSERT INTO admin_otp_logs (mobile, request_id, status, expires_at) VALUES (?, ?, ?, ?)");
+        $stmt->execute([$validatedMobile, $requestId, $status, $expiresAt]);
+        error_log("OTP logged - Mobile: " . substr($validatedMobile, 0, 4) . "****, Request ID: " . ($requestId ?? 'N/A') . ", Expires: " . $expiresAt);
     } catch (PDOException $e) {
         error_log("Error logging OTP: " . $e->getMessage());
+        // Continue even if logging fails
     }
     
     if ($httpCode === 200 && isset($msg91Response['type']) && $msg91Response['type'] === 'success') {
         if (function_exists('sendSuccess')) {
             sendSuccess('OTP sent to registered admin number', ['request_id' => $requestId]);
         } else {
-            sendJsonResponse(true, 'OTP sent to registered admin number', ['request_id' => $requestId]);
+            sendJsonResponse(true, 'OTP sent successfully', ['request_id' => $requestId]);
         }
     } else {
         $errorMsg = isset($msg91Response['message']) ? $msg91Response['message'] : 'Failed to send OTP';

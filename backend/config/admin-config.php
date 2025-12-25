@@ -59,17 +59,48 @@ function normalizeMobile($mobile) {
     return preg_replace('/[^0-9]/', '', $mobile);
 }
 
-// Check if mobile is whitelisted
+// Check if mobile is whitelisted (from database table)
 function isWhitelistedMobile($mobile) {
-    $normalized = normalizeMobile($mobile);
-    $whitelist = getAdminWhitelist();
-    
-    foreach ($whitelist as $whitelisted) {
-        if (normalizeMobile($whitelisted) === $normalized) {
-            return true;
+    try {
+        $db = getDB();
+        $normalized = normalizeMobile($mobile);
+        
+        // Query admin_whitelist table
+        $stmt = $db->prepare("SELECT COUNT(*) FROM admin_whitelist WHERE phone = ? AND is_active = 1");
+        $stmt->execute([$normalized]);
+        $count = $stmt->fetchColumn();
+        
+        // If not found, try with + prefix (for +917888076881 format)
+        if ($count === 0 && strpos($normalized, '+') !== 0) {
+            $stmt = $db->prepare("SELECT COUNT(*) FROM admin_whitelist WHERE phone = ? AND is_active = 1");
+            $stmt->execute(['+' . $normalized]);
+            $count = $stmt->fetchColumn();
         }
+        
+        // Fallback to hardcoded list if table doesn't exist or is empty
+        if ($count === 0) {
+            error_log("Warning: admin_whitelist table query returned 0, falling back to hardcoded whitelist");
+            $whitelist = getAdminWhitelist();
+            foreach ($whitelist as $whitelisted) {
+                if (normalizeMobile($whitelisted) === $normalized) {
+                    return true;
+                }
+            }
+        }
+        
+        return $count > 0;
+    } catch (Exception $e) {
+        error_log("Error checking whitelist: " . $e->getMessage());
+        // Fallback to hardcoded whitelist on error
+        $whitelist = getAdminWhitelist();
+        $normalized = normalizeMobile($mobile);
+        foreach ($whitelist as $whitelisted) {
+            if (normalizeMobile($whitelisted) === $normalized) {
+                return true;
+            }
+        }
+        return false;
     }
-    return false;
 }
 
 // Session Configuration

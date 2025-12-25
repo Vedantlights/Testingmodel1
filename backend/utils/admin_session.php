@@ -36,12 +36,12 @@ function createAdminSession($adminMobile, $adminId, $adminRole, $adminEmail) {
     $sessionId = session_id();
     $now = time();
     
-    // Create admin_sessions table if it doesn't exist
+    // Create admin_sessions table if it doesn't exist (matches schema requirements)
     try {
         $db->exec("CREATE TABLE IF NOT EXISTS admin_sessions (
-            id INT AUTO_INCREMENT PRIMARY KEY,
+            id INT(11) NOT NULL AUTO_INCREMENT,
             session_id VARCHAR(255) NOT NULL UNIQUE,
-            admin_id INT NOT NULL,
+            admin_id INT(11) NOT NULL,
             admin_mobile VARCHAR(20) NOT NULL,
             admin_role VARCHAR(50) NOT NULL,
             admin_email VARCHAR(255) NOT NULL,
@@ -49,12 +49,15 @@ function createAdminSession($adminMobile, $adminId, $adminRole, $adminEmail) {
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
             last_activity TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
             expires_at TIMESTAMP NOT NULL,
+            PRIMARY KEY (id),
             INDEX idx_session_id (session_id),
             INDEX idx_admin_id (admin_id),
-            INDEX idx_expires_at (expires_at)
-        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4");
+            INDEX idx_expires_at (expires_at),
+            FOREIGN KEY (admin_id) REFERENCES admin_users(id) ON DELETE CASCADE
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci");
     } catch (PDOException $e) {
-        // Table might already exist
+        // Table might already exist, ignore error
+        error_log("Note: admin_sessions table creation: " . $e->getMessage());
     }
     
     // Clean expired sessions
