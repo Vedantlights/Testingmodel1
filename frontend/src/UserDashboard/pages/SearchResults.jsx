@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback, useRef } from 'react';
+import React, { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import PropertyCard from '../components/PropertyCard';
 import CompactSearchBar from '../components/CompactSearchBar';
@@ -359,43 +359,89 @@ const SearchResults = () => {
     }
   }, []);
 
+  // Helper to validate coordinates
+  const isValidCoordinate = useCallback((lat, lng) => {
+    if (lat === null || lng === null || lat === undefined || lng === undefined) return false;
+    const numLat = typeof lat === 'string' ? parseFloat(lat) : lat;
+    const numLng = typeof lng === 'string' ? parseFloat(lng) : lng;
+    if (isNaN(numLat) || isNaN(numLng)) return false;
+    return numLat >= -90 && numLat <= 90 && numLng >= -180 && numLng <= 180;
+  }, []);
+
   // Calculate map center from properties
   const calculateMapCenter = useCallback(() => {
     if (filteredProperties.length === 0) {
       return [73.8567, 18.5204]; // Default: Pune
     }
 
-    const propertiesWithCoords = filteredProperties.filter(p => p.longitude && p.latitude);
+    const propertiesWithCoords = filteredProperties.filter(p => 
+      isValidCoordinate(p.latitude, p.longitude)
+    );
+    
     if (propertiesWithCoords.length === 0) {
-      return [73.8567, 18.5204];
+      return [73.8567, 18.5204]; // Default: Pune
     }
 
-    const avgLng = propertiesWithCoords.reduce((sum, p) => sum + p.longitude, 0) / propertiesWithCoords.length;
-    const avgLat = propertiesWithCoords.reduce((sum, p) => sum + p.latitude, 0) / propertiesWithCoords.length;
+    const avgLng = propertiesWithCoords.reduce((sum, p) => {
+      const lng = typeof p.longitude === 'string' ? parseFloat(p.longitude) : p.longitude;
+      return sum + lng;
+    }, 0) / propertiesWithCoords.length;
+    
+    const avgLat = propertiesWithCoords.reduce((sum, p) => {
+      const lat = typeof p.latitude === 'string' ? parseFloat(p.latitude) : p.latitude;
+      return sum + lat;
+    }, 0) / propertiesWithCoords.length;
     
     return [avgLng, avgLat];
-  }, [filteredProperties]);
+  }, [filteredProperties, isValidCoordinate]);
 
-  // Convert properties to MapView format
-  const mapProperties = filteredProperties
-    .filter(p => p.longitude && p.latitude)
-    .map(property => ({
-      id: property.id,
-      title: property.title,
-      location: property.location,
-      price: property.price,
-      area: property.area,
-      bedrooms: property.bedrooms,
-      bathrooms: property.bathrooms,
-      listing_type: property.status === 'For Rent' ? 'rent' : 'sale',
-      property_type: property.type || property.propertyType,
-      latitude: property.latitude,
-      longitude: property.longitude,
-      thumbnail: property.image || (property.images && property.images.length > 0 ? property.images[0] : null),
-      images: property.images || [],
-      cover_image: property.image || (property.images && property.images.length > 0 ? property.images[0] : null),
-      seller_id: property.seller_id
-    }));
+  // Convert properties to MapView format with proper validation
+  const mapProperties = useMemo(() => {
+    return filteredProperties
+      .filter(p => isValidCoordinate(p.latitude, p.longitude))
+      .map(property => {
+        const lat = typeof property.latitude === 'string' ? parseFloat(property.latitude) : property.latitude;
+        const lng = typeof property.longitude === 'string' ? parseFloat(property.longitude) : property.longitude;
+        
+        // Get image - handle various formats
+        let thumbnail = null;
+        let images = [];
+        
+        if (property.image) {
+          thumbnail = property.image;
+          images = [property.image];
+        } else if (property.images && Array.isArray(property.images) && property.images.length > 0) {
+          if (typeof property.images[0] === 'string') {
+            thumbnail = property.images[0];
+            images = property.images;
+          } else if (property.images[0].url) {
+            thumbnail = property.images[0].url;
+            images = property.images.map(img => typeof img === 'string' ? img : img.url);
+          }
+        } else if (property.cover_image) {
+          thumbnail = property.cover_image;
+          images = [property.cover_image];
+        }
+
+        return {
+          id: property.id,
+          title: property.title || 'Untitled Property',
+          location: property.location || 'Location not specified',
+          price: typeof property.price === 'string' ? parseFloat(property.price) : (property.price || 0),
+          area: typeof property.area === 'string' ? parseFloat(property.area) : (property.area || 0),
+          bedrooms: property.bedrooms || '0',
+          bathrooms: property.bathrooms || '0',
+          listing_type: property.status === 'For Rent' ? 'rent' : 'sale',
+          property_type: property.type || property.propertyType || 'Unknown',
+          latitude: lat,
+          longitude: lng,
+          thumbnail: thumbnail,
+          images: images,
+          cover_image: thumbnail,
+          seller_id: property.seller_id
+        };
+      });
+  }, [filteredProperties, isValidCoordinate]);
 
 
   return (
@@ -569,21 +615,15 @@ const SearchResults = () => {
         {/* Right Side - Fixed Map (Desktop only) */}
         {!isMobile && (
           <div className="search-results-map">
-            {mapProperties.length > 0 ? (
-              <MapView
-                properties={mapProperties}
-                center={calculateMapCenter()}
-                zoom={filteredProperties.length > 0 ? 12 : 5}
-                showControls={true}
-                interactive={true}
-                currentPropertyId={selectedPropertyId}
-                onPropertyClick={handleMapMarkerClick}
-              />
-            ) : (
-              <div className="map-no-properties">
-                <p>No properties with location data to display on map</p>
-              </div>
-            )}
+            <MapView
+              properties={mapProperties}
+              center={calculateMapCenter()}
+              zoom={mapProperties.length > 0 ? 12 : 5}
+              showControls={true}
+              interactive={true}
+              currentPropertyId={selectedPropertyId}
+              onPropertyClick={handleMapMarkerClick}
+            />
           </div>
         )}
       </div>
@@ -601,25 +641,18 @@ const SearchResults = () => {
                 <line x1="6" y1="6" x2="18" y2="18"></line>
               </svg>
             </button>
-            {mapProperties.length > 0 ? (
-              <MapView
-                properties={mapProperties}
-                center={calculateMapCenter()}
-                zoom={filteredProperties.length > 0 ? 12 : 5}
-                showControls={true}
-                interactive={true}
-                currentPropertyId={selectedPropertyId}
-                onPropertyClick={handleMapMarkerClick}
-              />
-            ) : (
-              <div className="map-no-properties">
-                <p>No properties with location data to display on map</p>
-              </div>
-            )}
+            <MapView
+              properties={mapProperties}
+              center={calculateMapCenter()}
+              zoom={mapProperties.length > 0 ? 12 : 5}
+              showControls={true}
+              interactive={true}
+              currentPropertyId={selectedPropertyId}
+              onPropertyClick={handleMapMarkerClick}
+            />
           </div>
         </div>
       )}
-      </div>
     </div>
   );
 };

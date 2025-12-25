@@ -36,75 +36,142 @@ const MapView = ({
       return;
     }
 
-    try {
-      map.current = new mapboxgl.Map({
-        container: mapContainer.current,
-        style: 'mapbox://styles/mapbox/streets-v12',
-        center: center,
-        zoom: zoom,
-        interactive: interactive
-      });
-    } catch (error) {
-      console.error('Error creating Mapbox map:', error);
-      return;
-    }
+    let resizeObserver = null;
+    let handleResize = null;
+    let checkDimensionsInterval = null;
 
-    // Add navigation controls
-    if (showControls) {
-      map.current.addControl(new mapboxgl.NavigationControl(), 'top-right');
-      map.current.addControl(new mapboxgl.FullscreenControl(), 'top-right');
-      map.current.addControl(new mapboxgl.GeolocateControl({
-        positionOptions: { enableHighAccuracy: true },
-        trackUserLocation: true
-      }), 'top-right');
-    }
+    // Check if container has dimensions
+    const container = mapContainer.current;
+    const hasDimensions = container.offsetWidth > 0 && container.offsetHeight > 0;
+    
+    const initializeMap = () => {
+      if (map.current) return; // Already initialized
+      
+      try {
+        map.current = new mapboxgl.Map({
+          container: mapContainer.current,
+          style: 'mapbox://styles/mapbox/streets-v12',
+          center: center,
+          zoom: zoom,
+          interactive: interactive
+        });
 
-    // Map load event
-    map.current.on('load', () => {
-      setMapLoaded(true);
-      map.current.resize();
-    });
-
-    // Close popups when map moves (drag, pan, zoom)
-    const closeAllPopups = () => {
-      markersRef.current.forEach(marker => {
-        if (marker.getPopup() && marker.getPopup().isOpen()) {
-          marker.getPopup().remove();
+        // Add navigation controls
+        if (showControls) {
+          map.current.addControl(new mapboxgl.NavigationControl(), 'top-right');
+          map.current.addControl(new mapboxgl.FullscreenControl(), 'top-right');
+          map.current.addControl(new mapboxgl.GeolocateControl({
+            positionOptions: { enableHighAccuracy: true },
+            trackUserLocation: true
+          }), 'top-right');
         }
-      });
-      lastOpenedPopupRef.current = null;
+
+        // Map load event
+        map.current.on('load', () => {
+          setMapLoaded(true);
+          // Ensure map resizes after load
+          setTimeout(() => {
+            if (map.current) {
+              map.current.resize();
+            }
+          }, 100);
+        });
+
+        // Close popups when map moves (drag, pan, zoom)
+        const closeAllPopups = () => {
+          markersRef.current.forEach(marker => {
+            if (marker.getPopup() && marker.getPopup().isOpen()) {
+              marker.getPopup().remove();
+            }
+          });
+          lastOpenedPopupRef.current = null;
+        };
+
+        // Close popups on map movement
+        map.current.on('dragstart', closeAllPopups);
+        map.current.on('movestart', closeAllPopups);
+        map.current.on('zoomstart', closeAllPopups);
+
+        // Map click event - but ignore clicks on markers
+        if (onMapClick) {
+          map.current.on('click', (e) => {
+            // Check if click was on a marker element
+            const target = e.originalEvent.target;
+            if (target && (target.closest('.price-tag-marker') || target.closest('.mapboxgl-marker'))) {
+              return; // Don't trigger map click if clicking on a marker
+            }
+            // Close popups when clicking on map
+            closeAllPopups();
+            onMapClick({
+              lng: e.lngLat.lng,
+              lat: e.lngLat.lat
+            });
+          });
+        }
+
+        // Handle resize events
+        handleResize = () => {
+          if (map.current && mapLoaded) {
+            map.current.resize();
+          }
+        };
+        window.addEventListener('resize', handleResize);
+
+        // Also resize when container becomes visible
+        resizeObserver = new ResizeObserver(() => {
+          if (map.current && mapLoaded) {
+            map.current.resize();
+          }
+        });
+        
+        if (mapContainer.current) {
+          resizeObserver.observe(mapContainer.current);
+        }
+      } catch (error) {
+        console.error('Error creating Mapbox map:', error);
+      }
     };
 
-    // Close popups on map movement
-    map.current.on('dragstart', closeAllPopups);
-    map.current.on('movestart', closeAllPopups);
-    map.current.on('zoomstart', closeAllPopups);
-
-    // Map click event - but ignore clicks on markers
-    if (onMapClick) {
-      map.current.on('click', (e) => {
-        // Check if click was on a marker element
-        const target = e.originalEvent.target;
-        if (target && (target.closest('.price-tag-marker') || target.closest('.mapboxgl-marker'))) {
-          return; // Don't trigger map click if clicking on a marker
+    if (!hasDimensions) {
+      // Wait for container to have dimensions
+      checkDimensionsInterval = setInterval(() => {
+        if (container.offsetWidth > 0 && container.offsetHeight > 0) {
+          clearInterval(checkDimensionsInterval);
+          initializeMap();
         }
-        // Close popups when clicking on map
-        closeAllPopups();
-        onMapClick({
-          lng: e.lngLat.lng,
-          lat: e.lngLat.lat
-        });
-      });
+      }, 100);
+      
+      // Timeout after 5 seconds
+      setTimeout(() => {
+        if (checkDimensionsInterval) {
+          clearInterval(checkDimensionsInterval);
+        }
+        if (!map.current) {
+          console.warn('Map container did not get dimensions, initializing anyway');
+          initializeMap();
+        }
+      }, 5000);
+    } else {
+      initializeMap();
     }
 
     // Cleanup on unmount
     return () => {
+      if (checkDimensionsInterval) {
+        clearInterval(checkDimensionsInterval);
+      }
+      if (handleResize) {
+        window.removeEventListener('resize', handleResize);
+      }
+      if (resizeObserver) {
+        resizeObserver.disconnect();
+      }
       if (map.current) {
         map.current.remove();
         map.current = null;
       }
     };
-  }, []);
+  }, []); // Only run once on mount
 
   // Update center when prop changes
   useEffect(() => {
