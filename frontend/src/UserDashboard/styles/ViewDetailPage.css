@@ -503,6 +503,29 @@
     width: 100%;
     padding-bottom: 24px;
     border-bottom: 1px solid #ebebeb;
+    margin-bottom: 32px;
+}
+
+.price-section-heading {
+    font-size: 24px;
+    font-weight: 700;
+    color: #222222;
+    margin-bottom: 16px;
+    padding-bottom: 0;
+    letter-spacing: -0.3px;
+    position: relative;
+    margin-top: 0;
+}
+
+.price-section-heading::after {
+    content: '';
+    position: absolute;
+    bottom: -8px;
+    left: 0;
+    width: 40px;
+    height: 3px;
+    background: linear-gradient(90deg, #886ace, #7a5dbd);
+    border-radius: 2px;
 }
 
 .property-price-display {
@@ -1190,6 +1213,12 @@
 
     .property-price-section {
         padding-bottom: 20px;
+        margin-bottom: 24px;
+    }
+
+    .price-section-heading {
+        font-size: 20px;
+        margin-bottom: 12px;
     }
 
     .property-price-display .price-amount {

@@ -1038,6 +1038,7 @@ const ViewDetailsPage = () => {
                     <div className="main-content-area">
                         {/* Price Display - Top of Main Content */}
                         <div className="property-price-section">
+                            <h2 className="price-section-heading">Price</h2>
                             <div className="property-price-display">
                                 <span className="price-amount">{propertyData.price}</span>
                                 {propertyData.status === 'For Rent' && (
