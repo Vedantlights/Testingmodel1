@@ -6,8 +6,13 @@ import '../style/AdminProperties.css';
 const AdminProperties = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('All Status');
+  const [cityFilter, setCityFilter] = useState('');
+  const [propertyTypeFilter, setPropertyTypeFilter] = useState('');
+  const [minPrice, setMinPrice] = useState('');
+  const [maxPrice, setMaxPrice] = useState('');
   const [showFilterDropdown, setShowFilterDropdown] = useState(false);
   const [properties, setProperties] = useState([]);
+  const [filterOptions, setFilterOptions] = useState({ cities: [], property_types: [] });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [pagination, setPagination] = useState({ page: 1, total: 0, pages: 0 });
@@ -16,11 +21,11 @@ const AdminProperties = () => {
   useEffect(() => {
     // Reset to page 1 when filters or page size change
     setPagination(prev => ({ ...prev, page: 1 }));
-  }, [statusFilter, searchTerm, pageSize]);
+  }, [statusFilter, searchTerm, cityFilter, propertyTypeFilter, minPrice, maxPrice, pageSize]);
 
   useEffect(() => {
     fetchProperties();
-  }, [pagination.page, statusFilter, searchTerm]);
+  }, [pagination.page, statusFilter, searchTerm, cityFilter, propertyTypeFilter, minPrice, maxPrice]);
 
   const fetchProperties = async () => {
     setLoading(true);
@@ -37,7 +42,25 @@ const AdminProperties = () => {
           params.append('status', 'approved');
         } else if (statusFilter === 'Pending') {
           params.append('status', 'pending');
+        } else if (statusFilter === 'Sold') {
+          params.append('status', 'sold');
         }
+      }
+
+      if (cityFilter) {
+        params.append('city', cityFilter);
+      }
+
+      if (propertyTypeFilter) {
+        params.append('property_type', propertyTypeFilter);
+      }
+
+      if (minPrice) {
+        params.append('min_price', minPrice);
+      }
+
+      if (maxPrice) {
+        params.append('max_price', maxPrice);
       }
 
       if (searchTerm) {
@@ -57,6 +80,10 @@ const AdminProperties = () => {
       if (data.success) {
         setProperties(data.data.properties || []);
         setPagination(data.data.pagination || { page: 1, total: 0, pages: 0 });
+        // Update filter options if provided
+        if (data.data.filter_options) {
+          setFilterOptions(data.data.filter_options);
+        }
       } else {
         setError(data.message || 'Failed to load properties');
       }
@@ -212,31 +239,103 @@ const AdminProperties = () => {
           </button>
         </div>
         
-        <div style={{ position: 'relative' }}>
-          <button 
-            className="admin-filter-btn"
-            onClick={() => setShowFilterDropdown(!showFilterDropdown)}
+        <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap', alignItems: 'center' }}>
+          {/* Status Filter */}
+          <div style={{ position: 'relative' }}>
+            <button 
+              className="admin-filter-btn"
+              onClick={() => setShowFilterDropdown(!showFilterDropdown)}
+            >
+              <Filter />
+              {statusFilter}
+            </button>
+            
+            {showFilterDropdown && (
+              <div className="admin-filter-dropdown">
+                {['All Status', 'Approved', 'Pending', 'Sold'].map(status => (
+                  <div
+                    key={status}
+                    className={`admin-filter-option ${statusFilter === status ? 'admin-active' : ''}`}
+                    onClick={() => {
+                      setStatusFilter(status);
+                      setShowFilterDropdown(false);
+                    }}
+                  >
+                    {status}
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+
+          {/* City Filter */}
+          <select
+            value={cityFilter}
+            onChange={(e) => setCityFilter(e.target.value)}
+            style={{
+              padding: '6px 12px',
+              border: '1px solid #e2e8f0',
+              borderRadius: '6px',
+              fontSize: '14px',
+              cursor: 'pointer',
+              minWidth: '150px'
+            }}
           >
-            <Filter />
-            {statusFilter}
-          </button>
-          
-          {showFilterDropdown && (
-            <div className="admin-filter-dropdown">
-              {['All Status', 'Approved', 'Pending', 'Rejected'].map(status => (
-                <div
-                  key={status}
-                  className={`admin-filter-option ${statusFilter === status ? 'admin-active' : ''}`}
-                  onClick={() => {
-                    setStatusFilter(status);
-                    setShowFilterDropdown(false);
-                  }}
-                >
-                  {status}
-                </div>
-              ))}
-            </div>
-          )}
+            <option value="">All Cities</option>
+            {filterOptions.cities.map(city => (
+              <option key={city} value={city}>{city}</option>
+            ))}
+          </select>
+
+          {/* Property Type Filter */}
+          <select
+            value={propertyTypeFilter}
+            onChange={(e) => setPropertyTypeFilter(e.target.value)}
+            style={{
+              padding: '6px 12px',
+              border: '1px solid #e2e8f0',
+              borderRadius: '6px',
+              fontSize: '14px',
+              cursor: 'pointer',
+              minWidth: '150px'
+            }}
+          >
+            <option value="">All Types</option>
+            {filterOptions.property_types.map(type => (
+              <option key={type} value={type}>{type}</option>
+            ))}
+          </select>
+
+          {/* Price Range */}
+          <div style={{ display: 'flex', gap: '5px', alignItems: 'center' }}>
+            <input
+              type="number"
+              placeholder="Min Price"
+              value={minPrice}
+              onChange={(e) => setMinPrice(e.target.value)}
+              style={{
+                padding: '6px 12px',
+                border: '1px solid #e2e8f0',
+                borderRadius: '6px',
+                fontSize: '14px',
+                width: '120px'
+              }}
+            />
+            <span style={{ color: '#64748b' }}>to</span>
+            <input
+              type="number"
+              placeholder="Max Price"
+              value={maxPrice}
+              onChange={(e) => setMaxPrice(e.target.value)}
+              style={{
+                padding: '6px 12px',
+                border: '1px solid #e2e8f0',
+                borderRadius: '6px',
+                fontSize: '14px',
+                width: '120px'
+              }}
+            />
+          </div>
         </div>
       </div>
 

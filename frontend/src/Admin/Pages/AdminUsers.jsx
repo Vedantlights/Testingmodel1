@@ -41,6 +41,9 @@ const AdminUsers = () => {
         params.append('search', searchTerm);
       }
 
+      // Note: Status filter (active/banned) can be added here if needed
+      // The backend API supports status parameter: 'active' or 'banned'
+
       const response = await fetch(`${API_BASE_URL}${API_ENDPOINTS.ADMIN_USERS_LIST}?${params}`, {
         method: 'GET',
         headers: {

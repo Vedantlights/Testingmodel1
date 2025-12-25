@@ -5,8 +5,8 @@ import {
   Building2, 
   Users, 
   UserCheck, 
-  Headphones, 
-  Settings, 
+  MessageSquare,
+  CreditCard,
   LogOut,
   Menu,
   X
@@ -19,8 +19,8 @@ const AdminDashboard = lazy(() => import('./Pages/AdminDashboard'));
 const AdminProperties = lazy(() => import('./Pages/AdminProperties'));
 const AdminUsers = lazy(() => import('./Pages/AdminUsers'));
 const AdminAgents = lazy(() => import('./Pages/AdminAgents'));
-const AdminSupport = lazy(() => import('./Pages/AdminSupport'));
-const AdminSettings = lazy(() => import('./Pages/AdminSettings'));
+const AdminInquiries = lazy(() => import('./Pages/AdminInquiries'));
+const AdminSubscriptions = lazy(() => import('./Pages/AdminSubscriptions'));
 const AdminLogin = lazy(() => import('./Pages/AdminLogin'));
 
 const AdminLayout = () => {
@@ -41,9 +41,9 @@ const AdminLayout = () => {
     { path: '/admin/dashboard', icon: Home, label: 'Dashboard', roles: ['super_admin', 'admin', 'moderator'] },
     { path: '/admin/properties', icon: Building2, label: 'Properties', roles: ['super_admin', 'admin', 'moderator'] },
     { path: '/admin/users', icon: Users, label: 'Users', roles: ['super_admin', 'admin'] },
-    { path: '/admin/agents', icon: UserCheck, label: 'Agents', roles: ['super_admin', 'admin'] },
-    { path: '/admin/support', icon: Headphones, label: 'Support', roles: ['super_admin', 'admin', 'moderator'] },
-    { path: '/admin/settings', icon: Settings, label: 'Settings', roles: ['super_admin', 'admin', 'moderator'] },
+    { path: '/admin/agents', icon: UserCheck, label: 'Agent / Builder', roles: ['super_admin', 'admin'] },
+    { path: '/admin/inquiries', icon: MessageSquare, label: 'Inquiries', roles: ['super_admin', 'admin', 'moderator'] },
+    { path: '/admin/subscriptions', icon: CreditCard, label: 'Subscriptions', roles: ['super_admin', 'admin'] },
   ];
 
   // Filter menu items based on admin role
@@ -285,8 +285,8 @@ const AdminLayout = () => {
               <Route path="/properties" element={<AdminProperties />} />
               <Route path="/users" element={<AdminUsers />} />
               <Route path="/agents" element={<AdminAgents />} />
-              <Route path="/support" element={<AdminSupport />} />
-              <Route path="/settings" element={<AdminSettings />} />
+              <Route path="/inquiries" element={<AdminInquiries />} />
+              <Route path="/subscriptions" element={<AdminSubscriptions />} />
               <Route path="/login" element={<AdminLogin />} />
             </Routes>
           </Suspense>

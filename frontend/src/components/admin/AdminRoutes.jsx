@@ -9,8 +9,6 @@ import AdminDashboard from '../../LandingPage/pages/admin/AdminDashboard';
 import AdminUsers from '../../LandingPage/pages/admin/AdminUsers';
 import AdminProperties from '../../LandingPage/pages/admin/AdminProperties';
 import AdminAgents from '../../LandingPage/pages/admin/AdminAgents';
-import AdminSupport from '../../LandingPage/pages/admin/AdminSupport';
-import AdminSettings from '../../LandingPage/pages/admin/AdminSettings';
 
 // Protected Route Component for Admin
 // Uses session-based auth (HTTP-only cookie), so we check via API
@@ -112,26 +110,6 @@ const AdminRoutes = () => {
           <AdminProtectedRoute>
             <AdminLayout>
               <AdminAgents />
-            </AdminLayout>
-          </AdminProtectedRoute>
-        }
-      />
-      <Route
-        path="/support"
-        element={
-          <AdminProtectedRoute>
-            <AdminLayout>
-              <AdminSupport />
-            </AdminLayout>
-          </AdminProtectedRoute>
-        }
-      />
-      <Route
-        path="/settings"
-        element={
-          <AdminProtectedRoute>
-            <AdminLayout>
-              <AdminSettings />
             </AdminLayout>
           </AdminProtectedRoute>
         }

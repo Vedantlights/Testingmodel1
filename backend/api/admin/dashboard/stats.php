@@ -84,6 +84,20 @@ try {
     $stmt = $db->query("SELECT COUNT(*) as total FROM inquiries WHERE created_at >= DATE_SUB(NOW(), INTERVAL 7 DAY)");
     $newInquiries = $stmt->fetch()['total'];
     
+    // Total Subscriptions
+    $subscriptionDateFilter = $dateFilter; // Same filter for subscriptions
+    $stmt = $db->prepare("SELECT COUNT(*) as total FROM subscriptions WHERE 1=1" . $subscriptionDateFilter);
+    $stmt->execute($dateParams);
+    $totalSubscriptions = $stmt->fetch()['total'];
+    
+    // Active Subscriptions
+    $stmt = $db->query("SELECT COUNT(*) as total FROM subscriptions WHERE is_active = 1 AND (end_date IS NULL OR end_date > NOW())");
+    $activeSubscriptions = $stmt->fetch()['total'];
+    
+    // Expired Subscriptions
+    $stmt = $db->query("SELECT COUNT(*) as total FROM subscriptions WHERE is_active = 0 OR (end_date IS NOT NULL AND end_date <= NOW())");
+    $expiredSubscriptions = $stmt->fetch()['total'];
+    
     // Properties by type
     $stmt = $db->query("SELECT property_type, COUNT(*) as count FROM properties WHERE is_active = 1 GROUP BY property_type");
     $propertiesByType = $stmt->fetchAll(PDO::FETCH_KEY_PAIR);
@@ -139,6 +153,9 @@ try {
         'total_agents' => intval($totalAgents),
         'total_inquiries' => intval($totalInquiries),
         'new_inquiries' => intval($newInquiries),
+        'total_subscriptions' => intval($totalSubscriptions),
+        'active_subscriptions' => intval($activeSubscriptions),
+        'expired_subscriptions' => intval($expiredSubscriptions),
         'properties_by_type' => $propertiesByType,
         'properties_by_status' => [
             'sale' => intval($propertiesByStatus['sale'] ?? 0),

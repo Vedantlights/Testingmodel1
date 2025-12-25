@@ -113,8 +113,8 @@ const AdminAgents = () => {
     <div className="admin-agents">
       <div className="admin-page-header">
         <div>
-          <h1>Manage Agents & Builders</h1>
-          <p>{loading ? 'Loading...' : `${agents.length} of ${pagination.total} agents`}</p>
+          <h1>Agent / Builder Management</h1>
+          <p>{loading ? 'Loading...' : `${agents.length} of ${pagination.total} agents/builders`}</p>
         </div>
       </div>
 
@@ -172,9 +172,10 @@ const AdminAgents = () => {
           <table className="admin-agents-table">
             <thead>
               <tr>
-                <th>AGENT</th>
+                <th>AGENT / BUILDER</th>
+                <th>ROLE</th>
                 <th>STATUS</th>
-                <th>LEADS</th>
+                <th>INQUIRIES</th>
                 <th>PROPERTIES</th>
                 <th>ACTIONS</th>
               </tr>
@@ -196,16 +197,17 @@ const AdminAgents = () => {
                       </div>
                     </td>
 
-                    <td data-label="Type">
+                    <td data-label="Role">
                       <span style={{ 
                         padding: '4px 8px', 
                         borderRadius: '4px',
                         background: '#06b6d420',
                         color: '#06b6d4',
                         fontSize: '12px',
-                        fontWeight: '500'
+                        fontWeight: '500',
+                        textTransform: 'capitalize'
                       }}>
-                        Agent/Builder
+                        {agent.user_type === 'agent' ? 'Agent' : 'Builder'}
                       </span>
                     </td>
 
@@ -215,7 +217,7 @@ const AdminAgents = () => {
                       </span>
                     </td>
 
-                    <td data-label="Leads">
+                    <td data-label="Inquiries">
                       <div className="admin-leads-badge">{agent.leads_count || 0}</div>
                     </td>
 

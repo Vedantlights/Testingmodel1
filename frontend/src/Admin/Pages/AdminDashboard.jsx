@@ -5,6 +5,7 @@ import {
   Users, 
   UserCheck,
   MessageSquare,
+  CreditCard,
   AlertCircle
 } from 'lucide-react';
 import { API_BASE_URL, API_ENDPOINTS } from '../../config/api.config';
@@ -89,7 +90,16 @@ const AdminDashboard = () => {
             trend: 'up',
             icon: MessageSquare,
             color: '#10b981',
-            path: null // No navigation for inquiries
+            path: '/admin/inquiries'
+          },
+          {
+            title: 'Active Subscriptions',
+            value: statsData.active_subscriptions?.toString() || '0',
+            change: `${statsData.expired_subscriptions || 0} expired`,
+            trend: 'up',
+            icon: CreditCard,
+            color: '#8b5cf6',
+            path: '/admin/subscriptions'
           }
         ];
 
@@ -173,9 +183,54 @@ const AdminDashboard = () => {
     return (
       <div className="admin-dashboard">
         <div className="admin-dashboard-header">
-          <h1>Dashboard</h1>
-          <p>Loading...</p>
+          <div>
+            <h1>Dashboard</h1>
+            <p>Loading dashboard data...</p>
+          </div>
         </div>
+        
+        {/* Loading Skeletons */}
+        <div className="admin-stats-grid">
+          {[1, 2, 3, 4, 5, 6].map((i) => (
+            <div key={i} className="admin-stat-card" style={{ opacity: 0.6 }}>
+              <div className="admin-stat-header">
+                <div className="admin-stat-title" style={{ 
+                  background: '#e2e8f0', 
+                  height: '16px', 
+                  width: '100px', 
+                  borderRadius: '4px',
+                  animation: 'pulse 1.5s ease-in-out infinite'
+                }}></div>
+                <div className="admin-stat-icon" style={{ 
+                  background: '#e2e8f0',
+                  animation: 'pulse 1.5s ease-in-out infinite'
+                }}></div>
+              </div>
+              <div className="admin-stat-value" style={{ 
+                background: '#e2e8f0', 
+                height: '32px', 
+                width: '80px', 
+                borderRadius: '4px',
+                animation: 'pulse 1.5s ease-in-out infinite'
+              }}></div>
+              <div style={{ 
+                background: '#e2e8f0', 
+                height: '14px', 
+                width: '120px', 
+                borderRadius: '4px',
+                marginTop: '8px',
+                animation: 'pulse 1.5s ease-in-out infinite'
+              }}></div>
+            </div>
+          ))}
+        </div>
+        
+        <style>{`
+          @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+          }
+        `}</style>
       </div>
     );
   }

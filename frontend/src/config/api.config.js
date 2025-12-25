@@ -90,6 +90,8 @@ export const API_ENDPOINTS = {
   ADMIN_AGENTS_LIST: '/admin/agents/list.php',
   ADMIN_AGENTS_VERIFY: '/admin/agents/verify.php',
   ADMIN_AGENTS_UNVERIFY: '/admin/agents/unverify.php',
+  ADMIN_INQUIRIES_LIST: '/admin/inquiries/list.php',
+  ADMIN_SUBSCRIPTIONS_LIST: '/admin/subscriptions/list.php',
   ADMIN_SUPPORT_LIST: '/admin/support/list.php',
   ADMIN_SUPPORT_UPDATE_STATUS: '/admin/support/update-status.php',
   ADMIN_CHANGE_PASSWORD: '/admin/auth/change-password.php',

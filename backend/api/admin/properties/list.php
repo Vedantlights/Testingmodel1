@@ -25,29 +25,74 @@ try {
     $offset = ($page - 1) * $limit;
     
     // Filters
-    $status = isset($_GET['status']) ? $_GET['status'] : null; // approved, pending, rejected, all
-    $propertyType = isset($_GET['property_type']) ? $_GET['property_type'] : null;
+    $status = isset($_GET['status']) ? $_GET['status'] : null; // approved, pending, sold, all
+    $propertyType = isset($_GET['property_type']) ? trim($_GET['property_type']) : null;
+    $city = isset($_GET['city']) ? trim($_GET['city']) : null;
+    $location = isset($_GET['location']) ? trim($_GET['location']) : null;
+    $minPrice = isset($_GET['min_price']) ? floatval($_GET['min_price']) : null;
+    $maxPrice = isset($_GET['max_price']) ? floatval($_GET['max_price']) : null;
     $search = isset($_GET['search']) ? trim($_GET['search']) : '';
     
     // Build query
     $where = [];
     $params = [];
     
+    // Status filter: approved (is_active=1), pending (is_active=0), sold (status='sold' or custom field)
     if ($status && $status !== 'all') {
-        // Check if admin_status column exists
-        $where[] = "p.is_active = ?";
         if ($status === 'approved') {
+            $where[] = "p.is_active = ?";
             $params[] = 1;
         } elseif ($status === 'pending') {
+            $where[] = "p.is_active = ?";
             $params[] = 0;
+        } elseif ($status === 'sold') {
+            // Check if sold_status column exists, otherwise use a placeholder
+            // For now, we'll check if there's a way to mark properties as sold
+            // This can be enhanced later with a dedicated sold_status field
+            $where[] = "p.is_active = ? AND p.status = 'sale'";
+            $params[] = 0; // Sold properties might be marked inactive
         }
     }
     
+    // Property type filter
     if ($propertyType) {
-        $where[] = "p.property_type = ?";
-        $params[] = $propertyType;
+        // Handle compound property types (e.g., "Villa / Row House")
+        $propertyType = str_replace(['+', '%2F', '%2f'], [' ', '/', '/'], $propertyType);
+        $normalized = preg_replace('/\s*\/\s*/', ' / ', $propertyType);
+        $types = array_map('trim', explode(' / ', $normalized));
+        
+        if (count($types) > 1) {
+            $likeConditions = [];
+            foreach ($types as $type) {
+                $likeConditions[] = "p.property_type LIKE ?";
+                $params[] = "%" . $type . "%";
+            }
+            $where[] = "(" . implode(" OR ", $likeConditions) . ")";
+        } else {
+            $where[] = "p.property_type LIKE ?";
+            $params[] = "%" . $propertyType . "%";
+        }
     }
     
+    // City/Location filter - use location if provided, otherwise use city
+    $locationFilter = $location ? $location : $city;
+    if ($locationFilter) {
+        $where[] = "p.location LIKE ?";
+        $params[] = "%" . $locationFilter . "%";
+    }
+    
+    // Price range filter
+    if ($minPrice !== null && $minPrice > 0) {
+        $where[] = "p.price >= ?";
+        $params[] = $minPrice;
+    }
+    
+    if ($maxPrice !== null && $maxPrice > 0) {
+        $where[] = "p.price <= ?";
+        $params[] = $maxPrice;
+    }
+    
+    // Search filter
     if ($search) {
         $where[] = "(p.title LIKE ? OR p.location LIKE ? OR p.description LIKE ?)";
         $searchTerm = "%{$search}%";
@@ -81,9 +126,9 @@ try {
     // Get total count
     $countQuery = "SELECT COUNT(*) as total FROM properties p {$whereClause}";
     $countStmt = $db->prepare($countQuery);
-    $countParams = array_slice($params, 0, -2);
-    $countStmt->execute($countParams);
-    $total = $countStmt->fetch()['total'];
+    $countStmt->execute($params);
+    $totalResult = $countStmt->fetch(PDO::FETCH_ASSOC);
+    $total = isset($totalResult['total']) ? intval($totalResult['total']) : 0;
     
     // Format properties
     foreach ($properties as &$property) {
@@ -95,6 +140,31 @@ try {
         $property['views_count'] = intval($property['views_count']);
     }
     
+    // Get filter options (cities and property types) for frontend dropdowns
+    $citiesQuery = "SELECT DISTINCT location FROM properties WHERE location IS NOT NULL AND location != '' ORDER BY location ASC LIMIT 50";
+    $citiesStmt = $db->query($citiesQuery);
+    $cities = $citiesStmt->fetchAll(PDO::FETCH_COLUMN);
+    
+    // Extract city names from locations (simple extraction - take last part after comma or first word)
+    $uniqueCities = [];
+    foreach ($cities as $loc) {
+        // Try to extract city name (usually last part after comma, or first major word)
+        $parts = explode(',', $loc);
+        if (count($parts) > 1) {
+            $city = trim(end($parts));
+        } else {
+            $city = trim(explode(' ', $loc)[0]);
+        }
+        if ($city && !in_array($city, $uniqueCities)) {
+            $uniqueCities[] = $city;
+        }
+    }
+    sort($uniqueCities);
+    
+    $typesQuery = "SELECT DISTINCT property_type FROM properties WHERE property_type IS NOT NULL AND property_type != '' ORDER BY property_type ASC";
+    $typesStmt = $db->query($typesQuery);
+    $propertyTypes = $typesStmt->fetchAll(PDO::FETCH_COLUMN);
+    
     sendSuccess('Properties retrieved successfully', [
         'properties' => $properties,
         'pagination' => [
@@ -102,6 +172,10 @@ try {
             'limit' => $limit,
             'total' => intval($total),
             'pages' => ceil($total / $limit)
+        ],
+        'filter_options' => [
+            'cities' => array_slice($uniqueCities, 0, 20), // Limit to 20 cities
+            'property_types' => $propertyTypes
         ]
     ]);
     
