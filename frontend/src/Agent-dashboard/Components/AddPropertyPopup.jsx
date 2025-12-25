@@ -366,6 +366,7 @@ export default function AddPropertyPopup({ onClose, editIndex = null, initialDat
 
   // Handle location selection from LocationPicker
   const handleLocationSelect = (locationData) => {
+    if (isRestrictedEdit) return; // Prevent location changes after 24 hours
     setFormData(prev => ({
       ...prev,
       latitude: locationData.latitude.toString(),
@@ -764,6 +765,7 @@ export default function AddPropertyPopup({ onClose, editIndex = null, initialDat
             placeholder="Enter locality, area or landmark"
             value={formData.location}
             onChange={(locationData) => {
+              if (isRestrictedEdit) return;
               if (!locationData) {
                 setFormData(prev => ({ ...prev, location: "", latitude: "", longitude: "" }));
                 return;
@@ -777,6 +779,7 @@ export default function AddPropertyPopup({ onClose, editIndex = null, initialDat
             }}
             className={errors.location ? 'agent-location-error' : ''}
             error={errors.location}
+            disabled={isRestrictedEdit}
           />
         </div>
 
@@ -788,7 +791,9 @@ export default function AddPropertyPopup({ onClose, editIndex = null, initialDat
               <button
                 type="button"
                 className="location-picker-btn"
-                onClick={() => setShowLocationPicker(true)}
+                onClick={() => !isRestrictedEdit && setShowLocationPicker(true)}
+                disabled={isRestrictedEdit}
+                style={{ opacity: isRestrictedEdit ? 0.5 : 1, cursor: isRestrictedEdit ? 'not-allowed' : 'pointer' }}
               >
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" style={{ marginRight: '8px' }}>
                   <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z" stroke="currentColor" strokeWidth="2"/>
@@ -815,17 +820,19 @@ export default function AddPropertyPopup({ onClose, editIndex = null, initialDat
                 <button
                   type="button"
                   className="location-picker-change-btn"
-                  onClick={() => setShowLocationPicker(true)}
-                  title="Change location"
+                  onClick={() => !isRestrictedEdit && setShowLocationPicker(true)}
+                  disabled={isRestrictedEdit}
+                  title={isRestrictedEdit ? "Location cannot be changed after 24 hours" : "Change location"}
                   style={{
                     padding: '6px 12px',
                     fontSize: '0.875rem',
                     backgroundColor: '#f3f4f6',
                     border: '1px solid #d1d5db',
                     borderRadius: '6px',
-                    cursor: 'pointer',
-                    color: '#374151',
-                    fontWeight: '500'
+                    cursor: isRestrictedEdit ? 'not-allowed' : 'pointer',
+                    color: isRestrictedEdit ? '#9ca3af' : '#374151',
+                    fontWeight: '500',
+                    opacity: isRestrictedEdit ? 0.5 : 1
                   }}
                 >
                   Change Location
@@ -833,18 +840,22 @@ export default function AddPropertyPopup({ onClose, editIndex = null, initialDat
                 <button
                   type="button"
                   onClick={() => {
-                    setFormData(prev => ({ ...prev, latitude: '', longitude: '' }));
+                    if (!isRestrictedEdit) {
+                      setFormData(prev => ({ ...prev, latitude: '', longitude: '' }));
+                    }
                   }}
-                  title="Remove location"
+                  disabled={isRestrictedEdit}
+                  title={isRestrictedEdit ? "Location cannot be removed after 24 hours" : "Remove location"}
                   style={{
                     padding: '6px 12px',
                     fontSize: '0.875rem',
                     backgroundColor: '#fee2e2',
                     border: '1px solid #fecaca',
                     borderRadius: '6px',
-                    cursor: 'pointer',
-                    color: '#991b1b',
-                    fontWeight: '500'
+                    cursor: isRestrictedEdit ? 'not-allowed' : 'pointer',
+                    color: isRestrictedEdit ? '#d1d5db' : '#991b1b',
+                    fontWeight: '500',
+                    opacity: isRestrictedEdit ? 0.5 : 1
                   }}
                 >
                   Remove

@@ -80,12 +80,14 @@ try {
     ];
     
     // Check if location is being updated and if coordinates need geocoding
+    // Only do this if property is NOT older than 24 hours (location changes are restricted after 24 hours)
     $location = isset($input['location']) ? sanitizeInput($input['location']) : null;
     $latitude = isset($input['latitude']) ? floatval($input['latitude']) : null;
     $longitude = isset($input['longitude']) ? floatval($input['longitude']) : null;
     
     // Auto-geocode location if coordinates are missing and location is being updated
-    if ($location !== null && (empty($latitude) || empty($longitude) || $latitude == 0 || $longitude == 0)) {
+    // Only geocode if property is not older than 24 hours (location changes allowed)
+    if (!$isOlderThan24Hours && $location !== null && (empty($latitude) || empty($longitude) || $latitude == 0 || $longitude == 0)) {
         $geocoded = geocodeIfNeeded($location, $latitude, $longitude);
         if ($geocoded['latitude'] && $geocoded['longitude']) {
             $latitude = $geocoded['latitude'];

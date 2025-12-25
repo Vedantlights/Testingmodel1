@@ -5,7 +5,7 @@ import { useProperty } from "./PropertyContext";
 import AddPropertyPopup from "./AddPropertyPopup";
 import "../styles/SellerProperties.css";
 
-const MAX_PROPERTIES = 10;
+const MAX_PROPERTIES = 3;
 
 const SellerProperties = () => {
   const navigate = useNavigate();

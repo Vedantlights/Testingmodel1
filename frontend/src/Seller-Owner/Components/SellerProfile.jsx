@@ -61,6 +61,11 @@ const SellerProfile = () => {
     marketingEmails: false
   });
 
+  // Track isEditing state changes for debugging
+  useEffect(() => {
+    console.log('isEditing state changed to:', isEditing);
+  }, [isEditing]);
+
   // Fetch profile data from backend
   useEffect(() => {
     const fetchProfile = async () => {
@@ -97,6 +102,8 @@ const SellerProfile = () => {
           // Store seller verified status (using agent_verified field from backend)
           setSellerVerified(profile.agent_verified === 1 || profile.agent_verified === true);
           
+          console.log('Initial profile load - WhatsApp number:', profile.whatsapp_number);
+          console.log('Initial profile load - Alternate mobile:', profile.alternate_mobile);
           setFormData({
             firstName: firstName,
             lastName: lastName,
@@ -114,6 +121,7 @@ const SellerProfile = () => {
             instagram: socialLinks.instagram || '',
             linkedin: socialLinks.linkedin || ''
           });
+          console.log('Initial formData set with profile values');
         } else {
           // If no profile, set empty values
           setProfileImage('');
@@ -147,12 +155,19 @@ const SellerProfile = () => {
     const { name, value } = e.target;
     let sanitizedValue = value;
     
+    // Log changes to WhatsApp and alternate mobile for debugging
+    if (name === 'whatsappNumber' || name === 'alternateMobile') {
+      console.log(`Field ${name} changed:`, value);
+    }
+    
     // Convert firstName and lastName to uppercase, but keep email as is
     if (name === 'firstName' || name === 'lastName') {
       sanitizedValue = sanitizeInput(value.toUpperCase());
     } else if (['address', 'agencyName', 'agencyAddress'].includes(name)) {
       sanitizedValue = sanitizeInput(value);
     }
+    // For WhatsApp and alternate mobile, keep the value as-is (user can type with formatting)
+    // Backend will normalize it to digits only
     
     setFormData({
       ...formData,
@@ -166,10 +181,13 @@ const SellerProfile = () => {
   };
   
   const validateProfile = () => {
+    console.log('=== validateProfile called ===');
+    console.log('Current formData for validation:', formData);
     const newErrors = {};
     
     // First Name validation
     const firstNameValidation = validateTextLength(formData.firstName, 2, 50, 'First name');
+    console.log('First name validation:', firstNameValidation);
     if (!firstNameValidation.valid) {
       newErrors.firstName = firstNameValidation.message;
     } else if (!/^[a-zA-Z\s]+$/.test(formData.firstName)) {
@@ -197,19 +215,27 @@ const SellerProfile = () => {
     }
     
     // WhatsApp Number validation (optional)
+    console.log('Validating WhatsApp number:', formData.whatsappNumber);
     if (formData.whatsappNumber) {
       const whatsappValidation = validateIndianPhone(formData.whatsappNumber);
+      console.log('WhatsApp validation result:', whatsappValidation);
       if (!whatsappValidation.valid) {
         newErrors.whatsappNumber = whatsappValidation.message;
       }
+    } else {
+      console.log('WhatsApp number is empty/undefined - skipping validation (optional field)');
     }
     
     // Alternate Mobile validation (optional)
+    console.log('Validating Alternate mobile:', formData.alternateMobile);
     if (formData.alternateMobile) {
       const altMobileValidation = validateIndianPhone(formData.alternateMobile);
+      console.log('Alternate mobile validation result:', altMobileValidation);
       if (!altMobileValidation.valid) {
         newErrors.alternateMobile = altMobileValidation.message;
       }
+    } else {
+      console.log('Alternate mobile is empty/undefined - skipping validation (optional field)');
     }
     
     // Agency Name validation
@@ -266,8 +292,12 @@ const SellerProfile = () => {
       }
     }
     
+    console.log('Validation errors found:', newErrors);
+    console.log('Validation passed:', Object.keys(newErrors).length === 0);
     setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
+    const isValid = Object.keys(newErrors).length === 0;
+    console.log('=== validateProfile completed, returning:', isValid, '===');
+    return isValid;
   };
 
   const handleNotificationChange = (key) => {
@@ -464,39 +494,67 @@ const SellerProfile = () => {
   }, []);
 
   const handleSave = async () => {
+    console.log('=== handleSave function called ===');
+    console.log('Current formData:', formData);
+    console.log('Current isEditing state:', isEditing);
+    
     // Close image menu if open
     if (showImageMenu) {
+      console.log('Closing image menu');
       setShowImageMenu(false);
     }
     
-    if (!validateProfile()) {
+    console.log('Validating profile...');
+    const isValid = validateProfile();
+    console.log('Validation result:', isValid);
+    console.log('Validation errors:', errors);
+    
+    if (!isValid) {
+      console.log('Validation failed - returning without saving');
       return; // Don't save if validation fails
     }
     
     try {
+      console.log('Setting isEditing to false');
       setIsEditing(false);
       
       // Prepare data for backend
       const fullName = `${formData.firstName} ${formData.lastName}`.trim();
+      console.log('Full name prepared:', fullName);
       
       // Prepare address - use address field, fallback to agencyAddress, or empty string
       const addressValue = (formData.address || formData.agencyAddress || '').trim();
+      console.log('Address prepared:', addressValue);
+      
+      // Prepare WhatsApp and Alternate Mobile numbers
+      const whatsappValue = formData.whatsappNumber ? formData.whatsappNumber.trim() : '';
+      const alternateMobileValue = formData.alternateMobile ? formData.alternateMobile.trim() : '';
+      
+      console.log('WhatsApp number raw:', formData.whatsappNumber);
+      console.log('WhatsApp number prepared:', whatsappValue);
+      console.log('Alternate mobile raw:', formData.alternateMobile);
+      console.log('Alternate mobile prepared:', alternateMobileValue);
       
       // Exclude email and phone from update - they cannot be changed after login
       const updateData = {
         full_name: fullName,
         address: addressValue, // Always send address, even if empty, so it can be cleared
-        whatsapp_number: formData.whatsappNumber.trim() || '',
-        alternate_mobile: formData.alternateMobile.trim() || ''
+        whatsapp_number: whatsappValue,
+        alternate_mobile: alternateMobileValue
       };
       
-      console.log('Sending update data:', updateData);
+      console.log('=== Sending update data to API ===');
+      console.log('Update data:', updateData);
+      console.log('API endpoint: sellerProfileAPI.update');
       
       const response = await sellerProfileAPI.update(updateData);
       
+      console.log('=== API Response received ===');
       console.log('Update response:', response);
+      console.log('Response success:', response?.success);
       
       if (response.success) {
+        console.log('Update successful! Showing success message');
         setShowSuccess(true);
         // Hide toast after 3 seconds with fade-out effect
         setTimeout(() => {
@@ -504,10 +562,13 @@ const SellerProfile = () => {
         }, 3000);
         
         // Refetch profile to ensure we have the latest data
+        console.log('Refetching profile to get latest data...');
         try {
           const profileResponse = await sellerProfileAPI.get();
+          console.log('Profile refetch response:', profileResponse);
           if (profileResponse.success && profileResponse.data && profileResponse.data.profile) {
             const profile = profileResponse.data.profile;
+            console.log('Refetched profile data:', profile);
             
             // Split full_name into firstName and lastName
             const nameParts = (profile.full_name || '').split(' ');
@@ -525,6 +586,9 @@ const SellerProfile = () => {
             }
             
             // Update all form data with fresh data from backend
+            console.log('Updating formData with refetched profile');
+            console.log('Refetched WhatsApp number:', profile.whatsapp_number);
+            console.log('Refetched Alternate mobile:', profile.alternate_mobile);
             setFormData(prev => ({
               ...prev,
               firstName: firstName,
@@ -543,11 +607,14 @@ const SellerProfile = () => {
               instagram: socialLinks.instagram || '',
               linkedin: socialLinks.linkedin || ''
             }));
+            console.log('FormData updated with refetched values');
             
             // Update profile image if returned
             if (profile.profile_image) {
               setProfileImage(profile.profile_image);
             }
+            
+            console.log('Profile update completed successfully');
           }
         } catch (fetchError) {
           console.error('Error refetching profile:', fetchError);
@@ -564,14 +631,23 @@ const SellerProfile = () => {
           }
         }
       } else {
+        console.error('Update failed - response.success is false');
+        console.error('Response message:', response.message);
+        console.error('Full response:', response);
         alert(response.message || 'Failed to update profile');
+        console.log('Re-enabling editing mode');
         setIsEditing(true); // Re-enable editing on error
       }
     } catch (error) {
+      console.error('=== Error in handleSave ===');
       console.error('Error updating profile:', error);
+      console.error('Error message:', error.message);
+      console.error('Error stack:', error.stack);
       alert(error.message || 'Failed to update profile. Please try again.');
+      console.log('Re-enabling editing mode due to error');
       setIsEditing(true); // Re-enable editing on error
     }
+    console.log('=== handleSave function completed ===');
   };
 
   const tabs = [
@@ -794,7 +870,13 @@ const SellerProfile = () => {
                 <div className="seller-profile-section-header">
                   <h3>Personal Information</h3>
                   {!isEditing && (
-                    <button className="seller-profile-edit-btn" onClick={() => setIsEditing(true)}>
+                    <button 
+                      className="seller-profile-edit-btn" 
+                      onClick={() => {
+                        console.log('Edit button clicked - Setting isEditing to true');
+                        setIsEditing(true);
+                      }}
+                    >
                       <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
                         <path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7" stroke="currentColor" strokeWidth="2"/>
                         <path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z" stroke="currentColor" strokeWidth="2"/>
@@ -926,10 +1008,26 @@ const SellerProfile = () => {
 
                 {isEditing && (
                   <div className="seller-profile-form-actions">
-                    <button type="button" className="seller-profile-cancel-btn" onClick={() => setIsEditing(false)}>
+                    <button 
+                      type="button" 
+                      className="seller-profile-cancel-btn" 
+                      onClick={() => {
+                        console.log('Cancel button clicked - Setting isEditing to false');
+                        setIsEditing(false);
+                      }}
+                    >
                       Cancel
                     </button>
-                    <button type="button" className="seller-profile-save-btn" onClick={handleSave}>
+                    <button 
+                      type="button" 
+                      className="seller-profile-save-btn" 
+                      onClick={() => {
+                        console.log('Save Changes button clicked');
+                        console.log('Current formData:', formData);
+                        console.log('Current isEditing state:', isEditing);
+                        handleSave();
+                      }}
+                    >
                       <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
                         <path d="M19 21H5a2 2 0 01-2-2V5a2 2 0 012-2h11l5 5v11a2 2 0 01-2 2z" stroke="currentColor" strokeWidth="2"/>
                         <path d="M17 21v-8H7v8M7 3v5h8" stroke="currentColor" strokeWidth="2"/>
