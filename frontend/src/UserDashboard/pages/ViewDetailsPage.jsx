@@ -637,6 +637,9 @@ const ViewDetailsPage = () => {
     // Share State
     const [showToast, setShowToast] = useState(false);
     
+    // Owner Details State
+    const [showOwnerDetails, setShowOwnerDetails] = useState(false);
+    
     // --- 2. DEFINE ALL CALLBACK HOOKS UNCONDITIONALLY ---
     
     const openSlider = useCallback((index) => {
@@ -963,7 +966,9 @@ const ViewDetailsPage = () => {
                             <div className="header-top-row">
                                 {/* Status Text on Left */}
                                 <div className="header-status-left">
-                                    <span className="property-status-text">{propertyData.status}</span>
+                                    <span className={`property-status-text ${propertyData.status === 'For Sale' ? 'property-for-sale' : propertyData.status === 'For Rent' ? 'property-for-rent' : ''}`}>
+                                        {propertyData.status}
+                                    </span>
                                     <span className="listed-since-text">Listed since {propertyData.listedSince || 'Recently'}</span>
                                 </div>
                                 
@@ -1031,6 +1036,16 @@ const ViewDetailsPage = () => {
 
                 <div className="details-container">
                     <div className="main-content-area">
+                        {/* Price Display - Top of Main Content */}
+                        <div className="property-price-section">
+                            <div className="property-price-display">
+                                <span className="price-amount">{propertyData.price}</span>
+                                {propertyData.status === 'For Rent' && (
+                                    <span className="price-period">per month</span>
+                                )}
+                            </div>
+                        </div>
+
                         {/* Property Highlights and Contact Card Side by Side */}
                         <div className="highlights-contact-wrapper">
                             {/* Property Highlights */}
@@ -1074,14 +1089,47 @@ const ViewDetailsPage = () => {
                             {/* Contact Card */}
                             <aside className="agent-sidebar">
                                 <div className="detail-contact-card">
-                                    <div className="booking-card-header">
-                                        <div className="booking-price">
-                                            <span className="price-amount">{propertyData.price}</span>
-                                            {propertyData.status === 'For Rent' && (
-                                                <span className="price-period">per month</span>
+                                    {/* Owner Details Button */}
+                                    {property && (property.seller_name || property.seller_email || property.seller_phone) && (
+                                        <>
+                                            <button 
+                                                type="button"
+                                                onClick={() => setShowOwnerDetails(!showOwnerDetails)}
+                                                className="contact-send-button"
+                                                style={{marginTop: '0', marginBottom: '1rem'}}
+                                            >
+                                                <FaUser style={{marginRight: '8px'}} />
+                                                {showOwnerDetails ? 'Hide Owner Details' : 'Show Owner Details'}
+                                            </button>
+                                            
+                                            {showOwnerDetails && (
+                                                <div className="owner-details-section">
+                                                    {property.seller_name && (
+                                                        <div className="owner-detail-item">
+                                                            <span className="owner-detail-label">Name:</span>
+                                                            <span className="owner-detail-value">{property.seller_name}</span>
+                                                        </div>
+                                                    )}
+                                                    {property.seller_phone && (
+                                                        <div className="owner-detail-item">
+                                                            <span className="owner-detail-label">Phone:</span>
+                                                            <a href={`tel:${property.seller_phone}`} className="owner-detail-value owner-detail-link">
+                                                                {property.seller_phone}
+                                                            </a>
+                                                        </div>
+                                                    )}
+                                                    {property.seller_email && (
+                                                        <div className="owner-detail-item">
+                                                            <span className="owner-detail-label">Email:</span>
+                                                            <a href={`mailto:${property.seller_email}`} className="owner-detail-value owner-detail-link">
+                                                                {property.seller_email}
+                                                            </a>
+                                                        </div>
+                                                    )}
+                                                </div>
                                             )}
-                                        </div>
-                                    </div>
+                                        </>
+                                    )}
                                     
                                     {/* Chat with Owner Button - Only show if user is buyer AND not the property owner */}
                                     {user && user.user_type === 'buyer' && property && property.seller_id && Number(user.id) !== Number(property.seller_id) && (
@@ -1089,7 +1137,7 @@ const ViewDetailsPage = () => {
                                             type="button"
                                             onClick={handleChatWithOwner}
                                             className="contact-send-button"
-                                            style={{marginTop: '1rem'}}
+                                            style={{marginTop: showOwnerDetails ? '1rem' : '0'}}
                                         >
                                             <FaComments style={{marginRight: '8px'}} />
                                             Contact Owner

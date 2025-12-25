@@ -1,10 +1,11 @@
-import React, { useState, useEffect, useCallback, useRef } from 'react';
+import React, { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import PropertyCard from '../components/PropertyCard';
+import CompactSearchBar from '../components/CompactSearchBar';
+import MapView from '../../components/Map/MapView';
 import { propertiesAPI } from '../../services/api.service';
 import '../styles/SearchResults.css';
-import '../styles/BuyerSearchBar.css';
-import BuyerSearchBar from'../components/BuyerSearchBar'; 
+import '../styles/CompactSearchBar.css'; 
 
 
 const SearchResults = () => {
@@ -13,7 +14,22 @@ const SearchResults = () => {
   
   const [filteredProperties, setFilteredProperties] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [selectedPropertyId, setSelectedPropertyId] = useState(null);
+  const [showMap, setShowMap] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
   const resultsHeaderRef = useRef(null);
+  const propertyCardRefs = useRef({});
+
+  // Detect mobile/tablet screen size
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 1024);
+    };
+    
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
 
   // Scroll to results section when search completes
   useEffect(() => {
@@ -323,180 +339,320 @@ const SearchResults = () => {
     }
     navigate(`/searchresults?${newParams.toString()}`);
   };
-  
-  const handleGoBack = () => {
-    navigate(-1);
-  };
 
   const hasActiveFilters = Object.values(activeFilters).some(value => value !== '');
 
+  // Handle property card hover/selection - highlight on map
+  const handlePropertyCardHover = useCallback((property) => {
+    setSelectedPropertyId(property.id);
+  }, []);
+
+  // Handle map marker click - highlight property card
+  const handleMapMarkerClick = useCallback((property) => {
+    setSelectedPropertyId(property.id);
+    // Scroll to property card
+    if (propertyCardRefs.current[property.id]) {
+      propertyCardRefs.current[property.id].scrollIntoView({ 
+        behavior: 'smooth', 
+        block: 'center' 
+      });
+    }
+  }, []);
+
+  // Helper to validate coordinates
+  const isValidCoordinate = useCallback((lat, lng) => {
+    if (lat === null || lng === null || lat === undefined || lng === undefined) return false;
+    const numLat = typeof lat === 'string' ? parseFloat(lat) : lat;
+    const numLng = typeof lng === 'string' ? parseFloat(lng) : lng;
+    if (isNaN(numLat) || isNaN(numLng)) return false;
+    return numLat >= -90 && numLat <= 90 && numLng >= -180 && numLng <= 180;
+  }, []);
+
+  // Calculate map center from properties
+  const calculateMapCenter = useCallback(() => {
+    if (filteredProperties.length === 0) {
+      return [73.8567, 18.5204]; // Default: Pune
+    }
+
+    const propertiesWithCoords = filteredProperties.filter(p => 
+      isValidCoordinate(p.latitude, p.longitude)
+    );
+    
+    if (propertiesWithCoords.length === 0) {
+      return [73.8567, 18.5204]; // Default: Pune
+    }
+
+    const avgLng = propertiesWithCoords.reduce((sum, p) => {
+      const lng = typeof p.longitude === 'string' ? parseFloat(p.longitude) : p.longitude;
+      return sum + lng;
+    }, 0) / propertiesWithCoords.length;
+    
+    const avgLat = propertiesWithCoords.reduce((sum, p) => {
+      const lat = typeof p.latitude === 'string' ? parseFloat(p.latitude) : p.latitude;
+      return sum + lat;
+    }, 0) / propertiesWithCoords.length;
+    
+    return [avgLng, avgLat];
+  }, [filteredProperties, isValidCoordinate]);
+
+  // Convert properties to MapView format with proper validation
+  const mapProperties = useMemo(() => {
+    return filteredProperties
+      .filter(p => isValidCoordinate(p.latitude, p.longitude))
+      .map(property => {
+        const lat = typeof property.latitude === 'string' ? parseFloat(property.latitude) : property.latitude;
+        const lng = typeof property.longitude === 'string' ? parseFloat(property.longitude) : property.longitude;
+        
+        // Get image - handle various formats
+        let thumbnail = null;
+        let images = [];
+        
+        if (property.image) {
+          thumbnail = property.image;
+          images = [property.image];
+        } else if (property.images && Array.isArray(property.images) && property.images.length > 0) {
+          if (typeof property.images[0] === 'string') {
+            thumbnail = property.images[0];
+            images = property.images;
+          } else if (property.images[0].url) {
+            thumbnail = property.images[0].url;
+            images = property.images.map(img => typeof img === 'string' ? img : img.url);
+          }
+        } else if (property.cover_image) {
+          thumbnail = property.cover_image;
+          images = [property.cover_image];
+        }
+
+        return {
+          id: property.id,
+          title: property.title || 'Untitled Property',
+          location: property.location || 'Location not specified',
+          price: typeof property.price === 'string' ? parseFloat(property.price) : (property.price || 0),
+          area: typeof property.area === 'string' ? parseFloat(property.area) : (property.area || 0),
+          bedrooms: property.bedrooms || '0',
+          bathrooms: property.bathrooms || '0',
+          listing_type: property.status === 'For Rent' ? 'rent' : 'sale',
+          property_type: property.type || property.propertyType || 'Unknown',
+          latitude: lat,
+          longitude: lng,
+          thumbnail: thumbnail,
+          images: images,
+          cover_image: thumbnail,
+          seller_id: property.seller_id
+        };
+      });
+  }, [filteredProperties, isValidCoordinate]);
+
+
   return (
     <div className="buyer-search-results-page">
-      {/* ========== SEARCH BAR WITH BACK BUTTON - START ========== */}
-      <div className="buyer-search-results-banner" 
-            style={{ backgroundImage: 'url(/Home.jpg)' }}>
-        <div className="buyer-search-bar-wrapper">
-          {/* Back Button */}
-          <button onClick={handleGoBack} className="buyer-search-back-button">
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              width="20"
-              height="20"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            >
-              <path d="M19 12H5"></path>
-              <path d="M12 19l-7-7 7-7"></path>
-            </svg>
-          </button>
+      {/* Compact Search Bar */}
+      <CompactSearchBar />
 
-          <BuyerSearchBar />
-        </div>
-      </div>
-      {/* ========== SEARCH BAR WITH BACK BUTTON - END ========== */}
-
-      {/* Results Header */}
-      <div className="buyer-results-header" ref={resultsHeaderRef}>
-        <div className="buyer-results-header-content">
-          <h1 className="buyer-results-title">Search Results</h1>
-          <p className="buyer-results-count">
-            {filteredProperties.length} {filteredProperties.length === 1 ? 'property' : 'properties'} found
-          </p>
-        </div>
-
-        {/* Active Filters Display */}
-        {hasActiveFilters && (
-          <div className="buyer-active-filters">
-            <span className="buyer-filters-label">Active Filters:</span>
-            <div className="buyer-filter-tags">
-              {activeFilters.city && (
-                <div className="buyer-filter-tag">
-                  <span>City: {activeFilters.city}</span>
-                  <button onClick={() => removeFilter('city')} className="buyer-remove-filter">
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                      <line x1="18" y1="6" x2="6" y2="18"></line>
-                      <line x1="6" y1="6" x2="18" y2="18"></line>
-                    </svg>
-                  </button>
-                </div>
+      {/* Main Split Layout */}
+      <div className="search-results-split-layout">
+        {/* Left Side - Scrollable Listings */}
+        <div className="search-results-listings">
+          {/* Results Header */}
+          <div className="search-results-header" ref={resultsHeaderRef}>
+            <div className="search-results-header-top">
+              <h2 className="search-results-title">
+                {filteredProperties.length} {filteredProperties.length === 1 ? 'property' : 'properties'} found
+              </h2>
+              {/* Mobile Map Toggle */}
+              {isMobile && (
+                <button 
+                  onClick={() => setShowMap(!showMap)} 
+                  className="mobile-map-toggle"
+                >
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path>
+                    <circle cx="12" cy="10" r="3"></circle>
+                  </svg>
+                  {showMap ? 'Hide Map' : 'Show Map'}
+                </button>
               )}
-              {activeFilters.location && (
-                <div className="buyer-filter-tag">
-                  <span>Location: {activeFilters.location}</span>
-                  <button onClick={() => removeFilter('location')} className="buyer-remove-filter">
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                      <line x1="18" y1="6" x2="6" y2="18"></line>
-                      <line x1="6" y1="6" x2="18" y2="18"></line>
-                    </svg>
-                  </button>
-                </div>
-              )}
-              {activeFilters.type && (
-                <div className="buyer-filter-tag">
-                  <span>Type: {activeFilters.type}</span>
-                  <button onClick={() => removeFilter('type')} className="buyer-remove-filter">
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                      <line x1="18" y1="6" x2="6" y2="18"></line>
-                      <line x1="6" y1="6" x2="18" y2="18"></line>
-                    </svg>
-                  </button>
-                </div>
-              )}
-              {activeFilters.budget && (
-                <div className="buyer-filter-tag">
-                  <span>Budget: {activeFilters.budget}</span>
-                  <button onClick={() => removeFilter('budget')} className="buyer-remove-filter">
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                      <line x1="18" y1="6" x2="6" y2="18"></line>
-                      <line x1="6" y1="6" x2="18" y2="18"></line>
-                    </svg>
-                  </button>
-                </div>
-              )}
-              {activeFilters.bedrooms && (
-                <div className="buyer-filter-tag">
-                  <span>Bedrooms: {activeFilters.bedrooms}</span>
-                  <button onClick={() => removeFilter('bedrooms')} className="buyer-remove-filter">
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                      <line x1="18" y1="6" x2="6" y2="18"></line>
-                      <line x1="6" y1="6" x2="18" y2="18"></line>
-                    </svg>
-                  </button>
-                </div>
-              )}
-              {activeFilters.area && (
-                <div className="buyer-filter-tag">
-                  <span>Area: {activeFilters.area}</span>
-                  <button onClick={() => removeFilter('area')} className="buyer-remove-filter">
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                      <line x1="18" y1="6" x2="6" y2="18"></line>
-                      <line x1="6" y1="6" x2="18" y2="18"></line>
-                    </svg>
-                  </button>
-                </div>
-              )}
-              {activeFilters.status && (
-                <div className="buyer-filter-tag">
-                  <span>Status: {activeFilters.status}</span>
-                  <button onClick={() => removeFilter('status')} className="buyer-remove-filter">
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                      <line x1="18" y1="6" x2="6" y2="18"></line>
-                      <line x1="6" y1="6" x2="18" y2="18"></line>
-                    </svg>
-                  </button>
-                </div>
-              )}
-              <button onClick={clearAllFilters} className="buyer-clear-all-btn">
-                Clear All
-              </button>
             </div>
+
+            {/* Active Filters Display */}
+            {hasActiveFilters && (
+              <div className="search-results-filters">
+                <span className="filters-label">Active Filters:</span>
+                <div className="filter-tags">
+                  {activeFilters.city && (
+                    <div className="filter-tag">
+                      <span>City: {activeFilters.city}</span>
+                      <button onClick={() => removeFilter('city')} className="remove-filter">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                          <line x1="18" y1="6" x2="6" y2="18"></line>
+                          <line x1="6" y1="6" x2="18" y2="18"></line>
+                        </svg>
+                      </button>
+                    </div>
+                  )}
+                  {activeFilters.location && (
+                    <div className="filter-tag">
+                      <span>Location: {activeFilters.location}</span>
+                      <button onClick={() => removeFilter('location')} className="remove-filter">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                          <line x1="18" y1="6" x2="6" y2="18"></line>
+                          <line x1="6" y1="6" x2="18" y2="18"></line>
+                        </svg>
+                      </button>
+                    </div>
+                  )}
+                  {activeFilters.type && (
+                    <div className="filter-tag">
+                      <span>Type: {activeFilters.type}</span>
+                      <button onClick={() => removeFilter('type')} className="remove-filter">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                          <line x1="18" y1="6" x2="6" y2="18"></line>
+                          <line x1="6" y1="6" x2="18" y2="18"></line>
+                        </svg>
+                      </button>
+                    </div>
+                  )}
+                  {activeFilters.budget && (
+                    <div className="filter-tag">
+                      <span>Budget: {activeFilters.budget}</span>
+                      <button onClick={() => removeFilter('budget')} className="remove-filter">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                          <line x1="18" y1="6" x2="6" y2="18"></line>
+                          <line x1="6" y1="6" x2="18" y2="18"></line>
+                        </svg>
+                      </button>
+                    </div>
+                  )}
+                  {activeFilters.bedrooms && (
+                    <div className="filter-tag">
+                      <span>Bedrooms: {activeFilters.bedrooms}</span>
+                      <button onClick={() => removeFilter('bedrooms')} className="remove-filter">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                          <line x1="18" y1="6" x2="6" y2="18"></line>
+                          <line x1="6" y1="6" x2="18" y2="18"></line>
+                        </svg>
+                      </button>
+                    </div>
+                  )}
+                  {activeFilters.area && (
+                    <div className="filter-tag">
+                      <span>Area: {activeFilters.area}</span>
+                      <button onClick={() => removeFilter('area')} className="remove-filter">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                          <line x1="18" y1="6" x2="6" y2="18"></line>
+                          <line x1="6" y1="6" x2="18" y2="18"></line>
+                        </svg>
+                      </button>
+                    </div>
+                  )}
+                  {activeFilters.status && (
+                    <div className="filter-tag">
+                      <span>Status: {activeFilters.status}</span>
+                      <button onClick={() => removeFilter('status')} className="remove-filter">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                          <line x1="18" y1="6" x2="6" y2="18"></line>
+                          <line x1="6" y1="6" x2="18" y2="18"></line>
+                        </svg>
+                      </button>
+                    </div>
+                  )}
+                  <button onClick={clearAllFilters} className="clear-all-btn">
+                    Clear All
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* Results Content */}
+          <div className="search-results-content">
+            {loading ? (
+              <div className="search-loading-results">
+                <div className="search-loading-spinner"></div>
+                <p>Searching properties...</p>
+              </div>
+            ) : filteredProperties.length > 0 ? (
+              <div className="search-results-grid">
+                {filteredProperties.map(property => (
+                  <div 
+                    key={property.id} 
+                    ref={el => propertyCardRefs.current[property.id] = el}
+                    className={`property-card-wrapper ${selectedPropertyId === property.id ? 'selected' : ''}`}
+                    onMouseEnter={() => handlePropertyCardHover(property)}
+                  >
+                    <PropertyCard property={property} />
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="search-no-results">
+                <svg 
+                  width="100" 
+                  height="100" 
+                  viewBox="0 0 24 24" 
+                  fill="none" 
+                  stroke="#cbd5e0" 
+                  strokeWidth="1.5"
+                >
+                  <circle cx="11" cy="11" r="8"></circle>
+                  <path d="m21 21-4.35-4.35"></path>
+                </svg>
+                <h3>No Properties Found</h3>
+                <p>We couldn't find any properties matching your search criteria.</p>
+                <div className="search-no-results-actions">
+                  <button onClick={clearAllFilters} className="search-try-again-btn">
+                    Clear Filters & Try Again
+                  </button>
+                  <button onClick={() => navigate('/buyer-dashboard')} className="search-go-home-btn">
+                    Go to Dashboard
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Right Side - Fixed Map (Desktop only) */}
+        {!isMobile && (
+          <div className="search-results-map">
+            <MapView
+              properties={mapProperties}
+              center={calculateMapCenter()}
+              zoom={mapProperties.length > 0 ? 12 : 5}
+              showControls={true}
+              interactive={true}
+              currentPropertyId={selectedPropertyId}
+              onPropertyClick={handleMapMarkerClick}
+            />
           </div>
         )}
       </div>
-
-      {/* Results Content */}
-      <div className="buyer-results-content">
-        {loading ? (
-          <div className="buyer-loading-results">
-            <div className="buyer-loading-spinner"></div>
-            <p>Searching properties...</p>
-          </div>
-        ) : filteredProperties.length > 0 ? (
-          <div className="buyer-results-grid">
-            {filteredProperties.map(property => (
-              <PropertyCard key={property.id} property={property} />
-            ))}
-          </div>
-        ) : (
-          <div className="buyer-no-results">
-            <svg 
-              width="100" 
-              height="100" 
-              viewBox="0 0 24 24" 
-              fill="none" 
-              stroke="#cbd5e0" 
-              strokeWidth="1.5"
+      
+      {/* Mobile: Show map as overlay when toggled */}
+      {isMobile && showMap && (
+        <div className="mobile-map-overlay" onClick={() => setShowMap(false)}>
+          <div className="mobile-map-container" onClick={(e) => e.stopPropagation()}>
+            <button 
+              className="mobile-map-close"
+              onClick={() => setShowMap(false)}
             >
-              <circle cx="11" cy="11" r="8"></circle>
-              <path d="m21 21-4.35-4.35"></path>
-            </svg>
-            <h3>No Properties Found</h3>
-            <p>We couldn't find any properties matching your search criteria.</p>
-            <div className="buyer-no-results-actions">
-              <button onClick={clearAllFilters} className="buyer-try-again-btn">
-                Clear Filters & Try Again
-              </button>
-              <button onClick={() => navigate('/buyer-dashboard')} className="buyer-go-home-btn">
-                Go to Dashboard
-              </button>
-            </div>
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <line x1="18" y1="6" x2="6" y2="18"></line>
+                <line x1="6" y1="6" x2="18" y2="18"></line>
+              </svg>
+            </button>
+            <MapView
+              properties={mapProperties}
+              center={calculateMapCenter()}
+              zoom={mapProperties.length > 0 ? 12 : 5}
+              showControls={true}
+              interactive={true}
+              currentPropertyId={selectedPropertyId}
+              onPropertyClick={handleMapMarkerClick}
+            />
           </div>
-        )}
-      </div>
+        </div>
+      )}
     </div>
   );
 };

@@ -1,34 +1,88 @@
 // src/context/AuthContext.jsx
-import { createContext, useContext, useState, useEffect } from "react";
+import { createContext, useContext, useState, useEffect, useCallback } from "react";
 import { authAPI } from "../services/api.service";
 
 const AuthContext = createContext();
 
 export const AuthProvider = ({ children }) => {
-  const [user, setUser] = useState(null);      // logged in user data
-  const [token, setToken] = useState(localStorage.getItem("authToken") || null);
+  // Initialize from localStorage for persistence
+  const [user, setUserState] = useState(() => {
+    try {
+      const storedUser = localStorage.getItem("userData");
+      return storedUser ? JSON.parse(storedUser) : null;
+    } catch (error) {
+      console.error("Error parsing stored user data:", error);
+      return null;
+    }
+  });
+  
+  const [token, setTokenState] = useState(() => {
+    return localStorage.getItem("authToken") || null;
+  });
+  
   const [loading, setLoading] = useState(true);
 
-  // Auto verify token on refresh
-  useEffect(() => {
-    if (!token) {
-      setLoading(false);
-      return;
+  // Sync user state with localStorage
+  const setUser = useCallback((userData) => {
+    setUserState(userData);
+    if (userData) {
+      localStorage.setItem("userData", JSON.stringify(userData));
+    } else {
+      localStorage.removeItem("userData");
     }
+  }, []);
 
-    // Verify token using API service
-    authAPI.verifyToken()
-      .then((response) => {
+  // Sync token state with localStorage
+  const setToken = useCallback((tokenValue) => {
+    setTokenState(tokenValue);
+    if (tokenValue) {
+      localStorage.setItem("authToken", tokenValue);
+    } else {
+      localStorage.removeItem("authToken");
+    }
+  }, []);
+
+  // Auto verify token on app load/refresh
+  useEffect(() => {
+    const initializeAuth = async () => {
+      // Check localStorage first (for persistence after browser close)
+      const storedToken = localStorage.getItem("authToken");
+      const storedUser = localStorage.getItem("userData");
+
+      // If no token in localStorage, user is not logged in
+      if (!storedToken) {
+        setLoading(false);
+        return;
+      }
+
+      // If we have a token, verify it with backend
+      try {
+        const response = await authAPI.verifyToken();
+        
         if (response.success && response.data) {
-          setUser(response.data.user);
-          setToken(response.data.token || token);
+          // Token is valid - restore session
+          const userData = response.data.user || (storedUser ? JSON.parse(storedUser) : null);
+          const tokenData = response.data.token || storedToken;
+          
+          setUser(userData);
+          setToken(tokenData);
+          console.log("✅ Session restored from persistent storage");
         } else {
+          // Token is invalid - clear everything
+          console.log("❌ Token verification failed - clearing session");
           logout();
         }
-      })
-      .catch(() => logout())
-      .finally(() => setLoading(false));
-  }, []);
+      } catch (error) {
+        // Token expired or invalid - clear everything
+        console.error("❌ Token verification error:", error);
+        logout();
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    initializeAuth();
+  }, []); // Run only once on mount
 
   const login = async (email, password, userType) => {
     try {
@@ -40,10 +94,27 @@ export const AuthProvider = ({ children }) => {
         const token = response.data.token;
         const user = response.data.user;
 
-        console.log("Setting token and user:", { token: token ? 'present' : 'missing', user });
+        if (!token) {
+          console.error("❌ No token received from login response");
+          return { success: false, message: 'Login failed: No token received' };
+        }
+
+        if (!user) {
+          console.error("❌ No user data received from login response");
+          return { success: false, message: 'Login failed: No user data received' };
+        }
+
+        console.log("✅ Setting token and user in persistent storage");
+        
+        // Save to state (which syncs to localStorage via setUser/setToken)
         setToken(token);
         setUser(user);
 
+        // Also ensure api.service has the token
+        authAPI.setToken(token);
+        authAPI.setUser(user);
+
+        console.log("✅ Login successful - session persisted");
         return { success: true, user, role: user.user_type };
       }
 
@@ -51,7 +122,6 @@ export const AuthProvider = ({ children }) => {
       return { success: false, message: response.message || 'Login failed' };
     } catch (error) {
       console.error("Login error in AuthContext:", error);
-      // Use the actual error message from backend, or from error.data
       const errorMessage = error.data?.message || error.message || 'Network error. Please check your connection and ensure the backend server is running.';
       return { 
         success: false, 
@@ -60,11 +130,22 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
-  const logout = () => {
+  const logout = useCallback(() => {
+    console.log("🔒 Logging out - clearing all auth data");
+    
+    // Clear from API service
     authAPI.logout();
+    
+    // Clear state (which also clears localStorage via setUser/setToken)
     setToken(null);
     setUser(null);
-  };
+    
+    // Clear any additional session data
+    localStorage.removeItem('currentSession');
+    localStorage.removeItem('registeredUser');
+    
+    console.log("✅ Logout complete - all auth data cleared");
+  }, [setToken, setUser]);
 
   return (
     <AuthContext.Provider value={{ user, token, login, logout, loading }}>
@@ -75,3 +156,4 @@ export const AuthProvider = ({ children }) => {
 
 // Easy hook access
 export const useAuth = () => useContext(AuthContext);
+
