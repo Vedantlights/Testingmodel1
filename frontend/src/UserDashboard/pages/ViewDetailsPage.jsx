@@ -918,15 +918,20 @@ const ViewDetailsPage = () => {
                     <div className="details-container">
                         <header className="property-header">
                             <div className="header-top-row">
-                                <div className="header-left">
+                                {/* Status Text on Left */}
+                                <div className="header-status-left">
+                                    <span className="property-status-text">{propertyData.status}</span>
+                                </div>
+                                
+                                {/* Title and Location Centered */}
+                                <div className="header-center">
                                     <h1>{propertyData.title}</h1>
                                     <div className="property-location-row">
                                         <p className="property-location">{propertyData.location}</p>
-                                        <span className="property-meta-separator">·</span>
-                                        <span className="property-status-text">{propertyData.status}</span>
                                     </div>
                                 </div>
-                                {/* Share and Favorite Buttons */}
+                                
+                                {/* Share and Favorite Buttons on Right */}
                                 <div className="header-actions">
                                     <button 
                                         className="header-action-btn share-btn"
