@@ -84,6 +84,14 @@ const apiRequest = async (endpoint, options = {}) => {
     }
     
     if (!response.ok) {
+      // Handle 401 Unauthorized (expired/invalid token)
+      if (response.status === 401) {
+        // Clear invalid token
+        removeToken();
+        removeUser();
+        console.log("❌ 401 Unauthorized - Token expired or invalid, clearing auth data");
+      }
+      
       // Include more details in error for debugging
       const errorDetails = {
         status: response.status,
@@ -179,12 +187,23 @@ export const authAPI = {
         method: 'GET'
       });
       if (response.success && response.data) {
-        setUser(response.data.user);
+        // Update user data if provided
+        if (response.data.user) {
+          setUser(response.data.user);
+        }
+        // Update token if a new one is provided (refresh token scenario)
+        if (response.data.token) {
+          setToken(response.data.token);
+        }
       }
       return response;
     } catch (error) {
-      removeToken();
-      removeUser();
+      // Token is invalid or expired - clear everything
+      if (error.status === 401) {
+        console.log("❌ Token verification failed - 401 Unauthorized");
+        removeToken();
+        removeUser();
+      }
       throw error;
     }
   },
@@ -198,6 +217,8 @@ export const authAPI = {
   
   getToken,
   getUser,
+  setToken, // Export setToken for AuthContext
+  setUser,  // Export setUser for AuthContext
   isAuthenticated: () => !!getToken(),
 };
 

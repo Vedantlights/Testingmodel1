@@ -164,9 +164,9 @@ const SellerDashboardContent = () => {
   }, []);
 
   const handleLogout = () => {
+    // Use auth context logout which handles all cleanup
     authLogout();
-    localStorage.removeItem('authToken');
-    localStorage.removeItem('currentSession');
+    // Navigate to home/login page after logout
     navigate('/');
   };
 
