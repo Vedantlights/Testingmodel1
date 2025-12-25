@@ -1,10 +1,66 @@
+/* ============================================
+   GLOBAL SCROLLBAR FIX - SINGLE SCROLLBAR ONLY
+   ============================================ */
+
+html {
+  overflow-x: hidden;
+  /* CRITICAL: html should NOT scroll - only body scrolls */
+  overflow-y: visible;
+  height: auto;
+  min-height: 100%;
+}
+
 body {
   margin: 0;
+  padding: 0;
+  overflow-x: hidden;
+  /* CRITICAL: Only body should scroll - this creates the single scrollbar */
+  overflow-y: auto;
+  width: 100%;
+  max-width: 100vw;
+  height: auto;
+  min-height: 100vh;
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
     'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
     sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+}
+
+/* CRITICAL: Root container should NOT scroll */
+#root {
+  height: auto !important;
+  min-height: 100vh;
+  overflow: visible !important;
+  overflow-x: hidden;
+  overflow-y: visible;
+  width: 100%;
+}
+
+/* CRITICAL: Prevent ALL layout containers from creating scrollbars */
+.buyer-dashboard-app,
+.buyer-main-content,
+.buyer-page-wrapper,
+.buyer-content-wrapper,
+.buyer-layout-wrapper,
+.buyer-contact-main,
+.buyer-contact-container,
+.App,
+.buyer-app-container {
+  overflow: visible !important;
+  overflow-y: visible !important;
+  height: auto !important;
+  max-height: none !important;
+}
+
+/* Only allow horizontal overflow control, never vertical */
+.buyer-dashboard-app,
+.buyer-main-content,
+.buyer-page-wrapper,
+.buyer-content-wrapper,
+.buyer-layout-wrapper,
+.buyer-contact-main {
+  overflow-x: hidden;
 }
 
 code {
