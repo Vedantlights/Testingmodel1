@@ -13,6 +13,43 @@ import { FavoritesManager } from '../components/PropertyCard';
 // Note: createOrGetChatRoom is not imported here - chat rooms are created only when first message is sent
 import MapView from '../../components/Map/MapView';
 
+// Amenities with icons matching AddPropertyPopup
+const AMENITIES_WITH_ICONS = [
+    { id: "parking", label: "Parking", icon: "🚗" },
+    { id: "lift", label: "Lift", icon: "🛗" },
+    { id: "security", label: "24x7 Security", icon: "👮" },
+    { id: "24/7 Security", label: "24/7 Security", icon: "👮" },
+    { id: "power_backup", label: "Power Backup", icon: "⚡" },
+    { id: "gym", label: "Gym", icon: "🏋️" },
+    { id: "Gymnasium", label: "Gymnasium", icon: "🏋️" },
+    { id: "swimming_pool", label: "Swimming Pool", icon: "🏊" },
+    { id: "garden", label: "Garden", icon: "🌳" },
+    { id: "clubhouse", label: "Club House", icon: "🏛️" },
+    { id: "Clubhouse", label: "Clubhouse", icon: "🏛️" },
+    { id: "playground", label: "Children's Play Area", icon: "🎢" },
+    { id: "Children's Play Area", label: "Children's Play Area", icon: "🎢" },
+    { id: "cctv", label: "CCTV", icon: "📹" },
+    { id: "intercom", label: "Intercom", icon: "📞" },
+    { id: "fire_safety", label: "Fire Safety", icon: "🔥" },
+    { id: "water_supply", label: "24x7 Water", icon: "💧" },
+    { id: "gas_pipeline", label: "Gas Pipeline", icon: "🔥" },
+    { id: "wifi", label: "WiFi", icon: "📶" },
+    { id: "ac", label: "Air Conditioning", icon: "❄️" },
+    { id: "Covered Parking", label: "Covered Parking", icon: "🚗" }
+];
+
+// Helper function to get icon for amenity
+const getAmenityIcon = (amenityName) => {
+    if (!amenityName) return "✓";
+    
+    const amenity = AMENITIES_WITH_ICONS.find(
+        a => a.label.toLowerCase() === amenityName.toLowerCase() || 
+             a.id.toLowerCase() === amenityName.toLowerCase().replace(/\s+/g, '_')
+    );
+    
+    return amenity ? amenity.icon : "✓";
+};
+
 // Reuse Mapbox access token for geocoding when properties don't have coordinates
 const MAPBOX_TOKEN =
     process.env.REACT_APP_MAPBOX_ACCESS_TOKEN ||
@@ -1068,7 +1105,7 @@ const ViewDetailsPage = () => {
                                 <div className="amenities-grid">
                                     {propertyData.amenities.map((amenity, index) => (
                                         <div key={index} className="amenity-item">
-                                            <FaCheckCircle className="check-icon" />
+                                            <span className="amenity-icon">{getAmenityIcon(amenity)}</span>
                                             <span>{amenity}</span>
                                         </div>
                                     ))}
