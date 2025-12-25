@@ -80,29 +80,25 @@ function createAdminSession($adminMobile, $adminId, $adminRole, $adminEmail) {
     $_SESSION['admin_session_created'] = $now;
     $_SESSION['admin_last_activity'] = $now;
     
-    // Set secure HTTP-only cookie
-    // Determine domain based on environment
-    $domain = '';
-    if (defined('ENVIRONMENT') && ENVIRONMENT === 'production') {
-        // In production, set domain to allow subdomains
-        $host = $_SERVER['HTTP_HOST'] ?? '';
-        if (strpos($host, 'demo1.indiapropertys.com') !== false || 
-            strpos($host, 'indiapropertys.com') !== false) {
-            // Use parent domain to allow cookies across subdomains
-            $domain = '.indiapropertys.com';
-        }
-    }
-    
-    // Note: Cookie parameters should be set BEFORE session_start()
-    // They are already set in initSecureSession() via ini_set(), so we don't need to set them again here
-    
-    // Regenerate session ID for security after login
+    // Regenerate session ID for security after login (BEFORE storing in DB to avoid ID mismatch)
     // This should be safe since we have output buffering enabled
     try {
         session_regenerate_id(true);
+        // CRITICAL FIX: After regeneration, update the database record with the new session ID
+        $newSessionId = session_id();
+        if ($newSessionId !== $sessionId) {
+            // Update database record with new session ID
+            $updateStmt = $db->prepare("UPDATE admin_sessions SET session_id = ? WHERE session_id = ?");
+            $updateStmt->execute([$newSessionId, $sessionId]);
+            // If update affected 0 rows (shouldn't happen, but just in case), insert new record
+            if ($updateStmt->rowCount() === 0) {
+                $insertStmt = $db->prepare("INSERT INTO admin_sessions (session_id, admin_id, admin_mobile, admin_role, admin_email, ip_address, expires_at) VALUES (?, ?, ?, ?, ?, ?, ?)");
+                $insertStmt->execute([$newSessionId, $adminId, $adminMobile, $adminRole, $adminEmail, $ip, $expiresAt]);
+            }
+        }
     } catch (Exception $e) {
         error_log("Warning: Could not regenerate session ID: " . $e->getMessage());
-        // Continue anyway - session is still valid
+        // Continue anyway - session is still valid with original ID
     }
     
     return true;
