@@ -1,6 +1,6 @@
 <?php
 /**
- * test of deployment
+ * test of deployment on hostinger try 2
  * Admin Agents List API
  * GET /api/admin/agents/list.php
  */
