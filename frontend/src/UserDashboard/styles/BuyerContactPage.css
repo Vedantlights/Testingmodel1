@@ -5,8 +5,11 @@
   background: rgb(222, 220, 220);
   position: relative;
   overflow-x: hidden;
-  scroll-behavior: smooth;
+  /* Removed scroll-behavior: smooth for better performance - can cause lag */
   scroll-padding-top: 100px; /* Prevent scroll jumps when focusing inputs */
+  /* Enable hardware acceleration */
+  transform: translateZ(0);
+  -webkit-transform: translateZ(0);
 }
 
 /* Decorative Background Elements */
@@ -17,6 +20,13 @@
   border-radius: 50%;
   pointer-events: none;
   z-index: 0;
+  /* GPU acceleration for smooth animations */
+  will-change: transform;
+  transform: translateZ(0);
+  -webkit-transform: translateZ(0);
+  /* Reduce animation complexity for better scroll performance */
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
 }
 
 .buyer-contact-main::before {
@@ -25,7 +35,8 @@
   background: radial-gradient(circle, rgba(139, 92, 246, 0.08) 0%, transparent 70%);
   top: -200px;
   left: -200px;
-  animation: buyer-float 20s ease-in-out infinite;
+  /* Slower, smoother animation to reduce repaints */
+  animation: buyer-float 30s ease-in-out infinite;
 }
 
 .buyer-contact-main::after {
@@ -34,12 +45,17 @@
   background: radial-gradient(circle, rgba(30, 58, 138, 0.06) 0%, transparent 70%);
   bottom: -150px;
   right: -150px;
-  animation: buyer-float 15s ease-in-out infinite reverse;
+  /* Slower, smoother animation to reduce repaints */
+  animation: buyer-float 25s ease-in-out infinite reverse;
 }
 
 @keyframes buyer-float {
-  0%, 100% { transform: translate(0, 0) scale(1); }
-  50% { transform: translate(50px, 50px) scale(1.1); }
+  0%, 100% { 
+    transform: translate3d(0, 0, 0) scale(1); 
+  }
+  50% { 
+    transform: translate3d(50px, 50px, 0) scale(1.1); 
+  }
 }
 
 .buyer-contact-container {
@@ -96,12 +112,17 @@
   align-items: flex-start;
   gap: 1.5rem;
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.06);
-  transition: all 0.4s ease;
+  /* Optimize transitions - only animate transform and box-shadow, not 'all' */
+  transition: transform 0.3s ease, box-shadow 0.3s ease, border-color 0.3s ease;
   border: 2px solid #8b5cf6; /* Added visible border */
   animation: buyer-fadeInUp 0.8s ease forwards;
   opacity: 0;
   flex: 1; /* Makes cards equal width and allows stretching */
   min-width: 280px; /* Minimum width for responsiveness */
+  /* GPU acceleration */
+  will-change: transform;
+  transform: translateZ(0);
+  -webkit-transform: translateZ(0);
 }
 
 .buyer-info-card:nth-child(1) { animation-delay: 0.2s; }
@@ -125,12 +146,17 @@
   border-radius: 16px;
   padding: 2rem;
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.06);
-  transition: all 0.4s ease;
+  /* Optimize transitions - only animate transform and box-shadow, not 'all' */
+  transition: transform 0.3s ease, box-shadow 0.3s ease, border-color 0.3s ease;
   border: 2px solid #8b5cf6;
   animation: buyer-fadeInUp 0.8s ease forwards;
   opacity: 0;
   flex: 1; /* Makes cards equal width and allows stretching */
   min-width: 280px; /* Minimum width for responsiveness */
+  /* GPU acceleration */
+  will-change: transform;
+  transform: translateZ(0);
+  -webkit-transform: translateZ(0);
 }
 
 .buyer-info-card-clickable:nth-child(2) { animation-delay: 0.4s; }
@@ -150,9 +176,14 @@
   align-items: center;
   justify-content: center;
   color: white;
-  transition: all 0.4s ease;
+  /* Optimize transitions - only animate transform, not 'all' */
+  transition: transform 0.3s ease;
   position: relative;
   overflow: hidden;
+  /* GPU acceleration */
+  will-change: transform;
+  transform: translateZ(0);
+  -webkit-transform: translateZ(0);
 }
 
 .buyer-info-icon::before {
@@ -160,12 +191,16 @@
   position: absolute;
   inset: 0;
   background: rgba(255, 255, 255, 0.2);
-  transform: translateX(-100%);
-  transition: transform 0.4s ease;
+  transform: translate3d(-100%, 0, 0);
+  transition: transform 0.3s ease;
+  /* GPU acceleration */
+  will-change: transform;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
 }
 
 .buyer-info-card:hover .buyer-info-icon::before {
-  transform: translateX(0);
+  transform: translate3d(0, 0, 0);
 }
 
 .buyer-info-icon svg {
@@ -216,7 +251,8 @@
   padding: 2.5rem;
   box-shadow: 0 8px 30px rgba(0, 0, 0, 0.08);
   border: 2px solid #8b5cf6; /* Added visible border for form */
-  transition: all 0.4s ease;
+  /* Optimize transitions - only animate border and box-shadow, not 'all' */
+  transition: border-color 0.3s ease, box-shadow 0.3s ease;
   animation: buyer-fadeInUp 0.8s ease 0.8s forwards;
   opacity: 0;
   position: relative;
@@ -225,6 +261,9 @@
   width: 100%;
   /* Prevent scroll jumps */
   scroll-margin-top: 100px;
+  /* GPU acceleration */
+  transform: translateZ(0);
+  -webkit-transform: translateZ(0);
 }
 
 .buyer-form-card::before {
@@ -236,7 +275,12 @@
   height: 5px;
   background: linear-gradient(90deg, #1e3a8a 0%, #8b5cf6 50%, #1e3a8a 100%);
   background-size: 200% 100%;
-  animation: buyer-gradientShift 3s ease infinite;
+  /* Slower animation to reduce repaints during scroll */
+  animation: buyer-gradientShift 5s ease infinite;
+  /* GPU acceleration */
+  will-change: background-position;
+  transform: translateZ(0);
+  -webkit-transform: translateZ(0);
 }
 
 @keyframes buyer-gradientShift {
@@ -260,12 +304,17 @@
   width: 36px;
   height: 36px;
   color: #8b5cf6;
-  animation: buyer-pulse 2s ease-in-out infinite;
+  /* Slower pulse animation to reduce repaints */
+  animation: buyer-pulse 3s ease-in-out infinite;
+  /* GPU acceleration */
+  will-change: transform;
+  transform: translateZ(0);
+  -webkit-transform: translateZ(0);
 }
 
 @keyframes buyer-pulse {
-  0%, 100% { transform: scale(1); }
-  50% { transform: scale(1.1); }
+  0%, 100% { transform: translateZ(0) scale(1); }
+  50% { transform: translateZ(0) scale(1.1); }
 }
 
 .buyer-form-header h2 {
@@ -294,8 +343,8 @@
 }
 
 @keyframes buyer-slideInDown {
-  from { opacity: 0; transform: translateY(-20px); }
-  to { opacity: 1; transform: translateY(0); }
+  from { opacity: 0; transform: translate3d(0, -20px, 0); }
+  to { opacity: 1; transform: translate3d(0, 0, 0); }
 }
 
 /* Form Inputs */
@@ -364,19 +413,24 @@
   font-size: 1rem;
   font-weight: 700;
   cursor: pointer;
-  transition: all 0.4s ease;
+  /* Optimize transitions - only animate transform and box-shadow, not 'all' */
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
   box-shadow: 0 6px 20px rgba(139, 92, 246, 0.4);
+  /* GPU acceleration */
+  will-change: transform;
+  transform: translateZ(0);
+  -webkit-transform: translateZ(0);
 }
 
 /* Animations */
 @keyframes buyer-fadeInUp {
-  from { opacity: 0; transform: translateY(40px); }
-  to { opacity: 1; transform: translateY(0); }
+  from { opacity: 0; transform: translate3d(0, 40px, 0); }
+  to { opacity: 1; transform: translate3d(0, 0, 0); }
 }
 
 @keyframes buyer-fadeInDown {
-  from { opacity: 0; transform: translateY(-40px); }
-  to { opacity: 1; transform: translateY(0); }
+  from { opacity: 0; transform: translate3d(0, -40px, 0); }
+  to { opacity: 1; transform: translate3d(0, 0, 0); }
 }
 
 /* Responsive Design */

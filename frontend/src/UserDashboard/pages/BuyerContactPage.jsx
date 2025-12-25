@@ -1,12 +1,16 @@
 // Contact.jsx
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, useCallback } from "react";
 import { MapPin, Mail, MessageSquare } from "lucide-react";
 import "../styles/BuyerContactPage.css";
 
 export default function Contact() {
   // Only scroll to top once on component mount, not on every render
   useEffect(() => {
-    window.scrollTo(0, 0);
+    // Use auto behavior for instant scroll without lag
+    window.scrollTo({
+      top: 0,
+      behavior: 'auto' // Changed from default 'smooth' to 'auto' for better performance
+    });
   }, []); // Empty dependency array means it only runs once on mount
 
   const formRef = useRef(null);
@@ -21,9 +25,11 @@ export default function Contact() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
 
-  const handleChange = (e) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
-  };
+  // Memoize handleChange to prevent unnecessary re-renders
+  const handleChange = useCallback((e) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({ ...prev, [name]: value }));
+  }, []);
 
   const handleSubmit = (e) => {
     // Prevent default form submission behavior
@@ -42,8 +48,11 @@ export default function Contact() {
       !formData.message
     ) {
       alert("Please fill all fields");
-      // Restore scroll position
-      window.scrollTo(0, scrollPosition);
+      // Restore scroll position - use auto behavior for better performance
+      window.scrollTo({
+        top: scrollPosition,
+        behavior: 'auto'
+      });
       return;
     }
 
@@ -60,9 +69,13 @@ export default function Contact() {
         message: "",
       });
 
-      // Maintain scroll position after submission
+      // Maintain scroll position after submission - use smooth scroll only if needed
+      // Using requestAnimationFrame for better performance
       requestAnimationFrame(() => {
-        window.scrollTo(0, scrollPosition);
+        window.scrollTo({
+          top: scrollPosition,
+          behavior: 'auto' // Use 'auto' instead of 'smooth' for better performance
+        });
       });
 
       setTimeout(() => setSubmitted(false), 2500);
