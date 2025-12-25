@@ -18,7 +18,11 @@ if (ob_get_level() == 0) {
 // Log incoming request
 error_log("=== VERIFY OTP REQUEST START ===");
 error_log("Method: " . ($_SERVER['REQUEST_METHOD'] ?? 'UNKNOWN'));
-error_log("Request Body: " . file_get_contents('php://input'));
+$rawInputDebug = file_get_contents('php://input');
+error_log("Request Body: " . $rawInputDebug);
+
+// Header for JSON response
+header('Content-Type: application/json');
 
 require_once __DIR__ . '/../../../config/config.php';
 require_once __DIR__ . '/../../../config/database.php';
@@ -29,6 +33,38 @@ require_once __DIR__ . '/../../../utils/admin_session.php';
 require_once __DIR__ . '/../../../utils/rate_limit.php';
 
 error_log("All files loaded successfully");
+
+/**
+ * Normalize phone number to consistent format for database queries
+ * Handles: 10-digit (7888076881), 12-digit (917888076881), or + format (+917888076881)
+ */
+function normalizePhone($phone) {
+    if (empty($phone)) {
+        return '';
+    }
+    
+    // Remove all non-digits first
+    $phone = preg_replace('/[^0-9]/', '', $phone);
+    
+    // If 10 digits, add +91
+    if (strlen($phone) == 10) {
+        return '+91' . $phone;
+    }
+    
+    // If 12 digits starting with 91, add +
+    if (strlen($phone) == 12 && substr($phone, 0, 2) == '91') {
+        return '+' . $phone;
+    }
+    
+    // If already has + in original (before removing), preserve it
+    // But since we removed it, check original length
+    // For now, just ensure it starts with +
+    if (strlen($phone) > 10) {
+        return '+' . $phone;
+    }
+    
+    return '+' . $phone;
+}
 
 handlePreflight();
 
@@ -61,11 +97,13 @@ try {
     }
     
     $validationToken = isset($data['validationToken']) ? trim($data['validationToken']) : null;
-    $mobile = trim($data['mobile']);
-    $widgetToken = trim($data['widgetToken']);
+    
+    // Handle widgetToken - MSG91 widget might send it as 'message' or 'token' or 'widgetToken'
+    $widgetToken = trim($data['widgetToken'] ?? $data['message'] ?? $data['token'] ?? '');
+    $mobile = trim($data['mobile'] ?? $data['phone'] ?? '');
     
     error_log("Received mobile: " . $mobile);
-    error_log("Widget token: " . substr($widgetToken, 0, 20) . "...");
+    error_log("Widget token present: " . (!empty($widgetToken) ? 'YES (' . substr($widgetToken, 0, 20) . '...)' : 'NO'));
     
     // Get database connection
     try {
@@ -81,42 +119,70 @@ try {
         sendError('Database connection failed: ' . $e->getMessage(), null, 500);
     }
     
-    // CRITICAL: Validate mobile format and check whitelist FIRST
-    error_log("Validating mobile format: " . $mobile);
-    $validatedMobile = validateMobileFormat($mobile);
+    // CRITICAL: Normalize and validate mobile format FIRST
+    error_log("Normalizing mobile: " . $mobile);
+    $normalizedMobile = normalizePhone($mobile);
+    error_log("Normalized mobile: " . $normalizedMobile);
+    
+    // Validate the normalized format
+    $validatedMobile = validateMobileFormat($normalizedMobile);
     if (!$validatedMobile) {
-        error_log("ERROR: Mobile format validation failed for: " . $mobile);
+        error_log("ERROR: Mobile format validation failed after normalization. Original: " . $mobile . ", Normalized: " . $normalizedMobile);
         sendError('Invalid mobile number format', null, 400);
     }
     error_log("Validated mobile format: " . $validatedMobile);
     
-    // Normalize phone for database queries (ensure consistent format)
-    // normalizeMobile() returns digits only, so we add + prefix if validatedMobile has it
-    $normalizedDigits = normalizeMobile($validatedMobile); // Gets digits only: 917888076881
-    // Use validatedMobile format if it starts with +, otherwise add +
-    // PHP 7.x compatibility: use strpos instead of str_starts_with
-    $normalizedForDB = (strpos($validatedMobile, '+') === 0) ? '+' . $normalizedDigits : $normalizedDigits;
-    error_log("Normalized for DB queries: " . $normalizedForDB . " (from validated: " . $validatedMobile . ")");
+    // For database queries, we'll use both formats
+    $mobileForDB = $validatedMobile; // +917888076881
+    $mobileDigitsOnly = normalizeMobile($validatedMobile); // 917888076881 (no +)
+    error_log("Mobile for DB (with +): " . $mobileForDB);
+    error_log("Mobile for DB (digits only): " . $mobileDigitsOnly);
     
     // CRITICAL: Verify mobile is whitelisted (primary security check)
     error_log("Checking whitelist for: " . $validatedMobile);
-    if (!isWhitelistedMobile($validatedMobile)) {
-        error_log("SECURITY ALERT - Mobile not whitelisted");
-        error_log("Validated mobile format: " . $validatedMobile);
-        error_log("Normalized mobile: " . $normalizedForDB);
+    
+    // Try direct whitelist query with both formats
+    $isWhitelisted = false;
+    try {
+        // Try with + format
+        $checkStmt = $db->prepare("SELECT COUNT(*) FROM admin_whitelist WHERE phone = ? AND is_active = 1");
+        $checkStmt->execute([$mobileForDB]);
+        $count1 = $checkStmt->fetchColumn();
         
-        // Try to query whitelist directly for debugging
-        try {
-            $checkStmt = $db->prepare("SELECT phone, is_active FROM admin_whitelist");
-            $checkStmt->execute();
-            $whitelistEntries = $checkStmt->fetchAll(PDO::FETCH_ASSOC);
-            error_log("Whitelist entries in DB: " . json_encode($whitelistEntries));
-        } catch (Exception $e) {
-            error_log("Error querying whitelist: " . $e->getMessage());
+        if ($count1 == 0) {
+            // Try digits only format
+            $checkStmt->execute([$mobileDigitsOnly]);
+            $count2 = $checkStmt->fetchColumn();
+            $isWhitelisted = ($count2 > 0);
+        } else {
+            $isWhitelisted = true;
         }
         
-        sendError('Unauthorized access. Only registered admin mobile number is allowed.', null, 403);
+        // Also check via function (has fallback)
+        if (!$isWhitelisted) {
+            $isWhitelisted = isWhitelistedMobile($validatedMobile);
+        }
+        
+        error_log("Whitelist check result: " . ($isWhitelisted ? 'PASSED' : 'FAILED'));
+        
+        if (!$isWhitelisted) {
+            // Debug: Show all whitelist entries
+            try {
+                $debugStmt = $db->prepare("SELECT phone, is_active FROM admin_whitelist");
+                $debugStmt->execute();
+                $whitelistEntries = $debugStmt->fetchAll(PDO::FETCH_ASSOC);
+                error_log("Whitelist entries in DB: " . json_encode($whitelistEntries));
+            } catch (Exception $e) {
+                error_log("Error querying whitelist for debug: " . $e->getMessage());
+            }
+            
+            sendError('Unauthorized access. Only registered admin mobile number is allowed.', null, 403);
+        }
+    } catch (PDOException $e) {
+        error_log("Error checking whitelist: " . $e->getMessage());
+        sendError('Database error while checking authorization', null, 500);
     }
+    
     error_log("Whitelist check passed");
     
     // Optional: If validation token is provided, verify it (for backwards compatibility)
@@ -192,16 +258,14 @@ try {
         // Continue even if logging fails - not critical for login flow
     }
     
-    // Get admin user - check phone first (normalize for comparison)
-    // Database stores phone as varchar(15), may have +91 or not
+    // Get admin user - check phone first (handle NULL phone case)
     error_log("Looking up admin user by phone: " . $validatedMobile);
     
     // Try multiple phone formats to match database
     $phoneFormats = [
-        $validatedMobile,           // +917888076881
-        $normalizedForDB,           // +917888076881 (normalized)
-        normalizeMobile($validatedMobile), // 917888076881 (digits only)
-        substr(normalizeMobile($validatedMobile), -10), // 7888076881 (last 10 digits)
+        $mobileForDB,        // +917888076881
+        $mobileDigitsOnly,   // 917888076881 (digits only)
+        substr($mobileDigitsOnly, -10), // 7888076881 (last 10 digits)
     ];
     
     $admin = null;
@@ -211,7 +275,7 @@ try {
             $stmt->execute([$phoneFormat]);
             $admin = $stmt->fetch(PDO::FETCH_ASSOC);
             if ($admin) {
-                error_log("Admin found with phone format: " . $phoneFormat);
+                error_log("Admin found with phone format: " . $phoneFormat . " - ID: " . $admin['id']);
                 break;
             }
         } catch (PDOException $e) {
@@ -219,15 +283,16 @@ try {
         }
     }
     
-    // If not found by phone, try to find any active admin (for first-time setup)
+    // If not found by phone, try to find any active admin (for first-time setup or NULL phone case)
     if (!$admin) {
-        error_log("Admin not found by phone, trying email lookup");
+        error_log("Admin not found by phone, trying to find any active admin");
         try {
-            $stmt = $db->prepare("SELECT id, username, email, phone, full_name, role, is_active FROM admin_users WHERE email LIKE ? AND is_active = 1 LIMIT 1");
+            // First try admin email
+            $stmt = $db->prepare("SELECT id, username, email, phone, full_name, role, is_active FROM admin_users WHERE (email LIKE ? OR email = 'admin@indiapropertys.com') AND is_active = 1 ORDER BY id ASC LIMIT 1");
             $stmt->execute(['%admin%']);
             $admin = $stmt->fetch(PDO::FETCH_ASSOC);
             if ($admin) {
-                error_log("Admin found by email, will update phone number");
+                error_log("Admin found by email - ID: " . $admin['id'] . ", Email: " . $admin['email'] . ", Current phone: " . ($admin['phone'] ?? 'NULL'));
             }
         } catch (PDOException $e) {
             error_log("Error querying admin by email: " . $e->getMessage());
@@ -269,37 +334,63 @@ try {
     } else {
         error_log("Admin user found - ID: " . $admin['id'] . ", Email: " . $admin['email']);
         
-        // Update phone number if it's different or NULL
-        try {
-            $currentPhone = $admin['phone'] ?? '';
-            $phoneForDB = normalizeMobile($validatedMobile);
-            if (strlen($phoneForDB) > 15) {
-                $phoneForDB = substr($phoneForDB, -15);
-            }
-            
-            // Normalize both for comparison
-            $currentPhoneNormalized = normalizeMobile($currentPhone);
-            $newPhoneNormalized = normalizeMobile($phoneForDB);
-            
-            if (empty($currentPhone) || $currentPhoneNormalized !== $newPhoneNormalized) {
-                error_log("Updating admin phone from '" . $currentPhone . "' to '" . $phoneForDB . "'");
-                $stmt = $db->prepare("UPDATE admin_users SET phone = ? WHERE id = ?");
-                $stmt->execute([$phoneForDB, $admin['id']]);
-                $admin['phone'] = $phoneForDB;
-            }
-        } catch (PDOException $e) {
-            error_log("Warning: Could not update admin phone: " . $e->getMessage());
-            // Continue - not critical
+        // CRITICAL: Update phone number if it's NULL or different
+        $currentPhone = $admin['phone'] ?? null;
+        error_log("Current admin phone in DB: " . ($currentPhone === null ? 'NULL' : $currentPhone));
+        
+        // Prepare phone for database (varchar 15, prefer digits only for storage)
+        $phoneForDBUpdate = $mobileDigitsOnly;
+        if (strlen($phoneForDBUpdate) > 15) {
+            $phoneForDBUpdate = substr($phoneForDBUpdate, -15);
         }
         
-        // Check if admin is active
+        // Update if NULL or different
+        if ($currentPhone === null || empty($currentPhone)) {
+            error_log("Admin phone is NULL, updating to: " . $phoneForDBUpdate);
+            try {
+                $stmt = $db->prepare("UPDATE admin_users SET phone = ? WHERE id = ?");
+                $stmt->execute([$phoneForDBUpdate, $admin['id']]);
+                $admin['phone'] = $phoneForDBUpdate;
+                error_log("Successfully updated admin phone from NULL to: " . $phoneForDBUpdate);
+            } catch (PDOException $e) {
+                error_log("ERROR: Could not update admin phone: " . $e->getMessage());
+                error_log("SQL Error Info: " . print_r($e->errorInfo, true));
+                // Continue - we'll still try to create session
+            }
+        } else {
+            // Normalize both for comparison
+            $currentPhoneNormalized = normalizeMobile($currentPhone);
+            $newPhoneNormalized = normalizeMobile($phoneForDBUpdate);
+            
+            if ($currentPhoneNormalized !== $newPhoneNormalized) {
+                error_log("Admin phone is different, updating from '" . $currentPhone . "' to '" . $phoneForDBUpdate . "'");
+                try {
+                    $stmt = $db->prepare("UPDATE admin_users SET phone = ? WHERE id = ?");
+                    $stmt->execute([$phoneForDBUpdate, $admin['id']]);
+                    $admin['phone'] = $phoneForDBUpdate;
+                } catch (PDOException $e) {
+                    error_log("Warning: Could not update admin phone: " . $e->getMessage());
+                    // Continue - not critical
+                }
+            } else {
+                error_log("Admin phone matches, no update needed");
+            }
+        }
+        
+        // CRITICAL: Check if admin is active
         if (empty($admin['is_active']) || !$admin['is_active']) {
             error_log("ERROR: Admin account is inactive - ID: " . $admin['id']);
             sendError('Your account has been deactivated. Please contact the administrator.', null, 403);
         }
     }
     
-    error_log("Admin user ready - ID: " . $admin['id'] . ", Role: " . $admin['role']);
+    // CRITICAL: Verify admin ID exists before creating session
+    if (empty($admin['id'])) {
+        error_log("ERROR: Admin ID is missing after lookup");
+        sendError('Admin account not found. Please contact support.', null, 401);
+    }
+    
+    error_log("Admin user ready - ID: " . $admin['id'] . ", Role: " . ($admin['role'] ?? 'N/A'));
     
     // Create secure admin session
     error_log("Creating admin session for admin ID: " . $admin['id']);
