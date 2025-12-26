@@ -21,7 +21,7 @@ const Footer = () => {
           {/* About Section with Logo */}
           <div className="buyer-footer-column buyer-footer-about">
             <div className="buyer-footer-logo">
-              <img src="/logo.jpeg " alt="India Propertys" className="buyer-footer-logo-image" />
+              <img src="/logo.png" alt="India Propertys" className="buyer-footer-logo-image" />
             </div>
             <p className="buyer-footer-description">
               Indiapropertys is a trusted real estate platform dedicated to helping buyers, sellers, and renters connect seamlessly. We provide verified property listings, transparent pricing, and expert support to make real estate transactions simpler, safer, and faster. Whether you're searching for your dream home or the perfect commercial space, we are here to guide you every step of the way.
@@ -43,7 +43,7 @@ const Footer = () => {
                 </Link>
               </li>
               <li>
-                <Link to="/ChatUs">
+                <Link to="/BuyerContactPage">
                   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7"/>
                   </svg>

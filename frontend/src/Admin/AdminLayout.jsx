@@ -192,7 +192,7 @@ const AdminLayout = () => {
             onClick={() => navigate('/admin/dashboard')}
           >
             <span className="admin-logo-text">
-              <img src="/logo.jpeg" style={{ height: "4rem" }} alt="Logo" />
+              <img src="/logo.png" style={{ height: "4rem" }} alt="Logo" />
             </span>
           </div>
 
