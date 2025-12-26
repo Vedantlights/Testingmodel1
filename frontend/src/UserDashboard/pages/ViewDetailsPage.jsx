@@ -199,7 +199,18 @@ const getPropertyDetails = (property) => {
         listedSince: formatListedDate(property.created_at),
         priceNegotiable: property.price_negotiable || property.priceNegotiable || false,
         maintenanceCharges: property.maintenance_charges || property.maintenanceCharges || null,
-        depositAmount: property.deposit_amount || property.depositAmount || null
+        depositAmount: property.deposit_amount || property.depositAmount || null,
+        // Additional property details from seller popup
+        balconies: property.balconies || null,
+        floor: property.floor || null,
+        totalFloors: property.total_floors || property.totalFloors || null,
+        facing: property.facing || null,
+        age: property.age || null,
+        furnishing: property.furnishing || null,
+        carpetArea: property.carpet_area || property.carpetArea ? `${(property.carpet_area || property.carpetArea).toLocaleString('en-IN')} sq.ft` : null,
+        state: property.state || null,
+        additionalAddress: property.additional_address || property.additionalAddress || null,
+        propertyType: property.property_type || property.propertyType || property.type || null
     };
 }
 
@@ -1095,7 +1106,16 @@ const ViewDetailsPage = () => {
                                         <>
                                             <button 
                                                 type="button"
-                                                onClick={() => setShowOwnerDetails(!showOwnerDetails)}
+                                                onClick={(e) => {
+                                                    e.preventDefault();
+                                                    e.stopPropagation();
+                                                    const currentScrollY = window.scrollY;
+                                                    setShowOwnerDetails(!showOwnerDetails);
+                                                    // Prevent scroll after state update
+                                                    setTimeout(() => {
+                                                        window.scrollTo(0, currentScrollY);
+                                                    }, 0);
+                                                }}
                                                 className="contact-send-button"
                                                 style={{marginTop: '0', marginBottom: '1rem'}}
                                             >
@@ -1141,11 +1161,96 @@ const ViewDetailsPage = () => {
                                             style={{marginTop: showOwnerDetails ? '1rem' : '0'}}
                                         >
                                             <FaComments style={{marginRight: '8px'}} />
-                                            Contact Owner
+                                            Chat with Owner
                                         </button>
                                     )}
                                 </div>
                             </aside>
+                        </div>
+
+                        {/* Property Details Section - Full Width */}
+                        <div className="property-details-full-section">
+                            <h2>Property Details</h2>
+                            <div className="property-details-grid">
+                                {propertyData.propertyType && (
+                                    <div className="property-detail-item">
+                                        <span className="property-detail-label">Property Type</span>
+                                        <span className="property-detail-value">{propertyData.propertyType}</span>
+                                    </div>
+                                )}
+                                {propertyData.bedrooms && shouldShowFeature(propertyData.type, 'bedrooms') && (
+                                    <div className="property-detail-item">
+                                        <span className="property-detail-label">Bedrooms</span>
+                                        <span className="property-detail-value">{propertyData.bedrooms}</span>
+                                    </div>
+                                )}
+                                {propertyData.bathrooms && shouldShowFeature(propertyData.type, 'bathrooms') && (
+                                    <div className="property-detail-item">
+                                        <span className="property-detail-label">Bathrooms</span>
+                                        <span className="property-detail-value">{propertyData.bathrooms}</span>
+                                    </div>
+                                )}
+                                {propertyData.balconies && (
+                                    <div className="property-detail-item">
+                                        <span className="property-detail-label">Balconies</span>
+                                        <span className="property-detail-value">{propertyData.balconies}</span>
+                                    </div>
+                                )}
+                                {propertyData.area && (
+                                    <div className="property-detail-item">
+                                        <span className="property-detail-label">Built-up Area</span>
+                                        <span className="property-detail-value">{propertyData.area}</span>
+                                    </div>
+                                )}
+                                {propertyData.carpetArea && (
+                                    <div className="property-detail-item">
+                                        <span className="property-detail-label">Carpet Area</span>
+                                        <span className="property-detail-value">{propertyData.carpetArea}</span>
+                                    </div>
+                                )}
+                                {propertyData.floor && (
+                                    <div className="property-detail-item">
+                                        <span className="property-detail-label">Floor</span>
+                                        <span className="property-detail-value">{propertyData.floor}</span>
+                                    </div>
+                                )}
+                                {propertyData.totalFloors && (
+                                    <div className="property-detail-item">
+                                        <span className="property-detail-label">Total Floors</span>
+                                        <span className="property-detail-value">{propertyData.totalFloors}</span>
+                                    </div>
+                                )}
+                                {propertyData.facing && (
+                                    <div className="property-detail-item">
+                                        <span className="property-detail-label">Facing</span>
+                                        <span className="property-detail-value">{propertyData.facing}</span>
+                                    </div>
+                                )}
+                                {propertyData.age && (
+                                    <div className="property-detail-item">
+                                        <span className="property-detail-label">Age</span>
+                                        <span className="property-detail-value">{propertyData.age}</span>
+                                    </div>
+                                )}
+                                {propertyData.furnishing && (
+                                    <div className="property-detail-item">
+                                        <span className="property-detail-label">Furnishing</span>
+                                        <span className="property-detail-value">{propertyData.furnishing}</span>
+                                    </div>
+                                )}
+                                {propertyData.state && (
+                                    <div className="property-detail-item">
+                                        <span className="property-detail-label">State</span>
+                                        <span className="property-detail-value">{propertyData.state}</span>
+                                    </div>
+                                )}
+                                {propertyData.additionalAddress && (
+                                    <div className="property-detail-item property-detail-item-full">
+                                        <span className="property-detail-label">Additional Address</span>
+                                        <span className="property-detail-value">{propertyData.additionalAddress}</span>
+                                    </div>
+                                )}
+                            </div>
                         </div>
 
                         {/* Amenities Section */}
