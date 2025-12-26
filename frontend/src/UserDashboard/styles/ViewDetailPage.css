@@ -678,8 +678,11 @@
     }
 
     .map-card-container {
-        max-width: 100%;
-        width: 100%;
+        margin-left: calc(50% - 50vw);
+        margin-right: calc(50% - 50vw);
+        max-width: 100vw;
+        width: 100vw;
+        padding: 0 24px;
     }
 }
 
@@ -1556,11 +1559,14 @@
   background: transparent;
   border-radius: 0;
   box-shadow: none;
-  padding: 0;
+  padding: 0 40px;
   margin-top: 32px;
   margin-bottom: 48px;
-  max-width: 100%;
-  width: 100%;
+  margin-left: calc(50% - 50vw);
+  margin-right: calc(50% - 50vw);
+  max-width: 100vw;
+  width: 100vw;
+  box-sizing: border-box;
   transition: transform 0.2s ease;
 }
 

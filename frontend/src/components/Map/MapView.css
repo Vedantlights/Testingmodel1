@@ -133,7 +133,7 @@
   display: block;
 }
 
-/* Image Overlay - Heart and Close buttons */
+/* Image Overlay - Heart, Share and Close buttons */
 .popup-card-image-overlay {
   position: absolute;
   top: 0;
@@ -148,7 +148,14 @@
   z-index: 2;
 }
 
+.popup-card-action-buttons {
+  display: flex;
+  gap: 8px;
+  align-items: flex-start;
+}
+
 .popup-card-heart-btn,
+.popup-card-share-btn,
 .popup-card-close-btn {
   width: 32px;
   height: 32px;
@@ -166,12 +173,22 @@
 }
 
 .popup-card-heart-btn:hover,
+.popup-card-share-btn:hover,
 .popup-card-close-btn:hover {
   background: rgba(0, 0, 0, 0.7);
   transform: scale(1.1);
 }
 
+.popup-card-heart-btn.active {
+  background: rgba(220, 38, 38, 0.8);
+}
+
+.popup-card-heart-btn.active:hover {
+  background: rgba(220, 38, 38, 1);
+}
+
 .popup-card-heart-btn svg,
+.popup-card-share-btn svg,
 .popup-card-close-btn svg {
   width: 18px;
   height: 18px;
@@ -295,6 +312,47 @@
   font-weight: 400;
 }
 
+.popup-card-view-details-btn {
+  width: 100%;
+  margin-top: 12px;
+  padding: 10px 16px;
+  background: #003B73;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  transition: all 0.2s ease;
+  text-transform: none;
+  letter-spacing: 0;
+}
+
+.popup-card-view-details-btn:hover {
+  background: #0056b3;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(0, 59, 115, 0.3);
+}
+
+.popup-card-view-details-btn:active {
+  transform: translateY(0);
+  box-shadow: 0 2px 4px rgba(0, 59, 115, 0.2);
+}
+
+.popup-card-view-details-btn svg {
+  width: 16px;
+  height: 16px;
+  transition: transform 0.2s ease;
+}
+
+.popup-card-view-details-btn:hover svg {
+  transform: translateX(2px);
+}
+
 /* Mapbox Controls Customization */
 .mapboxgl-ctrl-group {
   border-radius: 8px !important;
@@ -345,6 +403,17 @@
 
   .popup-card-dates {
     font-size: 12px;
+  }
+
+  .popup-card-view-details-btn {
+    padding: 8px 14px;
+    font-size: 13px;
+    margin-top: 10px;
+  }
+
+  .popup-card-view-details-btn svg {
+    width: 14px;
+    height: 14px;
   }
 
   .popup-card-heart-btn,
@@ -444,6 +513,17 @@
 
   .popup-card-dates {
     font-size: 11px;
+  }
+
+  .popup-card-view-details-btn {
+    padding: 8px 12px;
+    font-size: 12px;
+    margin-top: 8px;
+  }
+
+  .popup-card-view-details-btn svg {
+    width: 12px;
+    height: 12px;
   }
 
   /* Smaller price tags on mobile */
