@@ -37,34 +37,35 @@
     left: auto;
     width: 36px;
     height: 36px;
-    background: transparent;
-    border: 2px solid #000000;
+    background: rgba(255, 255, 255, 0.9);
+    border: none;
     border-radius: 50%;
     display: flex;
     align-items: center;
     justify-content: center;
     cursor: pointer;
+    z-index: 10;
     transition: all 0.2s ease;
     box-shadow: 0 1px 4px rgba(0, 0, 0, 0.1);
+    pointer-events: auto;
 }
 
 .details-container-actions .buyer-favourite-btn:hover,
 .details-container-actions .buyer-share-btn:hover {
     transform: scale(1.1);
-    border-color: #1a1a1a;
 }
 
-.details-container-actions .buyer-favourite-btn svg,
-.details-container-actions .buyer-share-btn svg {
-    color: #000000;
+/* Default Heart Color (Not Favourited - Outline) */
+.details-container-actions .buyer-favourite-btn svg {
+    color: #475569;
     fill: none;
     transition: color 0.2s ease, fill 0.2s ease;
     pointer-events: none;
 }
 
+/* Active (Favourited) State - Solid White Heart on Red Background */
 .details-container-actions .buyer-favourite-btn.active {
     background: #ef4444;
-    border-color: #ef4444;
 }
 
 .details-container-actions .buyer-favourite-btn.active svg {
@@ -72,12 +73,19 @@
     fill: white;
 }
 
+/* Share Button Styles */
 .details-container-actions .buyer-share-btn:hover {
-    border-color: #1a1a1a;
+    background: #1e3a8a;
+}
+
+.details-container-actions .buyer-share-btn svg {
+    color: #475569;
+    transition: color 0.2s ease;
+    pointer-events: none;
 }
 
 .details-container-actions .buyer-share-btn:hover svg {
-    color: #000000;
+    color: white;
 }
 
 @media (max-width: 743px) {
