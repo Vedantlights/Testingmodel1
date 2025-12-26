@@ -37,7 +37,7 @@
     left: auto;
     width: 36px;
     height: 36px;
-    background: rgba(255, 255, 255, 0.9);
+    background: #000000;
     border: none;
     border-radius: 50%;
     display: flex;
@@ -51,11 +51,12 @@
 .details-container-actions .buyer-favourite-btn:hover,
 .details-container-actions .buyer-share-btn:hover {
     transform: scale(1.1);
+    background: #1a1a1a;
 }
 
 .details-container-actions .buyer-favourite-btn svg,
 .details-container-actions .buyer-share-btn svg {
-    color: #475569;
+    color: #ffffff;
     fill: none;
     transition: color 0.2s ease, fill 0.2s ease;
     pointer-events: none;
@@ -71,7 +72,7 @@
 }
 
 .details-container-actions .buyer-share-btn:hover {
-    background: #1e3a8a;
+    background: #1a1a1a;
 }
 
 .details-container-actions .buyer-share-btn:hover svg {
