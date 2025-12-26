@@ -43,6 +43,7 @@ define('ADMIN_MOBILE_1', $adminMobile1);
 define('ADMIN_MOBILE_2', $adminMobile2);
 
 // Get all whitelisted admin mobiles
+if (!function_exists('getAdminWhitelist')) {
 function getAdminWhitelist() {
     $whitelist = [];
     if (defined('ADMIN_MOBILE_1') && !empty(ADMIN_MOBILE_1)) {
@@ -53,17 +54,34 @@ function getAdminWhitelist() {
     }
     return $whitelist;
 }
+}
 
 // Normalize mobile number for comparison (remove +, spaces, etc.)
+if (!function_exists('normalizeMobile')) {
 function normalizeMobile($mobile) {
+    if (empty($mobile)) {
+        return '';
+    }
     return preg_replace('/[^0-9]/', '', $mobile);
+}
 }
 
 // Check if mobile is whitelisted (from database table)
+if (!function_exists('isWhitelistedMobile')) {
 function isWhitelistedMobile($mobile) {
     try {
+        if (empty($mobile)) {
+            error_log("isWhitelistedMobile: Empty mobile number provided");
+            return false;
+        }
+        
         $db = getDB();
         $normalized = normalizeMobile($mobile); // Gets digits only: 917888076881
+        
+        if (empty($normalized)) {
+            error_log("isWhitelistedMobile: Could not normalize mobile: " . $mobile);
+            return false;
+        }
         
         // Database stores phone as +917888076881 (with +), try both formats
         $phoneFormats = [
@@ -86,6 +104,7 @@ function isWhitelistedMobile($mobile) {
                 }
             } catch (PDOException $e) {
                 error_log("Error querying whitelist with format '" . $phoneFormat . "': " . $e->getMessage());
+                // Continue to next format
             }
         }
         
@@ -102,19 +121,55 @@ function isWhitelistedMobile($mobile) {
         error_log("Mobile NOT in whitelist - Access denied");
         return false;
         
+    } catch (PDOException $e) {
+        error_log("isWhitelistedMobile PDO error: " . $e->getMessage());
+        // Fallback to hardcoded whitelist on error
+        try {
+            $whitelist = getAdminWhitelist();
+            $normalized = normalizeMobile($mobile);
+            foreach ($whitelist as $whitelisted) {
+                if (normalizeMobile($whitelisted) === $normalized) {
+                    return true;
+                }
+            }
+        } catch (Exception $e2) {
+            error_log("isWhitelistedMobile fallback error: " . $e2->getMessage());
+        }
+        return false;
     } catch (Exception $e) {
-        error_log("Error checking whitelist: " . $e->getMessage());
+        error_log("isWhitelistedMobile error: " . $e->getMessage());
         error_log("Stack trace: " . $e->getTraceAsString());
         // Fallback to hardcoded whitelist on error
-        $whitelist = getAdminWhitelist();
-        $normalized = normalizeMobile($mobile);
-        foreach ($whitelist as $whitelisted) {
-            if (normalizeMobile($whitelisted) === $normalized) {
-                return true;
+        try {
+            $whitelist = getAdminWhitelist();
+            $normalized = normalizeMobile($mobile);
+            foreach ($whitelist as $whitelisted) {
+                if (normalizeMobile($whitelisted) === $normalized) {
+                    return true;
+                }
             }
+        } catch (Exception $e2) {
+            error_log("isWhitelistedMobile fallback error: " . $e2->getMessage());
+        }
+        return false;
+    } catch (Error $e) {
+        error_log("isWhitelistedMobile fatal error: " . $e->getMessage());
+        error_log("Stack trace: " . $e->getTraceAsString());
+        // Fallback to hardcoded whitelist on fatal error
+        try {
+            $whitelist = getAdminWhitelist();
+            $normalized = normalizeMobile($mobile);
+            foreach ($whitelist as $whitelisted) {
+                if (normalizeMobile($whitelisted) === $normalized) {
+                    return true;
+                }
+            }
+        } catch (Exception $e2) {
+            error_log("isWhitelistedMobile fallback error: " . $e2->getMessage());
         }
         return false;
     }
+}
 }
 
 // Session Configuration

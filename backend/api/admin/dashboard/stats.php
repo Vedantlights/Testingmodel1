@@ -17,7 +17,14 @@ if ($_SERVER['REQUEST_METHOD'] !== 'GET') {
 
 try {
     $admin = requireAdmin();
+    if (!$admin) {
+        sendError('Admin authentication required', null, 401);
+    }
+    
     $db = getDB();
+    if (!$db) {
+        sendError('Database connection failed', null, 500);
+    }
     
     // Get date range filter
     $dateRange = $_GET['date_range'] ?? 'all';
@@ -168,7 +175,16 @@ try {
     
     sendSuccess('Stats retrieved successfully', $stats);
     
+} catch (PDOException $e) {
+    error_log("Admin Dashboard Stats PDO Error: " . $e->getMessage());
+    error_log("Stack trace: " . $e->getTraceAsString());
+    sendError('Database error: Failed to retrieve stats', null, 500);
 } catch (Exception $e) {
     error_log("Admin Dashboard Stats Error: " . $e->getMessage());
-    sendError('Failed to retrieve stats', null, 500);
+    error_log("Stack trace: " . $e->getTraceAsString());
+    sendError('Failed to retrieve stats: ' . $e->getMessage(), null, 500);
+} catch (Error $e) {
+    error_log("Admin Dashboard Stats Fatal Error: " . $e->getMessage());
+    error_log("Stack trace: " . $e->getTraceAsString());
+    sendError('System error: Failed to retrieve stats', null, 500);
 }
