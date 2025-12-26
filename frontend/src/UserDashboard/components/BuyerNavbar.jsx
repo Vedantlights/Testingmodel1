@@ -78,7 +78,7 @@ const Navbar = () => {
               <span>Profile</span>
             </Link>
             <Link to="/ChatUs" className={`buyer-nav-link ${isActive('/ChatUs') ? 'active' : ''}`}>
-              <span>Chat Us</span>
+              <span>Chats</span>
             </Link>
             <Link to="/BuyerContactPage" className={`buyer-nav-link ${isActive('/BuyerContactPage') ? 'active' : ''}`}>
               <span>Contact</span>
@@ -185,7 +185,7 @@ const Navbar = () => {
               <span>Profile</span>
             </Link>
             <Link to="/chatus" className={`buyer-mobile-nav-link ${isActive('/chatus') ? 'active' : ''}`}>
-              <span>Chat Us</span>
+              <span>Chats</span>
             </Link>
             <Link to="/BuyerContactPage" className={`buyer-mobile-nav-link ${isActive('/BuyerContactPage') ? 'active' : ''}`}>
               <span>Contact</span>

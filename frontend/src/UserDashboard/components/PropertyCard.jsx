@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import '../styles/PropertyCard.css';
 
 // ============================================================================
@@ -59,6 +60,7 @@ export const FavoritesManager = {
 // ============================================================================
 
 const PropertyCard = ({ property, onFavoriteToggle }) => {
+    const navigate = useNavigate();
     // State to manage the favourite status
     const [isFavorited, setIsFavorited] = useState(false);
     const [showToast, setShowToast] = useState(false);
@@ -228,8 +230,17 @@ const PropertyCard = ({ property, onFavoriteToggle }) => {
         e.target.onerror = null; // Prevent infinite loop
     };
 
+    // Handle card click to navigate to details page
+    const handleCardClick = (e) => {
+        // Don't navigate if clicking on buttons or links
+        if (e.target.closest('button') || e.target.closest('a')) {
+            return;
+        }
+        navigate(`/details/${id}`);
+    };
+
     return (
-        <div className="buyer-property-card">
+        <div className="buyer-property-card" onClick={handleCardClick}>
             <div className="buyer-property-image-container">
                 <img 
                     src={imageUrl} 
@@ -349,7 +360,8 @@ const PropertyCard = ({ property, onFavoriteToggle }) => {
                         className="buyer-view-details-btn"
                         onClick={(e) => {
                             e.preventDefault();
-                            window.open(`/details/${id}`, '_blank', 'noopener,noreferrer');
+                            e.stopPropagation();
+                            navigate(`/details/${id}`);
                         }}
                     >
                         View Details

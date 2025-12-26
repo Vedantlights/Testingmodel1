@@ -120,8 +120,8 @@ const Home = () => {
   ];
 
   const handleProjectsClick = (city) => {
-     window.scrollTo(0,0);
-    navigate(`/projects?city=${city}`);
+    window.scrollTo(0, 0);
+    navigate(`/searchresults?location=${encodeURIComponent(city)}`);
   };
 
   return (
