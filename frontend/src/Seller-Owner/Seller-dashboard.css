@@ -52,20 +52,11 @@ html, body {
   overscroll-behavior-y: none;
 }
 
-/* Hide browser scrollbar when seller dashboard is active */
-body.seller-dashboard-active {
-  overflow-y: hidden;
-  height: 100vh;
-}
-
 .seller-dashboard {
   width: 100%;
-  height: 100vh;
+  min-height: 100vh;
   position: relative;
   padding-top: var(--header-height);
-  overflow: hidden;
-  display: flex;
-  flex-direction: column;
 }
 
 /* ======================= */
@@ -786,12 +777,7 @@ body.seller-dashboard-active {
   padding: 2rem;
   max-width: 1440px;
   margin: 0 auto;
-  flex: 1;
-  overflow-y: auto;
-  overflow-x: hidden;
-  -webkit-overflow-scrolling: touch;
-  will-change: scroll-position;
-  transform: translateZ(0);
+  min-height: calc(100vh - var(--header-height));
 }
 
 .main-content-wrapper {

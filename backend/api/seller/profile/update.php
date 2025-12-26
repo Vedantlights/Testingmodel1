@@ -42,15 +42,9 @@ try {
         $userParams[] = sanitizeInput($input['email']);
     }
     
-    if (isset($input['phone'])) {
-        // Validate phone format (basic validation)
-        $phone = preg_replace('/\D/', '', $input['phone']);
-        if (strlen($phone) < 10) {
-            sendError('Invalid phone number', null, 400);
-        }
-        $updateUserFields[] = "phone = ?";
-        $userParams[] = sanitizeInput($input['phone']);
-    }
+    // Phone field is excluded from profile updates - it's the login mobile number
+    // and should not be modified or validated in profile updates
+    // If phone is sent, ignore it silently (don't update, don't validate)
     
     // Ensure user_profiles record exists
     $stmt = $db->prepare("SELECT id FROM user_profiles WHERE user_id = ?");

@@ -208,11 +208,8 @@ const SellerProfile = () => {
       newErrors.email = emailValidation.message;
     }
     
-    // Phone validation
-    const phoneValidation = validateIndianPhone(formData.phone);
-    if (!phoneValidation.valid) {
-      newErrors.phone = phoneValidation.message;
-    }
+    // Phone validation - SKIPPED: Login mobile number cannot be changed and should not be validated
+    // The phone field is read-only and excluded from profile updates
     
     // WhatsApp Number validation (optional)
     console.log('Validating WhatsApp number:', formData.whatsappNumber);
