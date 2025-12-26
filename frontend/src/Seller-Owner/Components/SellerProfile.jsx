@@ -773,9 +773,6 @@ const SellerProfile = () => {
                 ? `${formData.firstName} ${formData.lastName}`.trim() 
                 : 'Your Name'}
             </h2>
-            <p className="seller-profile-role">
-              {formData.agencyName || 'Your Agency'}
-            </p>
             
             <div className="seller-profile-badges">
               <span className={`seller-profile-badge ${sellerVerified ? 'verified' : 'pending'}`}>
@@ -796,7 +793,6 @@ const SellerProfile = () => {
                   </>
                 )}
               </span>
-              <span className="seller-profile-badge pro">Pro Seller</span>
             </div>
           </div>
 
