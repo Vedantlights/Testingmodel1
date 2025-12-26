@@ -1,5 +1,6 @@
 // src/pages/SellerOverview.jsx
 import React, { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { useProperty } from "./PropertyContext";
 import { useAuth } from "../../context/AuthContext";
 import AddPropertyPopup from "./AddPropertyPopup";
@@ -9,6 +10,7 @@ const MAX_PROPERTIES = 10;
 
 const SellerOverview = ({ onNavigate }) => {
   const { user } = useAuth();
+  const navigate = useNavigate();
   const { properties, inquiries, getStats, refreshProperties } = useProperty();
   const [showPopup, setShowPopup] = useState(false);
 
@@ -271,7 +273,8 @@ const SellerOverview = ({ onNavigate }) => {
                 <div 
                   className="seller-overview-property-item" 
                   key={property.id}
-                  style={{ animationDelay: `${index * 0.1}s` }}
+                  style={{ animationDelay: `${index * 0.1}s`, cursor: 'pointer' }}
+                  onClick={() => window.open(`/seller-dashboard/seller-pro-details/${property.id}`, '_blank', 'noopener,noreferrer')}
                 >
                   <div className="seller-overview-property-thumbnail">
                     <img src={property.images?.[0]} alt={property.title} />
@@ -341,7 +344,11 @@ const SellerOverview = ({ onNavigate }) => {
                 <div 
                   className="seller-overview-inquiry-item" 
                   key={inquiry.id}
-                  style={{ animationDelay: `${index * 0.1}s` }}
+                  style={{ animationDelay: `${index * 0.1}s`, cursor: 'pointer' }}
+                  onClick={() => {
+                    // Navigate to inquiries page with inquiry ID as query parameter
+                    navigate(`/seller-dashboard/inquiries?inquiryId=${inquiry.id}`);
+                  }}
                 >
                   <div className="seller-overview-inquiry-avatar">
                     {inquiry.buyerProfileImage ? (

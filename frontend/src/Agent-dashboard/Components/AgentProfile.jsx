@@ -33,13 +33,6 @@ const AgentProfile = () => {
     profileImage: ""
   });
 
-  const [notifications, setNotifications] = useState({
-    emailInquiries: true,
-    smsInquiries: true,
-    emailUpdates: true,
-    smsUpdates: false,
-    marketingEmails: false
-  });
 
   const [createdAt, setCreatedAt] = useState(null);
   const [imageError, setImageError] = useState(false);
@@ -168,12 +161,6 @@ const AgentProfile = () => {
     });
   };
 
-  const handleNotificationChange = (key) => {
-    setNotifications({
-      ...notifications,
-      [key]: !notifications[key]
-    });
-  };
 
   const handleSave = async () => {
     try {
@@ -306,9 +293,7 @@ const AgentProfile = () => {
 
   const tabs = [
     { id: 'personal', label: 'Personal Info' },
-    { id: 'business', label: 'Business Info' },
-    { id: 'notifications', label: 'Notifications' },
-    { id: 'security', label: 'Security' }
+    { id: 'business', label: 'Business Info' }
   ];
 
   return (
@@ -653,112 +638,6 @@ const AgentProfile = () => {
                     {loading ? 'Saving...' : 'Save Changes'}
                   </button>
                 </div>
-              </div>
-            )}
-
-            {activeTab === 'notifications' && (
-              <div className="settings-section">
-                <div className="section-header">
-                  <h3>Notification Preferences</h3>
-                </div>
-
-                <div className="notification-group">
-                  <h4>Inquiry Notifications</h4>
-                  <p className="group-desc">Get notified when buyers send inquiries for your properties</p>
-                  
-                  <div className="toggle-item">
-                    <div className="toggle-info">
-                      <span className="toggle-label">Email notifications</span>
-                      <span className="toggle-desc">Receive inquiry details via email</span>
-                    </div>
-                    <button 
-                      className={`toggle-switch ${notifications.emailInquiries ? 'active' : ''}`}
-                      onClick={() => handleNotificationChange('emailInquiries')}
-                    >
-                      <span className="toggle-thumb"></span>
-                    </button>
-                  </div>
-
-                  <div className="toggle-item">
-                    <div className="toggle-info">
-                      <span className="toggle-label">SMS notifications</span>
-                      <span className="toggle-desc">Get SMS alerts for new inquiries</span>
-                    </div>
-                    <button 
-                      className={`toggle-switch ${notifications.smsInquiries ? 'active' : ''}`}
-                      onClick={() => handleNotificationChange('smsInquiries')}
-                    >
-                      <span className="toggle-thumb"></span>
-                    </button>
-                  </div>
-                </div>
-
-                <div className="notification-group">
-                  <h4>Account Updates</h4>
-                  <p className="group-desc">Stay updated with your account activity</p>
-                  
-                  <div className="toggle-item">
-                    <div className="toggle-info">
-                      <span className="toggle-label">Property updates</span>
-                      <span className="toggle-desc">Notifications about your listings</span>
-                    </div>
-                    <button 
-                      className={`toggle-switch ${notifications.emailUpdates ? 'active' : ''}`}
-                      onClick={() => handleNotificationChange('emailUpdates')}
-                    >
-                      <span className="toggle-thumb"></span>
-                    </button>
-                  </div>
-
-                  <div className="toggle-item">
-                    <div className="toggle-info">
-                      <span className="toggle-label">Marketing emails</span>
-                      <span className="toggle-desc">Tips and promotional offers</span>
-                    </div>
-                    <button 
-                      className={`toggle-switch ${notifications.marketingEmails ? 'active' : ''}`}
-                      onClick={() => handleNotificationChange('marketingEmails')}
-                    >
-                      <span className="toggle-thumb"></span>
-                    </button>
-                  </div>
-                </div>
-
-                <div className="form-actions">
-                  <button 
-                    className="save-btn" 
-                    onClick={handleSave}
-                    disabled={loading}
-                  >
-                    {loading ? 'Saving...' : 'Save Preferences'}
-                  </button>
-                </div>
-              </div>
-            )}
-
-            {activeTab === 'security' && (
-              <div className="settings-section">
-                <div className="section-header">
-                  <h3>Security Settings</h3>
-                </div>
-
-                <div className="security-card">
-                  <div className="security-icon">
-                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
-                      <rect x="3" y="11" width="18" height="11" rx="2" stroke="currentColor" strokeWidth="2"/>
-                      <path d="M7 11V7a5 5 0 0110 0v4" stroke="currentColor" strokeWidth="2"/>
-                    </svg>
-                  </div>
-                  <div className="security-info">
-                    <h4>Change Password</h4>
-                    <p>Update your password to keep your account secure</p>
-                  </div>
-                  <button className="security-btn">Change</button>
-                </div>
-
-                
-
-                
               </div>
             )}
           </div>

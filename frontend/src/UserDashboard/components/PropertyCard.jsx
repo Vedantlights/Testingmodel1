@@ -1,4 +1,3 @@
-import { Link } from 'react-router-dom';
 import { useState, useEffect } from 'react';
 import '../styles/PropertyCard.css';
 
@@ -346,11 +345,15 @@ const PropertyCard = ({ property, onFavoriteToggle }) => {
                         <span className="buyer-price-value">{priceDisplay}</span>
                     </div>
                     
-                    <Link to={`/details/${id}`}> 
-                        <button className="buyer-view-details-btn">
-                            View Details
-                        </button>
-                    </Link>
+                    <button 
+                        className="buyer-view-details-btn"
+                        onClick={(e) => {
+                            e.preventDefault();
+                            window.open(`/details/${id}`, '_blank', 'noopener,noreferrer');
+                        }}
+                    >
+                        View Details
+                    </button>
                 </div>
             </div>
         </div>

@@ -75,10 +75,10 @@ const SellerProperties = () => {
 
   const handleViewDetails = (propertyId) => {
     console.log('Navigating to property:', propertyId);
-    // Navigate to seller dashboard details route to keep seller navbar
+    // Navigate to seller dashboard details route to keep seller navbar - open in new tab
     const path = `/seller-dashboard/details/${propertyId}`;
     console.log('Navigation path:', path);
-    navigate(path);
+    window.open(path, '_blank', 'noopener,noreferrer');
   };
 
   // Helper function to check if property is older than 24 hours

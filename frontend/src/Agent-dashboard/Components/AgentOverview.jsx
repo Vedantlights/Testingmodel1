@@ -1,5 +1,6 @@
 // src/pages/AgentOverview.jsx
 import React, { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { useProperty } from "./PropertyContext";
 import { authAPI, sellerDashboardAPI } from "../../services/api.service";
 import AddPropertyPopup from "./AddPropertyPopup";
@@ -8,6 +9,7 @@ import "../styles/AgentOverview.css";
 const MAX_PROPERTIES = 10;
 
 const AgentOverview = ({ onNavigate }) => {
+  const navigate = useNavigate();
   const { 
     properties, 
     inquiries, 
@@ -329,7 +331,8 @@ const AgentOverview = ({ onNavigate }) => {
                 <div 
                   className="property-list-item" 
                   key={property.id}
-                  style={{ animationDelay: `${index * 0.1}s` }}
+                  style={{ animationDelay: `${index * 0.1}s`, cursor: 'pointer' }}
+                  onClick={() => window.open(`/details/${property.id}`, '_blank', 'noopener,noreferrer')}
                 >
                   <div className="property-thumbnail">
                     <img src={property.images?.[0]} alt={property.title} />
@@ -412,7 +415,11 @@ const AgentOverview = ({ onNavigate }) => {
                 <div 
                   className="inquiry-item" 
                   key={inquiry.id}
-                  style={{ animationDelay: `${index * 0.1}s` }}
+                  style={{ animationDelay: `${index * 0.1}s`, cursor: 'pointer' }}
+                  onClick={() => {
+                    // Navigate to inquiries page with inquiry ID as query parameter
+                    navigate(`/agent-dashboard/inquiries?inquiryId=${inquiry.id}`);
+                  }}
                 >
                   <div className="inquiry-avatar">{inquiry.avatar}</div>
                   <div className="inquiry-content">

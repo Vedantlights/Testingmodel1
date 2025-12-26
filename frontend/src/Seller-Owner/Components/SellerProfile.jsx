@@ -53,13 +53,6 @@ const SellerProfile = () => {
     linkedin: ''
   });
 
-  const [notifications, setNotifications] = useState({
-    emailInquiries: true,
-    smsInquiries: true,
-    emailUpdates: true,
-    smsUpdates: false,
-    marketingEmails: false
-  });
 
   // Track isEditing state changes for debugging
   useEffect(() => {
@@ -297,12 +290,6 @@ const SellerProfile = () => {
     return isValid;
   };
 
-  const handleNotificationChange = (key) => {
-    setNotifications({
-      ...notifications,
-      [key]: !notifications[key]
-    });
-  };
 
   const handleImageSelect = () => {
     setShowImageMenu(false);
@@ -651,17 +638,6 @@ const SellerProfile = () => {
     { id: 'personal', label: 'Personal Info', icon: (
       <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
         <path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2M12 11a4 4 0 100-8 4 4 0 000 8z" stroke="currentColor" strokeWidth="2"/>
-      </svg>
-    )},
-    { id: 'notifications', label: 'Notifications', icon: (
-      <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
-        <path d="M18 8A6 6 0 106 8c0 7-3 9-3 9h18s-3-2-3-9M13.73 21a2 2 0 01-3.46 0" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
-      </svg>
-    )},
-    { id: 'security', label: 'Security', icon: (
-      <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
-        <rect x="3" y="11" width="18" height="11" rx="2" stroke="currentColor" strokeWidth="2"/>
-        <path d="M7 11V7a5 5 0 0110 0v4" stroke="currentColor" strokeWidth="2"/>
       </svg>
     )}
   ];
@@ -1033,93 +1009,6 @@ const SellerProfile = () => {
                     </button>
                   </div>
                 )}
-              </div>
-            )}
-
-
-            {activeTab === 'notifications' && (
-              <div className="seller-profile-settings-section">
-                <div className="seller-profile-section-header">
-                  <h3>Notification Preferences</h3>
-                </div>
-
-                <div className="seller-profile-notification-group">
-                  <h4>Inquiry Notifications</h4>
-                  <p className="seller-profile-group-desc">Get notified when buyers send inquiries for your properties</p>
-                  
-                  <div className="seller-profile-toggle-item">
-                    <div className="seller-profile-toggle-info">
-                      <span className="seller-profile-toggle-label">Email notifications</span>
-                      <span className="seller-profile-toggle-desc">Receive inquiry details via email</span>
-                    </div>
-                    <button 
-                      className={`seller-profile-toggle-switch ${notifications.emailInquiries ? 'active' : ''}`}
-                      onClick={() => handleNotificationChange('emailInquiries')}
-                    >
-                      <span className="seller-profile-toggle-thumb"></span>
-                    </button>
-                  </div>
-
-                  <div className="seller-profile-toggle-item">
-                    <div className="seller-profile-toggle-info">
-                      <span className="seller-profile-toggle-label">SMS notifications</span>
-                      <span className="seller-profile-toggle-desc">Get SMS alerts for new inquiries</span>
-                    </div>
-                    <button 
-                      className={`seller-profile-toggle-switch ${notifications.smsInquiries ? 'active' : ''}`}
-                      onClick={() => handleNotificationChange('smsInquiries')}
-                    >
-                      <span className="seller-profile-toggle-thumb"></span>
-                    </button>
-                  </div>
-                </div>
-
-                <div className="seller-profile-notification-group">
-                  <h4>Account Updates</h4>
-                  <p className="seller-profile-group-desc">Stay updated with your account activity</p>
-                  
-                  <div className="seller-profile-toggle-item">
-                    <div className="seller-profile-toggle-info">
-                      <span className="seller-profile-toggle-label">Property updates</span>
-                      <span className="seller-profile-toggle-desc">Notifications about your listings</span>
-                    </div>
-                    <button 
-                      className={`seller-profile-toggle-switch ${notifications.emailUpdates ? 'active' : ''}`}
-                      onClick={() => handleNotificationChange('emailUpdates')}
-                    >
-                      <span className="seller-profile-toggle-thumb"></span>
-                    </button>
-                  </div>
-
-                </div>
-
-                <div className="seller-profile-form-actions">
-                  <button type="button" className="seller-profile-save-btn" onClick={handleSave}>
-                    Save Preferences
-                  </button>
-                </div>
-              </div>
-            )}
-
-            {activeTab === 'security' && (
-              <div className="seller-profile-settings-section">
-                <div className="seller-profile-section-header">
-                  <h3>Security Settings</h3>
-                </div>
-
-                <div className="seller-profile-security-card">
-                  <div className="seller-profile-security-icon">
-                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
-                      <rect x="3" y="11" width="18" height="11" rx="2" stroke="currentColor" strokeWidth="2"/>
-                      <path d="M7 11V7a5 5 0 0110 0v4" stroke="currentColor" strokeWidth="2"/>
-                    </svg>
-                  </div>
-                  <div className="seller-profile-security-info">
-                    <h4>Change Password</h4>
-                    <p>Update your password to keep your account secure</p>
-                  </div>
-                  <button className="seller-profile-security-btn">Change</button>
-                </div>
               </div>
             )}
           </div>

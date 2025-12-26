@@ -28,9 +28,9 @@ const PropertyCard = ({ property }) => {
       return;
     }
     
-    // Navigate to buyer's ViewDetailsPage (same layout for all users)
+    // Open buyer's ViewDetailsPage in new tab (same layout for all users)
     if (property?.id) {
-      navigate(`/details/${property.id}`);
+      window.open(`/details/${property.id}`, '_blank', 'noopener,noreferrer');
     } else {
       navigate('/login');
     }

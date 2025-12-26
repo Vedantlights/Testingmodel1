@@ -96,8 +96,8 @@ const AgentProperties = () => {
 
   const handleViewDetails = (propertyId) => {
     console.log('Navigating to property:', propertyId);
-    // Use buyer's ViewDetailsPage route (same layout for all users)
-    navigate(`/details/${propertyId}`);
+    // Use buyer's ViewDetailsPage route (same layout for all users) - open in new tab
+    window.open(`/details/${propertyId}`, '_blank', 'noopener,noreferrer');
   };
 
   // Get property features based on property type

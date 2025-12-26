@@ -1,5 +1,6 @@
 // src/pages/AgentInquiries.jsx
 import React, { useState, useEffect, useRef, useMemo } from 'react';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { useProperty } from './PropertyContext';
 import { useAuth } from '../../context/AuthContext';
 import { 
@@ -16,6 +17,8 @@ import { sellerInquiriesAPI } from '../../services/api.service';
 import '../styles/AgentInquiries.css';
 
 const AgentInquiries = ({ onUnreadCountChange }) => {
+  const location = useLocation();
+  const navigate = useNavigate();
   const { 
     inquiries, 
     properties, 
@@ -617,6 +620,29 @@ const AgentInquiries = ({ onUnreadCountChange }) => {
       }
     }
   };
+
+  // Handle inquiryId query parameter from URL (for navigation from overview)
+  useEffect(() => {
+    const searchParams = new URLSearchParams(location.search);
+    const inquiryIdParam = searchParams.get('inquiryId');
+    
+    if (inquiryIdParam && enrichedInquiries.length > 0 && !selectedInquiry) {
+      const inquiryId = parseInt(inquiryIdParam, 10);
+      const inquiry = enrichedInquiries.find(i => i.id === inquiryId);
+      
+      if (inquiry) {
+        // Select the inquiry
+        handleSelectInquiry(inquiry);
+        
+        // Remove the query parameter from URL to clean it up
+        const newSearchParams = new URLSearchParams(location.search);
+        newSearchParams.delete('inquiryId');
+        const newSearch = newSearchParams.toString();
+        navigate(location.pathname + (newSearch ? `?${newSearch}` : ''), { replace: true });
+      }
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [enrichedInquiries.length, location.search]);
 
   const handleReply = async () => {
     if (!replyText.trim() || !selectedInquiry) return;

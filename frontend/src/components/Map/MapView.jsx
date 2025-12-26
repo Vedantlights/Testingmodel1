@@ -213,7 +213,7 @@ const MapView = ({
     return distanceKm / 111;
   }, []);
 
-  // Navigate to property details page using React Router
+  // Navigate to property details page - open in new tab
   const navigateToProperty = useCallback((propertyId) => {
     if (!propertyId) {
       console.error('Invalid property ID for navigation:', propertyId);
@@ -221,14 +221,14 @@ const MapView = ({
     }
     
     try {
-      // Use React Router navigation
-      navigate(`/buyer-dashboard/details/${propertyId}`);
+      // Open in new tab
+      window.open(`/buyer-dashboard/details/${propertyId}`, '_blank', 'noopener,noreferrer');
     } catch (error) {
       console.error('Error navigating to property details:', error);
       // Fallback: use window location
-      window.location.href = `/buyer-dashboard/details/${propertyId}`;
+      window.open(`/buyer-dashboard/details/${propertyId}`, '_blank', 'noopener,noreferrer');
     }
-  }, [navigate]);
+  }, []);
 
   // Format price helper - returns compact format (e.g., "45L", "6.5Cr")
   const formatPrice = useCallback((price) => {
