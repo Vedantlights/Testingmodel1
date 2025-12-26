@@ -134,8 +134,8 @@ const AdminLayout = () => {
       console.error('Logout error:', error);
     }
     
-    // Navigate to login
-    navigate('/admin/login', { replace: true });
+    // Navigate to landing page home
+    window.location.href = '/';
   };
 
   const toggleMobileMenu = () => {
