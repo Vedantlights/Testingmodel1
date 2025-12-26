@@ -274,7 +274,7 @@ const SellerOverview = ({ onNavigate }) => {
                   className="seller-overview-property-item" 
                   key={property.id}
                   style={{ animationDelay: `${index * 0.1}s`, cursor: 'pointer' }}
-                  onClick={() => window.open(`/seller-dashboard/seller-pro-details/${property.id}`, '_blank', 'noopener,noreferrer')}
+                  onClick={() => window.open(`/seller-dashboard/details/${property.id}`, '_blank', 'noopener,noreferrer')}
                 >
                   <div className="seller-overview-property-thumbnail">
                     <img src={property.images?.[0]} alt={property.title} />

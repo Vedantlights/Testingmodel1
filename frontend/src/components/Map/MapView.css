@@ -84,60 +84,45 @@
   z-index: 10;
 }
 
-/* ========== POPUP STYLES - RESPONSIVE LAYOUT ========== */
+/* ========== POPUP STYLES - VERTICAL CARD LAYOUT ========== */
 
-/* Desktop: Horizontal Layout */
-.mapboxgl-popup {
-  max-width: 280px !important;
-  width: 280px;
+/* Map Card Container - Responsive sizing */
+.map-card-container {
+  max-width: 320px !important;
+  width: 320px !important;
+}
+
+.mapboxgl-popup.map-card-container {
+  max-width: 320px !important;
+  width: 320px !important;
 }
 
 .mapboxgl-popup-content {
   padding: 0;
-  border-radius: 10px;
+  border-radius: 12px;
   overflow: hidden;
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.18);
   background: #ffffff;
 }
 
 .mapboxgl-popup-close-button {
-  font-size: 18px;
-  color: white;
-  right: 5px;
-  top: 5px;
-  background: rgba(0, 0, 0, 0.5);
-  border-radius: 50%;
-  width: 22px;
-  height: 22px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 10;
-  transition: all 0.2s ease;
-  line-height: 1;
+  display: none; /* Hide default close button, using custom one */
 }
 
-.mapboxgl-popup-close-button:hover {
-  background: rgba(0, 0, 0, 0.7);
-  transform: scale(1.1);
-}
-
-/* Property Popup Card - Horizontal Layout (Default) */
+/* Property Popup Card - Vertical Layout (Image Top, Content Bottom) */
 .property-popup-card {
   display: flex;
-  flex-direction: row;
+  flex-direction: column;
   width: 100%;
-  align-items: stretch;
+  background: #ffffff;
 }
 
 .popup-card-image-container {
-  width: 90px;
-  min-width: 90px;
-  max-width: 90px;
+  width: 100%;
+  position: relative;
   overflow: hidden;
   background: linear-gradient(135deg, #f0f0f0 0%, #e0e0e0 100%);
-  position: relative;
-  flex-shrink: 0;
+  aspect-ratio: 16 / 10;
 }
 
 .popup-card-image {
@@ -146,25 +131,102 @@
   object-fit: cover;
   object-position: center;
   display: block;
-  min-height: 110px;
 }
 
+/* Image Overlay - Heart and Close buttons */
+.popup-card-image-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  padding: 12px;
+  pointer-events: none;
+  z-index: 2;
+}
+
+.popup-card-heart-btn,
+.popup-card-close-btn {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: rgba(0, 0, 0, 0.5);
+  border: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  pointer-events: auto;
+  transition: all 0.2s ease;
+  color: white;
+  padding: 0;
+}
+
+.popup-card-heart-btn:hover,
+.popup-card-close-btn:hover {
+  background: rgba(0, 0, 0, 0.7);
+  transform: scale(1.1);
+}
+
+.popup-card-heart-btn svg,
+.popup-card-close-btn svg {
+  width: 18px;
+  height: 18px;
+}
+
+/* Pagination Dots */
+.popup-card-pagination {
+  position: absolute;
+  bottom: 12px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  gap: 6px;
+  z-index: 3;
+  pointer-events: none;
+}
+
+.pagination-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.5);
+  transition: all 0.2s ease;
+  cursor: pointer;
+  pointer-events: auto;
+}
+
+.pagination-dot.active {
+  background: white;
+  width: 8px;
+  height: 8px;
+}
+
+/* Content Section */
 .popup-card-content {
-  padding: 10px 12px;
+  padding: 14px 16px;
   display: flex;
   flex-direction: column;
-  gap: 4px;
-  flex: 1;
-  min-width: 0;
-  justify-content: center;
+  gap: 8px;
+}
+
+.popup-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 12px;
 }
 
 .popup-card-title {
-  font-size: 13px;
+  font-size: 16px;
   font-weight: 600;
   color: #1a1a1a;
   margin: 0;
   line-height: 1.3;
+  flex: 1;
   display: -webkit-box;
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
@@ -172,44 +234,65 @@
   text-overflow: ellipsis;
 }
 
-.popup-card-location {
-  font-size: 11px;
+.popup-card-rating {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  flex-shrink: 0;
+  font-size: 14px;
+  font-weight: 500;
+  color: #1a1a1a;
+}
+
+.popup-card-rating svg {
+  width: 14px;
+  height: 14px;
+  fill: #FFD700;
+  color: #FFD700;
+}
+
+.popup-card-rating .review-count {
+  color: #666;
+  font-weight: 400;
+}
+
+.popup-card-description {
+  font-size: 13px;
   color: #666;
   margin: 0;
-  line-height: 1.3;
+  line-height: 1.4;
   display: -webkit-box;
-  -webkit-line-clamp: 1;
+  -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
   overflow: hidden;
   text-overflow: ellipsis;
 }
 
+.popup-card-price-section {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+  margin-top: 4px;
+}
+
 .popup-card-price {
-  font-size: 14px;
+  font-size: 18px;
   font-weight: 700;
-  color: #8B5CF6;
-  margin: 3px 0 0 0;
+  color: #1a1a1a;
+  margin: 0;
 }
 
-.popup-card-button {
-  width: 100%;
-  margin-top: 6px;
-  padding: 7px 10px;
-  background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
-  color: white;
-  border: none;
-  border-radius: 6px;
-  cursor: pointer;
-  font-weight: 600;
-  font-size: 11px;
-  transition: all 0.2s ease;
-  pointer-events: auto;
+.popup-card-duration {
+  font-size: 14px;
+  color: #666;
+  font-weight: 400;
 }
 
-.popup-card-button:hover {
-  background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
-  transform: translateY(-1px);
-  box-shadow: 0 3px 10px rgba(59, 130, 246, 0.35);
+.popup-card-dates {
+  font-size: 13px;
+  color: #666;
+  margin: 0;
+  font-weight: 400;
 }
 
 /* Mapbox Controls Customization */
@@ -229,108 +312,138 @@
 
 /* ========== TABLET RESPONSIVE (768px - 1024px) ========== */
 @media (max-width: 1024px) {
-  .mapboxgl-popup {
-    max-width: 260px !important;
-    width: 260px !important;
-  }
-
-  .popup-card-image-container {
-    width: 85px;
-    min-width: 85px;
-    max-width: 85px;
-  }
-
-  .popup-card-image {
-    min-height: 100px;
+  .map-card-container,
+  .mapboxgl-popup.map-card-container {
+    max-width: 280px !important;
+    width: 280px !important;
   }
 
   .popup-card-content {
-    padding: 8px 10px;
+    padding: 12px 14px;
+    gap: 6px;
   }
 
   .popup-card-title {
-    font-size: 12px;
+    font-size: 15px;
   }
 
-  .popup-card-location {
-    font-size: 10px;
-  }
-
-  .popup-card-price {
+  .popup-card-rating {
     font-size: 13px;
   }
 
-  .popup-card-button {
-    padding: 6px 8px;
-    font-size: 10px;
+  .popup-card-description {
+    font-size: 12px;
+  }
+
+  .popup-card-price {
+    font-size: 16px;
+  }
+
+  .popup-card-duration {
+    font-size: 13px;
+  }
+
+  .popup-card-dates {
+    font-size: 12px;
+  }
+
+  .popup-card-heart-btn,
+  .popup-card-close-btn {
+    width: 28px;
+    height: 28px;
+  }
+
+  .popup-card-heart-btn svg,
+  .popup-card-close-btn svg {
+    width: 16px;
+    height: 16px;
   }
 }
 
-/* ========== MOBILE RESPONSIVE (< 768px) - VERTICAL LAYOUT ========== */
+/* ========== MOBILE RESPONSIVE (< 768px) ========== */
 @media (max-width: 768px) {
   .map-wrapper {
     min-height: 300px;
   }
 
-  .mapboxgl-popup {
-    max-width: 180px !important;
-    width: 180px !important;
+  .map-card-container,
+  .mapboxgl-popup.map-card-container {
+    max-width: 240px !important;
+    width: 240px !important;
   }
 
   .mapboxgl-popup-content {
-    border-radius: 8px;
-  }
-
-  .mapboxgl-popup-close-button {
-    width: 20px;
-    height: 20px;
-    font-size: 14px;
-    right: 4px;
-    top: 4px;
-  }
-
-  /* Switch to Vertical Layout on Mobile */
-  .property-popup-card {
-    flex-direction: column;
+    border-radius: 10px;
   }
 
   .popup-card-image-container {
-    width: 100%;
-    min-width: 100%;
-    max-width: 100%;
-    height: 100px;
+    aspect-ratio: 16 / 11;
   }
 
-  .popup-card-image {
-    width: 100%;
-    height: 100px;
-    min-height: 100px;
-    max-height: 100px;
+  .popup-card-image-overlay {
+    padding: 10px;
+  }
+
+  .popup-card-heart-btn,
+  .popup-card-close-btn {
+    width: 26px;
+    height: 26px;
+  }
+
+  .popup-card-heart-btn svg,
+  .popup-card-close-btn svg {
+    width: 14px;
+    height: 14px;
+  }
+
+  .popup-card-pagination {
+    bottom: 10px;
+    gap: 5px;
+  }
+
+  .pagination-dot {
+    width: 5px;
+    height: 5px;
+  }
+
+  .pagination-dot.active {
+    width: 7px;
+    height: 7px;
   }
 
   .popup-card-content {
-    padding: 10px;
-    gap: 3px;
+    padding: 12px;
+    gap: 6px;
   }
 
   .popup-card-title {
-    font-size: 12px;
-    -webkit-line-clamp: 1;
+    font-size: 14px;
+    -webkit-line-clamp: 2;
   }
 
-  .popup-card-location {
-    font-size: 10px;
+  .popup-card-rating {
+    font-size: 12px;
+  }
+
+  .popup-card-rating svg {
+    width: 12px;
+    height: 12px;
+  }
+
+  .popup-card-description {
+    font-size: 11px;
   }
 
   .popup-card-price {
-    font-size: 13px;
-    margin-top: 2px;
+    font-size: 16px;
   }
 
-  .popup-card-button {
-    padding: 6px 8px;
-    font-size: 10px;
-    margin-top: 5px;
+  .popup-card-duration {
+    font-size: 12px;
+  }
+
+  .popup-card-dates {
+    font-size: 11px;
   }
 
   /* Smaller price tags on mobile */
@@ -342,42 +455,69 @@
 
 /* ========== SMALL MOBILE (< 480px) ========== */
 @media (max-width: 480px) {
-  .mapboxgl-popup {
-    max-width: 160px !important;
-    width: 160px !important;
+  .map-card-container,
+  .mapboxgl-popup.map-card-container {
+    max-width: 200px !important;
+    width: 200px !important;
   }
 
   .popup-card-image-container {
-    height: 85px;
+    aspect-ratio: 16 / 12;
   }
 
-  .popup-card-image {
-    height: 85px;
-    min-height: 85px;
-    max-height: 85px;
+  .popup-card-image-overlay {
+    padding: 8px;
+  }
+
+  .popup-card-heart-btn,
+  .popup-card-close-btn {
+    width: 24px;
+    height: 24px;
+  }
+
+  .popup-card-heart-btn svg,
+  .popup-card-close-btn svg {
+    width: 12px;
+    height: 12px;
+  }
+
+  .popup-card-pagination {
+    bottom: 8px;
+    gap: 4px;
   }
 
   .popup-card-content {
-    padding: 8px;
-    gap: 2px;
+    padding: 10px;
+    gap: 5px;
   }
 
   .popup-card-title {
+    font-size: 13px;
+  }
+
+  .popup-card-rating {
     font-size: 11px;
   }
 
-  .popup-card-location {
-    font-size: 9px;
+  .popup-card-rating svg {
+    width: 11px;
+    height: 11px;
+  }
+
+  .popup-card-description {
+    font-size: 10px;
   }
 
   .popup-card-price {
-    font-size: 12px;
+    font-size: 15px;
   }
 
-  .popup-card-button {
-    padding: 5px 6px;
-    font-size: 9px;
-    margin-top: 4px;
+  .popup-card-duration {
+    font-size: 11px;
+  }
+
+  .popup-card-dates {
+    font-size: 10px;
   }
 
   /* Even smaller price tags */
@@ -389,83 +529,48 @@
 
 /* ========== EXTRA SMALL MOBILE (< 360px) ========== */
 @media (max-width: 360px) {
-  .mapboxgl-popup {
-    max-width: 145px !important;
-    width: 145px !important;
+  .map-card-container,
+  .mapboxgl-popup.map-card-container {
+    max-width: 180px !important;
+    width: 180px !important;
   }
 
   .popup-card-image-container {
-    height: 75px;
-  }
-
-  .popup-card-image {
-    height: 75px;
-    min-height: 75px;
-    max-height: 75px;
+    aspect-ratio: 16 / 13;
   }
 
   .popup-card-content {
-    padding: 6px;
-    gap: 2px;
+    padding: 8px;
+    gap: 4px;
   }
 
   .popup-card-title {
+    font-size: 12px;
+  }
+
+  .popup-card-rating {
     font-size: 10px;
   }
 
-  .popup-card-location {
-    font-size: 8px;
+  .popup-card-description {
+    font-size: 9px;
   }
 
   .popup-card-price {
-    font-size: 11px;
+    font-size: 14px;
   }
 
-  .popup-card-button {
-    padding: 4px 5px;
-    font-size: 8px;
-    border-radius: 4px;
+  .popup-card-duration {
+    font-size: 10px;
+  }
+
+  .popup-card-dates {
+    font-size: 9px;
   }
 
   .price-tag {
     padding: 3px 6px;
     font-size: 9px;
     border-radius: 12px;
-  }
-}
-
-/* ========== LANDSCAPE MOBILE ========== */
-@media (max-width: 768px) and (orientation: landscape) {
-  .mapboxgl-popup {
-    max-width: 240px !important;
-    width: 240px !important;
-  }
-
-  /* Keep horizontal layout in landscape */
-  .property-popup-card {
-    flex-direction: row;
-  }
-
-  .popup-card-image-container {
-    width: 80px;
-    min-width: 80px;
-    max-width: 80px;
-    height: auto;
-  }
-
-  .popup-card-image {
-    width: 100%;
-    height: 100%;
-    min-height: 90px;
-    max-height: none;
-  }
-
-  .popup-card-content {
-    padding: 8px;
-  }
-
-  .popup-card-title {
-    font-size: 11px;
-    -webkit-line-clamp: 2;
   }
 }

@@ -774,26 +774,16 @@ const SellerProfile = () => {
                 : 'Your Name'}
             </h2>
             
-            <div className="seller-profile-badges">
-              <span className={`seller-profile-badge ${sellerVerified ? 'verified' : 'pending'}`}>
-                {sellerVerified ? (
-                  <>
-                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none">
-                      <path d="M20 6L9 17l-5-5" stroke="currentColor" strokeWidth="3" strokeLinecap="round"/>
-                    </svg>
-                    Verified
-                  </>
-                ) : (
-                  <>
-                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none">
-                      <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="2"/>
-                      <path d="M12 6v6l4 2" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
-                    </svg>
-                    Pending
-                  </>
-                )}
-              </span>
-            </div>
+            {sellerVerified && (
+              <div className="seller-profile-badges">
+                <span className="seller-profile-badge verified">
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none">
+                    <path d="M20 6L9 17l-5-5" stroke="currentColor" strokeWidth="3" strokeLinecap="round"/>
+                  </svg>
+                  Verified
+                </span>
+              </div>
+            )}
           </div>
 
           <div className="seller-profile-stats-grid">

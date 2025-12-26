@@ -335,23 +335,77 @@ const MapView = ({
         </div>
       `;
 
-      // Create popup card - Horizontal Layout (Image Left, Content Right)
+      // Get all images for carousel
+      const allImages = property.images && Array.isArray(property.images) && property.images.length > 0
+        ? property.images.map(img => typeof img === 'string' ? img : img.url)
+        : (property.cover_image ? [property.cover_image] : [thumbnail]);
+      
+      const currentImageIndex = 0;
+      const totalImages = allImages.length;
+      
+      // Format description (truncate if too long)
+      const description = property.description || property.location || 'Property description';
+      const truncatedDescription = description.length > 60 ? description.substring(0, 60) + '...' : description;
+      
+      // Get rating (if available, otherwise use placeholder)
+      const rating = property.rating || 4.96;
+      const reviewCount = property.review_count || property.reviews || 67;
+      
+      // Format dates (if available)
+      const checkInDate = property.check_in_date || '4 Jan';
+      const checkOutDate = property.check_out_date || '9 Jan';
+      const nights = property.nights || 5;
+      
+      // Create popup card - Vertical Layout (Image Top, Content Bottom)
       const popup = new mapboxgl.Popup({ 
         offset: 25, 
-        closeButton: true, 
+        closeButton: false, // We'll add custom close button
         closeOnClick: false,
-        anchor: 'bottom'
+        anchor: 'bottom',
+        className: 'map-card-container'
       })
         .setHTML(`
           <div class="property-popup-card">
             <div class="popup-card-image-container">
-              <img src="${thumbnail}" alt="${property.title || 'Property'}" class="popup-card-image" onerror="this.src='/placeholder-property.jpg';" />
+              <img src="${allImages[currentImageIndex]}" alt="${property.title || 'Property'}" class="popup-card-image" onerror="this.src='/placeholder-property.jpg';" />
+              <div class="popup-card-image-overlay">
+                <button class="popup-card-heart-btn" data-property-id="${property.id}" title="Save">
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path>
+                  </svg>
+                </button>
+                <button class="popup-card-close-btn" title="Close">
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                    <line x1="18" y1="6" x2="6" y2="18"></line>
+                    <line x1="6" y1="6" x2="18" y2="18"></line>
+                  </svg>
+                </button>
+              </div>
+              ${totalImages > 1 ? `
+                <div class="popup-card-pagination">
+                  ${Array.from({ length: totalImages }, (_, i) => `
+                    <span class="pagination-dot ${i === currentImageIndex ? 'active' : ''}" data-image-index="${i}"></span>
+                  `).join('')}
+                </div>
+              ` : ''}
             </div>
             <div class="popup-card-content">
-              <p class="popup-card-title">${property.title || 'Property'}</p>
-              <p class="popup-card-location">${property.location || 'Location not specified'}</p>
-              <p class="popup-card-price">₹${formatPrice(property.price)}</p>
-              <button class="popup-card-button" data-property-id="${property.id}">View Details</button>
+              <div class="popup-card-header">
+                <h3 class="popup-card-title">${property.title || 'Property'}</h3>
+                <div class="popup-card-rating">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="2">
+                    <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
+                  </svg>
+                  <span>${rating}</span>
+                  <span class="review-count">(${reviewCount})</span>
+                </div>
+              </div>
+              <p class="popup-card-description">${truncatedDescription}</p>
+              <div class="popup-card-price-section">
+                <span class="popup-card-price">₹${formatPrice(property.price)}</span>
+                <span class="popup-card-duration">for ${nights} night${nights !== 1 ? 's' : ''}</span>
+              </div>
+              <p class="popup-card-dates">${checkInDate}–${checkOutDate}</p>
             </div>
           </div>
         `);
@@ -413,57 +467,111 @@ const MapView = ({
         });
       }
 
-      // Handle popup "View Details" button clicks
+      // Handle popup button clicks (heart, close, pagination)
       popup.on('open', () => {
         // Use setTimeout to ensure DOM is ready
         setTimeout(() => {
           const popupElement = popup.getElement();
-          const viewBtn = popupElement?.querySelector(`[data-property-id="${property.id}"]`);
+          if (!popupElement) return;
           
-          if (viewBtn) {
-            // Remove any existing listeners by cloning
-            const newViewBtn = viewBtn.cloneNode(true);
-            viewBtn.parentNode.replaceChild(newViewBtn, viewBtn);
-            
-            newViewBtn.addEventListener('click', (e) => {
+          // Handle close button
+          const closeBtn = popupElement.querySelector('.popup-card-close-btn');
+          if (closeBtn) {
+            closeBtn.addEventListener('click', (e) => {
               e.preventDefault();
               e.stopPropagation();
-              console.log('View Details button clicked for property:', property.id);
-              // Navigate using React Router
-              navigateToProperty(property.id);
+              marker.getPopup().remove();
+              lastOpenedPopupRef.current = null;
+              setSelectedProperty(null);
             });
-            
-            // Ensure button is clickable
-            newViewBtn.style.cursor = 'pointer';
-            newViewBtn.style.pointerEvents = 'auto';
           }
+          
+          // Handle heart button (favorite)
+          const heartBtn = popupElement.querySelector('.popup-card-heart-btn');
+          if (heartBtn) {
+            heartBtn.addEventListener('click', (e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              console.log('Heart button clicked for property:', property.id);
+              // TODO: Implement favorite functionality
+              // For now, just toggle a visual state
+              const svg = heartBtn.querySelector('svg');
+              if (svg) {
+                const isFilled = svg.getAttribute('fill') === 'red';
+                svg.setAttribute('fill', isFilled ? 'none' : 'red');
+                svg.setAttribute('stroke', isFilled ? 'white' : 'red');
+              }
+            });
+          }
+          
+          // Handle pagination dots
+          const paginationDots = popupElement.querySelectorAll('.pagination-dot');
+          paginationDots.forEach((dot, index) => {
+            dot.addEventListener('click', (e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              const imageIndex = parseInt(dot.getAttribute('data-image-index') || index);
+              const imageContainer = popupElement.querySelector('.popup-card-image-container');
+              const image = imageContainer?.querySelector('.popup-card-image');
+              
+              if (image && allImages[imageIndex]) {
+                image.src = allImages[imageIndex];
+                
+                // Update active dot
+                paginationDots.forEach((d, i) => {
+                  if (i === imageIndex) {
+                    d.classList.add('active');
+                  } else {
+                    d.classList.remove('active');
+                  }
+                });
+              }
+            });
+          });
         }, 100);
       });
       
-      // Backup method - attach listener when popup is added to DOM
-      const attachButtonListener = () => {
+      // Backup method - attach listeners when popup is added to DOM
+      const attachButtonListeners = () => {
         const popupElement = popup.getElement();
-        if (popupElement) {
-          const viewBtn = popupElement.querySelector(`[data-property-id="${property.id}"]`);
-          if (viewBtn && !viewBtn.hasAttribute('data-listener-attached')) {
-            viewBtn.setAttribute('data-listener-attached', 'true');
-            viewBtn.style.cursor = 'pointer';
-            viewBtn.style.pointerEvents = 'auto';
-            viewBtn.addEventListener('click', (e) => {
-              e.preventDefault();
-              e.stopPropagation();
-              console.log('View Details button clicked (backup method) for property:', property.id);
-              navigateToProperty(property.id);
-            });
-          }
+        if (!popupElement) return;
+        
+        // Close button
+        const closeBtn = popupElement.querySelector('.popup-card-close-btn');
+        if (closeBtn && !closeBtn.hasAttribute('data-listener-attached')) {
+          closeBtn.setAttribute('data-listener-attached', 'true');
+          closeBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            marker.getPopup().remove();
+            lastOpenedPopupRef.current = null;
+            setSelectedProperty(null);
+          });
+        }
+        
+        // Heart button
+        const heartBtn = popupElement.querySelector('.popup-card-heart-btn');
+        if (heartBtn && !heartBtn.hasAttribute('data-listener-attached')) {
+          heartBtn.setAttribute('data-listener-attached', 'true');
+          heartBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            console.log('Heart button clicked for property:', property.id);
+            const svg = heartBtn.querySelector('svg');
+            if (svg) {
+              const isFilled = svg.getAttribute('fill') === 'red';
+              svg.setAttribute('fill', isFilled ? 'none' : 'red');
+              svg.setAttribute('stroke', isFilled ? 'white' : 'red');
+            }
+          });
         }
       };
       
-      // Try multiple times to ensure button is in DOM
+      // Try multiple times to ensure buttons are in DOM
       popup.on('open', () => {
-        attachButtonListener();
-        setTimeout(attachButtonListener, 50);
-        setTimeout(attachButtonListener, 150);
+        attachButtonListeners();
+        setTimeout(attachButtonListeners, 50);
+        setTimeout(attachButtonListeners, 150);
       });
 
       // Track popup close
