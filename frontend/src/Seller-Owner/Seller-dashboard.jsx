@@ -348,7 +348,7 @@ const SellerDashboardContent = () => {
                 {user?.full_name || user?.name || user?.email?.split('@')[0] || 'User'}
               </span>
               <span className="seller-user-role">
-                {user?.user_type === 'seller' ? 'Pro Seller' : 
+                {user?.user_type === 'seller' ? 'seller' : 
                  user?.user_type === 'agent' ? 'Agent/Builder' : 
                  'Seller'}
               </span>
@@ -424,7 +424,7 @@ const SellerDashboardContent = () => {
               {user?.name || user?.first_name + ' ' + user?.last_name || user?.email || 'User'}
             </span>
             <span className="mobile-user-role">
-              {user?.user_type === 'agent' ? 'Agent/Builder' : 'Pro Seller'}
+              {user?.user_type === 'agent' ? 'Agent/Builder' : 'seller'}
             </span>
           </div>
         </div>
