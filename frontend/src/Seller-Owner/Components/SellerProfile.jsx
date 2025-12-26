@@ -773,6 +773,7 @@ const SellerProfile = () => {
                 ? `${formData.firstName} ${formData.lastName}`.trim() 
                 : 'Your Name'}
             </h2>
+            <p className="seller-profile-role">Seller</p>
             
             {sellerVerified && (
               <div className="seller-profile-badges">
