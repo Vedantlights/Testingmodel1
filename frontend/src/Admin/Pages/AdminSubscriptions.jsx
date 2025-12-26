@@ -52,7 +52,32 @@ const AdminSubscriptions = () => {
         credentials: 'include'
       });
 
-      const data = await response.json();
+      // Get response text first to see if it's JSON
+      const responseText = await response.text();
+      
+      if (!response.ok) {
+        // Try to parse as JSON to get error details
+        let errorData = null;
+        try {
+          errorData = JSON.parse(responseText);
+        } catch (e) {
+          // Not JSON, use raw text
+        }
+        throw new Error(errorData?.message || errorData?.data?.message || 
+          (response.status === 401 ? 'Authentication required. Please log in again.' :
+           response.status === 403 ? 'Access denied. Insufficient permissions.' :
+           response.status === 500 ? 'Server error. Please try again later.' :
+           `HTTP error! status: ${response.status}`));
+      }
+
+      let data;
+      try {
+        data = JSON.parse(responseText);
+      } catch (e) {
+        console.error('Failed to parse JSON:', e);
+        console.error('Response text:', responseText);
+        throw new Error('Invalid JSON response from server: ' + responseText.substring(0, 200));
+      }
 
       if (data.success) {
         setSubscriptions(data.data.subscriptions || []);
@@ -62,7 +87,11 @@ const AdminSubscriptions = () => {
       }
     } catch (err) {
       console.error('Error fetching subscriptions:', err);
-      setError('Failed to load subscriptions');
+      if (err.name === 'TypeError' && err.message.includes('fetch')) {
+        setError('Network error. Please check your connection and ensure the backend server is running.');
+      } else {
+        setError(err.message || 'Failed to load subscriptions');
+      }
     } finally {
       setLoading(false);
     }

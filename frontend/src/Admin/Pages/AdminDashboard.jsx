@@ -33,6 +33,9 @@ const AdminDashboard = () => {
   }, [dateRange]);
 
   const fetchDashboardStats = async () => {
+    setLoading(true);
+    setError(null);
+    
     try {
       const params = new URLSearchParams();
       if (dateRange !== 'all') {
@@ -49,7 +52,41 @@ const AdminDashboard = () => {
         credentials: 'include' // Use HTTP-only cookie for authentication
       });
 
-      const data = await response.json();
+      // Get response text first to see if it's JSON
+      const responseText = await response.text();
+      console.log('Dashboard API Response Status:', response.status);
+      console.log('Dashboard API Raw Response:', responseText.substring(0, 500));
+      
+      if (!response.ok) {
+        // Try to parse as JSON to get error details
+        let errorData = null;
+        try {
+          errorData = JSON.parse(responseText);
+        } catch (e) {
+          // Not JSON, use raw text
+        }
+        
+        const errorMessage = errorData?.message || errorData?.data?.message || 
+          (response.status === 401 ? 'Authentication required. Please log in again.' :
+           response.status === 403 ? 'Access denied. Insufficient permissions.' :
+           response.status === 500 ? 'Server error. Please try again later.' :
+           `HTTP error! status: ${response.status}`);
+        
+        setError(errorMessage);
+        return;
+      }
+
+      let data;
+      try {
+        data = JSON.parse(responseText);
+      } catch (e) {
+        console.error('Failed to parse JSON:', e);
+        console.error('Response text:', responseText);
+        setError('Invalid JSON response from server: ' + responseText.substring(0, 200));
+        return;
+      }
+      
+      console.log('Dashboard API Parsed Response:', data);
 
       if (data.success) {
         const statsData = data.data;
@@ -112,7 +149,15 @@ const AdminDashboard = () => {
       }
     } catch (err) {
       console.error('Error fetching dashboard stats:', err);
-      setError('Failed to load dashboard data');
+      
+      // Handle network errors
+      if (err.name === 'TypeError' && err.message.includes('fetch')) {
+        setError('Network error. Please check your connection and ensure the backend server is running.');
+      } else if (err.message) {
+        setError(err.message);
+      } else {
+        setError('Failed to load dashboard data. Please try again later.');
+      }
     } finally {
       setLoading(false);
     }
