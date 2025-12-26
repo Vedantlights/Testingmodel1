@@ -26,6 +26,8 @@ export const API_ENDPOINTS = {
   LOGIN: '/auth/login.php',
   REGISTER: '/auth/register.php',
   VERIFY_TOKEN: '/auth/verify.php',
+  FORGOT_PASSWORD_INIT: '/auth/forgot-password-init.php',
+  RESET_PASSWORD: '/auth/reset-password.php',
   
   // Seller Properties
   SELLER_PROPERTIES: '/seller/properties/list.php',

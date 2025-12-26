@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { Eye, EyeOff, User, Building2, Home } from "lucide-react";
 import { useAuth } from "../../context/AuthContext";
+import ForgotPasswordModal from "../../components/ForgotPasswordModal";
 import "../styles/Login.css";
 
 const Login = () => {
@@ -19,6 +20,7 @@ const Login = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [loginError, setLoginError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [showForgotPasswordModal, setShowForgotPasswordModal] = useState(false);
 
   const [formData, setFormData] = useState({
     email: "",
@@ -228,7 +230,11 @@ const Login = () => {
               />
               Remember me
             </label>
-            <button onClick={() => alert("Forgot password clicked")}>
+            <button 
+              type="button"
+              onClick={() => setShowForgotPasswordModal(true)}
+              className="forgot-password-link"
+            >
               Forgot Password?
             </button>
           </div>
@@ -247,6 +253,12 @@ const Login = () => {
           </div>
         </div>
       </div>
+
+      {/* Forgot Password Modal */}
+      <ForgotPasswordModal
+        isOpen={showForgotPasswordModal}
+        onClose={() => setShowForgotPasswordModal(false)}
+      />
     </div>
   );
 };

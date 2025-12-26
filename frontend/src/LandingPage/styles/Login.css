@@ -223,6 +223,23 @@
   text-decoration: underline;
 }
 
+.forgot-password-link {
+  background: none;
+  border: none;
+  color: #7b5fc9;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  padding: 0;
+  text-decoration: none;
+  transition: color 0.2s;
+}
+
+.forgot-password-link:hover {
+  color: #5f3dc4;
+  text-decoration: underline;
+}
+
 /* Login button */
 .login-btn {
   width: 100%;
