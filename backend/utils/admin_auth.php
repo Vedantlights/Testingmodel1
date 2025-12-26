@@ -75,3 +75,4 @@ function requireAdminRole($allowedRoles) {
     
     return $admin;
 }
+}
