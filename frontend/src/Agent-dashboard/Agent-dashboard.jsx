@@ -191,7 +191,8 @@ const AgentDashboardContent = () => {
 
   const handleLogout = () => {
     logout();
-    navigate('/');
+    // Navigate to landing page home after logout
+    window.location.href = '/';
   };
 
   // Close dropdown when clicking outside

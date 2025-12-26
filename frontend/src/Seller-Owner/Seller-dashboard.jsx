@@ -166,8 +166,8 @@ const SellerDashboardContent = () => {
   const handleLogout = () => {
     // Use auth context logout which handles all cleanup
     authLogout();
-    // Navigate to home/login page after logout
-    navigate('/');
+    // Navigate to landing page home after logout
+    window.location.href = '/';
   };
 
   const handleTabChange = (tab) => {

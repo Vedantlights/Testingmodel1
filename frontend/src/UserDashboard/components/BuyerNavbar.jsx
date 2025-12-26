@@ -16,7 +16,8 @@ const Navbar = () => {
   // Handle logout
   const handleLogout = () => {
     logout();
-    navigate('/');
+    // Navigate to landing page home after logout
+    window.location.href = '/';
   };
   
   // Listen for unread count changes from ChatUs component
