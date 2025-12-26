@@ -227,10 +227,10 @@
 
 /* Content Section */
 .popup-card-content {
-  padding: 14px 16px;
+  padding: 16px 18px;
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 10px;
   flex: 0 0 40%;
   min-height: 0;
   overflow-y: auto;
@@ -239,30 +239,31 @@
 .popup-card-header {
   display: flex;
   align-items: flex-start;
-  margin-bottom: 4px;
+  margin-bottom: 0;
 }
 
 .popup-card-title {
-  font-size: 16px;
-  font-weight: 600;
+  font-size: 17px;
+  font-weight: 700;
   color: #1a1a1a;
   margin: 0;
-  padding-top: 12px;
+  padding-top: 14px;
   border-top: 1px solid #e5e5e5;
-  line-height: 1.3;
+  line-height: 1.4;
   flex: 1;
   display: -webkit-box;
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
   overflow: hidden;
   text-overflow: ellipsis;
+  letter-spacing: -0.2px;
 }
 
 .popup-card-description {
   font-size: 13px;
-  color: #666;
+  color: #717171;
   margin: 0;
-  line-height: 1.4;
+  line-height: 1.5;
   display: -webkit-box;
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
@@ -274,37 +275,25 @@
   display: flex;
   align-items: baseline;
   gap: 6px;
-  margin-top: 4px;
+  margin-top: 2px;
 }
 
 .popup-card-price {
-  font-size: 18px;
+  font-size: 20px;
   font-weight: 700;
   color: #1a1a1a;
   margin: 0;
-}
-
-.popup-card-duration {
-  font-size: 14px;
-  color: #666;
-  font-weight: 400;
-}
-
-.popup-card-dates {
-  font-size: 13px;
-  color: #666;
-  margin: 0;
-  font-weight: 400;
+  letter-spacing: -0.3px;
 }
 
 .popup-card-view-details-btn {
   width: 100%;
-  margin-top: 12px;
-  padding: 10px 16px;
+  margin-top: 14px;
+  padding: 11px 18px;
   background: #003B73;
   color: white;
   border: none;
-  border-radius: 8px;
+  border-radius: 10px;
   font-size: 14px;
   font-weight: 600;
   cursor: pointer;
@@ -315,12 +304,13 @@
   transition: all 0.2s ease;
   text-transform: none;
   letter-spacing: 0;
+  box-shadow: 0 2px 8px rgba(0, 59, 115, 0.2);
 }
 
 .popup-card-view-details-btn:hover {
   background: #0056b3;
   transform: translateY(-1px);
-  box-shadow: 0 4px 8px rgba(0, 59, 115, 0.3);
+  box-shadow: 0 4px 12px rgba(0, 59, 115, 0.35);
 }
 
 .popup-card-view-details-btn:active {
@@ -363,12 +353,13 @@
   }
 
   .popup-card-content {
-    padding: 12px 14px;
-    gap: 6px;
+    padding: 14px 16px;
+    gap: 8px;
   }
 
   .popup-card-title {
-    font-size: 15px;
+    font-size: 16px;
+    padding-top: 12px;
   }
 
   .popup-card-description {
@@ -376,15 +367,7 @@
   }
 
   .popup-card-price {
-    font-size: 16px;
-  }
-
-  .popup-card-duration {
-    font-size: 13px;
-  }
-
-  .popup-card-dates {
-    font-size: 12px;
+    font-size: 18px;
   }
 
   .popup-card-view-details-btn {
@@ -481,14 +464,6 @@
     font-size: 16px;
   }
 
-  .popup-card-duration {
-    font-size: 12px;
-  }
-
-  .popup-card-dates {
-    font-size: 11px;
-  }
-
   .popup-card-view-details-btn {
     padding: 8px 12px;
     font-size: 12px;
@@ -556,14 +531,6 @@
 
   .popup-card-price {
     font-size: 15px;
-  }
-
-  .popup-card-duration {
-    font-size: 11px;
-  }
-
-  .popup-card-dates {
-    font-size: 10px;
   }
 
   /* Even smaller price tags */

@@ -574,9 +574,7 @@ const MapView = ({
               <p class="popup-card-description">${truncatedDescription}</p>
               <div class="popup-card-price-section">
                 <span class="popup-card-price">₹${formatPrice(property.price)}</span>
-                <span class="popup-card-duration">for ${nights} night${nights !== 1 ? 's' : ''}</span>
               </div>
-              <p class="popup-card-dates">${checkInDate}–${checkOutDate}</p>
               <button class="popup-card-view-details-btn" data-property-id="${property.id}" title="View Property Details">
                 View Details
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
