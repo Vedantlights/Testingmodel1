@@ -101,27 +101,31 @@
   overflow: hidden;
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.18);
   background: #ffffff;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
 }
 
 .mapboxgl-popup-close-button {
   display: none; /* Hide default close button, using custom one */
 }
 
-/* Property Popup Card - Horizontal Layout (Image Left 60%, Content Right 40%) */
+/* Property Popup Card - Vertical Layout (Image Top, Content Bottom) */
 .property-popup-card {
   display: flex;
-  flex-direction: row;
+  flex-direction: column;
   width: 100%;
+  height: 100%;
   background: #ffffff;
 }
 
 .popup-card-image-container {
-  width: 60%;
+  width: 100%;
   position: relative;
   overflow: hidden;
   background: linear-gradient(135deg, #f0f0f0 0%, #e0e0e0 100%);
-  aspect-ratio: 4 / 3;
-  flex-shrink: 0;
+  flex: 0 0 60%;
+  min-height: 0;
 }
 
 .popup-card-image {
@@ -223,12 +227,12 @@
 
 /* Content Section */
 .popup-card-content {
-  width: 40%;
   padding: 14px 16px;
   display: flex;
   flex-direction: column;
   gap: 8px;
-  flex-shrink: 0;
+  flex: 0 0 40%;
+  min-height: 0;
   overflow-y: auto;
 }
 
@@ -254,22 +258,11 @@
   text-overflow: ellipsis;
 }
 
-.popup-card-location {
-  display: flex;
-  align-items: center;
-  gap: 6px;
+.popup-card-description {
   font-size: 13px;
   color: #666;
-  margin: 4px 0;
+  margin: 0;
   line-height: 1.4;
-}
-
-.popup-card-location svg {
-  flex-shrink: 0;
-  color: #666;
-}
-
-.popup-card-location span {
   display: -webkit-box;
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
@@ -281,8 +274,7 @@
   display: flex;
   align-items: baseline;
   gap: 6px;
-  margin-top: 8px;
-  margin-bottom: 4px;
+  margin-top: 4px;
 }
 
 .popup-card-price {
@@ -290,6 +282,19 @@
   font-weight: 700;
   color: #1a1a1a;
   margin: 0;
+}
+
+.popup-card-duration {
+  font-size: 14px;
+  color: #666;
+  font-weight: 400;
+}
+
+.popup-card-dates {
+  font-size: 13px;
+  color: #666;
+  margin: 0;
+  font-weight: 400;
 }
 
 .popup-card-view-details-btn {
@@ -424,12 +429,7 @@
   }
 
   .popup-card-image-container {
-    width: 60%;
-    aspect-ratio: 4 / 3;
-  }
-
-  .popup-card-content {
-    width: 40%;
+    aspect-ratio: 16 / 11;
   }
 
   .popup-card-image-overlay {
@@ -517,12 +517,7 @@
   }
 
   .popup-card-image-container {
-    width: 60%;
-    aspect-ratio: 4 / 3;
-  }
-
-  .popup-card-content {
-    width: 40%;
+    aspect-ratio: 16 / 12;
   }
 
   .popup-card-image-overlay {
@@ -588,12 +583,7 @@
   }
 
   .popup-card-image-container {
-    width: 60%;
-    aspect-ratio: 4 / 3;
-  }
-
-  .popup-card-content {
-    width: 40%;
+    aspect-ratio: 16 / 13;
   }
 
   .popup-card-content {

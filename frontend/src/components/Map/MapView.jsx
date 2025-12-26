@@ -514,8 +514,14 @@ const MapView = ({
       const currentImageIndex = 0;
       const totalImages = allImages.length;
       
-      // Get location for display
-      const location = property.location || 'Location not available';
+      // Format description (truncate if too long)
+      const description = property.description || property.location || 'Property description';
+      const truncatedDescription = description.length > 60 ? description.substring(0, 60) + '...' : description;
+      
+      // Format dates (if available)
+      const checkInDate = property.check_in_date || '4 Jan';
+      const checkOutDate = property.check_out_date || '9 Jan';
+      const nights = property.nights || 5;
       
       // Create popup card - Vertical Layout (Image Top, Content Bottom)
       const popup = new mapboxgl.Popup({ 
@@ -565,16 +571,12 @@ const MapView = ({
               <div class="popup-card-header">
                 <h3 class="popup-card-title">${property.title || 'Property'}</h3>
               </div>
-              <div class="popup-card-location">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                  <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path>
-                  <circle cx="12" cy="10" r="3"></circle>
-                </svg>
-                <span>${location}</span>
-              </div>
+              <p class="popup-card-description">${truncatedDescription}</p>
               <div class="popup-card-price-section">
                 <span class="popup-card-price">₹${formatPrice(property.price)}</span>
+                <span class="popup-card-duration">for ${nights} night${nights !== 1 ? 's' : ''}</span>
               </div>
+              <p class="popup-card-dates">${checkInDate}–${checkOutDate}</p>
               <button class="popup-card-view-details-btn" data-property-id="${property.id}" title="View Property Details">
                 View Details
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
