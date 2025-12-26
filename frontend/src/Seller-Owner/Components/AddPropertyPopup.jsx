@@ -17,6 +17,7 @@ import {
 } from "../../utils/validation";
 import LocationPicker from "../../components/Map/LocationPicker";
 import LocationAutoSuggest from "../../components/LocationAutoSuggest";
+import StateAutoSuggest from "../../components/StateAutoSuggest";
 import "../styles/AddPropertyPopup.css";
 
 const STEPS = [
@@ -996,11 +997,16 @@ newErrors.description = "Description is required";
       <div className="form-row two-cols">
         <div className="seller-popup-form-group">
           <label>State (Optional)</label>
-          <input
-            type="text"
+          <StateAutoSuggest
             placeholder="Enter state"
             value={formData.state || ''}
-            onChange={(e) => !isRestrictedEdit && handleChange('state', e.target.value)}
+            onChange={(stateName) => {
+              if (!isRestrictedEdit) {
+                handleChange('state', stateName);
+              }
+            }}
+            className={errors.state ? "seller-state-error" : ""}
+            error={errors.state}
             disabled={isRestrictedEdit}
           />
         </div>

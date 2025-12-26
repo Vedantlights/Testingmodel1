@@ -299,6 +299,7 @@ const LocationAutoSuggest = ({
   onSearch,
   className = '',
   error,
+  disabled = false,
 }) => {
   const [inputValue, setInputValue] = useState(value || '');
   const [suggestions, setSuggestions] = useState([]);
@@ -461,6 +462,7 @@ const LocationAutoSuggest = ({
   }, [inputValue, fetchSuggestions]);
 
   const handleInputChange = (e) => {
+    if (disabled) return; // Prevent changes when disabled
     const newValue = e.target.value;
     setInputValue(newValue);
     setSelectedLocation(null);
@@ -473,7 +475,7 @@ const LocationAutoSuggest = ({
   };
 
   const handleSelect = (item) => {
-    if (!item) return;
+    if (disabled || !item) return; // Prevent selection when disabled
 
     setSelectedLocation(item);
     setInputValue(item.fullAddress || item.placeName || '');
@@ -491,6 +493,8 @@ const LocationAutoSuggest = ({
   };
 
   const handleKeyDown = (e) => {
+    if (disabled) return; // Prevent keyboard navigation when disabled
+    
     if (e.key === 'ArrowDown') {
       e.preventDefault();
       if (!suggestions.length) return;
@@ -528,6 +532,7 @@ const LocationAutoSuggest = ({
   };
 
   const handleClear = () => {
+    if (disabled) return; // Prevent clearing when disabled
     setInputValue('');
     setSuggestions([]);
     setIsOpen(false);
@@ -550,11 +555,13 @@ const LocationAutoSuggest = ({
           onKeyDown={handleKeyDown}
           className="location-input"
           autoComplete="off"
+          disabled={disabled}
+          readOnly={disabled}
         />
         {isLoading && (
           <span className="location-spinner" aria-label="Loading" />
         )}
-        {!isLoading && inputValue && (
+        {!isLoading && inputValue && !disabled && (
           <button
             type="button"
             className="location-clear-btn"
@@ -570,7 +577,7 @@ const LocationAutoSuggest = ({
         <div className="location-error-text">{errorState}</div>
       )}
 
-      {isOpen && suggestions.length > 0 && (
+      {isOpen && suggestions.length > 0 && !disabled && (
         <ul className="location-dropdown" role="listbox">
           {suggestions.map((item, index) => (
             <li

@@ -4,6 +4,7 @@ import { useProperty } from "./PropertyContext";
 import { sellerPropertiesAPI } from "../../services/api.service";
 import LocationPicker from "../../components/Map/LocationPicker";
 import LocationAutoSuggest from "../../components/LocationAutoSuggest";
+import StateAutoSuggest from "../../components/StateAutoSuggest";
 import "../styles/AddPropertyPopup.css";
 
 const STEPS = [
@@ -871,11 +872,16 @@ export default function AddPropertyPopup({ onClose, editIndex = null, initialDat
         <div className="form-row two-cols">
           <div className="form-group">
             <label>State (Optional)</label>
-            <input
-              type="text"
+            <StateAutoSuggest
               placeholder="Enter state"
               value={formData.state || ''}
-              onChange={(e) => !isRestrictedEdit && handleChange('state', e.target.value)}
+              onChange={(stateName) => {
+                if (!isRestrictedEdit) {
+                  handleChange('state', stateName);
+                }
+              }}
+              className={errors.state ? 'agent-state-error' : ''}
+              error={errors.state}
               disabled={isRestrictedEdit}
             />
           </div>

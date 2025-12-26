@@ -86,7 +86,10 @@
    align-items:center;
     padding:2rem 2rem; 
     background:linear-gradient(180deg,#f8fafc 0%,#fff 100%); 
-    border-bottom:1px solid var(--border-color); gap:0;  }
+    border-bottom:1px solid var(--border-color); 
+    gap:0;
+    overflow-y: hidden;
+    overflow-y: hidden;  }
 
 
 .step-item { display:flex; align-items:center; position:relative; }
@@ -357,7 +360,7 @@
   .form-row.two-cols, .form-row.three-cols { grid-template-columns: 1fr; }
   .property-type-grid { grid-template-columns: repeat(2, 1fr); }
   .amenities-grid { grid-template-columns: repeat(2, 1fr); }
-  .step-indicator { padding:1.5rem 1rem; overflow-x:auto; }
+  .step-indicator { padding:1.5rem 1rem; overflow-x:auto; overflow-y: hidden; }
 }
 @media (max-width: 480px) {
   .image-preview-grid { grid-template-columns: repeat(2, 1fr); }

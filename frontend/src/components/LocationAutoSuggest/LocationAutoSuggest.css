@@ -35,6 +35,19 @@
   border-color: #dc2626;
 }
 
+.location-input:disabled {
+  background-color: #f3f4f6;
+  color: #6b7280;
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+.location-input:disabled:focus {
+  border-color: #d1d5db;
+  background-color: #f3f4f6;
+  box-shadow: none;
+}
+
 .location-clear-btn {
   position: absolute;
   right: 0.5rem;
