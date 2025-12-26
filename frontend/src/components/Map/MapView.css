@@ -227,10 +227,10 @@
 
 /* Content Section */
 .popup-card-content {
-  padding: 16px 18px;
+  padding: 16px 18px 18px 18px;
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 0;
   flex: 0 0 40%;
   min-height: 0;
   overflow-y: auto;
@@ -239,7 +239,8 @@
 .popup-card-header {
   display: flex;
   align-items: flex-start;
-  margin-bottom: 0;
+  margin: 0;
+  padding: 0;
 }
 
 .popup-card-title {
@@ -247,7 +248,7 @@
   font-weight: 700;
   color: #1a1a1a;
   margin: 0;
-  padding-top: 14px;
+  padding: 14px 0 8px 0;
   border-top: 1px solid #e5e5e5;
   line-height: 1.4;
   flex: 1;
@@ -263,6 +264,7 @@
   font-size: 13px;
   color: #717171;
   margin: 0;
+  padding: 8px 0 0 0;
   line-height: 1.5;
   display: -webkit-box;
   -webkit-line-clamp: 2;
@@ -274,8 +276,9 @@
 .popup-card-price-section {
   display: flex;
   align-items: baseline;
-  gap: 6px;
-  margin-top: 2px;
+  gap: 0;
+  margin: 12px 0 0 0;
+  padding: 0;
 }
 
 .popup-card-price {
@@ -283,12 +286,13 @@
   font-weight: 700;
   color: #1a1a1a;
   margin: 0;
+  padding: 0;
   letter-spacing: -0.3px;
 }
 
 .popup-card-view-details-btn {
   width: 100%;
-  margin-top: 14px;
+  margin: 14px 0 0 0;
   padding: 11px 18px;
   background: #003B73;
   color: white;
