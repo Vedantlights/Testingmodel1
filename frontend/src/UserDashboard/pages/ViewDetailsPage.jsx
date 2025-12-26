@@ -593,6 +593,7 @@ const ViewDetailsPage = () => {
                         bathrooms: prop.bathrooms,
                         status: prop.status === 'sale' ? 'For Sale' : 'For Rent',
                         type: prop.property_type,
+                        property_type: prop.property_type,
                         description: prop.description || '',
                         amenities: Array.isArray(prop.amenities) ? prop.amenities : (prop.amenities ? prop.amenities.split(',') : []),
                         images: Array.isArray(prop.images) && prop.images.length > 0 
@@ -604,6 +605,19 @@ const ViewDetailsPage = () => {
                         price_negotiable: prop.price_negotiable || prop.priceNegotiable || false,
                         maintenance_charges: prop.maintenance_charges || prop.maintenanceCharges || null,
                         deposit_amount: prop.deposit_amount || prop.depositAmount || null,
+                        // Additional property details
+                        balconies: prop.balconies || null,
+                        floor: prop.floor || null,
+                        total_floors: prop.total_floors || null,
+                        totalFloors: prop.total_floors || null,
+                        facing: prop.facing || null,
+                        age: prop.age || null,
+                        furnishing: prop.furnishing || null,
+                        carpet_area: prop.carpet_area || null,
+                        carpetArea: prop.carpet_area || null,
+                        state: prop.state || null,
+                        additional_address: prop.additional_address || null,
+                        additionalAddress: prop.additional_address || null,
                         seller_id: receiverId, // Keep for backward compatibility
                         agent_id: ownerUserType === 'agent' ? receiverId : null,
                         user_type: ownerUserType, // Property owner's user_type

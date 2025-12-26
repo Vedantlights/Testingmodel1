@@ -37,8 +37,8 @@
     left: auto;
     width: 36px;
     height: 36px;
-    background: #000000;
-    border: none;
+    background: transparent;
+    border: 2px solid #000000;
     border-radius: 50%;
     display: flex;
     align-items: center;
@@ -51,12 +51,12 @@
 .details-container-actions .buyer-favourite-btn:hover,
 .details-container-actions .buyer-share-btn:hover {
     transform: scale(1.1);
-    background: #1a1a1a;
+    border-color: #1a1a1a;
 }
 
 .details-container-actions .buyer-favourite-btn svg,
 .details-container-actions .buyer-share-btn svg {
-    color: #ffffff;
+    color: #000000;
     fill: none;
     transition: color 0.2s ease, fill 0.2s ease;
     pointer-events: none;
@@ -64,6 +64,7 @@
 
 .details-container-actions .buyer-favourite-btn.active {
     background: #ef4444;
+    border-color: #ef4444;
 }
 
 .details-container-actions .buyer-favourite-btn.active svg {
@@ -72,11 +73,11 @@
 }
 
 .details-container-actions .buyer-share-btn:hover {
-    background: #1a1a1a;
+    border-color: #1a1a1a;
 }
 
 .details-container-actions .buyer-share-btn:hover svg {
-    color: white;
+    color: #000000;
 }
 
 @media (max-width: 743px) {
