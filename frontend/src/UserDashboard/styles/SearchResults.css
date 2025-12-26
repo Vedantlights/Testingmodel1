@@ -743,8 +743,13 @@
 
 /* Airbnb-style popup */
 .search-results-map .mapboxgl-popup {
-  max-width: 240px !important;
-  width: 240px;
+  max-width: 320px !important;
+  width: 320px !important;
+}
+
+.search-results-map .mapboxgl-popup.map-card-container {
+  max-width: 320px !important;
+  width: 320px !important;
 }
 
 .search-results-map .mapboxgl-popup-content {

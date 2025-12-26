@@ -232,9 +232,8 @@
 
 .popup-card-header {
   display: flex;
-  justify-content: space-between;
   align-items: flex-start;
-  gap: 12px;
+  margin-bottom: 4px;
 }
 
 .popup-card-title {
@@ -249,28 +248,6 @@
   -webkit-box-orient: vertical;
   overflow: hidden;
   text-overflow: ellipsis;
-}
-
-.popup-card-rating {
-  display: flex;
-  align-items: center;
-  gap: 4px;
-  flex-shrink: 0;
-  font-size: 14px;
-  font-weight: 500;
-  color: #1a1a1a;
-}
-
-.popup-card-rating svg {
-  width: 14px;
-  height: 14px;
-  fill: #FFD700;
-  color: #FFD700;
-}
-
-.popup-card-rating .review-count {
-  color: #666;
-  font-weight: 400;
 }
 
 .popup-card-description {
@@ -385,10 +362,6 @@
     font-size: 15px;
   }
 
-  .popup-card-rating {
-    font-size: 13px;
-  }
-
   .popup-card-description {
     font-size: 12px;
   }
@@ -490,15 +463,6 @@
     -webkit-line-clamp: 2;
   }
 
-  .popup-card-rating {
-    font-size: 12px;
-  }
-
-  .popup-card-rating svg {
-    width: 12px;
-    height: 12px;
-  }
-
   .popup-card-description {
     font-size: 11px;
   }
@@ -575,15 +539,6 @@
     font-size: 13px;
   }
 
-  .popup-card-rating {
-    font-size: 11px;
-  }
-
-  .popup-card-rating svg {
-    width: 11px;
-    height: 11px;
-  }
-
   .popup-card-description {
     font-size: 10px;
   }
@@ -626,10 +581,6 @@
 
   .popup-card-title {
     font-size: 12px;
-  }
-
-  .popup-card-rating {
-    font-size: 10px;
   }
 
   .popup-card-description {

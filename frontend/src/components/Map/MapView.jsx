@@ -518,10 +518,6 @@ const MapView = ({
       const description = property.description || property.location || 'Property description';
       const truncatedDescription = description.length > 60 ? description.substring(0, 60) + '...' : description;
       
-      // Get rating (if available, otherwise use placeholder)
-      const rating = property.rating || 4.96;
-      const reviewCount = property.review_count || property.reviews || 67;
-      
       // Format dates (if available)
       const checkInDate = property.check_in_date || '4 Jan';
       const checkOutDate = property.check_out_date || '9 Jan';
@@ -574,13 +570,6 @@ const MapView = ({
             <div class="popup-card-content">
               <div class="popup-card-header">
                 <h3 class="popup-card-title">${property.title || 'Property'}</h3>
-                <div class="popup-card-rating">
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="2">
-                    <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
-                  </svg>
-                  <span>${rating}</span>
-                  <span class="review-count">(${reviewCount})</span>
-                </div>
               </div>
               <p class="popup-card-description">${truncatedDescription}</p>
               <div class="popup-card-price-section">
