@@ -18,11 +18,86 @@
     max-width: 1120px;
     margin: 0 auto;
     padding: 0 40px;
+    position: relative;
+}
+
+.details-container-actions {
+    position: absolute;
+    top: 32px;
+    right: 40px;
+    display: flex;
+    gap: 8px;
+    z-index: 10;
+}
+
+.details-container-actions .buyer-favourite-btn,
+.details-container-actions .buyer-share-btn {
+    position: static;
+    top: auto;
+    left: auto;
+    width: 36px;
+    height: 36px;
+    background: rgba(255, 255, 255, 0.9);
+    border: none;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.1);
+}
+
+.details-container-actions .buyer-favourite-btn:hover,
+.details-container-actions .buyer-share-btn:hover {
+    transform: scale(1.1);
+}
+
+.details-container-actions .buyer-favourite-btn svg,
+.details-container-actions .buyer-share-btn svg {
+    color: #475569;
+    fill: none;
+    transition: color 0.2s ease, fill 0.2s ease;
+    pointer-events: none;
+}
+
+.details-container-actions .buyer-favourite-btn.active {
+    background: #ef4444;
+}
+
+.details-container-actions .buyer-favourite-btn.active svg {
+    color: white;
+    fill: white;
+}
+
+.details-container-actions .buyer-share-btn:hover {
+    background: #1e3a8a;
+}
+
+.details-container-actions .buyer-share-btn:hover svg {
+    color: white;
 }
 
 @media (max-width: 743px) {
     .details-container {
         padding: 0 24px;
+    }
+
+    .details-container-actions {
+        top: 24px;
+        right: 24px;
+    }
+
+    .details-container-actions .buyer-favourite-btn,
+    .details-container-actions .buyer-share-btn {
+        width: 30px;
+        height: 30px;
+    }
+
+    .details-container-actions .buyer-favourite-btn svg,
+    .details-container-actions .buyer-share-btn svg {
+        width: 15px;
+        height: 15px;
     }
 }
 

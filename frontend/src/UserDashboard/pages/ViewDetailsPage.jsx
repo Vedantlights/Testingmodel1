@@ -7,6 +7,7 @@ import React, { useState, useCallback, useEffect } from 'react';
 import { useParams, Navigate, useNavigate, useLocation } from 'react-router-dom';
 import { FaPhone, FaEnvelope, FaAngleLeft, FaAngleRight, FaBed, FaShower, FaRulerCombined, FaTimes, FaCheckCircle, FaUser, FaCommentAlt, FaComments, FaShare, FaHeart } from "react-icons/fa";
 import '../styles/ViewDetailPage.css';
+import '../styles/PropertyCard.css';
 import { propertiesAPI, chatAPI } from '../../services/api.service';
 import { useAuth } from '../../context/AuthContext';
 import { FavoritesManager } from '../components/PropertyCard';
@@ -973,6 +974,26 @@ const ViewDetailsPage = () => {
                 {/* Property Title and Location Container - Above Photos */}
                 <div className="title-location-container">
                     <div className="details-container">
+                        {/* Favorite and Share Buttons - Right Side */}
+                        <div className="details-container-actions">
+                            <button 
+                                className={`buyer-favourite-btn ${isFavorited ? 'active' : ''}`}
+                                onClick={handleFavoriteClick}
+                                aria-label={isFavorited ? 'Remove from favorites' : 'Add to favorites'}
+                                title={isFavorited ? 'Remove from favorites' : 'Add to favorites'}
+                            >
+                                <FaHeart />
+                            </button>
+                            <button 
+                                className="buyer-share-btn"
+                                onClick={handleShareClick}
+                                aria-label="Share"
+                                title="Share"
+                            >
+                                <FaShare />
+                            </button>
+                        </div>
+                        
                         <header className="property-header">
                             <div className="header-top-row">
                                 {/* Status Text on Left */}
@@ -989,28 +1010,6 @@ const ViewDetailsPage = () => {
                                     <div className="property-location-row">
                                         <p className="property-location">{propertyData.location}</p>
                                     </div>
-                                </div>
-                                
-                                {/* Share and Favorite Buttons on Right */}
-                                <div className="header-actions">
-                                    <button 
-                                        className="header-action-btn share-btn"
-                                        onClick={handleShareClick}
-                                        aria-label="Share"
-                                        title="Share"
-                                    >
-                                        <FaShare />
-                                       
-                                    </button>
-                                    <button 
-                                        className={`header-action-btn favorite-btn ${isFavorited ? 'active' : ''}`}
-                                        onClick={handleFavoriteClick}
-                                        aria-label={isFavorited ? 'Remove from favorites' : 'Add to favorites'}
-                                        title={isFavorited ? 'Remove from favorites' : 'Add to favorites'}
-                                    >
-                                        <FaHeart />
-                                       
-                                    </button>
                                 </div>
                             </div>
                         </header>
