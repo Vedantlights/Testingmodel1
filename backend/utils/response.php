@@ -106,10 +106,16 @@ function handlePreflight() {
 // Send JSON response
 if (!function_exists('sendResponse')) {
 function sendResponse($success, $message = '', $data = null, $statusCode = 200) {
-    // Clear any output buffer to ensure clean JSON (catch any PHP warnings/notices)
-    // Clean the current buffer level without ending it
-    if (ob_get_level() > 0) {
-        ob_clean();
+    // Clear ALL output buffers to ensure clean JSON (catch any PHP warnings/notices)
+    while (ob_get_level() > 0) {
+        ob_end_clean();
+    }
+    
+    // Make sure headers haven't been sent
+    if (headers_sent($file, $line)) {
+        error_log("Headers already sent in $file at line $line");
+        // If headers were sent, we can't send proper JSON, but try anyway
+        echo "\n"; // Add newline to separate from any previous output
     }
     
     setCorsHeaders();
@@ -135,15 +141,11 @@ function sendResponse($success, $message = '', $data = null, $statusCode = 200) 
             'success' => false,
             'message' => 'Server error: Failed to encode response',
             'error' => json_last_error_msg()
-        ]);
+        ], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
         exit();
     }
     
     echo $json;
-    // Flush output and exit cleanly
-    if (ob_get_level() > 0) {
-        ob_end_flush();
-    }
     exit();
 }
 }
