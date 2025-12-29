@@ -811,6 +811,13 @@ const ViewDetailsPage = () => {
             return;
         }
 
+        // If currently showing, just hide without recording interaction
+        if (showOwnerDetails) {
+            setShowOwnerDetails(false);
+            return;
+        }
+
+        // If hiding (current state), we need to show - check limits first
         // Check if limit is reached
         if (!ownerDetailsLimit.canPerform) {
             const resetMsg = ownerDetailsLimit.resetTimeSeconds 
@@ -821,7 +828,7 @@ const ViewDetailsPage = () => {
         }
 
         try {
-            // Record the interaction
+            // Record the interaction (only when showing, not when hiding)
             const response = await buyerInteractionsAPI.recordInteraction(propertyId, 'view_owner');
             
             if (response.success) {
@@ -835,12 +842,8 @@ const ViewDetailsPage = () => {
                     resetTimeSeconds: response.data.reset_time_seconds
                 });
                 
-                // Toggle owner details display
-                const currentScrollY = window.scrollY;
-                setShowOwnerDetails(!showOwnerDetails);
-                setTimeout(() => {
-                    window.scrollTo(0, currentScrollY);
-                }, 0);
+                // Show owner details display
+                setShowOwnerDetails(true);
             } else {
                 console.error('Failed to record interaction:', response);
                 alert(response.message || 'Failed to record interaction');
@@ -1366,12 +1369,12 @@ const ViewDetailsPage = () => {
                                                     type="button"
                                                     onClick={handleShowOwnerDetails}
                                                     className="contact-send-button"
-                                                    disabled={!ownerDetailsLimit.canPerform || loadingLimits}
+                                                    disabled={(!showOwnerDetails && !ownerDetailsLimit.canPerform) || loadingLimits}
                                                     style={{
                                                         marginTop: '0',
                                                         marginBottom: '0.5rem',
-                                                        opacity: (!ownerDetailsLimit.canPerform || loadingLimits) ? 0.6 : 1,
-                                                        cursor: (!ownerDetailsLimit.canPerform || loadingLimits) ? 'not-allowed' : 'pointer'
+                                                        opacity: ((!showOwnerDetails && !ownerDetailsLimit.canPerform) || loadingLimits) ? 0.6 : 1,
+                                                        cursor: ((!showOwnerDetails && !ownerDetailsLimit.canPerform) || loadingLimits) ? 'not-allowed' : 'pointer'
                                                     }}
                                                 >
                                                     <FaUser style={{marginRight: '8px'}} />

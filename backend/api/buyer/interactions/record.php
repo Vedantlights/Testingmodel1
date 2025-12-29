@@ -168,15 +168,22 @@ try {
 } catch (PDOException $e) {
     error_log("Record Interaction PDO Error: " . $e->getMessage());
     error_log("SQL State: " . $e->getCode());
+    error_log("SQL Error Info: " . json_encode($e->errorInfo ?? []));
     error_log("Stack trace: " . $e->getTraceAsString());
     
     // Check if it's a table doesn't exist error (MySQL error 1146)
     $errorMessage = $e->getMessage();
+    $errorInfo = $e->errorInfo ?? [];
+    $sqlState = $errorInfo[0] ?? '';
     
-    if (strpos($errorMessage, "doesn't exist") !== false || strpos($errorMessage, "Unknown table") !== false) {
+    if (strpos($errorMessage, "doesn't exist") !== false || strpos($errorMessage, "Unknown table") !== false || $sqlState === '42S02') {
         sendError('Database table not found. Please ensure the buyer_interaction_limits table exists.', null, 500);
     } else {
-        sendError('Database error occurred. Please try again later.', null, 500);
+        // In development, show more details; in production, show generic message
+        $detailMessage = (defined('ENVIRONMENT') && ENVIRONMENT === 'development') 
+            ? 'Database error: ' . $e->getMessage() 
+            : 'Database error occurred. Please try again later.';
+        sendError($detailMessage, null, 500);
     }
 } catch (Throwable $e) {
     // Catch both Exception and Error (PHP 7+)
