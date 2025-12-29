@@ -842,6 +842,7 @@ const ViewDetailsPage = () => {
                     window.scrollTo(0, currentScrollY);
                 }, 0);
             } else {
+                console.error('Failed to record interaction:', response);
                 alert(response.message || 'Failed to record interaction');
             }
         } catch (error) {
@@ -862,7 +863,10 @@ const ViewDetailsPage = () => {
                     : '24 hours';
                 alert(error.data.message || `You have reached the maximum limit. Please try again after ${resetMsg}.`);
             } else {
-                alert('Failed to view owner details. Please try again.');
+                // Show more detailed error message
+                const errorMsg = error.message || error.data?.message || 'Failed to view owner details. Please try again.';
+                console.error('Full error details:', error);
+                alert(errorMsg);
             }
         }
     }, [user, propertyId, ownerDetailsLimit, showOwnerDetails, navigate]);
@@ -1355,7 +1359,7 @@ const ViewDetailsPage = () => {
                             <aside className="agent-sidebar">
                                 <div className="detail-contact-card">
                                     {/* Owner Details Button */}
-                                    {property && (property.seller_name || property.seller_email || property.seller_phone) && (
+                                    {property && property.seller_id && (
                                         <>
                                             <div style={{marginBottom: '1rem'}}>
                                                 <button 
@@ -1377,25 +1381,23 @@ const ViewDetailsPage = () => {
                                                 {/* Usage Limit Display */}
                                                 {user && user.user_type === 'buyer' && (
                                                     <div style={{
-                                                        fontSize: '12px',
+                                                        fontSize: '0.75rem',
                                                         color: ownerDetailsLimit.canPerform ? '#666' : '#ef4444',
-                                                        marginTop: '0.5rem',
-                                                        padding: '0.5rem',
+                                                        marginTop: '0.25rem',
+                                                        padding: '0.25rem 0.5rem',
                                                         backgroundColor: ownerDetailsLimit.canPerform ? '#f3f4f6' : '#fee2e2',
                                                         borderRadius: '4px'
                                                     }}>
-                                                        <div style={{fontWeight: '500', marginBottom: '0.25rem'}}>
-                                                            {ownerDetailsLimit.remaining} / {ownerDetailsLimit.max} attempts left
-                                                        </div>
+                                                        {ownerDetailsLimit.remaining} / {ownerDetailsLimit.max} attempts left
                                                         {ownerDetailsLimit.resetTimeSeconds && (
-                                                            <div style={{fontSize: '11px', color: '#666'}}>
+                                                            <span style={{display: 'block', marginTop: '0.125rem'}}>
                                                                 Resets in {formatTimeRemaining(ownerDetailsLimit.resetTimeSeconds) || '24h'}
-                                                            </div>
+                                                            </span>
                                                         )}
                                                         {!ownerDetailsLimit.canPerform && (
-                                                            <div style={{fontSize: '11px', color: '#ef4444', marginTop: '0.25rem', fontWeight: '500'}}>
-                                                                Limit reached. Please try again after the reset time.
-                                                            </div>
+                                                            <span style={{display: 'block', marginTop: '0.125rem', fontWeight: 'bold'}}>
+                                                                Limit reached
+                                                            </span>
                                                         )}
                                                     </div>
                                                 )}
@@ -1403,26 +1405,41 @@ const ViewDetailsPage = () => {
                                             
                                             {showOwnerDetails && (
                                                 <div className="owner-details-section">
-                                                    {property.seller_name && (
+                                                    {property.seller_name ? (
                                                         <div className="owner-detail-item">
                                                             <span className="owner-detail-label">Name:</span>
                                                             <span className="owner-detail-value">{property.seller_name}</span>
                                                         </div>
+                                                    ) : (
+                                                        <div className="owner-detail-item">
+                                                            <span className="owner-detail-label">Name:</span>
+                                                            <span className="owner-detail-value">Not available</span>
+                                                        </div>
                                                     )}
-                                                    {property.seller_phone && (
+                                                    {property.seller_phone ? (
                                                         <div className="owner-detail-item">
                                                             <span className="owner-detail-label">Phone:</span>
                                                             <a href={`tel:${property.seller_phone}`} className="owner-detail-value owner-detail-link">
                                                                 {property.seller_phone}
                                                             </a>
                                                         </div>
+                                                    ) : (
+                                                        <div className="owner-detail-item">
+                                                            <span className="owner-detail-label">Phone:</span>
+                                                            <span className="owner-detail-value">Not available</span>
+                                                        </div>
                                                     )}
-                                                    {property.seller_email && (
+                                                    {property.seller_email ? (
                                                         <div className="owner-detail-item">
                                                             <span className="owner-detail-label">Email:</span>
                                                             <a href={`mailto:${property.seller_email}`} className="owner-detail-value owner-detail-link">
                                                                 {property.seller_email}
                                                             </a>
+                                                        </div>
+                                                    ) : (
+                                                        <div className="owner-detail-item">
+                                                            <span className="owner-detail-label">Email:</span>
+                                                            <span className="owner-detail-value">Not available</span>
                                                         </div>
                                                     )}
                                                 </div>
