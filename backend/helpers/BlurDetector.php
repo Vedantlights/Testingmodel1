@@ -152,22 +152,27 @@ class BlurDetector {
             // Clamp to 0-1 range
             $blurScore = max(0.0, min(1.0, $blurScore));
             
-            // Determine quality rating
+            // Determine quality rating based on variance
             $qualityRating = 'good';
-            if ($blurScore > 0.6) {
+            if ($variance < 100) {
                 $qualityRating = 'very_poor';
-            } elseif ($blurScore > 0.4) {
+            } elseif ($variance < 500) {
                 $qualityRating = 'poor';
-            } elseif ($blurScore > 0.2) {
+            } elseif ($variance < 1000) {
                 $qualityRating = 'acceptable';
             }
             
             require_once __DIR__ . '/../config/moderation.php';
-            $isBlurry = $blurScore > MAX_BLUR_SCORE;
+            // CORRECT LOGIC: LOW variance = blurry, HIGH variance = sharp
+            // Reject if variance < BLUR_THRESHOLD (100)
+            $isBlurry = $variance < BLUR_THRESHOLD;
+            
+            // Log variance for debugging (without exposing to user)
+            error_log("BlurDetector: variance={$variance}, threshold=" . BLUR_THRESHOLD . ", is_blurry=" . ($isBlurry ? 'true' : 'false'));
             
             return [
                 'success' => true,
-                'blur_score' => round($blurScore, 3),
+                'blur_score' => round($blurScore, 3),  // Kept for backward compatibility/logging
                 'is_blurry' => $isBlurry,
                 'quality_rating' => $qualityRating,
                 'variance' => round($variance, 2)
@@ -222,7 +227,12 @@ class BlurDetector {
         }
         
         require_once __DIR__ . '/../config/moderation.php';
-        $isBlurry = $blurScore > MAX_BLUR_SCORE;
+        // Fallback method: use blur_score for decision (less accurate)
+        // For fallback, we still use blur_score > 0.4 as it's a different heuristic
+        $isBlurry = $blurScore > 0.4;
+        
+        // Log for debugging
+        error_log("BlurDetector (fallback): blur_score={$blurScore}, is_blurry=" . ($isBlurry ? 'true' : 'false'));
         
         return [
             'success' => true,

@@ -25,7 +25,9 @@ define('MODERATION_FACE_THRESHOLD', 0.5);
 // Image Quality Thresholds
 define('MIN_IMAGE_WIDTH', 400);
 define('MIN_IMAGE_HEIGHT', 300);
-define('MAX_BLUR_SCORE', 0.4);  // Higher score = more blurry, reject if above this
+define('BLUR_THRESHOLD', 100);  // Laplacian variance threshold: LOW variance = blurry, HIGH variance = sharp
+// Images with variance < BLUR_THRESHOLD are rejected as blurry
+// Images with variance >= BLUR_THRESHOLD are accepted as sharp
 
 // File Upload Settings
 define('MAX_IMAGE_SIZE_MB', 5);
