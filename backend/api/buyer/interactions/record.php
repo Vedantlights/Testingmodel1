@@ -61,7 +61,7 @@ try {
     
     // Check if limit is reached
     if ($attemptCount >= $MAX_ATTEMPTS) {
-        $firstAttemptTime = strtotime($result['first_attempt_time']);
+        $firstAttemptTime = strtotime($result['first_attempt_time'] ?? date('Y-m-d H:i:s'));
         $resetTimeSeconds = $firstAttemptTime + ($WINDOW_HOURS * 3600);
         $resetTime = date('Y-m-d H:i:s', $resetTimeSeconds);
         
