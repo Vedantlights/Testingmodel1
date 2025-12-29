@@ -235,9 +235,6 @@ const CityFilteredBuy = () => {
     navigate(`/searchresults?location=${city}&status=For Sale`);
   };
 
-  const handleBackClick = () => {
-    navigate('/BuyerHome');
-  };
 
   // Detect mobile screen size
   useEffect(() => {
@@ -331,24 +328,6 @@ const CityFilteredBuy = () => {
       <div className="buyer-buy-search-bar-banner" 
             style={{ backgroundImage: 'url(/buy.jpg)' }}>
         <div className="buyer-search-bar-wrapper">
-          {/* Back Button */}
-          <button onClick={handleBackClick} className="buyer-search-back-button">
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              width="20"
-              height="20"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            >
-              <path d="M19 12H5"></path>
-              <path d="M12 19l-7-7 7-7"></path>
-            </svg>
-          </button>
-
           <h2 className="buyer-search-title">Discover Properties Ready to Buy</h2>
           <p className="buyer-search-subtitle">Search from thousands of verified properties across India</p>
           
