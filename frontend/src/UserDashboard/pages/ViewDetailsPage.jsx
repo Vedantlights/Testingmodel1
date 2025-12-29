@@ -1394,7 +1394,7 @@ const ViewDetailsPage = () => {
                                                         {ownerDetailsLimit.remaining} / {ownerDetailsLimit.max} attempts left
                                                         {ownerDetailsLimit.resetTimeSeconds && (
                                                             <span style={{display: 'block', marginTop: '0.125rem'}}>
-                                                                Resets in {formatTimeRemaining(ownerDetailsLimit.resetTimeSeconds) || '24h'}
+                                                                Resets in 24 hours
                                                             </span>
                                                         )}
                                                         {!ownerDetailsLimit.canPerform && (
@@ -1481,7 +1481,7 @@ const ViewDetailsPage = () => {
                                                 </div>
                                                 {chatLimit.resetTimeSeconds && (
                                                     <div style={{fontSize: '11px', color: '#666'}}>
-                                                        Resets in {formatTimeRemaining(chatLimit.resetTimeSeconds) || '24h'}
+                                                        Resets in 24 hours
                                                     </div>
                                                 )}
                                                 {!chatLimit.canPerform && (

@@ -104,8 +104,8 @@ try {
     
     // Check if limit is reached
     if ($attemptCount >= $MAX_ATTEMPTS) {
-        $firstAttemptTime = strtotime($result['first_attempt_time'] ?? date('Y-m-d H:i:s'));
-        $resetTimeSeconds = $firstAttemptTime + ($WINDOW_HOURS * 3600);
+        // When limit is reached, reset 24 hours from now
+        $resetTimeSeconds = time() + ($WINDOW_HOURS * 3600);
         $resetTime = date('Y-m-d H:i:s', $resetTimeSeconds);
         
         sendError('Rate limit exceeded', [
@@ -146,13 +146,22 @@ try {
     $updatedAttemptCount = intval($updatedResult['attempt_count'] ?? 0);
     $remainingAttempts = max(0, $MAX_ATTEMPTS - $updatedAttemptCount);
     
-    // Calculate reset time
+    // Calculate reset time (24 hours from when limit is reached, or from first attempt if not at limit)
     $resetTime = null;
     $resetTimeSeconds = null;
-    if ($updatedResult['first_attempt_time']) {
-        $firstAttemptTime = strtotime($updatedResult['first_attempt_time']);
-        $resetTimeSeconds = $firstAttemptTime + ($WINDOW_HOURS * 3600);
-        $resetTime = date('Y-m-d H:i:s', $resetTimeSeconds);
+    if ($updatedAttemptCount > 0) {
+        // If limit is reached, reset 24 hours from now
+        // Otherwise, reset 24 hours from first attempt
+        if ($updatedAttemptCount >= $MAX_ATTEMPTS) {
+            $resetTimeSeconds = time() + ($WINDOW_HOURS * 3600);
+        } else if ($updatedResult['first_attempt_time']) {
+            $firstAttemptTime = strtotime($updatedResult['first_attempt_time']);
+            $resetTimeSeconds = $firstAttemptTime + ($WINDOW_HOURS * 3600);
+        }
+        
+        if ($resetTimeSeconds) {
+            $resetTime = date('Y-m-d H:i:s', $resetTimeSeconds);
+        }
     }
     
     sendSuccess('Interaction recorded', [

@@ -18,7 +18,6 @@ export default function Contact() {
     name: "",
     email: "",
     phone: "",
-    subject: "",
     message: "",
   });
 
@@ -44,7 +43,6 @@ export default function Contact() {
       !formData.name ||
       !formData.email ||
       !formData.phone ||
-      !formData.subject ||
       !formData.message
     ) {
       alert("Please fill all fields");
@@ -65,7 +63,6 @@ export default function Contact() {
         name: "",
         email: "",
         phone: "",
-        subject: "",
         message: "",
       });
 
@@ -89,58 +86,61 @@ export default function Contact() {
         {/* HEADER */}
         <div className="buyer-contact-header">
           <h1 className="buyer-contact-title">
-            Contact Us
+            Get In Touch
           </h1>
           <p className="buyer-header-text">
-            We'd love to hear from you! Fill out the form and we'll be in touch.
+            Contact us for a free quote or emergency service
           </p>
         </div>
 
-        {/* INFO SECTION */}
-        <div className="buyer-info-section">
-
-          {/* LOCATION */}
-          <a 
-            href="https://www.google.com/maps/search/?api=1&query=Office+No.21+%26+22,+3rd+Floor,+S%2FNo.+56,+Aston+Plaza,+Ambegaon+Bk.,+Pune,+Maharashtra+411046"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="buyer-info-card-clickable"
-          >
-            <div className="buyer-info-icon buyer-bg-blue">
-              <MapPin />
+        {/* TWO COLUMN LAYOUT */}
+        <div className="buyer-contact-two-column">
+          
+          {/* LEFT COLUMN - CONTACT INFORMATION */}
+          <div className="buyer-contact-info-card">
+            <h2 className="buyer-contact-info-title">Contact Information</h2>
+            
+            <div className="buyer-contact-info-item">
+              <div className="buyer-contact-info-label">Phone</div>
+              <a href="tel:+919876543210" className="buyer-contact-info-link">
+                +91 98765 43210
+              </a>
             </div>
-            <div className="buyer-info-text">
-              <h3>Visit Us</h3>
-              <p>Office No.21 & 22, 3rd Floor, S/No. 56<br />
-              Aston Plaza, Ambegaon Bk.<br />
-              Pune , Maharashtra– 411046</p>
+
+            <div className="buyer-contact-info-item">
+              <div className="buyer-contact-info-label">Email</div>
+              <a href="mailto:info@indiapropertys.com" className="buyer-contact-info-link">
+                info@indiapropertys.com
+              </a>
             </div>
-          </a>
 
-          {/* EMAIL */}
-          <a 
-            href="mailto:info@indiapropertys.com" 
-            className="buyer-info-card-clickable"
-          >
-            <div className="buyer-info-icon buyer-bg-purple">
-              <Mail />
+            <div className="buyer-contact-info-item">
+              <div className="buyer-contact-info-label">Address</div>
+              <a 
+                href="https://www.google.com/maps/search/?api=1&query=Office+No.21+%26+22,+3rd+Floor,+S%2FNo.+56,+Aston+Plaza,+Ambegaon+Bk.,+Pune,+Maharashtra+411046"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="buyer-contact-info-address"
+              >
+                Office No.21 & 22, 3rd Floor, S/No. 56<br />
+                Aston Plaza, Ambegaon Bk.<br />
+                Pune, Maharashtra– 411046
+              </a>
             </div>
-            <div className="buyer-info-text">
-              <h3>Email Us</h3>
-              <p>info@indiapropertys.com</p>
+
+            <div className="buyer-contact-info-item">
+              <div className="buyer-contact-info-label">Business Hours</div>
+              <div className="buyer-contact-info-hours">
+                <div>Monday - Saturday: 8:00 AM - 6:00 PM</div>
+                <div>Sunday: Emergency Only</div>
+                <div className="buyer-contact-emergency">24/7 Emergency Service Available</div>
+              </div>
             </div>
-          </a>
+          </div>
 
-        </div>
-
-        <div className="buyer-contact-grid">
-
-          {/* CONTACT FORM */}
+          {/* RIGHT COLUMN - CONTACT FORM */}
           <div className="buyer-form-card">
-            <div className="buyer-form-header">
-              <MessageSquare className="buyer-header-icon" />
-              <h2>Get in Touch</h2>
-            </div>
+            <h2 className="buyer-form-title">Send Us a Message</h2>
 
             {submitted && (
               <div className="buyer-success-box">
@@ -160,53 +160,40 @@ export default function Contact() {
               }}
             >
               
-              <label>Your Full Name</label>
               <input
                 type="text"
                 name="name"
                 value={formData.name}
                 onChange={handleChange}
-                placeholder="John Doe"
+                placeholder="Your Name"
               />
 
-              <label>Email Address</label>
               <input
                 type="email"
                 name="email"
                 value={formData.email}
                 onChange={handleChange}
-                placeholder="john@example.com"
+                placeholder="Your Email"
               />
 
-              <label>Phone Number</label>
               <input
                 type="text"
                 name="phone"
                 value={formData.phone}
                 onChange={handleChange}
-                placeholder="‪+91 98765 43210‬"
+                placeholder="Phone Number"
               />
 
-              <label>Subject</label>
-              <input
-                type="text"
-                name="subject"
-                value={formData.subject}
-                onChange={handleChange}
-                placeholder="How can we help?"
-              />
-
-              <label>Message</label>
               <textarea
                 name="message"
                 rows="4"
                 value={formData.message}
                 onChange={handleChange}
-                placeholder="Tell us more..."
+                placeholder="Message"
               ></textarea>
 
               <button type="submit" disabled={isSubmitting}>
-                {isSubmitting ? "Sending..." : "Submit"}
+                {isSubmitting ? "Sending..." : "Send Message"}
               </button>
 
             </form>
