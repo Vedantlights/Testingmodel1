@@ -418,3 +418,28 @@
 .buyer-search-field:nth-child(4) {
   animation-delay: 0.4s;
 }
+
+/* ============================================================================
+   DISABLED OPTION STYLING FOR PG/HOSTEL PAGE
+   ============================================================================ */
+.buyer-search-select option:disabled,
+.buyer-search-select .buyer-disabled-option {
+  opacity: 0.4;
+  filter: blur(0.5px) grayscale(50%);
+  cursor: not-allowed;
+  background-color: #f1f5f9;
+  color: #94a3b8;
+  pointer-events: none;
+}
+
+.buyer-search-select option:disabled:hover,
+.buyer-search-select .buyer-disabled-option:hover {
+  background-color: #f1f5f9;
+  color: #94a3b8;
+}
+
+/* Prevent selection of disabled options */
+.buyer-search-select:has(option:disabled:checked) {
+  border-color: #fbbf24;
+  box-shadow: 0 0 0 4px rgba(251, 191, 36, 0.1);
+}

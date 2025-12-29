@@ -27,6 +27,7 @@ import SearchResults from './UserDashboard/pages/SearchResults';
 import AboutUs from './LandingPage/pages/AboutUs';
 import CityFilteredBuy from './UserDashboard/pages/Cityfilteredbuy';
 import CityFilteredRent from './UserDashboard/pages/Cityfilteredrent';
+import CityFilteredPGHostel from './UserDashboard/pages/Cityfilteredpghostel';
 import CityProjects from './UserDashboard/pages/Cityprojects';
 import ChatUs from './UserDashboard/pages/ChatUs';
 import './UserDashboard/styles/global.css';
@@ -108,6 +109,7 @@ function App() {
 
           <Route path="/buy" element={<BuyerDashboardLayout><CityFilteredBuy /></BuyerDashboardLayout>} />
           <Route path="/rent" element={<BuyerDashboardLayout><CityFilteredRent /></BuyerDashboardLayout>} />
+          <Route path="/pghostel" element={<BuyerDashboardLayout><CityFilteredPGHostel /></BuyerDashboardLayout>} />
           <Route path="/projects" element={<BuyerDashboardLayout><CityProjects /></BuyerDashboardLayout>} />
           <Route path="/BuyerProfile" element={<BuyerDashboardLayout><BuyerProfile /></BuyerDashboardLayout>} />
           <Route path="/ChatUs" element={<BuyerDashboardLayout><ChatUs /></BuyerDashboardLayout>} />
@@ -121,6 +123,7 @@ function App() {
           <Route path="/BuyerHome" element={<BuyerDashboardLayout><BuyerHome /></BuyerDashboardLayout>} />
           <Route path="/buyer-dashboard/buy" element={<BuyerDashboardLayout><CityFilteredBuy /></BuyerDashboardLayout>} />
           <Route path="/buyer-dashboard/rent" element={<BuyerDashboardLayout><CityFilteredRent /></BuyerDashboardLayout>} />
+          <Route path="/buyer-dashboard/pghostel" element={<BuyerDashboardLayout><CityFilteredPGHostel /></BuyerDashboardLayout>} />
           <Route path="/buyer-dashboard/projects" element={<BuyerDashboardLayout><CityProjects /></BuyerDashboardLayout>} />
           <Route path="/buyer-dashboard/profile" element={<BuyerDashboardLayout><BuyerProfile /></BuyerDashboardLayout>} />
           <Route path="/buyer-dashboard/chat" element={<BuyerDashboardLayout><ChatUs /></BuyerDashboardLayout>} />
