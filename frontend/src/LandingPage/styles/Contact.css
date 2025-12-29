@@ -2,15 +2,13 @@
 
 .contact-main {
   min-height: 100vh;
-  min-height: -webkit-fill-available; /* Fallback for mobile browsers */
+  min-height: -webkit-fill-available;
   background: linear-gradient(180deg, #f8f9fa 0%, #ffffff 50%, #f8f9fa 100%);
   position: relative;
-  overflow-x: hidden;
-  overflow-y: visible; /* Allow content to flow naturally, don't create scrollbar */
+  overflow: hidden; /* Changed to hidden */
   scroll-behavior: smooth;
-  scroll-padding-top: 100px; /* Prevent scroll jumps when focusing inputs */
+  scroll-padding-top: 100px;
 }
-
 /* Decorative Background Elements */
 .contact-main::before,
 .contact-main::after {
