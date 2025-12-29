@@ -567,6 +567,29 @@ export default function AddPropertyPopup({ onClose, editIndex = null, initialDat
     setCurrentStep(prev => Math.max(prev - 1, 1));
   };
 
+  // Check if a step is completed (user has moved past it)
+  const isStepCompleted = (stepId) => {
+    return currentStep > stepId;
+  };
+
+  // Handle step circle click - allow going back to completed steps, prevent skipping forward
+  const handleStepClick = (stepId) => {
+    // Allow clicking on current step (no change)
+    if (stepId === currentStep) {
+      return;
+    }
+    
+    // Allow going back to completed steps (steps that have been completed)
+    if (stepId < currentStep) {
+      setCurrentStep(stepId);
+      return;
+    }
+    
+    // Prevent going forward to incomplete steps
+    // User must use the "Next" button to move forward after completing current step
+    // This ensures validation happens before moving forward
+  };
+
   // Scroll to top when step changes
   useEffect(() => {
     if (popupBodyRef.current) {
@@ -838,24 +861,35 @@ export default function AddPropertyPopup({ onClose, editIndex = null, initialDat
 
   const renderStepIndicator = () => (
     <div className="step-indicator">
-      {STEPS.map((step, idx) => (
-        <div 
-          key={step.id}
-          className={`step-item ${currentStep === step.id ? 'active' : ''} ${currentStep > step.id ? 'completed' : ''}`}
-        >
-          <div className="step-circle">
-            {currentStep > step.id ? (
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
-                <path d="M20 6L9 17l-5-5" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"/>
-              </svg>
-            ) : (
-              <span>{step.icon}</span>
-            )}
+      {STEPS.map((step, idx) => {
+        const isCompleted = isStepCompleted(step.id);
+        // Allow clicking on completed steps (to go back) or current step
+        const isClickable = isCompleted || step.id === currentStep;
+        
+        return (
+          <div 
+            key={step.id}
+            className={`step-item ${currentStep === step.id ? 'active' : ''} ${isCompleted ? 'completed' : ''} ${isClickable ? 'clickable' : ''}`}
+          >
+            <div 
+              className="step-circle"
+              onClick={() => isClickable && handleStepClick(step.id)}
+              style={{ cursor: isClickable ? 'pointer' : 'default' }}
+              title={!isClickable && step.id > currentStep ? 'Complete current step first' : isClickable && isCompleted ? 'Click to go back to this step' : ''}
+            >
+              {isCompleted ? (
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+                  <path d="M20 6L9 17l-5-5" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"/>
+                </svg>
+              ) : (
+                <span>{step.icon}</span>
+              )}
+            </div>
+            <span className="step-title">{step.title}</span>
+            {idx < STEPS.length - 1 && <div className="step-line" />}
           </div>
-          <span className="step-title">{step.title}</span>
-          {idx < STEPS.length - 1 && <div className="step-line" />}
-        </div>
-      ))}
+        );
+      })}
     </div>
   );
 
