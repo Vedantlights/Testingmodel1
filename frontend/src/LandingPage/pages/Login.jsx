@@ -133,8 +133,23 @@ const Login = () => {
     if (loginError) setLoginError("");
   };
 
+  // Background images mapping for each role
+  const backgroundImages = {
+    buyer: "/landingpagebuy.jpeg",
+    seller: "/Home.jpg",
+    agent: "/landingpageagent.jpeg",
+  };
+
   return (
-    <div className="login-container">
+    <div 
+      className="login-container"
+      style={{
+        backgroundImage: `url(${backgroundImages[userType]})`,
+        backgroundSize: "cover",
+        backgroundPosition: "center",
+        backgroundRepeat: "no-repeat",
+      }}
+    >
       <div className="login-card">
         <div className="login-header">
           <h1>Welcome Back</h1>
