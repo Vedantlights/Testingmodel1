@@ -16,6 +16,7 @@ class BlurDetector {
         try {
             if (!file_exists($imagePath)) {
                 return [
+                    'success' => false,
                     'blur_score' => 1.0,
                     'is_blurry' => true,
                     'quality_rating' => 'very_poor',
@@ -33,6 +34,7 @@ class BlurDetector {
             $imageInfo = @getimagesize($imagePath);
             if ($imageInfo === false) {
                 return [
+                    'success' => false,
                     'blur_score' => 1.0,
                     'is_blurry' => true,
                     'quality_rating' => 'very_poor',
@@ -58,6 +60,7 @@ class BlurDetector {
                     break;
                 default:
                     return [
+                        'success' => false,
                         'blur_score' => 1.0,
                         'is_blurry' => true,
                         'quality_rating' => 'very_poor',
@@ -67,6 +70,7 @@ class BlurDetector {
             
             if ($image === false || $image === null) {
                 return [
+                    'success' => false,
                     'blur_score' => 1.0,
                     'is_blurry' => true,
                     'quality_rating' => 'very_poor',
@@ -162,6 +166,7 @@ class BlurDetector {
             $isBlurry = $blurScore > MAX_BLUR_SCORE;
             
             return [
+                'success' => true,
                 'blur_score' => round($blurScore, 3),
                 'is_blurry' => $isBlurry,
                 'quality_rating' => $qualityRating,
@@ -171,6 +176,7 @@ class BlurDetector {
         } catch (Exception $e) {
             error_log("BlurDetector::calculateBlurScore - Error: " . $e->getMessage());
             return [
+                'success' => false,
                 'blur_score' => 1.0,
                 'is_blurry' => true,
                 'quality_rating' => 'very_poor',
@@ -219,6 +225,7 @@ class BlurDetector {
         $isBlurry = $blurScore > MAX_BLUR_SCORE;
         
         return [
+            'success' => true,
             'blur_score' => round($blurScore, 3),
             'is_blurry' => $isBlurry,
             'quality_rating' => $isBlurry ? 'poor' : 'acceptable',

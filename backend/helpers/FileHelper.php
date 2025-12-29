@@ -156,6 +156,7 @@ class FileHelper {
     
     /**
      * Validate uploaded image file
+     * LENIENT: Pass if extension OR mime type is valid
      * 
      * @param array $file $_FILES array element
      * @param int $maxSize Maximum file size in bytes
@@ -191,10 +192,7 @@ class FileHelper {
         
         // Check file extension
         $extension = self::getFileExtension($file['name']);
-        if (!in_array($extension, $allowedTypes)) {
-            $allowedTypesStr = implode(', ', $allowedTypes);
-            return ['valid' => false, 'error' => "File type not allowed. Allowed types: {$allowedTypesStr}"];
-        }
+        $extensionValid = in_array($extension, $allowedTypes);
         
         // Check MIME type
         $mimeType = self::getMimeType($file['tmp_name']);
@@ -203,9 +201,11 @@ class FileHelper {
             'image/png',
             'image/webp'
         ];
+        $mimeValid = $mimeType && in_array($mimeType, $allowedMimeTypes);
         
-        if (!in_array($mimeType, $allowedMimeTypes)) {
-            return ['valid' => false, 'error' => 'Invalid file type. Only JPEG, PNG, and WebP images are allowed'];
+        // LENIENT: Pass if EITHER extension OR mime type is valid
+        if (!$extensionValid && !$mimeValid) {
+            return ['valid' => false, 'error' => 'Invalid file type. Please upload JPG, PNG, or WebP images.'];
         }
         
         // Verify it's actually an image

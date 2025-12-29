@@ -2,50 +2,71 @@
 /**
  * Image Moderation and Upload API
  * POST /api/images/moderate-and-upload.php
- * Handles image upload with Google Vision API moderation
- * Blocks: Animals, Blurry images, Low quality, Inappropriate content
+ * 
+ * COMPLETE REWRITE - Fixed file validation and moderation flow
+ * 
+ * Steps:
+ * 1. Setup and Headers
+ * 2. Check Authentication
+ * 3. Get Uploaded File
+ * 4. File Type Validation (LENIENT - pass if extension OR mime type is valid)
+ * 5. File Size Validation
+ * 6. Image Dimensions Check
+ * 7. Blur Detection
+ * 8. Save to Temp Folder
+ * 9. Call Google Vision API
+ * 10. Check for HUMANS
+ * 11. Check for ANIMALS
+ * 12. Check SafeSearch
+ * 13. Image APPROVED - Add Watermark
+ * 14. Move to Properties Folder
+ * 15. Save to Database
+ * 16. Return Success
  */
 
-// Start output buffering
+// Step 1: Setup and Headers
 ob_start();
+header('Content-Type: application/json');
+header('Access-Control-Allow-Origin: *');
+header('Access-Control-Allow-Methods: POST, OPTIONS');
+header('Access-Control-Allow-Headers: Content-Type, Authorization');
+
+// Handle OPTIONS request
+if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
+    http_response_code(200);
+    exit;
+}
 
 require_once __DIR__ . '/../../config/config.php';
 require_once __DIR__ . '/../../config/database.php';
 require_once __DIR__ . '/../../config/moderation.php';
 require_once __DIR__ . '/../../utils/auth.php';
 require_once __DIR__ . '/../../services/GoogleVisionService.php';
-require_once __DIR__ . '/../../services/ModerationDecisionService.php';
 require_once __DIR__ . '/../../services/WatermarkService.php';
-require_once __DIR__ . '/../../helpers/FileHelper.php';
-require_once __DIR__ . '/../../helpers/ResponseHelper.php';
 require_once __DIR__ . '/../../helpers/BlurDetector.php';
+require_once __DIR__ . '/../../helpers/FileHelper.php';
 
 // Load Composer autoload if available
 if (file_exists(__DIR__ . '/../../vendor/autoload.php')) {
     require_once __DIR__ . '/../../vendor/autoload.php';
 }
 
-// Clear output buffer
 ob_clean();
 
-// Handle CORS preflight
-if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
-    header('Access-Control-Allow-Origin: *');
-    header('Access-Control-Allow-Methods: POST, OPTIONS');
-    header('Access-Control-Allow-Headers: Content-Type, Authorization');
-    http_response_code(200);
+if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+    http_response_code(405);
+    echo json_encode(['status' => 'error', 'message' => 'Method not allowed']);
     exit;
 }
 
-if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
-    ResponseHelper::error('Method not allowed', 405);
-}
-
 try {
-    // Check authentication
+    // Step 2: Check Authentication
+    session_start();
     $user = getCurrentUser();
     if (!$user) {
-        ResponseHelper::unauthorized('Please login to upload images');
+        http_response_code(401);
+        echo json_encode(['status' => 'error', 'message' => 'Please login to upload images']);
+        exit;
     }
     
     $userId = $user['id'];
@@ -53,11 +74,9 @@ try {
     // Validate property_id
     $propertyId = isset($_POST['property_id']) ? intval($_POST['property_id']) : 0;
     if ($propertyId <= 0) {
-        ResponseHelper::errorWithDetails(
-            'Valid property ID is required',
-            'validation_error',
-            ['field' => 'property_id']
-        );
+        http_response_code(400);
+        echo json_encode(['status' => 'error', 'message' => 'Valid property ID is required']);
+        exit;
     }
     
     // Verify property belongs to user
@@ -67,253 +86,402 @@ try {
     $property = $stmt->fetch(PDO::FETCH_ASSOC);
     
     if (!$property) {
-        ResponseHelper::error('Property not found', 404);
+        http_response_code(404);
+        echo json_encode(['status' => 'error', 'message' => 'Property not found']);
+        exit;
     }
     
     if ($property['user_id'] != $userId) {
-        ResponseHelper::forbidden('You do not have permission to upload images for this property');
+        http_response_code(403);
+        echo json_encode(['status' => 'error', 'message' => 'You do not have permission to upload images for this property']);
+        exit;
     }
     
-    // Validate file upload
-    if (!isset($_FILES['image']) || $_FILES['image']['error'] !== UPLOAD_ERR_OK) {
-        $errorMsg = 'Image file is required';
-        if (isset($_FILES['image']['error'])) {
-            $uploadErrors = [
-                UPLOAD_ERR_INI_SIZE => 'File exceeds upload_max_filesize directive',
-                UPLOAD_ERR_FORM_SIZE => 'File exceeds MAX_FILE_SIZE directive',
-                UPLOAD_ERR_PARTIAL => 'File was only partially uploaded',
-                UPLOAD_ERR_NO_FILE => 'No file was uploaded',
-                UPLOAD_ERR_NO_TMP_DIR => 'Missing temporary folder',
-                UPLOAD_ERR_CANT_WRITE => 'Failed to write file to disk',
-                UPLOAD_ERR_EXTENSION => 'File upload stopped by extension'
+    // Step 3: Get Uploaded File
+    $file = null;
+    $fileKey = null;
+    
+    // Check multiple possible keys
+    if (isset($_FILES['image']) && $_FILES['image']['error'] === UPLOAD_ERR_OK) {
+        $file = $_FILES['image'];
+        $fileKey = 'image';
+    } elseif (isset($_FILES['images']) && $_FILES['images']['error'] === UPLOAD_ERR_OK) {
+        $file = $_FILES['images'];
+        $fileKey = 'images';
+    } elseif (isset($_FILES['images']) && is_array($_FILES['images']['error'])) {
+        // Handle array of files - take first one
+        if (isset($_FILES['images']['error'][0]) && $_FILES['images']['error'][0] === UPLOAD_ERR_OK) {
+            $file = [
+                'name' => $_FILES['images']['name'][0],
+                'type' => $_FILES['images']['type'][0],
+                'tmp_name' => $_FILES['images']['tmp_name'][0],
+                'error' => $_FILES['images']['error'][0],
+                'size' => $_FILES['images']['size'][0]
             ];
-            $errorMsg = $uploadErrors[$_FILES['image']['error']] ?? 'File upload error';
+            $fileKey = 'images[0]';
         }
-        ResponseHelper::errorWithDetails($errorMsg, 'file_upload_error');
+    } elseif (isset($_FILES['file']) && $_FILES['file']['error'] === UPLOAD_ERR_OK) {
+        $file = $_FILES['file'];
+        $fileKey = 'file';
     }
     
-    $file = $_FILES['image'];
-    
-    // Validate file using FileHelper
-    $validation = FileHelper::validateImageFile($file, MAX_IMAGE_SIZE_BYTES, ALLOWED_IMAGE_TYPES);
-    if (!$validation['valid']) {
-        // Map validation errors to error codes
-        $errorCode = 'validation_error';
-        if (strpos($validation['error'], 'size') !== false) {
-            $errorCode = 'file_too_large';
-        } elseif (strpos($validation['error'], 'type') !== false || strpos($validation['error'], 'Invalid') !== false) {
-            $errorCode = 'invalid_type';
-        }
-        
-        ResponseHelper::errorWithDetails($validation['error'], $errorCode);
+    if (!$file || !isset($file['tmp_name']) || !is_uploaded_file($file['tmp_name'])) {
+        http_response_code(400);
+        echo json_encode(['status' => 'error', 'message' => 'No image file uploaded']);
+        exit;
     }
     
-    // Generate unique filename
+    // Step 4: File Type Validation (LENIENT - pass if extension OR mime type is valid)
+    $extension = strtolower(pathinfo($file['name'], PATHINFO_EXTENSION));
+    
+    // Get MIME type using multiple methods
+    $mimeType = null;
+    if (function_exists('finfo_file')) {
+        $finfo = finfo_open(FILEINFO_MIME_TYPE);
+        if ($finfo) {
+            $mimeType = finfo_file($finfo, $file['tmp_name']);
+            finfo_close($finfo);
+        }
+    }
+    
+    if (!$mimeType && function_exists('mime_content_type')) {
+        $mimeType = mime_content_type($file['tmp_name']);
+    }
+    
+    if (!$mimeType) {
+        $imageInfo = @getimagesize($file['tmp_name']);
+        if ($imageInfo && isset($imageInfo['mime'])) {
+            $mimeType = $imageInfo['mime'];
+        }
+    }
+    
+    // Check if extension is valid
+    $extensionValid = in_array($extension, ALLOWED_IMAGE_TYPES);
+    
+    // Check if MIME type is valid
+    $mimeValid = $mimeType && in_array($mimeType, ALLOWED_MIME_TYPES);
+    
+    // LENIENT: Pass if EITHER extension OR mime type is valid
+    if (!$extensionValid && !$mimeValid) {
+        // Both are invalid - reject
+        http_response_code(400);
+        echo json_encode([
+            'status' => 'error',
+            'message' => 'Invalid file type. Please upload JPG, PNG, or WebP images.',
+            'error_code' => 'invalid_type',
+            'details' => [
+                'extension' => $extension,
+                'mime_type' => $mimeType
+            ]
+        ]);
+        exit;
+    }
+    
+    // Step 5: File Size Validation
+    $maxSizeBytes = MAX_IMAGE_SIZE_BYTES;
+    if ($file['size'] > $maxSizeBytes) {
+        $fileSizeMB = round($file['size'] / (1024 * 1024), 2);
+        $maxSizeMB = round($maxSizeBytes / (1024 * 1024), 2);
+        http_response_code(400);
+        echo json_encode([
+            'status' => 'error',
+            'message' => "File too large. Maximum size is {$maxSizeMB}MB. Your file is {$fileSizeMB}MB.",
+            'error_code' => 'file_too_large'
+        ]);
+        exit;
+    }
+    
+    // Step 6: Image Dimensions Check
+    $imageInfo = @getimagesize($file['tmp_name']);
+    if ($imageInfo === false) {
+        http_response_code(400);
+        echo json_encode([
+            'status' => 'error',
+            'message' => 'File is not a valid image',
+            'error_code' => 'invalid_image'
+        ]);
+        exit;
+    }
+    
+    $width = $imageInfo[0];
+    $height = $imageInfo[1];
+    
+    if ($width < MIN_IMAGE_WIDTH || $height < MIN_IMAGE_HEIGHT) {
+        http_response_code(400);
+        echo json_encode([
+            'status' => 'error',
+            'message' => "You have uploaded a low quality image. Your image is {$width}x{$height} pixels. Minimum required is " . MIN_IMAGE_WIDTH . "x" . MIN_IMAGE_HEIGHT . " pixels.",
+            'error_code' => 'low_quality',
+            'details' => [
+                'width' => $width,
+                'height' => $height,
+                'min_width' => MIN_IMAGE_WIDTH,
+                'min_height' => MIN_IMAGE_HEIGHT
+            ]
+        ]);
+        exit;
+    }
+    
+    // Step 7: Blur Detection
+    $blurResult = BlurDetector::calculateBlurScore($file['tmp_name']);
+    if (!$blurResult['success']) {
+        error_log("Blur detection failed: " . ($blurResult['error'] ?? 'Unknown error'));
+        // Continue even if blur detection fails
+    } else {
+        if ($blurResult['is_blurry']) {
+            http_response_code(400);
+            echo json_encode([
+                'status' => 'error',
+                'message' => 'You have uploaded a blurry image. Please upload a clear and sharp photo.',
+                'error_code' => 'blur_detected',
+                'details' => [
+                    'blur_score' => $blurResult['blur_score']
+                ]
+            ]);
+            exit;
+        }
+    }
+    
+    // Step 8: Save to Temp Folder
     $uniqueFilename = FileHelper::generateUniqueFilename($file['name']);
     $originalFilename = $file['name'];
     $fileSize = $file['size'];
-    $mimeType = FileHelper::getMimeType($file['tmp_name']);
+    $mimeType = $mimeType ?: 'image/jpeg'; // Fallback
     
     // Ensure temp directory exists
     if (!FileHelper::createDirectory(UPLOAD_TEMP_PATH)) {
         error_log("Failed to create temp directory: " . UPLOAD_TEMP_PATH);
-        ResponseHelper::serverError('Failed to create upload directory');
+        http_response_code(500);
+        echo json_encode(['status' => 'error', 'message' => 'Failed to create upload directory']);
+        exit;
     }
     
     // Save to temp directory
     $tempPath = UPLOAD_TEMP_PATH . $uniqueFilename;
     if (!move_uploaded_file($file['tmp_name'], $tempPath)) {
         error_log("Failed to move uploaded file to temp: {$tempPath}");
-        ResponseHelper::serverError('Failed to save uploaded file');
+        http_response_code(500);
+        echo json_encode(['status' => 'error', 'message' => 'Failed to save uploaded file']);
+        exit;
     }
     
-    // Initialize moderation variables
-    $decision = null;
+    // Step 9: Call Google Vision API
     $apiResponse = null;
-    $moderationStatus = 'PENDING';
-    $moderationReason = null;
-    $apisUsed = ['google_vision'];
-    $confidenceScores = [];
-    $apiResponseJson = null;
-    
-    // Call Google Vision API
     try {
         $visionService = new GoogleVisionService();
         $apiResponse = $visionService->analyzeImage($tempPath);
         
-        // Evaluate moderation decision (includes quality checks, animal detection, SafeSearch, property check)
-        // Quality checks happen first, even if API fails
-        $decisionService = new ModerationDecisionService();
-        $decision = $decisionService->evaluate($apiResponse, $tempPath);
-        
-        $moderationStatus = $decision['status'];
-        $moderationReason = $decision['message'];
-        $confidenceScores = $decision['details']['confidence_scores'] ?? [];
-        
-        if ($apiResponse['success']) {
-            $apiResponseJson = $apiResponse['raw_response'];
-        } else {
-            error_log("Google Vision API error: " . ($apiResponse['error'] ?? 'Unknown error'));
-            // Quality checks still performed, API error logged but decision made
+        if (!$apiResponse['success']) {
+            // API failed - delete temp file and return error
+            FileHelper::deleteFile($tempPath);
+            http_response_code(500);
+            echo json_encode([
+                'status' => 'error',
+                'message' => 'Image verification failed. Please try again.',
+                'error_code' => 'api_error'
+            ]);
+            exit;
         }
     } catch (Exception $e) {
         error_log("Google Vision API exception: " . $e->getMessage());
-        
-        // Still check quality even if API fails
-        try {
-            $decisionService = new ModerationDecisionService();
-            $decision = $decisionService->evaluate(['success' => false, 'error' => $e->getMessage()], $tempPath);
-            $moderationStatus = $decision['status'];
-            $moderationReason = $decision['message'];
-        } catch (Exception $e2) {
-            error_log("Quality check exception: " . $e2->getMessage());
-            $moderationStatus = 'PENDING';
-            $moderationReason = 'Moderation service error';
-        }
-    }
-    
-    // Handle based on moderation decision
-    // REJECTED status includes: animal_detected, blur_detected, low_quality, adult_content, violence_content
-    if ($moderationStatus === 'REJECTED') {
-        // Delete temp file
         FileHelper::deleteFile($tempPath);
-        
-        // Save record with REJECTED status
-        try {
-            $stmt = $db->prepare("
-                INSERT INTO property_images (
-                    property_id, image_url, file_name, file_path, original_filename,
-                    file_size, mime_type, moderation_status, moderation_reason,
-                    apis_used, confidence_scores, api_response, checked_at
-                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW())
-            ");
-            
-            $stmt->execute([
-                $propertyId,
-                null, // No URL for rejected images
-                $uniqueFilename,
-                null, // No path for rejected images
-                $originalFilename,
-                $fileSize,
-                $mimeType,
-                'REJECTED',
-                $moderationReason,
-                json_encode($apisUsed),
-                json_encode($confidenceScores),
-                $apiResponseJson
-            ]);
-        } catch (PDOException $e) {
-            error_log("Failed to save REJECTED image record: " . $e->getMessage());
-        }
-        
-        // Return specific error message with details
-        $errorCode = $decision['reason_code'] ?? 'rejected';
-        $errorDetails = $decision['details'] ?? [];
-        
-        ResponseHelper::errorWithDetails(
-            $moderationReason,
-            $errorCode,
-            $errorDetails,
-            400
-        );
+        http_response_code(500);
+        echo json_encode([
+            'status' => 'error',
+            'message' => 'Image verification failed. Please try again.',
+            'error_code' => 'api_error'
+        ]);
+        exit;
     }
     
-    if ($moderationStatus === 'NEEDS_REVIEW') {
-        // Ensure review directory exists
-        if (!FileHelper::createDirectory(UPLOAD_REVIEW_PATH)) {
-            error_log("Failed to create review directory: " . UPLOAD_REVIEW_PATH);
-            FileHelper::deleteFile($tempPath);
-            ResponseHelper::serverError('Failed to create review directory');
-        }
-        
-        // Move file to review directory
-        $reviewPath = UPLOAD_REVIEW_PATH . $uniqueFilename;
-        if (!FileHelper::moveFile($tempPath, $reviewPath)) {
-            error_log("Failed to move file to review directory");
-            FileHelper::deleteFile($tempPath);
-            ResponseHelper::serverError('Failed to queue image for review');
-        }
-        
-        // Save record with NEEDS_REVIEW status
-        try {
-            $db->beginTransaction();
-            
-            $stmt = $db->prepare("
-                INSERT INTO property_images (
-                    property_id, image_url, file_name, file_path, original_filename,
-                    file_size, mime_type, moderation_status, moderation_reason,
-                    apis_used, confidence_scores, api_response, checked_at
-                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW())
-            ");
-            
-            $relativePath = 'review/' . $uniqueFilename;
-            $imageUrl = BASE_URL . '/uploads/' . $relativePath;
-            
-            $stmt->execute([
-                $propertyId,
-                $imageUrl,
-                $uniqueFilename,
-                $relativePath,
-                $originalFilename,
-                $fileSize,
-                $mimeType,
-                'NEEDS_REVIEW',
-                $moderationReason,
-                json_encode($apisUsed),
-                json_encode($confidenceScores),
-                $apiResponseJson
-            ]);
-            
-            $imageId = $db->lastInsertId();
-            
-            // Insert into moderation_review_queue
-            $stmt = $db->prepare("
-                INSERT INTO moderation_review_queue (
-                    property_image_id, status, reason_for_review, created_at
-                ) VALUES (?, 'OPEN', ?, NOW())
-            ");
-            
-            $stmt->execute([$imageId, $moderationReason]);
-            
-            $db->commit();
-            
-            ResponseHelper::pending(
-                'Your image is being reviewed and will be approved shortly.',
-                [
-                    'image_id' => $imageId,
-                    'moderation_status' => 'NEEDS_REVIEW',
-                    'moderation_reason' => $moderationReason
-                ]
-            );
-            
-        } catch (PDOException $e) {
-            if ($db->inTransaction()) {
-                $db->rollBack();
+    // Step 10: Check for HUMANS
+    // First check FACE_DETECTION
+    $faces = $apiResponse['faces'] ?? [];
+    if (!empty($faces)) {
+        foreach ($faces as $face) {
+            $faceConfidence = $face['detection_confidence'] ?? 0.0;
+            if ($faceConfidence >= MODERATION_FACE_THRESHOLD) {
+                FileHelper::deleteFile($tempPath);
+                http_response_code(400);
+                echo json_encode([
+                    'status' => 'error',
+                    'message' => 'You have uploaded an image with human appearance. Please upload only property images without any people.',
+                    'error_code' => 'human_detected',
+                    'details' => [
+                        'detection_method' => 'face_detection',
+                        'confidence' => round($faceConfidence * 100, 1)
+                    ]
+                ]);
+                exit;
             }
-            error_log("Failed to save NEEDS_REVIEW image record: " . $e->getMessage());
-            FileHelper::deleteFile($reviewPath);
-            ResponseHelper::serverError('Failed to save image record');
         }
     }
     
-    // Handle APPROVED images
-    // Create property-specific folder
+    // Check LABELS and OBJECTS for human-related words
+    $labels = $apiResponse['labels'] ?? [];
+    $objects = $apiResponse['objects'] ?? [];
+    $humanLabels = defined('HUMAN_LABELS') ? HUMAN_LABELS : [];
+    
+    $detectedHumans = [];
+    foreach ($labels as $label) {
+        $description = strtolower($label['description'] ?? '');
+        $score = $label['score'] ?? 0.0;
+        
+        foreach ($humanLabels as $humanLabel) {
+            $humanLabelLower = strtolower($humanLabel);
+            if (stripos($description, $humanLabelLower) !== false || $description === $humanLabelLower) {
+                if ($score >= MODERATION_HUMAN_THRESHOLD) {
+                    $detectedHumans[] = [
+                        'name' => $label['description'],
+                        'confidence' => round($score * 100, 1)
+                    ];
+                }
+            }
+        }
+    }
+    
+    // Check objects for "Person"
+    foreach ($objects as $object) {
+        $objectName = strtolower($object['name'] ?? '');
+        $objectScore = $object['score'] ?? 0.0;
+        
+        if (($objectName === 'person' || $objectName === 'people' || $objectName === 'human') && 
+            $objectScore >= MODERATION_HUMAN_THRESHOLD) {
+            $detectedHumans[] = [
+                'name' => ucfirst($object['name']),
+                'confidence' => round($objectScore * 100, 1)
+            ];
+        }
+    }
+    
+    if (!empty($detectedHumans)) {
+        usort($detectedHumans, function($a, $b) {
+            return $b['confidence'] <=> $a['confidence'];
+        });
+        $topHuman = $detectedHumans[0];
+        
+        FileHelper::deleteFile($tempPath);
+        http_response_code(400);
+        echo json_encode([
+            'status' => 'error',
+            'message' => "You have uploaded an image with human appearance ({$topHuman['name']}). Please upload only property images without any people.",
+            'error_code' => 'human_detected',
+            'details' => [
+                'detected' => $topHuman['name'],
+                'confidence' => $topHuman['confidence']
+            ]
+        ]);
+        exit;
+    }
+    
+    // Step 11: Check for ANIMALS
+    $animalLabels = defined('ANIMAL_LABELS') ? ANIMAL_LABELS : [];
+    $detectedAnimals = [];
+    
+    // Check labels
+    foreach ($labels as $label) {
+        $description = strtolower($label['description'] ?? '');
+        $score = $label['score'] ?? 0.0;
+        
+        foreach ($animalLabels as $animalLabel) {
+            $animalLabelLower = strtolower($animalLabel);
+            if (stripos($description, $animalLabelLower) !== false || $description === $animalLabelLower) {
+                if ($score >= MODERATION_ANIMAL_THRESHOLD) {
+                    $detectedAnimals[] = [
+                        'name' => $label['description'],
+                        'confidence' => round($score * 100, 1)
+                    ];
+                }
+            }
+        }
+    }
+    
+    // Check objects for animals
+    foreach ($objects as $object) {
+        $objectName = strtolower($object['name'] ?? '');
+        $objectScore = $object['score'] ?? 0.0;
+        
+        foreach ($animalLabels as $animalLabel) {
+            $animalLabelLower = strtolower($animalLabel);
+            if ($objectName === $animalLabelLower || stripos($objectName, $animalLabelLower) !== false) {
+                if ($objectScore >= MODERATION_ANIMAL_THRESHOLD) {
+                    $detectedAnimals[] = [
+                        'name' => ucfirst($object['name']),
+                        'confidence' => round($objectScore * 100, 1)
+                    ];
+                }
+            }
+        }
+    }
+    
+    if (!empty($detectedAnimals)) {
+        usort($detectedAnimals, function($a, $b) {
+            return $b['confidence'] <=> $a['confidence'];
+        });
+        $topAnimal = $detectedAnimals[0];
+        
+        FileHelper::deleteFile($tempPath);
+        http_response_code(400);
+        echo json_encode([
+            'status' => 'error',
+            'message' => "You have uploaded an image with animal appearance ({$topAnimal['name']}). Please upload only property images without any animals or pets.",
+            'error_code' => 'animal_detected',
+            'details' => [
+                'detected' => $topAnimal['name'],
+                'confidence' => $topAnimal['confidence']
+            ]
+        ]);
+        exit;
+    }
+    
+    // Step 12: Check SafeSearch
+    $scores = $apiResponse['safesearch_scores'] ?? [];
+    $adult = $scores['adult'] ?? 0.0;
+    $violence = $scores['violence'] ?? 0.0;
+    
+    if ($adult >= MODERATION_ADULT_THRESHOLD) {
+        FileHelper::deleteFile($tempPath);
+        http_response_code(400);
+        echo json_encode([
+            'status' => 'error',
+            'message' => 'This image contains inappropriate content',
+            'error_code' => 'adult_content'
+        ]);
+        exit;
+    }
+    
+    if ($violence >= MODERATION_VIOLENCE_THRESHOLD) {
+        FileHelper::deleteFile($tempPath);
+        http_response_code(400);
+        echo json_encode([
+            'status' => 'error',
+            'message' => 'This image contains violent content',
+            'error_code' => 'violence_content'
+        ]);
+        exit;
+    }
+    
+    // Step 13: Image APPROVED - Add Watermark
+    // Move to properties folder first
     $propertyFolder = UPLOAD_PROPERTIES_PATH . $propertyId . '/';
     if (!FileHelper::createDirectory($propertyFolder)) {
         error_log("Failed to create property folder: {$propertyFolder}");
         FileHelper::deleteFile($tempPath);
-        ResponseHelper::serverError('Failed to create property folder');
+        http_response_code(500);
+        echo json_encode(['status' => 'error', 'message' => 'Failed to create property folder']);
+        exit;
     }
     
-    // Move file from temp to property folder
     $finalPath = $propertyFolder . $uniqueFilename;
     if (!FileHelper::moveFile($tempPath, $finalPath)) {
         error_log("Failed to move file to property folder");
         FileHelper::deleteFile($tempPath);
-        ResponseHelper::serverError('Failed to save image');
+        http_response_code(500);
+        echo json_encode(['status' => 'error', 'message' => 'Failed to save image']);
+        exit;
     }
     
-    // Add watermark to approved image
+    // Add watermark
     try {
         if (!WatermarkService::addWatermark($finalPath)) {
             error_log("Failed to add watermark to image: {$finalPath}");
@@ -324,11 +492,20 @@ try {
         // Continue even if watermark fails
     }
     
-    // Generate public URL
+    // Step 14: Move to Properties Folder (already done above)
+    
+    // Step 15: Save to Database
     $relativePath = 'properties/' . $propertyId . '/' . $uniqueFilename;
     $imageUrl = BASE_URL . '/uploads/' . $relativePath;
     
-    // Save to database
+    $apisUsed = ['google_vision'];
+    $confidenceScores = [
+        'adult' => $adult,
+        'violence' => $violence,
+        'racy' => $scores['racy'] ?? 0.0
+    ];
+    $apiResponseJson = json_encode($apiResponse);
+    
     try {
         $stmt = $db->prepare("
             INSERT INTO property_images (
@@ -347,7 +524,7 @@ try {
             $fileSize,
             $mimeType,
             'SAFE',
-            $moderationReason ?? 'Image approved successfully.',
+            'Image approved successfully.',
             json_encode($apisUsed),
             json_encode($confidenceScores),
             $apiResponseJson
@@ -355,21 +532,32 @@ try {
         
         $imageId = $db->lastInsertId();
         
-        ResponseHelper::success('Image uploaded successfully', [
-            'image_id' => $imageId,
-            'image_url' => $imageUrl,
-            'filename' => $uniqueFilename,
-            'moderation_status' => 'SAFE'
+        // Step 16: Return Success
+        http_response_code(200);
+        echo json_encode([
+            'status' => 'success',
+            'message' => 'Image approved',
+            'data' => [
+                'image_id' => $imageId,
+                'image_url' => $imageUrl,
+                'filename' => $uniqueFilename,
+                'moderation_status' => 'SAFE'
+            ]
         ]);
+        exit;
         
     } catch (PDOException $e) {
         error_log("Failed to save image record: " . $e->getMessage());
         FileHelper::deleteFile($finalPath);
-        ResponseHelper::serverError('Failed to save image record');
+        http_response_code(500);
+        echo json_encode(['status' => 'error', 'message' => 'Failed to save image record']);
+        exit;
     }
     
 } catch (Exception $e) {
     error_log("Image moderation error: " . $e->getMessage());
     error_log("Stack trace: " . $e->getTraceAsString());
-    ResponseHelper::serverError('An error occurred while processing the image');
+    http_response_code(500);
+    echo json_encode(['status' => 'error', 'message' => 'An error occurred while processing the image']);
+    exit;
 }
