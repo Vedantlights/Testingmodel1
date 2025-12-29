@@ -2,61 +2,19 @@
 /**
  * Moderation Decision Service
  * Evaluates Google Vision API responses and makes moderation decisions
- * Checks: Image Quality → Animals → SafeSearch → Property Context
+ * Checks in EXACT order: Quality → Blur → Humans (Faces) → Humans (Labels/Objects) → Animals → SafeSearch → Property Context
  */
 
 require_once __DIR__ . '/../config/moderation.php';
 require_once __DIR__ . '/../helpers/BlurDetector.php';
 require_once __DIR__ . '/../helpers/FileHelper.php';
 
+// Ensure error message function is available
+if (!function_exists('getErrorMessage')) {
+    require_once __DIR__ . '/../config/moderation.php';
+}
+
 class ModerationDecisionService {
-    
-    // Comprehensive animal labels to detect (case insensitive)
-    private $animalLabels = [
-        // Dogs
-        'Dog', 'Puppy', 'Canine', 'Hound', 'Terrier', 'Bulldog', 'Labrador', 
-        'German Shepherd', 'Poodle', 'Golden Retriever', 'Beagle', 'Rottweiler',
-        // Cats
-        'Cat', 'Kitten', 'Feline', 'Persian', 'Siamese', 'Maine Coon', 'Tabby',
-        // General
-        'Pet', 'Animal', 'Wildlife', 'Mammal', 'Domestic Animal',
-        // Birds
-        'Bird', 'Parrot', 'Pigeon', 'Sparrow', 'Crow', 'Eagle', 'Owl', 'Hawk',
-        'Chicken', 'Duck', 'Goose', 'Turkey', 'Rooster', 'Hen',
-        // Fish
-        'Fish', 'Aquarium', 'Goldfish', 'Tropical Fish',
-        // Large Animals
-        'Horse', 'Pony', 'Donkey', 'Mule',
-        'Cow', 'Bull', 'Buffalo', 'Cattle', 'Livestock', 'Ox',
-        'Goat', 'Sheep', 'Lamb', 'Ram',
-        'Pig', 'Piglet', 'Boar', 'Swine',
-        // Small Animals
-        'Rabbit', 'Bunny', 'Hamster', 'Guinea Pig', 'Gerbil',
-        'Mouse', 'Rat', 'Squirrel', 'Chipmunk',
-        // Reptiles
-        'Reptile', 'Snake', 'Lizard', 'Turtle', 'Tortoise', 'Crocodile', 'Alligator',
-        'Gecko', 'Iguana', 'Chameleon',
-        // Insects
-        'Insect', 'Spider', 'Butterfly', 'Bee', 'Wasp', 'Ant', 'Beetle', 'Moth',
-        // Wild Animals
-        'Monkey', 'Ape', 'Chimpanzee', 'Gorilla',
-        'Elephant', 'Tiger', 'Lion', 'Bear', 'Deer', 'Wolf', 'Fox',
-        'Zebra', 'Giraffe', 'Hippopotamus', 'Rhinoceros', 'Kangaroo',
-        // Marine
-        'Dolphin', 'Whale', 'Shark', 'Seal', 'Sea Lion',
-        // Other
-        'Frog', 'Toad', 'Salamander'
-    ];
-    
-    // Property-related labels (for context)
-    private $propertyLabels = [
-        'House', 'Building', 'Room', 'Interior', 'Exterior', 'Garden', 'Kitchen', 
-        'Bedroom', 'Bathroom', 'Living Room', 'Property', 'Real Estate', 
-        'Architecture', 'Home', 'Apartment', 'Floor', 'Wall', 'Ceiling', 
-        'Door', 'Window', 'Furniture', 'Land', 'Plot', 'Balcony', 'Terrace', 
-        'Pool', 'Garage', 'Driveway', 'Yard', 'Patio', 'Stairs', 'Lobby', 
-        'Hall', 'Office', 'Commercial', 'Residential', 'Construction', 'Structure'
-    ];
     
     /**
      * Evaluate vision API response and make moderation decision
@@ -70,11 +28,13 @@ class ModerationDecisionService {
             'detected_issue' => null,
             'image_dimensions' => null,
             'blur_score' => null,
+            'human_detected' => false,
+            'animal_detected' => false,
             'animal_labels' => [],
             'property_labels' => []
         ];
         
-        // STEP 1: Check Image Quality First
+        // STEP 1: Check Image Quality First (Dimensions)
         $dimensions = FileHelper::getImageDimensions($imagePath);
         if ($dimensions) {
             $details['image_dimensions'] = $dimensions['width'] . 'x' . $dimensions['height'];
@@ -83,7 +43,10 @@ class ModerationDecisionService {
             if ($dimensions['width'] < MIN_IMAGE_WIDTH || $dimensions['height'] < MIN_IMAGE_HEIGHT) {
                 return [
                     'status' => 'REJECTED',
-                    'message' => "Image too small. Your image is {$dimensions['width']}x{$dimensions['height']}. Minimum required is " . MIN_IMAGE_WIDTH . "x" . MIN_IMAGE_HEIGHT . " pixels.",
+                    'message' => getErrorMessage('low_quality', [
+                        'width' => $dimensions['width'],
+                        'height' => $dimensions['height']
+                    ]),
                     'reason_code' => 'low_quality',
                     'details' => array_merge($details, [
                         'detected_issue' => "Image dimensions too small: {$dimensions['width']}x{$dimensions['height']}",
@@ -96,7 +59,7 @@ class ModerationDecisionService {
             error_log("ModerationDecisionService: Could not read image dimensions for: {$imagePath}");
         }
         
-        // Check blur score
+        // STEP 2: Check Blur Score
         $blurResult = BlurDetector::calculateBlurScore($imagePath);
         $details['blur_score'] = $blurResult['blur_score'];
         
@@ -126,26 +89,151 @@ class ModerationDecisionService {
         
         $scores = $visionResponse['safesearch_scores'] ?? [];
         $labels = $visionResponse['labels'] ?? [];
+        $faces = $visionResponse['faces'] ?? [];
+        $objects = $visionResponse['objects'] ?? [];
         
         $adult = $scores['adult'] ?? 0.0;
         $racy = $scores['racy'] ?? 0.0;
         $violence = $scores['violence'] ?? 0.0;
         
-        // STEP 2: Check for Animals
+        // STEP 3: Check for HUMANS using Face Detection (HIGHEST PRIORITY)
+        // Face detection is the most reliable method for detecting humans
+        if (!empty($faces)) {
+            foreach ($faces as $face) {
+                $faceConfidence = $face['detection_confidence'] ?? 0.0;
+                if ($faceConfidence >= MODERATION_FACE_THRESHOLD) {
+                    return [
+                        'status' => 'REJECTED',
+                        'message' => getErrorMessage('human_detected'),
+                        'reason_code' => 'human_detected',
+                        'details' => array_merge($details, [
+                            'detected_issue' => "Human face detected (confidence: " . round($faceConfidence * 100, 1) . "%)",
+                            'human_detected' => true,
+                            'face_confidence' => round($faceConfidence * 100, 1),
+                            'detection_method' => 'face_detection'
+                        ])
+                    ];
+                }
+            }
+        }
+        
+        // STEP 4: Check for HUMANS in Objects (OBJECT_LOCALIZATION)
+        // Check for "Person" object specifically
+        if (!empty($objects)) {
+            foreach ($objects as $object) {
+                $objectName = strtolower($object['name'] ?? '');
+                $objectScore = $object['score'] ?? 0.0;
+                
+                // Check if object is "Person" or human-related
+                if (($objectName === 'person' || $objectName === 'people' || $objectName === 'human') && 
+                    $objectScore >= MODERATION_HUMAN_THRESHOLD) {
+                    return [
+                        'status' => 'REJECTED',
+                        'message' => getErrorMessage('human_detected'),
+                        'reason_code' => 'human_detected',
+                        'details' => array_merge($details, [
+                            'detected_issue' => ucfirst($object['name']) . " detected (confidence: " . round($objectScore * 100, 1) . "%)",
+                            'human_detected' => true,
+                            'object_confidence' => round($objectScore * 100, 1),
+                            'detection_method' => 'object_localization'
+                        ])
+                    ];
+                }
+            }
+        }
+        
+        // STEP 5: Check for HUMANS in Labels
+        $humanLabels = defined('HUMAN_LABELS') ? HUMAN_LABELS : [];
+        $detectedHumans = [];
+        
+        foreach ($labels as $label) {
+            $description = strtolower($label['description'] ?? '');
+            $score = $label['score'] ?? 0.0;
+            
+            // Check if label matches any human label
+            foreach ($humanLabels as $humanLabel) {
+                $humanLabelLower = strtolower($humanLabel);
+                if (stripos($description, $humanLabelLower) !== false || $description === $humanLabelLower) {
+                    if ($score >= MODERATION_HUMAN_THRESHOLD) {
+                        $detectedHumans[] = [
+                            'name' => $label['description'],
+                            'confidence' => round($score * 100, 1)
+                        ];
+                    }
+                }
+            }
+        }
+        
+        if (!empty($detectedHumans)) {
+            // Get the highest confidence human detection
+            usort($detectedHumans, function($a, $b) {
+                return $b['confidence'] <=> $a['confidence'];
+            });
+            $topHuman = $detectedHumans[0];
+            
+            return [
+                'status' => 'REJECTED',
+                'message' => getErrorMessage('human_detected'),
+                'reason_code' => 'human_detected',
+                'details' => array_merge($details, [
+                    'detected_issue' => ucfirst($topHuman['name']) . " detected (confidence: {$topHuman['confidence']}%)",
+                    'human_detected' => true,
+                    'human_labels' => array_map(function($h) { return $h['name']; }, $detectedHumans),
+                    'human_confidence' => $topHuman['confidence'],
+                    'detection_method' => 'label_detection'
+                ])
+            ];
+        }
+        
+        // STEP 6: Check for ANIMALS in Objects (OBJECT_LOCALIZATION)
+        // Check for specific animal objects like "Dog", "Cat", etc.
+        $animalLabels = defined('ANIMAL_LABELS') ? ANIMAL_LABELS : [];
         $detectedAnimals = [];
+        
+        if (!empty($objects)) {
+            foreach ($objects as $object) {
+                $objectName = strtolower($object['name'] ?? '');
+                $objectScore = $object['score'] ?? 0.0;
+                
+                // Check if object matches any animal label
+                foreach ($animalLabels as $animalLabel) {
+                    $animalLabelLower = strtolower($animalLabel);
+                    if ($objectName === $animalLabelLower || stripos($objectName, $animalLabelLower) !== false) {
+                        if ($objectScore >= MODERATION_ANIMAL_THRESHOLD) {
+                            $detectedAnimals[] = [
+                                'name' => $object['name'],
+                                'confidence' => round($objectScore * 100, 1)
+                            ];
+                        }
+                    }
+                }
+            }
+        }
+        
+        // STEP 7: Check for ANIMALS in Labels
         foreach ($labels as $label) {
             $description = strtolower($label['description'] ?? '');
             $score = $label['score'] ?? 0.0;
             
             // Check if label matches any animal label
-            foreach ($this->animalLabels as $animalLabel) {
+            foreach ($animalLabels as $animalLabel) {
                 $animalLabelLower = strtolower($animalLabel);
                 if (stripos($description, $animalLabelLower) !== false || $description === $animalLabelLower) {
                     if ($score >= MODERATION_ANIMAL_THRESHOLD) {
-                        $detectedAnimals[] = [
-                            'name' => $label['description'],
-                            'confidence' => round($score * 100, 1)
-                        ];
+                        // Check if already detected
+                        $alreadyDetected = false;
+                        foreach ($detectedAnimals as $detected) {
+                            if (strtolower($detected['name']) === strtolower($label['description'])) {
+                                $alreadyDetected = true;
+                                break;
+                            }
+                        }
+                        if (!$alreadyDetected) {
+                            $detectedAnimals[] = [
+                                'name' => $label['description'],
+                                'confidence' => round($score * 100, 1)
+                            ];
+                        }
                     }
                 }
             }
@@ -158,23 +246,22 @@ class ModerationDecisionService {
             });
             $topAnimal = $detectedAnimals[0];
             
-            $message = getErrorMessage('animal_detected', [
-                'animal_name' => $topAnimal['name']
-            ]);
-            
             return [
                 'status' => 'REJECTED',
-                'message' => $message,
+                'message' => getErrorMessage('animal_detected', [
+                    'animal_name' => $topAnimal['name']
+                ]),
                 'reason_code' => 'animal_detected',
                 'details' => array_merge($details, [
-                    'detected_issue' => "Animal detected: {$topAnimal['name']} ({$topAnimal['confidence']}% confidence)",
+                    'detected_issue' => ucfirst($topAnimal['name']) . " detected (confidence: {$topAnimal['confidence']}%)",
+                    'animal_detected' => true,
                     'animal_labels' => array_map(function($a) { return $a['name']; }, $detectedAnimals),
                     'animal_confidence' => $topAnimal['confidence']
                 ])
             ];
         }
         
-        // STEP 3: Check SafeSearch
+        // STEP 8: Check SafeSearch
         if ($adult >= MODERATION_ADULT_THRESHOLD) {
             return [
                 'status' => 'REJECTED',
@@ -211,26 +298,26 @@ class ModerationDecisionService {
             ];
         }
         
-        // STEP 4: Check if it looks like a property
-        $propertyLabelsFound = $this->extractPropertyLabels($labels);
-        $details['property_labels'] = $propertyLabelsFound;
+        // STEP 9: Check Property Context (optional - for review queue)
+        $propertyLabels = defined('PROPERTY_LABELS') ? PROPERTY_LABELS : [];
+        $propertyLabelsFound = [];
         
-        // Check if at least one property label exists with confidence > 0.5
-        $hasPropertyContext = false;
         foreach ($labels as $label) {
-            $description = strtolower($label['description'] ?? '');
+            $description = $label['description'] ?? '';
             $score = $label['score'] ?? 0.0;
             
-            foreach ($this->propertyLabels as $propertyLabel) {
-                if (stripos($description, strtolower($propertyLabel)) !== false && $score > 0.5) {
-                    $hasPropertyContext = true;
-                    break 2;
+            foreach ($propertyLabels as $propertyLabel) {
+                if (stripos($description, $propertyLabel) !== false && $score > 0.3) {
+                    $propertyLabelsFound[] = $description;
+                    break;
                 }
             }
         }
         
-        if (!$hasPropertyContext && !empty($labels)) {
-            // No property context found, but has other labels - needs review
+        $details['property_labels'] = array_unique($propertyLabelsFound);
+        
+        // If no property context found but has other labels, mark for review
+        if (empty($propertyLabelsFound) && !empty($labels)) {
             return [
                 'status' => 'NEEDS_REVIEW',
                 'message' => 'This image may not be a property photo. Under review.',
@@ -242,7 +329,7 @@ class ModerationDecisionService {
             ];
         }
         
-        // STEP 5: All checks passed
+        // STEP 10: All checks passed - APPROVED
         return [
             'status' => 'APPROVED',
             'message' => 'Image approved successfully.',
@@ -252,29 +339,5 @@ class ModerationDecisionService {
                 'property_labels' => $propertyLabelsFound
             ])
         ];
-    }
-    
-    /**
-     * Extract property-related labels from detected labels
-     * 
-     * @param array $labels Array of label objects
-     * @return array Array of property label descriptions
-     */
-    private function extractPropertyLabels($labels) {
-        $propertyLabels = [];
-        
-        foreach ($labels as $label) {
-            $description = $label['description'] ?? '';
-            $score = $label['score'] ?? 0.0;
-            
-            foreach ($this->propertyLabels as $propertyLabel) {
-                if (stripos($description, $propertyLabel) !== false && $score > 0.3) {
-                    $propertyLabels[] = $description;
-                    break; // Avoid duplicates
-                }
-            }
-        }
-        
-        return array_unique($propertyLabels);
     }
 }

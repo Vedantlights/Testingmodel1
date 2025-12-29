@@ -2,6 +2,7 @@
 /**
  * Google Cloud Vision API Service
  * Handles image analysis using Google Cloud Vision API
+ * Includes: SafeSearch, Labels, Faces, and Object Localization
  */
 
 require_once __DIR__ . '/../config/moderation.php';
@@ -42,7 +43,7 @@ class GoogleVisionService {
      * Analyze image for moderation
      * 
      * @param string $imagePath Path to image file
-     * @return array Response with SafeSearch scores and labels
+     * @return array Response with SafeSearch scores, labels, faces, and objects
      */
     public function analyzeImage($imagePath) {
         try {
@@ -65,11 +66,12 @@ class GoogleVisionService {
             $image = new Image();
             $image->setContent($imageContent);
             
-            // Request SafeSearch, Label detection, and Image Properties
+            // Request FOUR detection features for comprehensive detection
             $features = [
-                Type::SAFE_SEARCH_DETECTION,
-                Type::LABEL_DETECTION,
-                Type::IMAGE_PROPERTIES
+                Type::SAFE_SEARCH_DETECTION,      // For adult/violence content
+                Type::LABEL_DETECTION,            // For detecting objects, animals, humans
+                Type::FACE_DETECTION,             // For detecting human faces (CRITICAL for human detection)
+                Type::OBJECT_LOCALIZATION         // For detecting specific objects like "Person", "Dog", "Cat"
             ];
             
             // Perform annotation
@@ -92,6 +94,30 @@ class GoogleVisionService {
                 $labels[] = [
                     'description' => $label->getDescription(),
                     'score' => $label->getScore()
+                ];
+            }
+            
+            // Extract faces (CRITICAL for human detection)
+            $faces = [];
+            $faceAnnotations = $response->getFaceAnnotations();
+            foreach ($faceAnnotations as $face) {
+                $faces[] = [
+                    'detection_confidence' => $face->getDetectionConfidence(),
+                    'landmarking_confidence' => $face->getLandmarkingConfidence(),
+                    'joy_likelihood' => $this->likelihoodToScore($face->getJoyLikelihood()),
+                    'sorrow_likelihood' => $this->likelihoodToScore($face->getSorrowLikelihood()),
+                    'anger_likelihood' => $this->likelihoodToScore($face->getAngerLikelihood()),
+                    'surprise_likelihood' => $this->likelihoodToScore($face->getSurpriseLikelihood())
+                ];
+            }
+            
+            // Extract objects (CRITICAL for detecting "Person", "Dog", "Cat", etc.)
+            $objects = [];
+            $objectAnnotations = $response->getLocalizedObjectAnnotations();
+            foreach ($objectAnnotations as $object) {
+                $objects[] = [
+                    'name' => $object->getName(),
+                    'score' => $object->getScore()
                 ];
             }
             
@@ -129,6 +155,8 @@ class GoogleVisionService {
                     'spoof' => $safeSearchAnnotation->getSpoof()
                 ],
                 'labels' => $labels,
+                'faces' => $faces,
+                'objects' => $objects,
                 'image_properties' => $imageProperties
             ]);
             
@@ -136,6 +164,8 @@ class GoogleVisionService {
                 'success' => true,
                 'safesearch_scores' => $safesearchScores,
                 'labels' => $labels,
+                'faces' => $faces,
+                'objects' => $objects,
                 'image_properties' => $imageProperties,
                 'raw_response' => $rawResponse,
                 'error' => null
@@ -143,41 +173,17 @@ class GoogleVisionService {
             
         } catch (Exception $e) {
             error_log("GoogleVisionService::analyzeImage - Error: " . $e->getMessage());
+            error_log("Stack trace: " . $e->getTraceAsString());
             return [
                 'success' => false,
                 'safesearch_scores' => [],
                 'labels' => [],
+                'faces' => [],
+                'objects' => [],
                 'image_properties' => [],
                 'raw_response' => null,
                 'error' => $e->getMessage()
             ];
-        }
-    }
-    
-    /**
-     * Get image dimensions
-     * 
-     * @param string $imagePath Path to image file
-     * @return array ['width' => int, 'height' => int] or null on error
-     */
-    public function getImageDimensions($imagePath) {
-        try {
-            if (!file_exists($imagePath)) {
-                return null;
-            }
-            
-            $imageInfo = @getimagesize($imagePath);
-            if ($imageInfo === false) {
-                return null;
-            }
-            
-            return [
-                'width' => $imageInfo[0],
-                'height' => $imageInfo[1]
-            ];
-        } catch (Exception $e) {
-            error_log("GoogleVisionService::getImageDimensions - Error: " . $e->getMessage());
-            return null;
         }
     }
     
@@ -210,6 +216,33 @@ class GoogleVisionService {
             case 5: // UNKNOWN
             default:
                 return 0.5;
+        }
+    }
+    
+    /**
+     * Get image dimensions
+     * 
+     * @param string $imagePath Path to image file
+     * @return array ['width' => int, 'height' => int] or null on error
+     */
+    public function getImageDimensions($imagePath) {
+        try {
+            if (!file_exists($imagePath)) {
+                return null;
+            }
+            
+            $imageInfo = @getimagesize($imagePath);
+            if ($imageInfo === false) {
+                return null;
+            }
+            
+            return [
+                'width' => $imageInfo[0],
+                'height' => $imageInfo[1]
+            ];
+        } catch (Exception $e) {
+            error_log("GoogleVisionService::getImageDimensions - Error: " . $e->getMessage());
+            return null;
         }
     }
     

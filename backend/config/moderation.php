@@ -8,12 +8,19 @@
 define('GOOGLE_APPLICATION_CREDENTIALS', '/home/u123456789/Secure/indiapropertys-8fab286d41e4.json');
 
 // Content Moderation Thresholds (0.0 to 1.0)
+// Lower thresholds (0.5) to catch more humans and animals
 define('MODERATION_ADULT_THRESHOLD', 0.6);
 define('MODERATION_RACY_THRESHOLD', 0.7);
 define('MODERATION_VIOLENCE_THRESHOLD', 0.5);
 
-// Animal Detection Threshold
-define('MODERATION_ANIMAL_THRESHOLD', 0.6);
+// Human Detection Threshold (lower to catch more)
+define('MODERATION_HUMAN_THRESHOLD', 0.5);
+
+// Animal Detection Threshold (lower to catch more)
+define('MODERATION_ANIMAL_THRESHOLD', 0.5);
+
+// Face Detection Threshold
+define('MODERATION_FACE_THRESHOLD', 0.5);
 
 // Image Quality Thresholds
 define('MIN_IMAGE_WIDTH', 400);
@@ -32,14 +39,98 @@ define('UPLOAD_PROPERTIES_PATH', $_SERVER['DOCUMENT_ROOT'] . '/uploads/propertie
 define('UPLOAD_REVIEW_PATH', $_SERVER['DOCUMENT_ROOT'] . '/uploads/review/');
 define('UPLOAD_REJECTED_PATH', $_SERVER['DOCUMENT_ROOT'] . '/uploads/rejected/');
 
+// Watermark Settings
+define('WATERMARK_TEXT', 'indiapropertys');
+define('WATERMARK_COLOR_R', 200);  // Light grey
+define('WATERMARK_COLOR_G', 200);
+define('WATERMARK_COLOR_B', 200);
+define('WATERMARK_OPACITY', 30);  // 0-127, lower = more transparent (30 = semi-transparent)
+define('WATERMARK_FONT_SIZE', 24);
+define('WATERMARK_ANGLE', -45);  // Diagonal angle
+define('WATERMARK_SPACING_X', 200);  // Horizontal spacing for repeating pattern
+define('WATERMARK_SPACING_Y', 150);  // Vertical spacing for repeating pattern
+
+// Comprehensive Human Labels to Detect (50+ terms)
+define('HUMAN_LABELS', [
+    // Basic human terms
+    'Person', 'People', 'Human', 'Humans', 'Man', 'Men', 'Woman', 'Women',
+    'Child', 'Children', 'Baby', 'Babies', 'Infant', 'Toddler', 'Kid', 'Kids',
+    'Boy', 'Boys', 'Girl', 'Girls', 'Teenager', 'Teen', 'Adult', 'Adults',
+    // Face and body parts
+    'Face', 'Faces', 'Portrait', 'Portraits', 'Selfie', 'Selfies', 'Head', 'Heads',
+    'Hand', 'Hands', 'Arm', 'Arms', 'Leg', 'Legs', 'Foot', 'Feet',
+    // Groups and relationships
+    'Family', 'Families', 'Crowd', 'Crowds', 'Group', 'Groups', 'Team', 'Teams',
+    'Couple', 'Couples', 'Pair', 'Pairs', 'Friends', 'Friend', 'Colleagues',
+    // Activities involving humans
+    'Dancing', 'Running', 'Walking', 'Sitting', 'Standing', 'Playing',
+    // Professional/occupational
+    'Worker', 'Workers', 'Employee', 'Employees', 'Staff', 'Personnel',
+    // Age-specific
+    'Elderly', 'Senior', 'Youth', 'Young', 'Old'
+]);
+
+// Comprehensive Animal Labels to Detect (100+ terms)
+define('ANIMAL_LABELS', [
+    // Dogs (20+ breeds and terms)
+    'Dog', 'Dogs', 'Puppy', 'Puppies', 'Canine', 'Canines', 'Hound', 'Hounds',
+    'Terrier', 'Bulldog', 'Labrador', 'German Shepherd', 'Poodle', 'Golden Retriever',
+    'Beagle', 'Rottweiler', 'Boxer', 'Dachshund', 'Siberian Husky', 'Border Collie',
+    'Chihuahua', 'Shih Tzu', 'Yorkshire Terrier', 'Great Dane', 'Mastiff',
+    // Cats (15+ breeds and terms)
+    'Cat', 'Cats', 'Kitten', 'Kittens', 'Feline', 'Felines', 'Persian', 'Siamese',
+    'Maine Coon', 'Tabby', 'British Shorthair', 'Ragdoll', 'Bengal', 'Scottish Fold',
+    'Sphynx', 'Russian Blue', 'American Shorthair',
+    // Birds (20+ types)
+    'Bird', 'Birds', 'Parrot', 'Parrots', 'Pigeon', 'Pigeons', 'Sparrow', 'Sparrows',
+    'Crow', 'Crows', 'Eagle', 'Eagles', 'Owl', 'Owls', 'Hawk', 'Hawks',
+    'Chicken', 'Chickens', 'Rooster', 'Hen', 'Duck', 'Ducks', 'Goose', 'Geese',
+    'Turkey', 'Turkeys', 'Peacock', 'Peacocks', 'Flamingo', 'Flamingos',
+    // Fish and aquatic
+    'Fish', 'Fishes', 'Aquarium', 'Goldfish', 'Tropical Fish', 'Shark', 'Sharks',
+    'Dolphin', 'Dolphins', 'Whale', 'Whales', 'Seal', 'Seals', 'Sea Lion',
+    // Large animals
+    'Horse', 'Horses', 'Pony', 'Ponies', 'Donkey', 'Donkeys', 'Mule', 'Mules',
+    'Cow', 'Cows', 'Bull', 'Bulls', 'Buffalo', 'Buffaloes', 'Cattle', 'Livestock',
+    'Goat', 'Goats', 'Sheep', 'Lambs', 'Lamb', 'Ram', 'Rams', 'Pig', 'Pigs', 'Piglet',
+    // Small animals
+    'Rabbit', 'Rabbits', 'Bunny', 'Bunnies', 'Hamster', 'Hamsters', 'Guinea Pig',
+    'Gerbil', 'Gerbils', 'Mouse', 'Mice', 'Rat', 'Rats', 'Squirrel', 'Squirrels',
+    'Chipmunk', 'Chipmunks',
+    // Reptiles
+    'Reptile', 'Reptiles', 'Snake', 'Snakes', 'Lizard', 'Lizards', 'Turtle', 'Turtles',
+    'Tortoise', 'Crocodile', 'Crocodiles', 'Alligator', 'Alligators', 'Gecko', 'Geckos',
+    'Iguana', 'Iguanas', 'Chameleon', 'Chameleons',
+    // Insects
+    'Insect', 'Insects', 'Spider', 'Spiders', 'Butterfly', 'Butterflies', 'Bee', 'Bees',
+    'Wasp', 'Wasps', 'Ant', 'Ants', 'Beetle', 'Beetles', 'Moth', 'Moths',
+    // Wild animals
+    'Monkey', 'Monkeys', 'Ape', 'Apes', 'Chimpanzee', 'Chimpanzees', 'Gorilla', 'Gorillas',
+    'Elephant', 'Elephants', 'Tiger', 'Tigers', 'Lion', 'Lions', 'Bear', 'Bears',
+    'Deer', 'Wolf', 'Wolves', 'Fox', 'Foxes', 'Zebra', 'Zebras', 'Giraffe', 'Giraffes',
+    'Hippopotamus', 'Rhinoceros', 'Kangaroo', 'Kangaroos',
+    // General terms
+    'Pet', 'Pets', 'Animal', 'Animals', 'Wildlife', 'Mammal', 'Mammals', 'Domestic Animal'
+]);
+
+// Property Labels for Positive Detection
+define('PROPERTY_LABELS', [
+    'House', 'Building', 'Room', 'Interior', 'Exterior', 'Garden', 'Kitchen',
+    'Bedroom', 'Bathroom', 'Living Room', 'Property', 'Real Estate',
+    'Architecture', 'Home', 'Apartment', 'Floor', 'Wall', 'Ceiling',
+    'Door', 'Window', 'Furniture', 'Land', 'Plot', 'Balcony', 'Terrace',
+    'Pool', 'Garage', 'Driveway', 'Yard', 'Patio', 'Stairs', 'Lobby',
+    'Hall', 'Office', 'Commercial', 'Residential', 'Construction', 'Structure'
+]);
+
 // Error Messages (User-Friendly)
-// Note: Using function to handle dynamic replacements
 if (!function_exists('getErrorMessage')) {
     function getErrorMessage($code, $replacements = []) {
         $messages = [
-            'animal_detected' => 'This image contains an animal ({animal_name}). Please upload only property images without pets or animals.',
-            'blur_detected' => 'This image is too blurry. Please upload a clearer photo.',
-            'low_quality' => 'This image quality is too low. Please upload a higher resolution image (minimum 400x300 pixels).',
+            'human_detected' => 'You have uploaded an image with human appearance. Please upload only property images without any people.',
+            'animal_detected' => 'You have uploaded an image with animal appearance ({animal_name}). Please upload only property images without any animals or pets.',
+            'blur_detected' => 'You have uploaded a blurry image. Please upload a clear and sharp photo of the property.',
+            'low_quality' => 'You have uploaded a low quality image. Your image is {width}x{height} pixels. Minimum required is 400x300 pixels.',
             'adult_content' => 'This image contains inappropriate content and cannot be uploaded.',
             'violence_content' => 'This image contains violent content and cannot be uploaded.',
             'not_property' => 'This image does not appear to be a property photo. Please upload images of the property only.',
@@ -57,4 +148,3 @@ if (!function_exists('getErrorMessage')) {
         return $message;
     }
 }
-

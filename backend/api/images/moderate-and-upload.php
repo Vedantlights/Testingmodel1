@@ -15,6 +15,7 @@ require_once __DIR__ . '/../../config/moderation.php';
 require_once __DIR__ . '/../../utils/auth.php';
 require_once __DIR__ . '/../../services/GoogleVisionService.php';
 require_once __DIR__ . '/../../services/ModerationDecisionService.php';
+require_once __DIR__ . '/../../services/WatermarkService.php';
 require_once __DIR__ . '/../../helpers/FileHelper.php';
 require_once __DIR__ . '/../../helpers/ResponseHelper.php';
 require_once __DIR__ . '/../../helpers/BlurDetector.php';
