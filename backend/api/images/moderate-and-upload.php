@@ -71,30 +71,37 @@ try {
     
     $userId = $user['id'];
     
+    // Check if this is validation-only mode (for new properties)
+    $validateOnly = isset($_POST['validate_only']) && $_POST['validate_only'] === 'true';
+    
     // Validate property_id
     $propertyId = isset($_POST['property_id']) ? intval($_POST['property_id']) : 0;
-    if ($propertyId <= 0) {
+    
+    // If validate_only mode, property_id can be 0
+    if (!$validateOnly && $propertyId <= 0) {
         http_response_code(400);
         echo json_encode(['status' => 'error', 'message' => 'Valid property ID is required']);
         exit;
     }
     
-    // Verify property belongs to user
-    $db = getDB();
-    $stmt = $db->prepare("SELECT id, user_id FROM properties WHERE id = ?");
-    $stmt->execute([$propertyId]);
-    $property = $stmt->fetch(PDO::FETCH_ASSOC);
-    
-    if (!$property) {
-        http_response_code(404);
-        echo json_encode(['status' => 'error', 'message' => 'Property not found']);
-        exit;
-    }
-    
-    if ($property['user_id'] != $userId) {
-        http_response_code(403);
-        echo json_encode(['status' => 'error', 'message' => 'You do not have permission to upload images for this property']);
-        exit;
+    // Verify property belongs to user (skip if validate_only)
+    if (!$validateOnly && $propertyId > 0) {
+        $db = getDB();
+        $stmt = $db->prepare("SELECT id, user_id FROM properties WHERE id = ?");
+        $stmt->execute([$propertyId]);
+        $property = $stmt->fetch(PDO::FETCH_ASSOC);
+        
+        if (!$property) {
+            http_response_code(404);
+            echo json_encode(['status' => 'error', 'message' => 'Property not found']);
+            exit;
+        }
+        
+        if ($property['user_id'] != $userId) {
+            http_response_code(403);
+            echo json_encode(['status' => 'error', 'message' => 'You do not have permission to upload images for this property']);
+            exit;
+        }
     }
     
     // Step 3: Get Uploaded File
@@ -461,7 +468,28 @@ try {
         exit;
     }
     
-    // Step 13: Image APPROVED - Add Watermark
+    // Step 13: Image APPROVED - Handle based on mode
+    
+    // If validate_only mode, return success without saving to database
+    if ($validateOnly) {
+        // Keep temp file for now (will be uploaded when property is created)
+        // Return validation result
+        http_response_code(200);
+        echo json_encode([
+            'status' => 'success',
+            'message' => 'Image approved',
+            'data' => [
+                'validated' => true,
+                'temp_file' => $tempPath, // Keep temp file path
+                'filename' => $uniqueFilename,
+                'moderation_status' => 'SAFE',
+                'validate_only' => true
+            ]
+        ]);
+        exit;
+    }
+    
+    // Normal mode: Add Watermark and Save
     // Move to properties folder first
     $propertyFolder = UPLOAD_PROPERTIES_PATH . $propertyId . '/';
     if (!FileHelper::createDirectory($propertyFolder)) {
@@ -507,6 +535,7 @@ try {
     $apiResponseJson = json_encode($apiResponse);
     
     try {
+        $db = getDB();
         $stmt = $db->prepare("
             INSERT INTO property_images (
                 property_id, image_url, file_name, file_path, original_filename,

@@ -504,59 +504,16 @@ export default function AddPropertyPopup({ onClose, editIndex = null, initialDat
     });
     
     try {
-      // Get property ID - for new properties, create a temporary property for validation
-      let tempPropertyId = editIndex !== null ? properties[editIndex]?.id : 0;
-      
-      if (tempPropertyId <= 0) {
-        // For new properties, create a temporary property to get ID for validation
-        // This allows immediate validation before form submission
-        try {
-          const tempPropertyData = {
-            title: 'Temporary Property for Validation',
-            propertyType: formData.propertyType || 'Apartment',
-            location: formData.location || 'Temporary',
-            latitude: formData.latitude || '0',
-            longitude: formData.longitude || '0',
-            status: formData.status || 'rent',
-            price: '0',
-            images: []
-          };
-          
-          const tempProperty = await sellerPropertiesAPI.add(tempPropertyData);
-          if (tempProperty && tempProperty.id) {
-            tempPropertyId = tempProperty.id;
-            // Store temp property ID to clean up later if user cancels
-            if (!window.tempPropertyIds) {
-              window.tempPropertyIds = [];
-            }
-            window.tempPropertyIds.push(tempPropertyId);
-          } else {
-            throw new Error('Failed to create temporary property');
-          }
-        } catch (tempError) {
-          console.error('Failed to create temp property for validation:', tempError);
-          clearInterval(progressInterval);
-          setImageValidationStatus(prev => {
-            const updated = [...prev];
-            if (updated[index]) {
-              updated[index] = { 
-                ...updated[index], 
-                status: 'rejected',
-                progress: 100,
-                progressMessage: 'Error',
-                errorMessage: 'Validation unavailable',
-                fullErrorMessage: 'Could not validate image. Please try again after creating the property.'
-              };
-            }
-            return updated;
-          });
-          return;
-        }
-      }
+      // Get property ID - use 0 for new properties (validation-only mode)
+      const propertyId = editIndex !== null ? properties[editIndex]?.id : 0;
+      const validateOnly = propertyId <= 0; // Validation-only mode for new properties
       
       const formData = new FormData();
       formData.append('image', imageObj.file);
-      formData.append('property_id', tempPropertyId);
+      formData.append('property_id', propertyId);
+      if (validateOnly) {
+        formData.append('validate_only', 'true');
+      }
       
       const token = localStorage.getItem('authToken');
       const response = await fetch(`${API_BASE_URL}${API_ENDPOINTS.MODERATE_AND_UPLOAD}`, {
