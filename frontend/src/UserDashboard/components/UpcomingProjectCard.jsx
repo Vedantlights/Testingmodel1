@@ -298,7 +298,7 @@ const UpcomingProjectCard = () => {
     return (
         <div className="buyer-upcoming-projects-section">
             <div className="buyer-section-header">
-                <h2 className="buyer-section-title">✨ Upcoming Projects ✨</h2>
+                <h2 className="buyer-section-title"> Upcoming Projects </h2>
                 <p className="buyer-section-subtitle">Visit these projects and get benefits before the official launch!</p>
             </div>
 
