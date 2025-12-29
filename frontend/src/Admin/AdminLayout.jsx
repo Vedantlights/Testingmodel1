@@ -7,6 +7,7 @@ import {
   UserCheck, 
   MessageSquare,
   CreditCard,
+  Shield,
   LogOut,
   Menu,
   X
@@ -21,6 +22,7 @@ const AdminUsers = lazy(() => import('./Pages/AdminUsers'));
 const AdminAgents = lazy(() => import('./Pages/AdminAgents'));
 const AdminInquiries = lazy(() => import('./Pages/AdminInquiries'));
 const AdminSubscriptions = lazy(() => import('./Pages/AdminSubscriptions'));
+const AdminModerationQueue = lazy(() => import('./Pages/AdminModerationQueue'));
 const AdminLogin = lazy(() => import('./Pages/AdminLogin'));
 
 const AdminLayout = () => {
@@ -40,6 +42,7 @@ const AdminLayout = () => {
   const allMenuItems = [
     { path: '/admin/dashboard', icon: Home, label: 'Dashboard', roles: ['super_admin', 'admin', 'moderator'] },
     { path: '/admin/properties', icon: Building2, label: 'Properties', roles: ['super_admin', 'admin', 'moderator'] },
+    { path: '/admin/moderation-queue', icon: Shield, label: 'Image Moderation', roles: ['super_admin', 'admin', 'moderator'] },
     { path: '/admin/users', icon: Users, label: 'Users', roles: ['super_admin', 'admin'] },
     { path: '/admin/agents', icon: UserCheck, label: 'Agent / Builder', roles: ['super_admin', 'admin'] },
     { path: '/admin/inquiries', icon: MessageSquare, label: 'Inquiries', roles: ['super_admin', 'admin', 'moderator'] },
@@ -283,6 +286,7 @@ const AdminLayout = () => {
               <Route path="/" element={<AdminDashboard />} />
               <Route path="/dashboard" element={<AdminDashboard />} />
               <Route path="/properties" element={<AdminProperties />} />
+              <Route path="/moderation-queue" element={<AdminModerationQueue />} />
               <Route path="/users" element={<AdminUsers />} />
               <Route path="/agents" element={<AdminAgents />} />
               <Route path="/inquiries" element={<AdminInquiries />} />

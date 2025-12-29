@@ -581,19 +581,55 @@ export default function AddPropertyPopup({ onClose, editIndex = null, initialDat
     setUploadingImages(true);
     
     try {
-      // Upload images first if there are image files
       let uploadedImageUrls = [];
-      if (imageFiles.length > 0) {
+      let propertyId = null;
+      
+      // For new properties: Create property first to get ID, then upload images with moderation
+      // For edit: Use existing property ID
+      if (editIndex !== null) {
+        propertyId = properties[editIndex]?.id;
+      }
+      
+      // If editing, handle images first
+      if (editIndex !== null && imageFiles.length > 0) {
         try {
-          // Upload each image file
+          // Upload each image file with property ID for moderation
           const uploadPromises = imageFiles.map(async (file, index) => {
             try {
-              const response = await sellerPropertiesAPI.uploadImage(file);
+              const response = await sellerPropertiesAPI.uploadImage(file, propertyId);
               if (response.success && response.data && response.data.url) {
-                return { success: true, url: response.data.url, index };
+                // Check moderation status
+                const moderationStatus = response.data.moderation_status;
+                if (moderationStatus === 'UNSAFE') {
+                  return { 
+                    success: false, 
+                    index, 
+                    error: response.data.moderation_reason || 'Image rejected by moderation system' 
+                  };
+                }
+                if (moderationStatus === 'NEEDS_REVIEW') {
+                  // Image is under review but still accepted for now
+                  console.log(`Image ${index + 1} is under review:`, response.data.moderation_reason);
+                }
+                return { 
+                  success: true, 
+                  url: response.data.url, 
+                  index,
+                  moderationStatus: moderationStatus 
+                };
               } else {
-                console.error(`Image ${index + 1} upload failed:`, response.message || 'Unknown error');
-                return { success: false, index, error: response.message || 'Upload failed' };
+                // Handle error response - check for moderation info in error data
+                const errorData = response.data || {};
+                const moderationStatus = errorData.moderation_status;
+                let errorMsg = response.message || errorData.errors?.[0] || 'Upload failed';
+                
+                // If it's a moderation rejection, use the moderation reason
+                if (moderationStatus === 'UNSAFE' && errorData.moderation_reason) {
+                  errorMsg = errorData.moderation_reason;
+                }
+                
+                console.error(`Image ${index + 1} upload failed:`, errorMsg);
+                return { success: false, index, error: errorMsg };
               }
             } catch (error) {
               console.error(`Image ${index + 1} upload error:`, error);
@@ -606,10 +642,11 @@ export default function AddPropertyPopup({ onClose, editIndex = null, initialDat
           const failed = results.filter(r => !r.success);
           
           if (failed.length > 0) {
-            console.error('Failed uploads:', failed);
+            const errorMessages = failed.map(f => f.error).filter(Boolean);
+            const uniqueErrors = [...new Set(errorMessages)];
             const errorMessage = failed.length === imageFiles.length 
-              ? `Failed to upload all images. ${failed[0].error || 'Please check server permissions and try again.'}`
-              : `Failed to upload ${failed.length} of ${imageFiles.length} images. Please try again.`;
+              ? `Failed to upload all images. ${uniqueErrors[0] || 'Please check server permissions and try again.'}`
+              : `Failed to upload ${failed.length} of ${imageFiles.length} images. ${uniqueErrors.join('; ')}`;
             alert(errorMessage);
             setUploadingImages(false);
             setIsSubmitting(false);
@@ -632,8 +669,8 @@ export default function AddPropertyPopup({ onClose, editIndex = null, initialDat
           setIsSubmitting(false);
           return;
         }
-      } else if (formData.images && formData.images.length > 0) {
-        // If images are already URLs (from edit mode), filter out blob URLs
+      } else if (editIndex !== null && formData.images && formData.images.length > 0) {
+        // If editing and no new images, filter out blob URLs
         uploadedImageUrls = formData.images.filter(img => 
           typeof img === 'string' && !img.startsWith('blob:')
         );
@@ -642,22 +679,150 @@ export default function AddPropertyPopup({ onClose, editIndex = null, initialDat
       
       setUploadingImages(false);
       
-      // Now submit the property with uploaded image URLs
-      if (editIndex !== null) {
+      // For new properties: Create property first, then upload images
+      if (editIndex === null) {
+        // Create property with empty images array first to get property ID
+        const propertyDataWithoutImages = { ...formData, images: [] };
+        let createdProperty;
+        try {
+          createdProperty = await addProperty(propertyDataWithoutImages);
+        } catch (error) {
+          // If property creation fails, we can't upload images
+          console.error('Property creation failed:', error);
+          throw new Error('Failed to create property. Please try again.');
+        }
+        
+        if (createdProperty && createdProperty.id) {
+          propertyId = createdProperty.id;
+        } else {
+          // Property was created but ID not returned - try to get from refresh
+          throw new Error('Failed to get property ID after creation. Please refresh and try again.');
+        }
+        
+        // Now upload images with property ID for moderation
+        if (imageFiles.length > 0) {
+          setUploadingImages(true);
+          try {
+            const uploadPromises = imageFiles.map(async (file, index) => {
+              try {
+                const response = await sellerPropertiesAPI.uploadImage(file, propertyId);
+                if (response.success && response.data && response.data.url) {
+                  // Check moderation status
+                  const moderationStatus = response.data.moderation_status;
+                  if (moderationStatus === 'UNSAFE') {
+                    return { 
+                      success: false, 
+                      index, 
+                      error: response.data.moderation_reason || 'Image rejected by moderation system' 
+                    };
+                  }
+                  if (moderationStatus === 'NEEDS_REVIEW') {
+                    console.log(`Image ${index + 1} is under review:`, response.data.moderation_reason);
+                  }
+                  return { 
+                    success: true, 
+                    url: response.data.url, 
+                    index,
+                    moderationStatus: moderationStatus 
+                  };
+                } else {
+                  // Handle error response - check for moderation info in error data
+                  const errorData = response.data || {};
+                  const moderationStatus = errorData.moderation_status;
+                  let errorMsg = response.message || errorData.errors?.[0] || 'Upload failed';
+                  
+                  // If it's a moderation rejection, use the moderation reason
+                  if (moderationStatus === 'UNSAFE' && errorData.moderation_reason) {
+                    errorMsg = errorData.moderation_reason;
+                  }
+                  
+                  console.error(`Image ${index + 1} upload failed:`, errorMsg);
+                  return { success: false, index, error: errorMsg };
+                }
+              } catch (error) {
+                console.error(`Image ${index + 1} upload error:`, error);
+                return { success: false, index, error: error.message || 'Upload failed' };
+              }
+            });
+            
+            const results = await Promise.all(uploadPromises);
+            const successful = results.filter(r => r.success);
+            const failed = results.filter(r => !r.success);
+            
+            if (failed.length > 0) {
+              const errorMessages = failed.map(f => f.error).filter(Boolean);
+              const uniqueErrors = [...new Set(errorMessages)];
+              const errorMessage = failed.length === imageFiles.length 
+                ? `Failed to upload all images. ${uniqueErrors[0] || 'Please check server permissions and try again.'}`
+                : `Failed to upload ${failed.length} of ${imageFiles.length} images. ${uniqueErrors.join('; ')}`;
+              alert(errorMessage);
+              
+              // If some images failed but property was created, still update with successful images
+              if (successful.length > 0) {
+                uploadedImageUrls = successful.map(r => r.url);
+                await sellerPropertiesAPI.update(propertyId, { images: uploadedImageUrls });
+                alert(`Property created but ${failed.length} image(s) failed to upload. ${errorMessage}`);
+              } else {
+                // All images failed - keep property but show warning
+                alert(`Property created but no images were uploaded. ${errorMessage}`);
+              }
+              setUploadingImages(false);
+              setIsSubmitting(false);
+              onClose();
+              return;
+            }
+            
+            uploadedImageUrls = successful.map(r => r.url);
+            
+            // Update property with uploaded image URLs
+            if (uploadedImageUrls.length > 0) {
+              try {
+                await sellerPropertiesAPI.update(propertyId, { images: uploadedImageUrls });
+              } catch (updateError) {
+                console.error('Failed to update property with images:', updateError);
+                // Property exists but images weren't linked - user can edit later
+                alert(`Property created successfully, but failed to link ${uploadedImageUrls.length} image(s). You can edit the property to add images.`);
+                setUploadingImages(false);
+                setIsSubmitting(false);
+                onClose();
+                return;
+              }
+            } else {
+              // No images were uploaded successfully
+              alert('Property created successfully, but no images were uploaded. You can edit the property to add images.');
+              setUploadingImages(false);
+              setIsSubmitting(false);
+              onClose();
+              return;
+            }
+            
+            setUploadingImages(false);
+            alert('Property published successfully! Images are being checked for quality and appropriateness.');
+          } catch (uploadError) {
+            console.error('Image upload error:', uploadError);
+            alert(`Property created but failed to upload images: ${uploadError.message || 'Please try uploading images again later.'}`);
+            setUploadingImages(false);
+            setIsSubmitting(false);
+            onClose();
+            return;
+          }
+        } else {
+          // No images to upload, property already created
+          alert('Property published successfully! You can edit your property within 24 hours of creation.');
+        }
+      } else {
+        // Editing existing property
         const propertyId = properties[editIndex]?.id;
         if (propertyId) {
           await updateProperty(propertyId, formData);
           alert('Property updated successfully!');
         }
-      } else {
-        await addProperty(formData);
-        // Show alert after successful property publication
-        alert('Property published successfully! You can edit your property within 24 hours of creation.');
       }
       
       // Close popup on success
       onClose();
     } catch (error) {
+      setUploadingImages(false);
       // Show detailed error message
       const errorMessage = error.message || error.status === 401 
         ? 'Authentication required. Please log in to add properties.'
@@ -668,7 +833,6 @@ export default function AddPropertyPopup({ onClose, editIndex = null, initialDat
       console.error('Property save error:', error);
     } finally {
       setIsSubmitting(false);
-      setUploadingImages(false);
     }
   };
 

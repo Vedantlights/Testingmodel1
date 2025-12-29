@@ -75,6 +75,9 @@ export const API_ENDPOINTS = {
   UPLOAD_PROFILE_IMAGE: '/upload/profile-image.php',
   UPLOAD_PROPERTY_FILES: '/upload/property-files.php',
   
+  // Image Moderation
+  MODERATE_AND_UPLOAD: '/images/moderate-and-upload.php',
+  
   // Admin
   ADMIN_LOGIN: '/admin/auth/login.php',
   ADMIN_VERIFY: '/admin/auth/verify.php',
@@ -97,6 +100,9 @@ export const API_ENDPOINTS = {
   ADMIN_SUPPORT_LIST: '/admin/support/list.php',
   ADMIN_SUPPORT_UPDATE_STATUS: '/admin/support/update-status.php',
   ADMIN_CHANGE_PASSWORD: '/admin/auth/change-password.php',
+  ADMIN_MODERATION_QUEUE: '/admin/moderation-queue/list.php',
+  ADMIN_MODERATION_APPROVE: '/admin/moderation-queue/approve.php',
+  ADMIN_MODERATION_REJECT: '/admin/moderation-queue/reject.php',
   
   // Chat
   CHAT_CREATE_ROOM: '/chat/create-room.php',

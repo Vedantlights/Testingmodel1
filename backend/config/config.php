@@ -173,6 +173,59 @@ define('BASIC_PLAN_PROPERTY_LIMIT', 10);
 define('PRO_PLAN_PROPERTY_LIMIT', 50);
 define('PREMIUM_PLAN_PROPERTY_LIMIT', -1); // Unlimited
 
+// ============================================
+// IMAGE MODERATION CONFIGURATION
+// ============================================
+// Google Cloud Vision API Configuration
+// SECURITY: Use environment variable for credentials path
+$googleCredentialsPath = getenv('GOOGLE_APPLICATION_CREDENTIALS');
+if (empty($googleCredentialsPath)) {
+    // Default path - update this to your actual credentials file path
+    $googleCredentialsPath = __DIR__ . '/../config/google-cloud-credentials.json';
+    if (defined('ENVIRONMENT') && ENVIRONMENT === 'production') {
+        error_log('SECURITY WARNING: GOOGLE_APPLICATION_CREDENTIALS not set via environment variable in production!');
+    }
+}
+define('GOOGLE_APPLICATION_CREDENTIALS', $googleCredentialsPath);
+
+// Moderation Thresholds (0.0 to 1.0)
+// These values determine when content is flagged as unsafe or needs review
+define('MODERATION_ADULT_THRESHOLD', (float)(getenv('MODERATION_ADULT_THRESHOLD') ?: 0.6));
+define('MODERATION_RACY_THRESHOLD', (float)(getenv('MODERATION_RACY_THRESHOLD') ?: 0.7));
+define('MODERATION_VIOLENCE_THRESHOLD', (float)(getenv('MODERATION_VIOLENCE_THRESHOLD') ?: 0.5));
+define('MODERATION_MEDICAL_THRESHOLD', (float)(getenv('MODERATION_MEDICAL_THRESHOLD') ?: 0.6));
+define('MODERATION_ANIMAL_THRESHOLD', (float)(getenv('MODERATION_ANIMAL_THRESHOLD') ?: 0.7));
+
+// Image Upload Limits for Moderation
+define('MAX_IMAGE_SIZE_MB', (int)(getenv('MAX_IMAGE_SIZE_MB') ?: 5));
+define('MAX_IMAGE_SIZE_BYTES', MAX_IMAGE_SIZE_MB * 1024 * 1024);
+
+// Allowed Image Types for Moderation (comma-separated string)
+$allowedImageTypesStr = getenv('ALLOWED_IMAGE_TYPES') ?: 'jpg,jpeg,png,webp';
+$allowedImageTypesArray = array_map('trim', explode(',', $allowedImageTypesStr));
+define('ALLOWED_IMAGE_TYPES_STR', $allowedImageTypesStr);
+define('ALLOWED_IMAGE_TYPES_ARRAY', $allowedImageTypesArray);
+
+// Moderation Upload Directories
+define('UPLOAD_TEMP_DIR', UPLOAD_DIR . 'temp/');
+define('UPLOAD_PROPERTIES_DIR', UPLOAD_DIR . 'properties/');
+define('UPLOAD_REVIEW_DIR', UPLOAD_DIR . 'review/');
+define('UPLOAD_REJECTED_DIR', UPLOAD_DIR . 'rejected/');
+
+// Create moderation upload directories if they don't exist
+$moderationDirs = [
+    UPLOAD_TEMP_DIR,
+    UPLOAD_PROPERTIES_DIR,
+    UPLOAD_REVIEW_DIR,
+    UPLOAD_REJECTED_DIR
+];
+
+foreach ($moderationDirs as $dir) {
+    if (!file_exists($dir)) {
+        mkdir($dir, 0755, true);
+    }
+}
+
 // Database connection is handled by database.php
 // Use Database::getInstance()->getConnection() or getDB() function
 // 

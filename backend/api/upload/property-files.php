@@ -28,11 +28,19 @@ try {
     
     $file = $_FILES['file'];
     $fileType = sanitizeInput($_POST['file_type'] ?? 'image'); // image, video, brochure
-    $propertyId = isset($_POST['property_id']) ? intval($_POST['property_id']) : 0;
+    $propertyId = isset($_POST['property_id']) ? $_POST['property_id'] : 0;
     
-    // Generate temporary property ID if not provided (for new properties)
-    if (!$propertyId) {
-        $propertyId = 'temp_' . time() . '_' . $user['id'];
+    // Validate and convert property ID
+    // For new properties, property should be created first, so we expect numeric ID
+    // But handle string temp IDs for backward compatibility
+    if (is_string($propertyId) && strpos($propertyId, 'temp_') === 0) {
+        // Temp ID - allow it but moderation DB operations will be skipped
+        // This is for backward compatibility only
+    } elseif (is_numeric($propertyId)) {
+        $propertyId = intval($propertyId);
+    } else {
+        // Invalid property ID - reject upload
+        sendError('Invalid property ID. Property must be created first.', null, 400);
     }
     
     $result = null;
@@ -53,17 +61,41 @@ try {
     
     if (!$result['success']) {
         $errorMessage = !empty($result['errors']) ? implode(', ', $result['errors']) : 'Upload failed';
-        sendError($errorMessage, ['errors' => $result['errors'] ?? []], 400);
+        $errorData = ['errors' => $result['errors'] ?? []];
+        
+        // Include moderation information if available
+        if (isset($result['moderation_status'])) {
+            $errorData['moderation_status'] = $result['moderation_status'];
+        }
+        if (isset($result['moderation_reason'])) {
+            $errorData['moderation_reason'] = $result['moderation_reason'];
+        }
+        
+        sendError($errorMessage, $errorData, 400);
     }
     
     // Log successful upload for debugging
     error_log("File uploaded successfully: {$result['filename']} to {$result['url']}");
     
-    sendSuccess('File uploaded successfully', [
+    // Prepare response data
+    $responseData = [
         'url' => $result['url'],
         'filename' => $result['filename'],
         'file_type' => $fileType
-    ]);
+    ];
+    
+    // Include moderation information if available
+    if (isset($result['moderation_status'])) {
+        $responseData['moderation_status'] = $result['moderation_status'];
+    }
+    if (isset($result['moderation_reason'])) {
+        $responseData['moderation_reason'] = $result['moderation_reason'];
+    }
+    if (isset($result['message'])) {
+        $responseData['message'] = $result['message'];
+    }
+    
+    sendSuccess('File uploaded successfully', $responseData);
     
 } catch (PDOException $e) {
     error_log("File Upload Database Error: " . $e->getMessage());
