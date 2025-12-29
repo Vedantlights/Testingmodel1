@@ -3,6 +3,7 @@
  * Image Moderation and Upload API
  * POST /api/images/moderate-and-upload.php
  * Handles image upload with Google Vision API moderation
+ * Blocks: Animals, Blurry images, Low quality, Inappropriate content
  */
 
 // Start output buffering
@@ -16,6 +17,7 @@ require_once __DIR__ . '/../../services/GoogleVisionService.php';
 require_once __DIR__ . '/../../services/ModerationDecisionService.php';
 require_once __DIR__ . '/../../helpers/FileHelper.php';
 require_once __DIR__ . '/../../helpers/ResponseHelper.php';
+require_once __DIR__ . '/../../helpers/BlurDetector.php';
 
 // Load Composer autoload if available
 if (file_exists(__DIR__ . '/../../vendor/autoload.php')) {
@@ -50,7 +52,11 @@ try {
     // Validate property_id
     $propertyId = isset($_POST['property_id']) ? intval($_POST['property_id']) : 0;
     if ($propertyId <= 0) {
-        ResponseHelper::validationError(['property_id' => 'Valid property ID is required']);
+        ResponseHelper::errorWithDetails(
+            'Valid property ID is required',
+            'validation_error',
+            ['field' => 'property_id']
+        );
     }
     
     // Verify property belongs to user
@@ -69,7 +75,20 @@ try {
     
     // Validate file upload
     if (!isset($_FILES['image']) || $_FILES['image']['error'] !== UPLOAD_ERR_OK) {
-        ResponseHelper::validationError(['image' => 'Image file is required']);
+        $errorMsg = 'Image file is required';
+        if (isset($_FILES['image']['error'])) {
+            $uploadErrors = [
+                UPLOAD_ERR_INI_SIZE => 'File exceeds upload_max_filesize directive',
+                UPLOAD_ERR_FORM_SIZE => 'File exceeds MAX_FILE_SIZE directive',
+                UPLOAD_ERR_PARTIAL => 'File was only partially uploaded',
+                UPLOAD_ERR_NO_FILE => 'No file was uploaded',
+                UPLOAD_ERR_NO_TMP_DIR => 'Missing temporary folder',
+                UPLOAD_ERR_CANT_WRITE => 'Failed to write file to disk',
+                UPLOAD_ERR_EXTENSION => 'File upload stopped by extension'
+            ];
+            $errorMsg = $uploadErrors[$_FILES['image']['error']] ?? 'File upload error';
+        }
+        ResponseHelper::errorWithDetails($errorMsg, 'file_upload_error');
     }
     
     $file = $_FILES['image'];
@@ -77,7 +96,15 @@ try {
     // Validate file using FileHelper
     $validation = FileHelper::validateImageFile($file, MAX_IMAGE_SIZE_BYTES, ALLOWED_IMAGE_TYPES);
     if (!$validation['valid']) {
-        ResponseHelper::validationError(['image' => $validation['error']]);
+        // Map validation errors to error codes
+        $errorCode = 'validation_error';
+        if (strpos($validation['error'], 'size') !== false) {
+            $errorCode = 'file_too_large';
+        } elseif (strpos($validation['error'], 'type') !== false || strpos($validation['error'], 'Invalid') !== false) {
+            $errorCode = 'invalid_type';
+        }
+        
+        ResponseHelper::errorWithDetails($validation['error'], $errorCode);
     }
     
     // Generate unique filename
@@ -113,34 +140,44 @@ try {
         $visionService = new GoogleVisionService();
         $apiResponse = $visionService->analyzeImage($tempPath);
         
+        // Evaluate moderation decision (includes quality checks, animal detection, SafeSearch, property check)
+        // Quality checks happen first, even if API fails
+        $decisionService = new ModerationDecisionService();
+        $decision = $decisionService->evaluate($apiResponse, $tempPath);
+        
+        $moderationStatus = $decision['status'];
+        $moderationReason = $decision['message'];
+        $confidenceScores = $decision['details']['confidence_scores'] ?? [];
+        
         if ($apiResponse['success']) {
-            // Evaluate moderation decision
-            $decisionService = new ModerationDecisionService();
-            $decision = $decisionService->evaluate($apiResponse);
-            
-            $moderationStatus = $decision['decision'];
-            $moderationReason = $decision['reason'];
-            $confidenceScores = $decision['confidence_scores'];
             $apiResponseJson = $apiResponse['raw_response'];
         } else {
-            // API failed, but continue with upload
             error_log("Google Vision API error: " . ($apiResponse['error'] ?? 'Unknown error'));
-            $moderationStatus = 'PENDING';
-            $moderationReason = 'Moderation API unavailable';
+            // Quality checks still performed, API error logged but decision made
         }
     } catch (Exception $e) {
         error_log("Google Vision API exception: " . $e->getMessage());
-        // Continue with upload, mark as PENDING
-        $moderationStatus = 'PENDING';
-        $moderationReason = 'Moderation service error';
+        
+        // Still check quality even if API fails
+        try {
+            $decisionService = new ModerationDecisionService();
+            $decision = $decisionService->evaluate(['success' => false, 'error' => $e->getMessage()], $tempPath);
+            $moderationStatus = $decision['status'];
+            $moderationReason = $decision['message'];
+        } catch (Exception $e2) {
+            error_log("Quality check exception: " . $e2->getMessage());
+            $moderationStatus = 'PENDING';
+            $moderationReason = 'Moderation service error';
+        }
     }
     
     // Handle based on moderation decision
-    if ($moderationStatus === 'UNSAFE') {
+    // REJECTED status includes: animal_detected, blur_detected, low_quality, adult_content, violence_content
+    if ($moderationStatus === 'REJECTED') {
         // Delete temp file
         FileHelper::deleteFile($tempPath);
         
-        // Save record with UNSAFE status
+        // Save record with REJECTED status
         try {
             $stmt = $db->prepare("
                 INSERT INTO property_images (
@@ -158,17 +195,26 @@ try {
                 $originalFilename,
                 $fileSize,
                 $mimeType,
-                'UNSAFE',
+                'REJECTED',
                 $moderationReason,
                 json_encode($apisUsed),
                 json_encode($confidenceScores),
                 $apiResponseJson
             ]);
         } catch (PDOException $e) {
-            error_log("Failed to save UNSAFE image record: " . $e->getMessage());
+            error_log("Failed to save REJECTED image record: " . $e->getMessage());
         }
         
-        ResponseHelper::error('Image rejected - contains inappropriate content: ' . $moderationReason, 400);
+        // Return specific error message with details
+        $errorCode = $decision['reason_code'] ?? 'rejected';
+        $errorDetails = $decision['details'] ?? [];
+        
+        ResponseHelper::errorWithDetails(
+            $moderationReason,
+            $errorCode,
+            $errorDetails,
+            400
+        );
     }
     
     if ($moderationStatus === 'NEEDS_REVIEW') {
@@ -230,13 +276,14 @@ try {
             
             $db->commit();
             
-            ResponseHelper::success('Image uploaded and queued for review', [
-                'image_id' => $imageId,
-                'status' => 'pending_review',
-                'message' => 'Image is under review. We will notify you once approved.',
-                'moderation_status' => 'NEEDS_REVIEW',
-                'moderation_reason' => $moderationReason
-            ]);
+            ResponseHelper::pending(
+                'Your image is being reviewed and will be approved shortly.',
+                [
+                    'image_id' => $imageId,
+                    'moderation_status' => 'NEEDS_REVIEW',
+                    'moderation_reason' => $moderationReason
+                ]
+            );
             
         } catch (PDOException $e) {
             if ($db->inTransaction()) {
@@ -248,7 +295,7 @@ try {
         }
     }
     
-    // Handle SAFE images
+    // Handle APPROVED images
     // Create property-specific folder
     $propertyFolder = UPLOAD_PROPERTIES_PATH . $propertyId . '/';
     if (!FileHelper::createDirectory($propertyFolder)) {
@@ -288,7 +335,7 @@ try {
             $fileSize,
             $mimeType,
             'SAFE',
-            $moderationReason ?? 'Image passed all moderation checks',
+            $moderationReason ?? 'Image approved successfully.',
             json_encode($apisUsed),
             json_encode($confidenceScores),
             $apiResponseJson

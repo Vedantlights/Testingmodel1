@@ -128,6 +128,33 @@ class FileHelper {
     }
     
     /**
+     * Get image dimensions
+     * 
+     * @param string $path Image file path
+     * @return array ['width' => int, 'height' => int] or null on error
+     */
+    public static function getImageDimensions($path) {
+        try {
+            if (!file_exists($path)) {
+                return null;
+            }
+            
+            $imageInfo = @getimagesize($path);
+            if ($imageInfo === false) {
+                return null;
+            }
+            
+            return [
+                'width' => $imageInfo[0],
+                'height' => $imageInfo[1]
+            ];
+        } catch (Exception $e) {
+            error_log("FileHelper::getImageDimensions - Error: " . $e->getMessage());
+            return null;
+        }
+    }
+    
+    /**
      * Validate uploaded image file
      * 
      * @param array $file $_FILES array element

@@ -65,10 +65,11 @@ class GoogleVisionService {
             $image = new Image();
             $image->setContent($imageContent);
             
-            // Request SafeSearch and Label detection
+            // Request SafeSearch, Label detection, and Image Properties
             $features = [
                 Type::SAFE_SEARCH_DETECTION,
-                Type::LABEL_DETECTION
+                Type::LABEL_DETECTION,
+                Type::IMAGE_PROPERTIES
             ];
             
             // Perform annotation
@@ -94,6 +95,30 @@ class GoogleVisionService {
                 ];
             }
             
+            // Extract image properties
+            $imageProperties = [];
+            $imagePropertiesAnnotation = $response->getImagePropertiesAnnotation();
+            if ($imagePropertiesAnnotation) {
+                $dominantColors = [];
+                $colorInfo = $imagePropertiesAnnotation->getDominantColors();
+                if ($colorInfo) {
+                    foreach ($colorInfo->getColors() as $color) {
+                        $dominantColors[] = [
+                            'color' => [
+                                'red' => $color->getColor()->getRed(),
+                                'green' => $color->getColor()->getGreen(),
+                                'blue' => $color->getColor()->getBlue()
+                            ],
+                            'score' => $color->getScore(),
+                            'pixel_fraction' => $color->getPixelFraction()
+                        ];
+                    }
+                }
+                $imageProperties = [
+                    'dominant_colors' => $dominantColors
+                ];
+            }
+            
             // Get raw response as JSON
             $rawResponse = json_encode([
                 'safesearch' => [
@@ -103,13 +128,15 @@ class GoogleVisionService {
                     'medical' => $safeSearchAnnotation->getMedical(),
                     'spoof' => $safeSearchAnnotation->getSpoof()
                 ],
-                'labels' => $labels
+                'labels' => $labels,
+                'image_properties' => $imageProperties
             ]);
             
             return [
                 'success' => true,
                 'safesearch_scores' => $safesearchScores,
                 'labels' => $labels,
+                'image_properties' => $imageProperties,
                 'raw_response' => $rawResponse,
                 'error' => null
             ];
@@ -120,9 +147,37 @@ class GoogleVisionService {
                 'success' => false,
                 'safesearch_scores' => [],
                 'labels' => [],
+                'image_properties' => [],
                 'raw_response' => null,
                 'error' => $e->getMessage()
             ];
+        }
+    }
+    
+    /**
+     * Get image dimensions
+     * 
+     * @param string $imagePath Path to image file
+     * @return array ['width' => int, 'height' => int] or null on error
+     */
+    public function getImageDimensions($imagePath) {
+        try {
+            if (!file_exists($imagePath)) {
+                return null;
+            }
+            
+            $imageInfo = @getimagesize($imagePath);
+            if ($imageInfo === false) {
+                return null;
+            }
+            
+            return [
+                'width' => $imageInfo[0],
+                'height' => $imageInfo[1]
+            ];
+        } catch (Exception $e) {
+            error_log("GoogleVisionService::getImageDimensions - Error: " . $e->getMessage());
+            return null;
         }
     }
     

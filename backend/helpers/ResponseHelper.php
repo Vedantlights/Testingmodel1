@@ -104,5 +104,52 @@ class ResponseHelper {
         ]);
         exit;
     }
+    
+    /**
+     * Send pending/review response
+     * 
+     * @param string $message Message
+     * @param array $data Additional data
+     * @return void Exits after outputting
+     */
+    public static function pending($message, $data = []) {
+        header('Content-Type: application/json');
+        http_response_code(200);
+        echo json_encode([
+            'status' => 'pending_review',
+            'message' => $message,
+            'data' => $data
+        ]);
+        exit;
+    }
+    
+    /**
+     * Send error with error code and details
+     * 
+     * @param string $message Error message
+     * @param string|null $errorCode Error code (e.g., 'animal_detected', 'blur_detected')
+     * @param array $details Additional details
+     * @param int $code HTTP status code (default 400)
+     * @return void Exits after outputting
+     */
+    public static function errorWithDetails($message, $errorCode = null, $details = [], $code = 400) {
+        header('Content-Type: application/json');
+        http_response_code($code);
+        $response = [
+            'status' => 'error',
+            'message' => $message
+        ];
+        
+        if ($errorCode) {
+            $response['error_code'] = $errorCode;
+        }
+        
+        if (!empty($details)) {
+            $response['details'] = $details;
+        }
+        
+        echo json_encode($response);
+        exit;
+    }
 }
 
