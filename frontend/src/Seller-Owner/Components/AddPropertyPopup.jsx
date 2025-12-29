@@ -442,43 +442,116 @@ export default function AddPropertyPopup({ onClose, editIndex = null, initialDat
       setErrors(prev => ({ ...prev, images: null }));
     }
     
-    // Immediately validate each image through moderation API
+    // Immediately validate each image through moderation API (in parallel for speed)
     setIsCheckingImages(true);
     const startIndex = imageValidationStatus.length;
     
-    for (let i = 0; i < newImageObjects.length; i++) {
-      await validateImageThroughModeration(newImageObjects[i], startIndex + i);
-    }
+    // Validate all images in parallel for faster processing
+    const validationPromises = newImageObjects.map((imgObj, i) => 
+      validateImageThroughModeration(imgObj, startIndex + i)
+    );
+    
+    // Wait for all validations to complete
+    await Promise.all(validationPromises);
     
     setIsCheckingImages(false);
   };
   
-  // Validate single image through moderation API
+  // Validate single image through moderation API with progress animation
   const validateImageThroughModeration = async (imageObj, index) => {
-    // Update status to checking
+    const startTime = Date.now();
+    const stages = [
+      { progress: 0, message: 'Checking image quality...' },
+      { progress: 25, message: 'Scanning for content...' },
+      { progress: 50, message: 'Verifying property image...' },
+      { progress: 75, message: 'Almost done...' },
+      { progress: 100, message: 'Complete' }
+    ];
+    
+    let currentStage = 0;
+    
+    // Simulate progress updates
+    const progressInterval = setInterval(() => {
+      if (currentStage < stages.length - 1) {
+        currentStage++;
+        setImageValidationStatus(prev => {
+          const updated = [...prev];
+          if (updated[index]) {
+            updated[index] = { 
+              ...updated[index], 
+              status: 'checking',
+              progress: stages[currentStage].progress,
+              progressMessage: stages[currentStage].message
+            };
+          }
+          return updated;
+        });
+      }
+    }, 800); // Update every 800ms for smooth progress
+    
+    // Update status to checking with initial progress
     setImageValidationStatus(prev => {
       const updated = [...prev];
       if (updated[index]) {
-        updated[index] = { ...updated[index], status: 'checking' };
+        updated[index] = { 
+          ...updated[index], 
+          status: 'checking',
+          progress: 0,
+          progressMessage: stages[0].message
+        };
       }
       return updated;
     });
     
     try {
-      // Create a temporary property ID for validation (we'll use actual ID when form is submitted)
-      const tempPropertyId = editIndex !== null ? properties[editIndex]?.id : 0;
+      // Get property ID - for new properties, create a temporary property for validation
+      let tempPropertyId = editIndex !== null ? properties[editIndex]?.id : 0;
       
       if (tempPropertyId <= 0) {
-        // For new properties, we can't validate without property ID
-        // So we'll skip validation for now and validate on submit
-        setImageValidationStatus(prev => {
-          const updated = [...prev];
-          if (updated[index]) {
-            updated[index] = { ...updated[index], status: 'pending' };
+        // For new properties, create a temporary property to get ID for validation
+        // This allows immediate validation before form submission
+        try {
+          const tempPropertyData = {
+            title: 'Temporary Property for Validation',
+            propertyType: formData.propertyType || 'Apartment',
+            location: formData.location || 'Temporary',
+            latitude: formData.latitude || '0',
+            longitude: formData.longitude || '0',
+            status: formData.status || 'rent',
+            price: '0',
+            images: []
+          };
+          
+          const tempProperty = await sellerPropertiesAPI.add(tempPropertyData);
+          if (tempProperty && tempProperty.id) {
+            tempPropertyId = tempProperty.id;
+            // Store temp property ID to clean up later if user cancels
+            if (!window.tempPropertyIds) {
+              window.tempPropertyIds = [];
+            }
+            window.tempPropertyIds.push(tempPropertyId);
+          } else {
+            throw new Error('Failed to create temporary property');
           }
-          return updated;
-        });
-        return;
+        } catch (tempError) {
+          console.error('Failed to create temp property for validation:', tempError);
+          clearInterval(progressInterval);
+          setImageValidationStatus(prev => {
+            const updated = [...prev];
+            if (updated[index]) {
+              updated[index] = { 
+                ...updated[index], 
+                status: 'rejected',
+                progress: 100,
+                progressMessage: 'Error',
+                errorMessage: 'Validation unavailable',
+                fullErrorMessage: 'Could not validate image. Please try again after creating the property.'
+              };
+            }
+            return updated;
+          });
+          return;
+        }
       }
       
       const formData = new FormData();
@@ -496,40 +569,95 @@ export default function AddPropertyPopup({ onClose, editIndex = null, initialDat
       
       const result = await response.json();
       
-      setImageValidationStatus(prev => {
-        const updated = [...prev];
-        if (updated[index]) {
-          if (result.status === 'success') {
-            updated[index] = { 
-              ...updated[index], 
-              status: 'approved',
-              imageId: result.data?.image_id,
-              imageUrl: result.data?.image_url
-            };
-          } else {
-            updated[index] = { 
-              ...updated[index], 
-              status: 'rejected',
-              errorMessage: result.message || 'Image was rejected' // Show EXACT error from API
-            };
+      // Clear progress interval
+      clearInterval(progressInterval);
+      
+      // Ensure we show 100% progress before showing result
+      const elapsed = Date.now() - startTime;
+      const minDuration = 3000; // Minimum 3 seconds for better UX
+      const remainingTime = Math.max(0, minDuration - elapsed);
+      
+      setTimeout(() => {
+        setImageValidationStatus(prev => {
+          const updated = [...prev];
+          if (updated[index]) {
+            if (result.status === 'success') {
+              updated[index] = { 
+                ...updated[index], 
+                status: 'approved',
+                progress: 100,
+                progressMessage: 'Approved!',
+                imageId: result.data?.image_id,
+                imageUrl: result.data?.image_url
+              };
+            } else {
+              // Extract specific error reason from message
+              let errorReason = result.message || 'Image was rejected';
+              // Make error message more concise for display
+              if (errorReason.includes('animal appearance')) {
+                const match = errorReason.match(/\(([^)]+)\)/);
+                errorReason = match ? `${match[1]} detected` : 'Animal detected';
+              } else if (errorReason.includes('human appearance')) {
+                errorReason = 'Human detected';
+              } else if (errorReason.includes('blurry')) {
+                errorReason = 'Image is too blurry';
+              } else if (errorReason.includes('low quality')) {
+                errorReason = 'Image quality too low';
+              }
+              
+              updated[index] = { 
+                ...updated[index], 
+                status: 'rejected',
+                progress: 100,
+                progressMessage: 'Rejected',
+                errorMessage: errorReason, // Show EXACT error from API
+                fullErrorMessage: result.message || 'Image was rejected'
+              };
+            }
           }
-        }
-        return updated;
-      });
+          return updated;
+        });
+        
+        // Check if all images are approved and auto-proceed
+        setTimeout(() => {
+          checkAndAutoProceed();
+        }, 1000);
+      }, remainingTime);
       
     } catch (error) {
+      clearInterval(progressInterval);
       console.error(`Image ${index + 1} validation error:`, error);
+      
       setImageValidationStatus(prev => {
         const updated = [...prev];
         if (updated[index]) {
           updated[index] = { 
             ...updated[index], 
             status: 'rejected',
-            errorMessage: error.message || 'Failed to validate image. Please try again.'
+            progress: 100,
+            progressMessage: 'Error',
+            errorMessage: 'Validation failed',
+            fullErrorMessage: error.message || 'Failed to validate image. Please try again.'
           };
         }
         return updated;
       });
+    }
+  };
+  
+  // Check if all images are approved and auto-proceed to next step
+  const checkAndAutoProceed = () => {
+    if (currentStep === 4 && imageValidationStatus.length > 0) {
+      const allApproved = imageValidationStatus.every(img => img.status === 'approved');
+      const noneChecking = !imageValidationStatus.some(img => img.status === 'checking');
+      const noneRejected = !imageValidationStatus.some(img => img.status === 'rejected');
+      
+      if (allApproved && noneChecking && noneRejected && imageValidationStatus.length > 0) {
+        // Auto-proceed after 1 second
+        setTimeout(() => {
+          handleNext();
+        }, 1000);
+      }
     }
   };
 
@@ -1708,46 +1836,100 @@ newErrors.description = "Description is required";
           </div>
           <div className="image-preview-grid">
             {formData.images.map((src, idx) => {
-              const validationStatus = imageValidationStatus[idx] || { status: 'pending', errorMessage: '' };
+              const validationStatus = imageValidationStatus[idx] || { status: 'pending', errorMessage: '', progress: 0, progressMessage: '' };
               return (
                 <div key={idx} className={`preview-item image-validation-item ${validationStatus.status}`}>
                   <img src={src} alt={`Preview ${idx + 1}`} />
                   {idx === 0 && <span className="cover-badge">Cover</span>}
                   
-                  {/* Validation Status Display */}
+                  {/* Validation Overlay */}
                   {validationStatus.status === 'checking' && (
-                    <div className="image-status checking">
-                      <span className="status-spinner"></span>
-                      <span>Checking image...</span>
+                    <div className="validation-overlay checking-overlay">
+                      <div className="scanning-line"></div>
+                      <div className="overlay-content">
+                        <div className="ai-scan-icon">
+                          <svg width="32" height="32" viewBox="0 0 24 24" fill="none">
+                            <path d="M12 2L2 7L12 12L22 7L12 2Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                            <path d="M2 17L12 22L22 17" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                            <path d="M2 12L12 17L22 12" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                          </svg>
+                        </div>
+                        <div className="progress-container">
+                          <div className="progress-bar">
+                            <div 
+                              className="progress-fill" 
+                              style={{ width: `${validationStatus.progress || 0}%` }}
+                            ></div>
+                          </div>
+                          <span className="progress-text">{validationStatus.progress || 0}%</span>
+                        </div>
+                        <p className="status-message-text">{validationStatus.progressMessage || 'Checking image...'}</p>
+                      </div>
                     </div>
                   )}
                   
                   {validationStatus.status === 'approved' && (
-                    <div className="image-status approved">
-                      <span className="status-icon">✅</span>
-                      <span>Approved</span>
+                    <div className="validation-overlay approved-overlay">
+                      <div className="checkmark-animation">
+                        <svg className="checkmark" width="48" height="48" viewBox="0 0 24 24" fill="none">
+                          <path d="M20 6L9 17L4 12" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"/>
+                        </svg>
+                      </div>
+                      <p className="approved-text">Approved</p>
                     </div>
                   )}
                   
                   {validationStatus.status === 'rejected' && (
-                    <div className="image-status rejected">
-                      <span className="status-icon">❌</span>
-                      <span className="status-title">REJECTED</span>
-                      <p className="status-message">{validationStatus.errorMessage}</p>
+                    <div className="validation-overlay rejected-overlay">
+                      <div className="rejected-icon-animation">
+                        <svg className="x-icon" width="48" height="48" viewBox="0 0 24 24" fill="none">
+                          <path d="M18 6L6 18M6 6l12 12" stroke="currentColor" strokeWidth="3" strokeLinecap="round"/>
+                        </svg>
+                      </div>
+                      <p className="rejected-title">REJECTED</p>
+                      <p className="rejected-message">{validationStatus.errorMessage || 'Image rejected'}</p>
+                      <button
+                        type="button"
+                        className="remove-rejected-btn"
+                        onClick={() => !isRestrictedEdit && removeImage(idx)}
+                        disabled={isRestrictedEdit}
+                      >
+                        Remove & Try Again
+                      </button>
                     </div>
                   )}
                   
-                  <button
-                    type="button"
-                    className="remove-btn"
-                    onClick={() => !isRestrictedEdit && removeImage(idx)}
-                    disabled={isRestrictedEdit}
-                    style={{ opacity: isRestrictedEdit ? 0.5 : 1, cursor: isRestrictedEdit ? 'not-allowed' : 'pointer' }}
-                  >
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
-                      <path d="M18 6L6 18M6 6l12 12" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
-                    </svg>
-                  </button>
+                  {/* Status Badge */}
+                  {validationStatus.status === 'approved' && (
+                    <div className="status-badge approved-badge">
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+                        <path d="M20 6L9 17L4 12" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                      </svg>
+                    </div>
+                  )}
+                  
+                  {validationStatus.status === 'rejected' && (
+                    <div className="status-badge rejected-badge">
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+                        <path d="M18 6L6 18M6 6l12 12" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+                      </svg>
+                    </div>
+                  )}
+                  
+                  {/* Remove Button (only show when not checking) */}
+                  {validationStatus.status !== 'checking' && (
+                    <button
+                      type="button"
+                      className="remove-btn"
+                      onClick={() => !isRestrictedEdit && removeImage(idx)}
+                      disabled={isRestrictedEdit}
+                      style={{ opacity: isRestrictedEdit ? 0.5 : 1, cursor: isRestrictedEdit ? 'not-allowed' : 'pointer' }}
+                    >
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
+                        <path d="M18 6L6 18M6 6l12 12" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+                      </svg>
+                    </button>
+                  )}
                 </div>
               );
             })}
@@ -1756,7 +1938,32 @@ newErrors.description = "Description is required";
           {/* Warning if rejected images exist */}
           {imageValidationStatus.some(img => img.status === 'rejected') && (
             <div className="image-validation-warning">
-              ⚠️ Please remove rejected images before proceeding. Only approved property images are allowed.
+              <strong>⚠️ Remove rejected images to continue</strong>
+              <p style={{ margin: '4px 0 0 0', fontSize: '13px' }}>
+                {imageValidationStatus.filter(img => img.status === 'rejected').length} image(s) were rejected. 
+                Please remove them and upload valid property images only.
+              </p>
+            </div>
+          )}
+          
+          {/* Success message if all approved */}
+          {imageValidationStatus.length > 0 && 
+           imageValidationStatus.every(img => img.status === 'approved') && 
+           !isCheckingImages && (
+            <div className="image-validation-success" style={{
+              background: '#e8f5e9',
+              color: '#2e7d32',
+              padding: '12px',
+              borderRadius: '4px',
+              marginTop: '16px',
+              fontSize: '14px',
+              border: '1px solid #4CAF50',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '8px'
+            }}>
+              <span>✅</span>
+              <span>All images approved! Proceeding to next step...</span>
             </div>
           )}
         </div>
@@ -2064,7 +2271,12 @@ newErrors.description = "Description is required";
             </button>
             
             {currentStep < 5 ? (
-              <button type="button" className="seller-popup-next-btn" onClick={handleNext}>
+              <button 
+                type="button" 
+                className={`seller-popup-next-btn ${isCheckingImages || imageValidationStatus.some(img => img.status === 'rejected') ? 'disabled' : ''}`}
+                onClick={handleNext}
+                disabled={isCheckingImages || imageValidationStatus.some(img => img.status === 'rejected')}
+              >
                 Next
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
                   <path d="M5 12h14M12 5l7 7-7 7" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>

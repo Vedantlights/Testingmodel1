@@ -788,6 +788,340 @@
   border: 1px solid #ffc107;
 }
 
+/* Enhanced Validation Overlay Styles */
+.validation-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--radius-md);
+  z-index: 10;
+  backdrop-filter: blur(2px);
+}
+
+.checking-overlay {
+  background: rgba(33, 150, 243, 0.85);
+  color: white;
+}
+
+.approved-overlay {
+  background: rgba(76, 175, 80, 0.9);
+  color: white;
+  animation: fadeInScale 0.4s ease;
+}
+
+.rejected-overlay {
+  background: rgba(244, 67, 54, 0.9);
+  color: white;
+  animation: shakeReject 0.5s ease;
+  padding: 12px;
+  text-align: center;
+}
+
+@keyframes fadeInScale {
+  0% {
+    opacity: 0;
+    transform: scale(0.8);
+  }
+  50% {
+    transform: scale(1.05);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes shakeReject {
+  0%, 100% { transform: translateX(0); }
+  10%, 30%, 50%, 70%, 90% { transform: translateX(-5px); }
+  20%, 40%, 60%, 80% { transform: translateX(5px); }
+}
+
+/* Scanning Line Animation */
+.scanning-line {
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 3px;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.8), transparent);
+  animation: scanLine 2s linear infinite;
+}
+
+@keyframes scanLine {
+  0% {
+    left: -100%;
+  }
+  100% {
+    left: 100%;
+  }
+}
+
+/* AI Scan Icon Animation */
+.ai-scan-icon {
+  margin-bottom: 12px;
+  animation: pulseScan 1.5s ease-in-out infinite;
+}
+
+@keyframes pulseScan {
+  0%, 100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  50% {
+    transform: scale(1.1);
+    opacity: 0.8;
+  }
+}
+
+.ai-scan-icon svg {
+  color: white;
+  filter: drop-shadow(0 0 8px rgba(255, 255, 255, 0.5));
+}
+
+/* Progress Bar */
+.progress-container {
+  width: 80%;
+  margin-bottom: 8px;
+}
+
+.progress-bar {
+  width: 100%;
+  height: 6px;
+  background: rgba(255, 255, 255, 0.3);
+  border-radius: 3px;
+  overflow: hidden;
+  margin-bottom: 4px;
+}
+
+.progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #fff, #e3f2fd);
+  border-radius: 3px;
+  transition: width 0.3s ease;
+  animation: progressGlow 1.5s ease-in-out infinite;
+}
+
+@keyframes progressGlow {
+  0%, 100% {
+    box-shadow: 0 0 5px rgba(255, 255, 255, 0.5);
+  }
+  50% {
+    box-shadow: 0 0 15px rgba(255, 255, 255, 0.8);
+  }
+}
+
+.progress-text {
+  font-size: 11px;
+  font-weight: 600;
+  color: white;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+}
+
+.status-message-text {
+  font-size: 12px;
+  color: white;
+  margin: 0;
+  text-align: center;
+  font-weight: 500;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+}
+
+/* Approved Overlay */
+.checkmark-animation {
+  margin-bottom: 8px;
+  animation: checkmarkBounce 0.6s ease;
+}
+
+@keyframes checkmarkBounce {
+  0% {
+    transform: scale(0);
+    opacity: 0;
+  }
+  50% {
+    transform: scale(1.2);
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+.checkmark {
+  color: white;
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3));
+}
+
+.approved-text {
+  font-size: 14px;
+  font-weight: 600;
+  margin: 0;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+}
+
+/* Rejected Overlay */
+.rejected-icon-animation {
+  margin-bottom: 8px;
+  animation: xIconShake 0.5s ease;
+}
+
+@keyframes xIconShake {
+  0%, 100% { transform: rotate(0deg); }
+  25% { transform: rotate(-10deg); }
+  75% { transform: rotate(10deg); }
+}
+
+.x-icon {
+  color: white;
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3));
+}
+
+.rejected-title {
+  font-size: 14px;
+  font-weight: 700;
+  margin: 0 0 6px 0;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+}
+
+.rejected-message {
+  font-size: 12px;
+  margin: 0 0 12px 0;
+  font-weight: 500;
+  line-height: 1.4;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+}
+
+.remove-rejected-btn {
+  padding: 8px 16px;
+  background: rgba(255, 255, 255, 0.2);
+  border: 2px solid white;
+  border-radius: 6px;
+  color: white;
+  font-size: 11px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.remove-rejected-btn:hover {
+  background: white;
+  color: #f44336;
+  transform: scale(1.05);
+}
+
+.remove-rejected-btn:active {
+  transform: scale(0.95);
+}
+
+/* Status Badges */
+.status-badge {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 15;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+}
+
+.approved-badge {
+  background: #4CAF50;
+  color: white;
+  animation: badgePop 0.4s ease;
+}
+
+.rejected-badge {
+  background: #f44336;
+  color: white;
+  animation: badgePop 0.4s ease;
+}
+
+@keyframes badgePop {
+  0% {
+    transform: scale(0);
+    opacity: 0;
+  }
+  50% {
+    transform: scale(1.2);
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+.status-badge svg {
+  width: 14px;
+  height: 14px;
+}
+
+/* Enhanced border colors for validation states */
+.image-validation-item.checking {
+  border: 3px solid #2196F3;
+  box-shadow: 0 0 0 2px rgba(33, 150, 243, 0.2);
+  animation: pulseBorder 2s ease-in-out infinite;
+}
+
+.image-validation-item.approved {
+  border: 3px solid #4CAF50;
+  box-shadow: 0 0 0 2px rgba(76, 175, 80, 0.2);
+}
+
+.image-validation-item.rejected {
+  border: 3px solid #f44336;
+  box-shadow: 0 0 0 2px rgba(244, 67, 54, 0.2);
+}
+
+@keyframes pulseBorder {
+  0%, 100% {
+    box-shadow: 0 0 0 2px rgba(33, 150, 243, 0.2);
+  }
+  50% {
+    box-shadow: 0 0 0 4px rgba(33, 150, 243, 0.4);
+  }
+}
+
+.image-validation-warning strong {
+  display: block;
+  margin-bottom: 4px;
+}
+
+.image-validation-success {
+  animation: slideInSuccess 0.4s ease;
+}
+
+@keyframes slideInSuccess {
+  0% {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Disabled Next Button */
+.seller-popup-next-btn.disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
 /* ======================= */
 /* CHECKBOX                */
 /* ======================= */
