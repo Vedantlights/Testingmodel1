@@ -99,14 +99,23 @@ try {
     $remainingAttempts = max(0, $MAX_ATTEMPTS - $attemptCount);
     $canPerformAction = $remainingAttempts > 0;
     
-    // Calculate reset time (24 hours from first attempt, or now if no attempts)
+    // Calculate reset time (24 hours from when limit is reached, or from first attempt if not at limit)
     $resetTime = null;
     $resetTimeSeconds = null;
     
-    if ($attemptCount > 0 && $result['first_attempt_time']) {
-        $firstAttemptTime = strtotime($result['first_attempt_time']);
-        $resetTimeSeconds = $firstAttemptTime + ($WINDOW_HOURS * 3600);
-        $resetTime = date('Y-m-d H:i:s', $resetTimeSeconds);
+    if ($attemptCount > 0) {
+        // If limit is reached, reset 24 hours from now
+        // Otherwise, reset 24 hours from first attempt
+        if ($attemptCount >= $MAX_ATTEMPTS) {
+            $resetTimeSeconds = time() + ($WINDOW_HOURS * 3600);
+        } else if ($result['first_attempt_time']) {
+            $firstAttemptTime = strtotime($result['first_attempt_time']);
+            $resetTimeSeconds = $firstAttemptTime + ($WINDOW_HOURS * 3600);
+        }
+        
+        if ($resetTimeSeconds) {
+            $resetTime = date('Y-m-d H:i:s', $resetTimeSeconds);
+        }
     }
     
     sendSuccess('Usage limits retrieved', [
