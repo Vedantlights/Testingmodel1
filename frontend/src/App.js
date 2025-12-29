@@ -24,6 +24,7 @@ import BuyerProfile from './UserDashboard/pages/BuyerProfile';
 import BuyerContactPage from './UserDashboard/pages/BuyerContactPage';
 import ViewDetailsPage from './UserDashboard/pages/ViewDetailsPage';
 import SearchResults from './UserDashboard/pages/SearchResults';
+import AboutUs from './LandingPage/pages/AboutUs';
 import CityFilteredBuy from './UserDashboard/pages/Cityfilteredbuy';
 import CityFilteredRent from './UserDashboard/pages/Cityfilteredrent';
 import CityProjects from './UserDashboard/pages/Cityprojects';
@@ -114,6 +115,7 @@ function App() {
           <Route path="/BuyerContactPage" element={<BuyerDashboardLayout><BuyerContactPage /></BuyerDashboardLayout>} />
           <Route path="/details/:id" element={<BuyerDashboardLayout><ViewDetailsPage /></BuyerDashboardLayout>} />
           <Route path="/searchresults" element={<BuyerDashboardLayout><SearchResults /></BuyerDashboardLayout>} />
+          <Route path="/about" element={<BuyerDashboardLayout><AboutUs /></BuyerDashboardLayout>} />
 
           {/* Alternative routes with buyer-dashboard prefix */}
           <Route path="/BuyerHome" element={<BuyerDashboardLayout><BuyerHome /></BuyerDashboardLayout>} />

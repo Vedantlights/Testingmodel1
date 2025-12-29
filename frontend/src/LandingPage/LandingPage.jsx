@@ -14,6 +14,7 @@ import Register from './pages/Register';
 import PostProperty from './components/Propertycard';
 import PrivacyPolicy from './pages/PrivacyPolicy';
 import TermsConditions from './pages/TermConditions';
+import AboutUs from './pages/AboutUs';
 
 function LandingPage() {
   const location = useLocation();
@@ -46,6 +47,7 @@ function LandingPage() {
           <Route path="/post-property" element={<PostProperty />} />
           <Route path="/privacy-policy" element={<PrivacyPolicy />} />
           <Route path="/terms-conditions" element={<TermsConditions />} />
+          <Route path="/about" element={<AboutUs />} />
         </Routes>
       </main>
 

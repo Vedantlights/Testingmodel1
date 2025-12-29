@@ -41,6 +41,14 @@ const Footer = () => {
             </h3>
             <ul className="footer-links">
               <li>
+                <a href="/about" onClick={(e) => handleLinkClick(e, '/about')}>
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7"/>
+                  </svg>
+                  <span>About Us</span>
+                </a>
+              </li>
+              <li>
                 <a href="/contact" onClick={(e) => handleLinkClick(e, '/contact')}>
                   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7"/>
