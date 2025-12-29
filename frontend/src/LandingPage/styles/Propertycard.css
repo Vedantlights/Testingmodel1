@@ -13,6 +13,7 @@
   flex-shrink: 0;
   border: 2px solid #022b5f;
   padding-bottom: 20px;
+  align-self: stretch; /* Ensure card stretches to container height */
 }
 
 .property-card:hover {
@@ -70,6 +71,7 @@
   display: flex;
   flex-direction: column;
   flex-grow: 1;
+  min-height: 0; /* Allow flex item to shrink if needed */
 }
 
 .property-title {
@@ -128,6 +130,7 @@
   align-items: center;
   margin-top: auto;
   gap: 12px;
+  flex-shrink: 0; /* Prevent footer from shrinking */
 }
 
 .property-price {
@@ -200,6 +203,7 @@
 /* Horizontal scroll container styling */
 .property-cards-horizontal-container {
   display: flex;
+  align-items: stretch; /* Ensure all cards stretch to same height */
   overflow-x: auto;
   gap: 24px;
   padding: 0 24px 16px 24px;
