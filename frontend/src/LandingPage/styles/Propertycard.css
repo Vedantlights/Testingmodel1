@@ -166,6 +166,37 @@
   background: #7c3aed;
 }
 
+/* Featured Properties Section */
+.featured-properties-section {
+  padding: 60px 20px;
+  max-width: 1400px;
+  margin: 0 auto;
+}
+
+.featured-properties-container {
+  width: 100%;
+}
+
+.featured-properties-header {
+  text-align: center;
+  margin-bottom: 40px;
+}
+
+.featured-properties-title {
+  font-size: 2.2rem;
+  color: #1a1a1a;
+  margin-bottom: 12px;
+  font-weight: 700;
+}
+
+.featured-properties-subtitle {
+  font-size: 1.1rem;
+  color: #666;
+  max-width: 600px;
+  margin: 0 auto;
+  margin-bottom: 40px; /* Add space between subtitle and property cards */
+}
+
 /* Horizontal scroll container styling */
 .property-cards-horizontal-container {
   display: flex;
@@ -174,6 +205,7 @@
   padding: 0 24px 16px 24px;
   scroll-behavior: smooth;
   margin-bottom: 30px;
+  margin-top: 0; /* Ensure no extra margin at top */
 }
 
 /* Custom scrollbar for horizontal scroll */
@@ -197,6 +229,19 @@
 
 /* Responsive Design */
 @media (max-width: 768px) {
+  .featured-properties-section {
+    padding: 40px 16px;
+  }
+
+  .featured-properties-title {
+    font-size: 1.8rem;
+  }
+
+  .featured-properties-subtitle {
+    font-size: 1rem;
+    margin-bottom: 30px; /* Maintain spacing on mobile */
+  }
+
   .property-card {
     min-width: 280px;
     max-width: 280px;
