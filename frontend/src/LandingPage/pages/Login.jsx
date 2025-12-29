@@ -135,8 +135,8 @@ const Login = () => {
 
   // Background images mapping for each role
   const backgroundImages = {
-    buyer: "/landingpagebuy.jpeg",
-    seller: "/Home.jpg",
+    buyer: "/LoginBuy.jpg",
+    seller: "/LoginSeller.jpg",
     agent: "/landingpageagent.jpeg",
   };
 
