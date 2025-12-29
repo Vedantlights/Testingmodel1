@@ -229,12 +229,18 @@ try {
         exit;
     }
     
-    // Step 7: Blur Detection
+    // Step 7: Blur Detection (runs BEFORE Google Vision API to save costs)
     $blurResult = BlurDetector::calculateBlurScore($file['tmp_name']);
     if (!$blurResult['success']) {
         error_log("Blur detection failed: " . ($blurResult['error'] ?? 'Unknown error'));
         // Continue even if blur detection fails
     } else {
+        // Log variance for debugging (not exposed to user)
+        $variance = $blurResult['variance'] ?? null;
+        if ($variance !== null) {
+            error_log("Blur detection: variance={$variance}, threshold=" . BLUR_THRESHOLD . ", is_blurry=" . ($blurResult['is_blurry'] ? 'true' : 'false'));
+        }
+        
         if ($blurResult['is_blurry']) {
             http_response_code(400);
             echo json_encode([

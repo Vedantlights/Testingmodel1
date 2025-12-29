@@ -59,9 +59,15 @@ class ModerationDecisionService {
             error_log("ModerationDecisionService: Could not read image dimensions for: {$imagePath}");
         }
         
-        // STEP 2: Check Blur Score
+        // STEP 2: Check Blur (using Laplacian variance)
         $blurResult = BlurDetector::calculateBlurScore($imagePath);
         $details['blur_score'] = $blurResult['blur_score'];
+        $variance = $blurResult['variance'] ?? null;
+        
+        // Log variance for debugging
+        if ($variance !== null) {
+            error_log("ModerationDecisionService: blur variance={$variance}, threshold=" . BLUR_THRESHOLD . ", is_blurry=" . ($blurResult['is_blurry'] ? 'true' : 'false'));
+        }
         
         if ($blurResult['is_blurry']) {
             return [
@@ -69,7 +75,7 @@ class ModerationDecisionService {
                 'message' => getErrorMessage('blur_detected'),
                 'reason_code' => 'blur_detected',
                 'details' => array_merge($details, [
-                    'detected_issue' => "Image is too blurry (score: {$blurResult['blur_score']})",
+                    'detected_issue' => "Image is too blurry (variance: " . ($variance ?? 'N/A') . ", threshold: " . BLUR_THRESHOLD . ")",
                     'quality_rating' => $blurResult['quality_rating']
                 ])
             ];
