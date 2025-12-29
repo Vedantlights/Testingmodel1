@@ -150,10 +150,12 @@ try {
     $videoUrl = $input['video_url'] ?? null;
     $brochureUrl = $input['brochure_url'] ?? null;
     
-    // Validate images
-    if (empty($images) || !is_array($images)) {
-        sendError('At least one image is required', null, 400);
-    }
+    // Images are uploaded separately through moderation endpoint
+    // Commented out image validation to allow property creation without images
+    // Images will be uploaded via /api/images/moderate-and-upload.php after property is created
+    // if (empty($images) || !is_array($images)) {
+    //     sendError('At least one image is required', null, 400);
+    // }
     
     // Start transaction
     $transactionStarted = false;

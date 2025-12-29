@@ -1,304 +1,316 @@
 <?php
 /**
- * Image Upload and Moderation Endpoint
- * POST /api/images/moderate-and-upload
- * 
- * Handles image upload with automatic moderation using Google Cloud Vision API
+ * Image Moderation and Upload API
+ * POST /api/images/moderate-and-upload.php
+ * Handles image upload with Google Vision API moderation
  */
+
+// Start output buffering
+ob_start();
 
 require_once __DIR__ . '/../../config/config.php';
 require_once __DIR__ . '/../../config/database.php';
+require_once __DIR__ . '/../../config/moderation.php';
 require_once __DIR__ . '/../../utils/auth.php';
-require_once __DIR__ . '/../../utils/response.php';
-require_once __DIR__ . '/../../utils/FileHelper.php';
 require_once __DIR__ . '/../../services/GoogleVisionService.php';
 require_once __DIR__ . '/../../services/ModerationDecisionService.php';
+require_once __DIR__ . '/../../helpers/FileHelper.php';
+require_once __DIR__ . '/../../helpers/ResponseHelper.php';
 
-handlePreflight();
+// Load Composer autoload if available
+if (file_exists(__DIR__ . '/../../vendor/autoload.php')) {
+    require_once __DIR__ . '/../../vendor/autoload.php';
+}
+
+// Clear output buffer
+ob_clean();
+
+// Handle CORS preflight
+if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
+    header('Access-Control-Allow-Origin: *');
+    header('Access-Control-Allow-Methods: POST, OPTIONS');
+    header('Access-Control-Allow-Headers: Content-Type, Authorization');
+    http_response_code(200);
+    exit;
+}
 
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
-    sendError('Method not allowed', null, 405);
+    ResponseHelper::error('Method not allowed', 405);
 }
 
 try {
     // Check authentication
-    $user = requireAuth();
+    $user = getCurrentUser();
+    if (!$user) {
+        ResponseHelper::unauthorized('Please login to upload images');
+    }
+    
     $userId = $user['id'];
     
-    // Check if file was uploaded
+    // Validate property_id
+    $propertyId = isset($_POST['property_id']) ? intval($_POST['property_id']) : 0;
+    if ($propertyId <= 0) {
+        ResponseHelper::validationError(['property_id' => 'Valid property ID is required']);
+    }
+    
+    // Verify property belongs to user
+    $db = getDB();
+    $stmt = $db->prepare("SELECT id, user_id FROM properties WHERE id = ?");
+    $stmt->execute([$propertyId]);
+    $property = $stmt->fetch(PDO::FETCH_ASSOC);
+    
+    if (!$property) {
+        ResponseHelper::error('Property not found', 404);
+    }
+    
+    if ($property['user_id'] != $userId) {
+        ResponseHelper::forbidden('You do not have permission to upload images for this property');
+    }
+    
+    // Validate file upload
     if (!isset($_FILES['image']) || $_FILES['image']['error'] !== UPLOAD_ERR_OK) {
-        $errorMsg = 'No file uploaded';
-        if (isset($_FILES['image']['error'])) {
-            switch ($_FILES['image']['error']) {
-                case UPLOAD_ERR_INI_SIZE:
-                case UPLOAD_ERR_FORM_SIZE:
-                    $errorMsg = 'File size exceeds limit';
-                    break;
-                case UPLOAD_ERR_PARTIAL:
-                    $errorMsg = 'File upload was incomplete';
-                    break;
-                case UPLOAD_ERR_NO_FILE:
-                    $errorMsg = 'No file was uploaded';
-                    break;
-                default:
-                    $errorMsg = 'File upload error occurred';
-            }
-        }
-        sendError($errorMsg, null, 400);
+        ResponseHelper::validationError(['image' => 'Image file is required']);
     }
     
     $file = $_FILES['image'];
-    $propertyId = isset($_POST['property_id']) ? (int)$_POST['property_id'] : null;
     
-    if (!$propertyId) {
-        sendError('Property ID is required', null, 400);
-    }
-    
-    // Validate property exists and belongs to user
-    $db = getDB();
-    $stmt = $db->prepare("SELECT id FROM properties WHERE id = ? AND user_id = ?");
-    $stmt->execute([$propertyId, $userId]);
-    $property = $stmt->fetch();
-    
-    if (!$property) {
-        sendError('Property not found or access denied', null, 404);
-    }
-    
-    // File validation
-    $fileSize = $file['size'];
-    $maxSizeBytes = MAX_IMAGE_SIZE_BYTES;
-    
-    if ($fileSize > $maxSizeBytes) {
-        sendError("File size exceeds maximum allowed size of " . MAX_IMAGE_SIZE_MB . "MB", null, 400);
-    }
-    
-    // Check file extension
-    $originalFilename = $file['name'];
-    $extension = strtolower(pathinfo($originalFilename, PATHINFO_EXTENSION));
-    $allowedExtensions = array_map('strtolower', ALLOWED_IMAGE_TYPES_ARRAY);
-    
-    if (!in_array($extension, $allowedExtensions)) {
-        sendError("File type not allowed. Allowed types: " . ALLOWED_IMAGE_TYPES_STR, null, 400);
-    }
-    
-    // Check MIME type
-    $finfo = finfo_open(FILEINFO_MIME_TYPE);
-    $mimeType = finfo_file($finfo, $file['tmp_name']);
-    finfo_close($finfo);
-    
-    $allowedMimeTypes = [
-        'image/jpeg',
-        'image/jpg',
-        'image/png',
-        'image/webp'
-    ];
-    
-    if (!in_array($mimeType, $allowedMimeTypes)) {
-        sendError("Invalid file type. Only image files are allowed.", null, 400);
+    // Validate file using FileHelper
+    $validation = FileHelper::validateImageFile($file, MAX_IMAGE_SIZE_BYTES, ALLOWED_IMAGE_TYPES);
+    if (!$validation['valid']) {
+        ResponseHelper::validationError(['image' => $validation['error']]);
     }
     
     // Generate unique filename
-    $uniqueFilename = FileHelper::generateUniqueFilename($originalFilename);
-    $tempPath = UPLOAD_TEMP_DIR . $uniqueFilename;
+    $uniqueFilename = FileHelper::generateUniqueFilename($file['name']);
+    $originalFilename = $file['name'];
+    $fileSize = $file['size'];
+    $mimeType = FileHelper::getMimeType($file['tmp_name']);
     
-    // Save file to temp folder
+    // Ensure temp directory exists
+    if (!FileHelper::createDirectory(UPLOAD_TEMP_PATH)) {
+        error_log("Failed to create temp directory: " . UPLOAD_TEMP_PATH);
+        ResponseHelper::serverError('Failed to create upload directory');
+    }
+    
+    // Save to temp directory
+    $tempPath = UPLOAD_TEMP_PATH . $uniqueFilename;
     if (!move_uploaded_file($file['tmp_name'], $tempPath)) {
-        error_log("Failed to move uploaded file to temp: " . $tempPath);
-        sendError('Failed to save uploaded file', null, 500);
+        error_log("Failed to move uploaded file to temp: {$tempPath}");
+        ResponseHelper::serverError('Failed to save uploaded file');
     }
     
-    // Verify file was saved
-    if (!file_exists($tempPath)) {
-        sendError('File was not saved correctly', null, 500);
-    }
+    // Initialize moderation variables
+    $decision = null;
+    $apiResponse = null;
+    $moderationStatus = 'PENDING';
+    $moderationReason = null;
+    $apisUsed = ['google_vision'];
+    $confidenceScores = [];
+    $apiResponseJson = null;
     
-    // Call moderation services
+    // Call Google Vision API
     try {
         $visionService = new GoogleVisionService();
         $apiResponse = $visionService->analyzeImage($tempPath);
         
-        $decisionService = new ModerationDecisionService();
-        $decision = $decisionService->evaluate($apiResponse);
-        
+        if ($apiResponse['success']) {
+            // Evaluate moderation decision
+            $decisionService = new ModerationDecisionService();
+            $decision = $decisionService->evaluate($apiResponse);
+            
+            $moderationStatus = $decision['decision'];
+            $moderationReason = $decision['reason'];
+            $confidenceScores = $decision['confidence_scores'];
+            $apiResponseJson = $apiResponse['raw_response'];
+        } else {
+            // API failed, but continue with upload
+            error_log("Google Vision API error: " . ($apiResponse['error'] ?? 'Unknown error'));
+            $moderationStatus = 'PENDING';
+            $moderationReason = 'Moderation API unavailable';
+        }
     } catch (Exception $e) {
-        error_log("Moderation API error: " . $e->getMessage());
-        
-        // Save to database with PENDING status
-        $stmt = $db->prepare("
-            INSERT INTO property_images 
-            (property_id, file_name, file_path, original_filename, file_size, mime_type, 
-             moderation_status, moderation_reason, apis_used, confidence_scores, api_response, checked_at)
-            VALUES (?, ?, ?, ?, ?, ?, 'PENDING', ?, ?, ?, ?, NOW())
-        ");
-        
-        $filePath = FileHelper::getRelativePath($tempPath);
-        $apisUsed = json_encode(['google_vision' => 'failed']);
-        $confidenceScores = json_encode([]);
-        $apiResponseJson = json_encode(['error' => $e->getMessage()]);
-        
-        $stmt->execute([
-            $propertyId,
-            $uniqueFilename,
-            $filePath,
-            $originalFilename,
-            $fileSize,
-            $mimeType,
-            'Moderation API call failed: ' . $e->getMessage(),
-            $apisUsed,
-            $confidenceScores,
-            $apiResponseJson
-        ]);
-        
-        sendError('Image moderation service is temporarily unavailable. Please try again later.', null, 503);
+        error_log("Google Vision API exception: " . $e->getMessage());
+        // Continue with upload, mark as PENDING
+        $moderationStatus = 'PENDING';
+        $moderationReason = 'Moderation service error';
     }
     
-    $decisionResult = $decision['decision'];
-    $decisionReason = $decision['reason'];
-    $confidenceScores = $decision['confidence_scores'];
-    $flaggedLabels = $decision['flagged_labels'];
-    $propertyLabels = $decision['property_labels'];
-    
-    // Prepare data for database
-    $apisUsed = json_encode(['google_vision' => 'success']);
-    $confidenceScoresJson = json_encode($confidenceScores);
-    $apiResponseJson = json_encode($apiResponse);
-    
-    // Handle SAFE decision
-    if ($decisionResult === 'SAFE') {
-        // Create property subfolder if not exists
-        $propertyDir = UPLOAD_PROPERTIES_DIR . $propertyId . '/';
-        if (!file_exists($propertyDir)) {
-            mkdir($propertyDir, 0755, true);
-        }
-        
-        // Move file from temp to property folder
-        $finalPath = $propertyDir . $uniqueFilename;
-        if (!FileHelper::moveFile($tempPath, $finalPath)) {
-            error_log("Failed to move file from temp to property folder");
-            sendError('Failed to save approved image', null, 500);
-        }
-        
-        // Insert record into property_images table
-        $filePath = FileHelper::getRelativePath($finalPath);
-        $stmt = $db->prepare("
-            INSERT INTO property_images 
-            (property_id, file_name, file_path, original_filename, file_size, mime_type,
-             moderation_status, moderation_reason, apis_used, confidence_scores, api_response, checked_at)
-            VALUES (?, ?, ?, ?, ?, ?, 'SAFE', ?, ?, ?, ?, NOW())
-        ");
-        
-        $stmt->execute([
-            $propertyId,
-            $uniqueFilename,
-            $filePath,
-            $originalFilename,
-            $fileSize,
-            $mimeType,
-            $decisionReason,
-            $apisUsed,
-            $confidenceScoresJson,
-            $apiResponseJson
-        ]);
-        
-        $imageId = $db->lastInsertId();
-        $imageUrl = FileHelper::getImageUrl($filePath);
-        
-        sendSuccess('Image approved', [
-            'status' => 'success',
-            'image_id' => $imageId,
-            'image_url' => $imageUrl,
-            'message' => 'Image approved'
-        ]);
-    }
-    
-    // Handle UNSAFE decision
-    if ($decisionResult === 'UNSAFE') {
-        // Delete file from temp folder
+    // Handle based on moderation decision
+    if ($moderationStatus === 'UNSAFE') {
+        // Delete temp file
         FileHelper::deleteFile($tempPath);
         
-        // Insert record into property_images table
-        $stmt = $db->prepare("
-            INSERT INTO property_images 
-            (property_id, file_name, file_path, original_filename, file_size, mime_type,
-             moderation_status, moderation_reason, apis_used, confidence_scores, api_response, checked_at)
-            VALUES (?, ?, ?, ?, ?, ?, 'UNSAFE', ?, ?, ?, ?, NOW())
-        ");
-        
-        $stmt->execute([
-            $propertyId,
-            $uniqueFilename,
-            null, // No file path for rejected images
-            $originalFilename,
-            $fileSize,
-            $mimeType,
-            $decisionReason,
-            $apisUsed,
-            $confidenceScoresJson,
-            $apiResponseJson
-        ]);
-        
-        // Return generic error message without revealing specific reason
-        sendError('Image rejected - contains inappropriate content', null, 400);
-    }
-    
-    // Handle NEEDS_REVIEW decision
-    if ($decisionResult === 'NEEDS_REVIEW') {
-        // Move file from temp to review folder
-        $reviewPath = UPLOAD_REVIEW_DIR . $uniqueFilename;
-        if (!FileHelper::moveFile($tempPath, $reviewPath)) {
-            error_log("Failed to move file from temp to review folder");
-            sendError('Failed to queue image for review', null, 500);
+        // Save record with UNSAFE status
+        try {
+            $stmt = $db->prepare("
+                INSERT INTO property_images (
+                    property_id, image_url, file_name, file_path, original_filename,
+                    file_size, mime_type, moderation_status, moderation_reason,
+                    apis_used, confidence_scores, api_response, checked_at
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW())
+            ");
+            
+            $stmt->execute([
+                $propertyId,
+                null, // No URL for rejected images
+                $uniqueFilename,
+                null, // No path for rejected images
+                $originalFilename,
+                $fileSize,
+                $mimeType,
+                'UNSAFE',
+                $moderationReason,
+                json_encode($apisUsed),
+                json_encode($confidenceScores),
+                $apiResponseJson
+            ]);
+        } catch (PDOException $e) {
+            error_log("Failed to save UNSAFE image record: " . $e->getMessage());
         }
         
-        // Insert record into property_images table
-        $filePath = FileHelper::getRelativePath($reviewPath);
+        ResponseHelper::error('Image rejected - contains inappropriate content: ' . $moderationReason, 400);
+    }
+    
+    if ($moderationStatus === 'NEEDS_REVIEW') {
+        // Ensure review directory exists
+        if (!FileHelper::createDirectory(UPLOAD_REVIEW_PATH)) {
+            error_log("Failed to create review directory: " . UPLOAD_REVIEW_PATH);
+            FileHelper::deleteFile($tempPath);
+            ResponseHelper::serverError('Failed to create review directory');
+        }
+        
+        // Move file to review directory
+        $reviewPath = UPLOAD_REVIEW_PATH . $uniqueFilename;
+        if (!FileHelper::moveFile($tempPath, $reviewPath)) {
+            error_log("Failed to move file to review directory");
+            FileHelper::deleteFile($tempPath);
+            ResponseHelper::serverError('Failed to queue image for review');
+        }
+        
+        // Save record with NEEDS_REVIEW status
+        try {
+            $db->beginTransaction();
+            
+            $stmt = $db->prepare("
+                INSERT INTO property_images (
+                    property_id, image_url, file_name, file_path, original_filename,
+                    file_size, mime_type, moderation_status, moderation_reason,
+                    apis_used, confidence_scores, api_response, checked_at
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW())
+            ");
+            
+            $relativePath = 'review/' . $uniqueFilename;
+            $imageUrl = BASE_URL . '/uploads/' . $relativePath;
+            
+            $stmt->execute([
+                $propertyId,
+                $imageUrl,
+                $uniqueFilename,
+                $relativePath,
+                $originalFilename,
+                $fileSize,
+                $mimeType,
+                'NEEDS_REVIEW',
+                $moderationReason,
+                json_encode($apisUsed),
+                json_encode($confidenceScores),
+                $apiResponseJson
+            ]);
+            
+            $imageId = $db->lastInsertId();
+            
+            // Insert into moderation_review_queue
+            $stmt = $db->prepare("
+                INSERT INTO moderation_review_queue (
+                    property_image_id, status, reason_for_review, created_at
+                ) VALUES (?, 'OPEN', ?, NOW())
+            ");
+            
+            $stmt->execute([$imageId, $moderationReason]);
+            
+            $db->commit();
+            
+            ResponseHelper::success('Image uploaded and queued for review', [
+                'image_id' => $imageId,
+                'status' => 'pending_review',
+                'message' => 'Image is under review. We will notify you once approved.',
+                'moderation_status' => 'NEEDS_REVIEW',
+                'moderation_reason' => $moderationReason
+            ]);
+            
+        } catch (PDOException $e) {
+            if ($db->inTransaction()) {
+                $db->rollBack();
+            }
+            error_log("Failed to save NEEDS_REVIEW image record: " . $e->getMessage());
+            FileHelper::deleteFile($reviewPath);
+            ResponseHelper::serverError('Failed to save image record');
+        }
+    }
+    
+    // Handle SAFE images
+    // Create property-specific folder
+    $propertyFolder = UPLOAD_PROPERTIES_PATH . $propertyId . '/';
+    if (!FileHelper::createDirectory($propertyFolder)) {
+        error_log("Failed to create property folder: {$propertyFolder}");
+        FileHelper::deleteFile($tempPath);
+        ResponseHelper::serverError('Failed to create property folder');
+    }
+    
+    // Move file from temp to property folder
+    $finalPath = $propertyFolder . $uniqueFilename;
+    if (!FileHelper::moveFile($tempPath, $finalPath)) {
+        error_log("Failed to move file to property folder");
+        FileHelper::deleteFile($tempPath);
+        ResponseHelper::serverError('Failed to save image');
+    }
+    
+    // Generate public URL
+    $relativePath = 'properties/' . $propertyId . '/' . $uniqueFilename;
+    $imageUrl = BASE_URL . '/uploads/' . $relativePath;
+    
+    // Save to database
+    try {
         $stmt = $db->prepare("
-            INSERT INTO property_images 
-            (property_id, file_name, file_path, original_filename, file_size, mime_type,
-             moderation_status, moderation_reason, apis_used, confidence_scores, api_response, checked_at)
-            VALUES (?, ?, ?, ?, ?, ?, 'NEEDS_REVIEW', ?, ?, ?, ?, NOW())
+            INSERT INTO property_images (
+                property_id, image_url, file_name, file_path, original_filename,
+                file_size, mime_type, moderation_status, moderation_reason,
+                apis_used, confidence_scores, api_response, checked_at
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW())
         ");
         
         $stmt->execute([
             $propertyId,
+            $imageUrl,
             $uniqueFilename,
-            $filePath,
+            $relativePath,
             $originalFilename,
             $fileSize,
             $mimeType,
-            $decisionReason,
-            $apisUsed,
-            $confidenceScoresJson,
+            'SAFE',
+            $moderationReason ?? 'Image passed all moderation checks',
+            json_encode($apisUsed),
+            json_encode($confidenceScores),
             $apiResponseJson
         ]);
         
         $imageId = $db->lastInsertId();
         
-        // Insert record into moderation_review_queue table
-        $stmt = $db->prepare("
-            INSERT INTO moderation_review_queue 
-            (property_image_id, status, reason_for_review, created_at)
-            VALUES (?, 'OPEN', ?, NOW())
-        ");
-        
-        $stmt->execute([
-            $imageId,
-            $decisionReason
-        ]);
-        
-        sendSuccess('Image is under review. We will notify you once approved.', [
-            'status' => 'pending_review',
+        ResponseHelper::success('Image uploaded successfully', [
             'image_id' => $imageId,
-            'message' => 'Image is under review. We will notify you once approved.'
+            'image_url' => $imageUrl,
+            'filename' => $uniqueFilename,
+            'moderation_status' => 'SAFE'
         ]);
+        
+    } catch (PDOException $e) {
+        error_log("Failed to save image record: " . $e->getMessage());
+        FileHelper::deleteFile($finalPath);
+        ResponseHelper::serverError('Failed to save image record');
     }
     
-    // Should not reach here
-    sendError('Unexpected moderation decision', null, 500);
-    
 } catch (Exception $e) {
-    error_log("moderate-and-upload.php - Exception: " . $e->getMessage());
+    error_log("Image moderation error: " . $e->getMessage());
     error_log("Stack trace: " . $e->getTraceAsString());
-    sendError('An error occurred while processing your image', null, 500);
+    ResponseHelper::serverError('An error occurred while processing the image');
 }
-

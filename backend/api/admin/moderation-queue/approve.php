@@ -8,9 +8,10 @@
 
 require_once __DIR__ . '/../../../config/config.php';
 require_once __DIR__ . '/../../../config/database.php';
+require_once __DIR__ . '/../../../config/moderation.php';
 require_once __DIR__ . '/../../../utils/admin_auth_middleware.php';
 require_once __DIR__ . '/../../../utils/response.php';
-require_once __DIR__ . '/../../../utils/FileHelper.php';
+require_once __DIR__ . '/../../../helpers/FileHelper.php';
 
 handlePreflight();
 
@@ -54,15 +55,16 @@ try {
     $filePath = $queueItem['file_path'];
     
     // Check if file exists in review folder
-    $reviewFilePath = UPLOAD_DIR . $filePath;
+    $reviewFilePath = UPLOAD_REVIEW_PATH . basename($filePath);
     if (!file_exists($reviewFilePath)) {
         sendError('Image file not found in review folder', null, 404);
     }
     
     // Create property subfolder if not exists
-    $propertyDir = UPLOAD_PROPERTIES_DIR . $propertyId . '/';
-    if (!file_exists($propertyDir)) {
-        mkdir($propertyDir, 0755, true);
+    $propertyDir = UPLOAD_PROPERTIES_PATH . $propertyId . '/';
+    if (!FileHelper::createDirectory($propertyDir)) {
+        error_log("Failed to create property directory: {$propertyDir}");
+        sendError('Failed to create property folder', null, 500);
     }
     
     // Move file from review to property folder
@@ -74,8 +76,9 @@ try {
         sendError('Failed to move approved image', null, 500);
     }
     
-    // Update file_path in property_images
-    $newFilePath = FileHelper::getRelativePath($finalPath);
+    // Update file_path in property_images (relative path)
+    $newFilePath = 'properties/' . $propertyId . '/' . $filename;
+    $imageUrl = BASE_URL . '/uploads/' . $newFilePath;
     
     // Begin transaction
     $db->beginTransaction();
@@ -120,7 +123,7 @@ try {
         sendSuccess('Image approved', [
             'status' => 'success',
             'message' => 'Image approved',
-            'image_url' => FileHelper::getImageUrl($newFilePath)
+            'image_url' => $imageUrl
         ]);
         
     } catch (Exception $e) {

@@ -570,12 +570,13 @@ newErrors.description = "Description is required";
         break;
         
       case 4:
-        // Image validation
-        if (!formData.images || formData.images.length === 0) {
-          newErrors.images = "Add at least 1 photo";
-        } else if (formData.images.length > 10) {
+        // Image validation - Images are optional, uploaded separately through moderation endpoint
+        // Images can be added after property creation using the moderation upload component
+        if (formData.images && formData.images.length > 10) {
           newErrors.images = "Maximum 10 photos allowed";
         }
+        // Note: Images are uploaded separately through /api/images/moderate-and-upload.php
+        // Property can be created without images, images can be added later
         break;
         
       case 5:

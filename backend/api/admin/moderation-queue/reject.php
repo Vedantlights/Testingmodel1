@@ -8,9 +8,10 @@
 
 require_once __DIR__ . '/../../../config/config.php';
 require_once __DIR__ . '/../../../config/database.php';
+require_once __DIR__ . '/../../../config/moderation.php';
 require_once __DIR__ . '/../../../utils/admin_auth_middleware.php';
 require_once __DIR__ . '/../../../utils/response.php';
-require_once __DIR__ . '/../../../utils/FileHelper.php';
+require_once __DIR__ . '/../../../helpers/FileHelper.php';
 
 handlePreflight();
 
@@ -53,20 +54,26 @@ try {
     $filePath = $queueItem['file_path'];
     
     // Check if file exists in review folder
-    $reviewFilePath = UPLOAD_DIR . $filePath;
+    $reviewFilePath = UPLOAD_REVIEW_PATH . basename($filePath);
     $moved = false;
+    $newFilePath = null;
     
     if (file_exists($reviewFilePath)) {
-        // Move file from review to rejected folder
-        $filename = basename($filePath);
-        $rejectedPath = UPLOAD_REJECTED_DIR . $filename;
-        
-        if (FileHelper::moveFile($reviewFilePath, $rejectedPath)) {
-            $moved = true;
-            $newFilePath = FileHelper::getRelativePath($rejectedPath);
+        // Ensure rejected directory exists
+        if (!FileHelper::createDirectory(UPLOAD_REJECTED_PATH)) {
+            error_log("Failed to create rejected directory");
         } else {
-            error_log("Failed to move file from review to rejected folder");
-            // Continue with rejection even if file move fails
+            // Move file from review to rejected folder
+            $filename = basename($filePath);
+            $rejectedPath = UPLOAD_REJECTED_PATH . $filename;
+            
+            if (FileHelper::moveFile($reviewFilePath, $rejectedPath)) {
+                $moved = true;
+                $newFilePath = 'rejected/' . $filename;
+            } else {
+                error_log("Failed to move file from review to rejected folder");
+                // Continue with rejection even if file move fails
+            }
         }
     }
     
