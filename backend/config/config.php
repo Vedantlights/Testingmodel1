@@ -180,10 +180,15 @@ define('PREMIUM_PLAN_PROPERTY_LIMIT', -1); // Unlimited
 // SECURITY: Use environment variable for credentials path
 $googleCredentialsPath = getenv('GOOGLE_APPLICATION_CREDENTIALS');
 if (empty($googleCredentialsPath)) {
-    // Default path - update this to your actual credentials file path
-    $googleCredentialsPath = __DIR__ . '/../config/google-cloud-credentials.json';
-    if (defined('ENVIRONMENT') && ENVIRONMENT === 'production') {
-        error_log('SECURITY WARNING: GOOGLE_APPLICATION_CREDENTIALS not set via environment variable in production!');
+    // Production path (Hostinger shared hosting)
+    $googleCredentialsPath = '/home/u123456789/domains/demo1.indiapropertys.com/secure/indiapropertys-8fab286d41e4.json';
+    
+    // Fallback to local development path if production path doesn't exist
+    if (!file_exists($googleCredentialsPath)) {
+        $googleCredentialsPath = __DIR__ . '/../config/google-cloud-credentials.json';
+        if (defined('ENVIRONMENT') && ENVIRONMENT === 'production') {
+            error_log('SECURITY WARNING: Google Cloud credentials file not found at production path!');
+        }
     }
 }
 define('GOOGLE_APPLICATION_CREDENTIALS', $googleCredentialsPath);

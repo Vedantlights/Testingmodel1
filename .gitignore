@@ -45,3 +45,8 @@ npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 
+# API Credentials (NEVER commit these!)
+backend/config/google-cloud-credentials.json
+**/google-cloud-credentials.json
+**/*credentials*.json
+
