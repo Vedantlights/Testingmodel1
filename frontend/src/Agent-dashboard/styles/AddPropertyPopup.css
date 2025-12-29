@@ -81,25 +81,86 @@
 
 /* step indicator */
 .step-indicator { 
-  display:flex;
-   justify-content:center; 
-   align-items:center;
-    padding:2rem 2rem; 
-    background:linear-gradient(180deg,#f8fafc 0%,#fff 100%); 
-    border-bottom:1px solid var(--border-color); 
-    gap:0;
-    overflow-y: hidden;
-    overflow-y: hidden;  }
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 1.5rem 2rem;
+  background: linear-gradient(180deg, #f8fafc 0%, #fff 100%);
+  border-bottom: 1px solid var(--border-color);
+  gap: 0;
+  overflow-x: hidden;
+  overflow-y: hidden;
+  flex-wrap: nowrap;
+  min-height: 100px; /* Ensure consistent height */
+}
 
-
-.step-item { display:flex; align-items:center; position:relative; }
-.step-circle { width:44px; height:44px; border-radius:50%; background:var(--bg-primary); border:2px solid var(--border-color); display:flex; align-items:center; justify-content:center; font-size:1.1rem; transition:all var(--transition-normal); flex-shrink:0; }
-.step-item.active .step-circle { background:var(--accent-gradient); border-color:transparent; box-shadow:0 4px 12px rgba(124,58,237,0.35); }
-.step-item.completed .step-circle { background:var(--success-color); border-color:transparent; color:white; }
-.step-title { position:absolute; top:100%; left:22%; transform:translateX(-50%); margin-top:0.7rem; font-size:0.75rem; font-weight:500; color:var(--text-muted); white-space:nowrap; transition:color var(--transition-fast); }
-.step-item.active .step-title { color:var(--accent-color); font-weight:600; }
-.step-line { width:60px; height:2px; background:var(--border-color); margin:0 0.5rem; transition:background var(--transition-normal); }
-.step-item.completed + .step-item .step-line, .step-item.completed .step-line { background:var(--success-color); }
+.step-item { 
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  position: relative;
+  flex-shrink: 0; /* Prevent shrinking */
+  min-width: 80px; /* Ensure minimum width for alignment */
+}
+.step-circle { 
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: var(--bg-primary);
+  border: 2px solid var(--border-color);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.1rem;
+  transition: all var(--transition-normal);
+  flex-shrink: 0;
+}
+.step-item.active .step-circle { 
+  background: var(--accent-gradient);
+  border-color: transparent;
+  box-shadow: 0 4px 12px rgba(124, 58, 237, 0.35);
+}
+.step-item.completed .step-circle { 
+  background: var(--success-color);
+  border-color: transparent;
+  color: white;
+}
+.step-title { 
+  position: relative;
+  margin-top: 0.5rem;
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: var(--text-muted);
+  white-space: nowrap;
+  transition: color var(--transition-fast);
+  text-align: center;
+  width: max-content;
+  max-width: 100px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.step-item.active .step-title { 
+  color: var(--accent-color);
+  font-weight: 600;
+}
+.step-item.completed .step-title {
+  color: var(--success-color);
+}
+.step-line { 
+  position: absolute;
+  top: 0;
+  left: calc(50% + 22px); /* Start from right edge of circle (22px = half of 44px circle) */
+  width: 60px;
+  height: 2px;
+  background: var(--border-color);
+  transition: background var(--transition-normal);
+  z-index: 0;
+  transform: translateY(21px); /* Center vertically on circle (22px - 1px for line height) */
+}
+.step-item.completed + .step-item .step-line, 
+.step-item.completed .step-line { 
+  background: var(--success-color);
+}
 
 /* body */
 .popup-body { flex:1; overflow-y:auto; padding:2rem; }
