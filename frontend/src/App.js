@@ -37,6 +37,7 @@ import './UserDashboard/styles/global.css';
 // =====================
 import SellerDashboard from './Seller-Owner/Seller-dashboard';
 import ProtectedRoute from './context/ProtectedRoute';
+import PublicRoute from './components/PublicRoute';
 
 // =====================
 // AGENT DASHBOARD
@@ -96,8 +97,8 @@ function App() {
         <div className="App">
           <Routes>
 
-          {/* Main Landing Page */}
-          <Route path="/*" element={<LandingPage />} />
+          {/* Main Landing Page - Public Route (redirects authenticated users) */}
+          <Route path="/*" element={<PublicRoute><LandingPage /></PublicRoute>} />
 
           {/* Admin */}
           <Route path="/admin/*" element={<Admin />} />
