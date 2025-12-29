@@ -629,10 +629,10 @@ const MapView = ({
       
       // Create popup card - position will be calculated dynamically when it opens
       const popup = new mapboxgl.Popup({ 
-        offset: 25, // Default offset, will be adjusted in open handler
-        closeButton: false, // We'll add custom close button
+        offset: 25,
+        closeButton: false,
         closeOnClick: false,
-        anchor: 'bottom', // Default anchor, will be adjusted dynamically
+        anchor: 'bottom', // Default, will be adjusted in open handler
         className: 'map-card-container'
       })
         .setHTML(`
@@ -754,12 +754,11 @@ const MapView = ({
           if (!popupElement) return;
           
           // Calculate and apply optimal popup positioning
-          // Use requestAnimationFrame to ensure Mapbox has finished positioning
+          // Use a simpler approach: close and reopen popup with correct anchor/offset if needed
           const adjustPopupPosition = () => {
             const markerLngLat = marker.getLngLat();
-            const optimalPosition = calculateOptimalPopupPosition(map.current, markerLngLat, popupElement);
             
-            // Get popup container (the .mapboxgl-popup element)
+            // Get popup container
             const popupContainer = popupElement.closest('.mapboxgl-popup');
             if (!popupContainer) return;
             
@@ -770,25 +769,30 @@ const MapView = ({
             
             // Get container and pin position
             const container = map.current.getContainer();
+            if (!container) return;
+            
             const containerRect = container.getBoundingClientRect();
             const point = map.current.project(markerLngLat);
             const margin = 15;
             const offsetDistance = 25;
             
-            // Determine final anchor based on available space
-            let finalAnchor = optimalPosition.anchor;
+            // Determine best anchor based on available space
+            const spaceAbove = point.y;
+            const spaceBelow = containerRect.height - point.y;
+            let finalAnchor = 'bottom'; // Default to above pin
             
-            // Check if popup fits with current anchor, adjust if needed
-            if (finalAnchor === 'bottom') {
-              const spaceNeeded = popupHeight + offsetDistance + margin;
-              if (point.y < spaceNeeded) {
-                finalAnchor = 'top'; // Switch to below if not enough space above
-              }
+            // Check which direction has more space and if popup fits
+            const spaceNeeded = popupHeight + offsetDistance + margin;
+            
+            if (spaceAbove >= spaceNeeded) {
+              // Enough space above, use bottom anchor (popup above pin)
+              finalAnchor = 'bottom';
+            } else if (spaceBelow >= spaceNeeded) {
+              // Enough space below, use top anchor (popup below pin)
+              finalAnchor = 'top';
             } else {
-              const spaceNeeded = popupHeight + offsetDistance + margin;
-              if (point.y + spaceNeeded > containerRect.height) {
-                finalAnchor = 'bottom'; // Switch to above if not enough space below
-              }
+              // Not enough space in either direction, choose the one with more space
+              finalAnchor = spaceAbove > spaceBelow ? 'bottom' : 'top';
             }
             
             // Update anchor class
@@ -797,51 +801,84 @@ const MapView = ({
                                           'mapboxgl-popup-anchor-center');
             popupContainer.classList.add(`mapboxgl-popup-anchor-${finalAnchor}`);
             
-            // Calculate desired position (top-left corner of popup in container coordinates)
-            // Mapbox centers popup horizontally by default, so we adjust from center
-            let desiredX = point.x + optimalPosition.offset[0] - (popupWidth / 2);
-            let desiredY = finalAnchor === 'bottom' 
-              ? point.y - popupHeight - offsetDistance
-              : point.y + offsetDistance;
+            // Calculate horizontal offset to keep popup within bounds
+            const centeredLeft = point.x - (popupWidth / 2);
+            const centeredRight = point.x + (popupWidth / 2);
+            let horizontalOffset = 0;
             
-            // Clamp to container bounds to ensure popup is fully visible
+            if (centeredLeft < margin) {
+              horizontalOffset = margin - centeredLeft;
+            } else if (centeredRight > containerRect.width - margin) {
+              horizontalOffset = (containerRect.width - margin) - centeredRight;
+            }
+            
+            // Calculate where popup should be (in container-relative coordinates)
+            let desiredX = point.x + horizontalOffset - (popupWidth / 2);
+            let desiredY;
+            
+            if (finalAnchor === 'bottom') {
+              // Popup above pin
+              desiredY = point.y - popupHeight - offsetDistance;
+              // Clamp to ensure it stays within container
+              if (desiredY < margin) {
+                desiredY = margin;
+              }
+            } else {
+              // Popup below pin
+              desiredY = point.y + offsetDistance;
+              // Clamp to ensure it stays within container
+              if (desiredY + popupHeight > containerRect.height - margin) {
+                desiredY = containerRect.height - popupHeight - margin;
+              }
+            }
+            
+            // Clamp horizontal position
             desiredX = Math.max(margin, Math.min(desiredX, containerRect.width - popupWidth - margin));
-            desiredY = Math.max(margin, Math.min(desiredY, containerRect.height - popupHeight - margin));
             
-            // Calculate where Mapbox would position it by default (centered, with default offset)
-            const mapboxDefaultX = point.x - (popupWidth / 2);
-            const mapboxDefaultY = finalAnchor === 'bottom' 
-              ? point.y - popupHeight - offsetDistance
-              : point.y + offsetDistance;
+            // Get current popup position in container coordinates
+            // Mapbox positions popup container using transform, so we need to get its position
+            const popupContainerRect = popupContainer.getBoundingClientRect();
+            const containerScreenRect = container.getBoundingClientRect();
             
-            // Calculate adjustment needed (difference between desired and default)
-            const adjustX = desiredX - mapboxDefaultX;
-            const adjustY = desiredY - mapboxDefaultY;
+            // Convert current popup position to container-relative coordinates
+            const currentX = popupContainerRect.left - containerScreenRect.left;
+            const currentY = popupContainerRect.top - containerScreenRect.top;
             
-            // Apply adjustment via CSS transform (additive to Mapbox's existing transform)
+            // Calculate adjustment needed (difference between desired and current)
+            const adjustX = desiredX - currentX;
+            const adjustY = desiredY - currentY;
+            
+            // Get current transform to preserve Mapbox's positioning
             const currentTransform = window.getComputedStyle(popupContainer).transform;
+            let baseX = 0, baseY = 0;
+            
             if (currentTransform && currentTransform !== 'none') {
               try {
                 const matrix = new DOMMatrix(currentTransform);
-                popupContainer.style.transform = `translate(${matrix.e + adjustX}px, ${matrix.f + adjustY}px)`;
+                baseX = matrix.e;
+                baseY = matrix.f;
               } catch (e) {
-                // Fallback if DOMMatrix is not available
-                popupContainer.style.transform = `translate(${adjustX}px, ${adjustY}px)`;
+                // If parsing fails, use 0,0 as base
               }
-            } else {
-              popupContainer.style.transform = `translate(${adjustX}px, ${adjustY}px)`;
             }
+            
+            // Apply adjustment via transform (additive to Mapbox's transform)
+            popupContainer.style.transform = `translate(${baseX + adjustX}px, ${baseY + adjustY}px)`;
           };
           
           // Adjust position after Mapbox has positioned it
-          requestAnimationFrame(() => {
-            requestAnimationFrame(adjustPopupPosition);
-          });
+          setTimeout(() => {
+            requestAnimationFrame(() => {
+              requestAnimationFrame(adjustPopupPosition);
+            });
+          }, 100);
           
-          // Also adjust position when map moves/zooms (if popup is open)
+          // Also adjust position when map moves/zooms/resizes
           const handleMapMove = () => {
             if (popup.isOpen()) {
-              requestAnimationFrame(adjustPopupPosition);
+              setTimeout(() => {
+                requestAnimationFrame(adjustPopupPosition);
+              }, 100);
             }
           };
           
@@ -849,7 +886,7 @@ const MapView = ({
           map.current.on('zoom', handleMapMove);
           map.current.on('resize', handleMapMove);
           
-          // Store cleanup function
+          // Cleanup on close
           popup.on('close', () => {
             map.current.off('move', handleMapMove);
             map.current.off('zoom', handleMapMove);
