@@ -779,45 +779,54 @@ newErrors.description = "Description is required";
             const uploadPromises = imageFiles.map(async (file, index) => {
               try {
                 const response = await sellerPropertiesAPI.uploadImage(file, propertyId);
+                
+                // Handle APPROVED images
                 if (response.success && response.data && response.data.url) {
-                  // Check moderation status
                   const moderationStatus = response.data.moderation_status;
-                  if (moderationStatus === 'UNSAFE') {
+                  
+                  if (moderationStatus === 'NEEDS_REVIEW' || response.pending) {
+                    // Image is under review
+                    console.log(`Image ${index + 1} is under review:`, response.data.moderation_reason || response.message);
                     return { 
-                      success: false, 
-                      index, 
-                      error: response.data.moderation_reason || 'Image rejected by moderation system' 
+                      success: true, 
+                      url: response.data.url, 
+                      index,
+                      moderationStatus: 'NEEDS_REVIEW',
+                      pending: true
                     };
                   }
-                  if (moderationStatus === 'NEEDS_REVIEW') {
-                    // Image is under review - still add it but log the status
-                    console.log(`Image ${index + 1} is under review:`, response.data.moderation_reason);
-                    // Note: Review images are saved but may not be immediately visible
-                    // They will be moved to approved folder after admin review
-                  }
+                  
+                  // SAFE - Image approved
                   return { 
                     success: true, 
                     url: response.data.url, 
                     index,
-                    moderationStatus: moderationStatus 
+                    moderationStatus: moderationStatus || 'SAFE'
                   };
                 } else {
-                  // Handle error response - check for moderation info in error data
-                  const errorData = response.data || {};
-                  const moderationStatus = errorData.moderation_status;
-                  let errorMsg = response.message || errorData.errors?.[0] || 'Upload failed';
-                  
-                  // If it's a moderation rejection, use the moderation reason
-                  if (moderationStatus === 'UNSAFE' && errorData.moderation_reason) {
-                    errorMsg = errorData.moderation_reason;
-                  }
-                  
-                  console.error(`Image ${index + 1} upload failed:`, errorMsg);
-                  return { success: false, index, error: errorMsg };
+                  // This shouldn't happen if response.success is true
+                  return { success: false, index, error: response.message || 'Upload failed' };
                 }
               } catch (error) {
+                // Handle REJECTED images - error contains specific rejection message
                 console.error(`Image ${index + 1} upload error:`, error);
-                return { success: false, index, error: error.message || 'Upload failed' };
+                
+                // Extract specific error message from API response
+                let errorMsg = 'Upload failed';
+                if (error.message) {
+                  errorMsg = error.message; // This is the SPECIFIC error from moderation API
+                } else if (error.details && error.details.detected_issue) {
+                  errorMsg = error.details.detected_issue;
+                }
+                
+                // Show the exact error message from moderation API
+                return { 
+                  success: false, 
+                  index, 
+                  error: errorMsg,
+                  error_code: error.error_code,
+                  rejected: error.rejected || false
+                };
               }
             });
             
@@ -826,22 +835,30 @@ newErrors.description = "Description is required";
             const failed = results.filter(r => !r.success);
             
             if (failed.length > 0) {
+              // Show specific error messages for each rejected image
               const errorMessages = failed.map(f => f.error).filter(Boolean);
               const uniqueErrors = [...new Set(errorMessages)];
-              const errorMessage = failed.length === imageFiles.length 
-                ? `Failed to upload all images. ${uniqueErrors[0] || 'Please check server permissions and try again.'}`
-                : `Failed to upload ${failed.length} of ${imageFiles.length} images. ${uniqueErrors.join('; ')}`;
+              
+              // Build detailed error message showing what was wrong
+              let errorMessage = '';
+              if (failed.length === imageFiles.length) {
+                // All images failed
+                errorMessage = `All images were rejected:\n\n${uniqueErrors.join('\n\n')}`;
+              } else {
+                // Some images failed
+                errorMessage = `${failed.length} of ${imageFiles.length} images were rejected:\n\n${uniqueErrors.join('\n\n')}`;
+              }
+              
               alert(errorMessage);
               
               // If some images failed but property was created, still update with successful images
               if (successful.length > 0) {
                 uploadedImageUrls = successful.map(r => r.url);
                 await sellerPropertiesAPI.update(propertyId, { images: uploadedImageUrls });
-                alert(`Property created but ${failed.length} image(s) failed to upload. ${errorMessage}`);
+                alert(`Property created but ${failed.length} image(s) were rejected. ${uniqueErrors[0]}`);
               } else {
-                // All images failed - delete property or keep it without images?
-                // For now, keep property but show warning
-                alert(`Property created but no images were uploaded. ${errorMessage}`);
+                // All images failed - keep property but show warning
+                alert(`Property created but no images were uploaded. ${uniqueErrors[0]}`);
               }
               setUploadingImages(false);
               setIsSubmitting(false);

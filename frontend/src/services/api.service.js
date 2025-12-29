@@ -251,15 +251,22 @@ export const sellerPropertiesAPI = {
     });
   },
   
+  // CRITICAL FIX: Upload image through MODERATION endpoint
   uploadImage: async (file, propertyId = 0) => {
-    const formData = new FormData();
-    formData.append('file', file);
-    formData.append('file_type', 'image');
-    if (propertyId) {
-      formData.append('property_id', propertyId);
+    if (!propertyId || propertyId <= 0) {
+      throw {
+        status: 400,
+        message: 'Property ID is required for image upload',
+        errors: ['Property ID is required'],
+      };
     }
     
-    const url = `${API_BASE_URL}${API_ENDPOINTS.UPLOAD_PROPERTY_FILES}`;
+    const formData = new FormData();
+    formData.append('image', file);  // CRITICAL: Field name must be 'image' not 'file'
+    formData.append('property_id', propertyId);
+    
+    // Use MODERATION endpoint, not the old upload endpoint
+    const url = `${API_BASE_URL}${API_ENDPOINTS.MODERATE_AND_UPLOAD}`;
     const token = getToken();
     
     try {
@@ -271,7 +278,7 @@ export const sellerPropertiesAPI = {
         body: formData,
       });
       
-      // Get response text first to check if it's empty
+      // Get response text first
       const responseText = await response.text();
       
       // Check if response is empty
@@ -283,44 +290,67 @@ export const sellerPropertiesAPI = {
         };
       }
       
-      // Check if response is JSON
-      const contentType = response.headers.get('content-type');
+      // Parse JSON response
       let data;
-      
-      if (contentType && contentType.includes('application/json')) {
-        try {
-          data = JSON.parse(responseText);
-        } catch (parseError) {
-          console.error('JSON parse error:', parseError);
-          console.error('Response text:', responseText.substring(0, 500));
-          throw {
-            status: response.status || 500,
-            message: 'Invalid JSON response from server. Response: ' + responseText.substring(0, 200),
-            errors: null,
-            rawResponse: responseText.substring(0, 500)
-          };
-        }
-      } else {
-        // Not JSON - might be HTML error page or plain text
-        console.error('Non-JSON response:', responseText.substring(0, 500));
+      try {
+        data = JSON.parse(responseText);
+      } catch (parseError) {
+        console.error('JSON parse error:', parseError);
+        console.error('Response text:', responseText.substring(0, 500));
         throw {
           status: response.status || 500,
-          message: responseText.substring(0, 200) || 'Invalid response from server',
+          message: 'Invalid JSON response from server',
           errors: null,
           rawResponse: responseText.substring(0, 500)
         };
       }
       
-      if (!response.ok) {
+      // Handle different response statuses from moderation endpoint
+      if (data.status === 'success') {
+        // APPROVED - Image passed moderation
+        return {
+          success: true,
+          data: {
+            url: data.data?.image_url || data.data?.url,
+            image_id: data.data?.image_id,
+            filename: data.data?.filename,
+            moderation_status: data.data?.moderation_status || 'SAFE'
+          },
+          message: data.message || 'Image uploaded successfully',
+        };
+      } else if (data.status === 'pending_review') {
+        // NEEDS_REVIEW - Image under review
+        return {
+          success: true,
+          pending: true,
+          data: {
+            url: data.data?.image_url || null,
+            image_id: data.data?.image_id,
+            moderation_status: 'NEEDS_REVIEW',
+            moderation_reason: data.data?.moderation_reason || data.message
+          },
+          message: data.message || 'Image is under review',
+        };
+      } else if (data.status === 'error') {
+        // REJECTED - Image failed moderation
+        // CRITICAL: Return the specific error message from API
         throw {
-          status: response.status,
+          status: response.status || 400,
+          message: data.message || 'Image was rejected',
+          error_code: data.error_code || 'rejected',
+          details: data.details || {},
+          rejected: true,
+          data: data
+        };
+      } else {
+        // Unknown status
+        throw {
+          status: response.status || 500,
           message: data.message || 'Upload failed',
           errors: data.errors || null,
           data: data
         };
       }
-      
-      return data;
     } catch (error) {
       if (error.status) {
         throw error;
@@ -334,8 +364,7 @@ export const sellerPropertiesAPI = {
       }
       throw {
         status: 0,
-        message: error.message || 'Upload failed. Please try again.',
-        originalError: error.message
+        message: error.message || 'Unknown error occurred',
       };
     }
   },
