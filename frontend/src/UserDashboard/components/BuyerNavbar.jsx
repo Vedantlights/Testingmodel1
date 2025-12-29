@@ -74,6 +74,9 @@ const Navbar = () => {
             <Link to="/rent" className={`buyer-nav-link ${isActive('/rent') ? 'active' : ''}`}>
               <span>Rent</span>
             </Link>
+            <Link to="/pghostel" className={`buyer-nav-link ${isActive('/pghostel') ? 'active' : ''}`}>
+              <span>PG / Hostel</span>
+            </Link>
             <Link to="/BuyerProfile" className={`buyer-nav-link ${isActive('/BuyerProfile') ? 'active' : ''}`}>
               <span>Profile</span>
             </Link>
@@ -180,6 +183,9 @@ const Navbar = () => {
             </Link>
             <Link to="/rent" className={`buyer-mobile-nav-link ${isActive('/rent') ? 'active' : ''}`}>
               <span>Rent</span>
+            </Link>
+            <Link to="/pghostel" className={`buyer-mobile-nav-link ${isActive('/pghostel') ? 'active' : ''}`}>
+              <span>PG / Hostel</span>
             </Link>
             <Link to="/BuyerProfile" className={`buyer-mobile-nav-link ${isActive('/BuyerProfile') ? 'active' : ''}`}>
               <span>Profile</span>
