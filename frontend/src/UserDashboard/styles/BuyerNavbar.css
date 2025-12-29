@@ -312,8 +312,7 @@
 /* Focus Styles for Accessibility */
 .buyer-nav-link:focus,
 .buyer-mobile-menu-button:focus {
-  outline: 2px solid #886ace;
-  outline-offset: 2px;
+  outline: none;
 }
 
 /* Active State Animation */

@@ -54,13 +54,16 @@
   gap: 24px;
   padding: 0 24px;
   min-width: min-content;
+  align-items: stretch; /* Ensure all cards stretch to same height */
 }
 
-/* Ensure property cards have proper width in horizontal scroll */
+/* Ensure property cards have proper width and height in horizontal scroll */
 .buyer-property-cards-wrapper .buyer-property-card {
   flex-shrink: 0;
   width: 350px;
   max-width: 350px;
+  min-height: 500px; /* Ensure all cards have minimum same height */
+  height: auto; /* Allow cards to grow if needed */
 }
 
 /* Custom Scrollbar */
@@ -201,6 +204,7 @@
   .buyer-property-cards-wrapper .buyer-property-card {
     width: 300px;
     max-width: 300px;
+    min-height: 480px; /* Maintain uniform height on tablets */
   }
 }
 
@@ -208,6 +212,7 @@
   .buyer-property-cards-wrapper .buyer-property-card {
     width: 280px;
     max-width: 280px;
+    min-height: 460px; /* Maintain uniform height on small tablets */
   }
 }
 
@@ -219,11 +224,13 @@
   .buyer-property-cards-wrapper {
     gap: 16px;
     padding: 0 12px;
+    align-items: stretch; /* Ensure all cards stretch to same height */
   }
 
   .buyer-property-cards-wrapper .buyer-property-card {
     width: 270px;
     max-width: 270px;
+    min-height: 440px; /* Maintain uniform height on mobile */
   }
 }
 
@@ -235,11 +242,13 @@
   .buyer-property-cards-wrapper {
     gap: 12px;
     padding: 0 10px;
+    align-items: stretch; /* Ensure all cards stretch to same height */
   }
 
   .buyer-property-cards-wrapper .buyer-property-card {
     width: 260px;
     max-width: 260px;
+    min-height: 420px; /* Maintain uniform height on small mobile */
   }
 }
 
