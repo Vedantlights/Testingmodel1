@@ -313,6 +313,17 @@ try {
         ResponseHelper::serverError('Failed to save image');
     }
     
+    // Add watermark to approved image
+    try {
+        if (!WatermarkService::addWatermark($finalPath)) {
+            error_log("Failed to add watermark to image: {$finalPath}");
+            // Continue even if watermark fails - image is still valid
+        }
+    } catch (Exception $e) {
+        error_log("Watermark error: " . $e->getMessage());
+        // Continue even if watermark fails
+    }
+    
     // Generate public URL
     $relativePath = 'properties/' . $propertyId . '/' . $uniqueFilename;
     $imageUrl = BASE_URL . '/uploads/' . $relativePath;

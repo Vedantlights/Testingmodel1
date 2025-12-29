@@ -620,43 +620,52 @@ export default function AddPropertyPopup({ onClose, editIndex = null, initialDat
           const uploadPromises = imageFiles.map(async (file, index) => {
             try {
               const response = await sellerPropertiesAPI.uploadImage(file, propertyId);
+              
+              // Handle APPROVED images
               if (response.success && response.data && response.data.url) {
-                // Check moderation status
                 const moderationStatus = response.data.moderation_status;
-                if (moderationStatus === 'UNSAFE') {
+                
+                if (moderationStatus === 'NEEDS_REVIEW' || response.pending) {
+                  // Image is under review
+                  console.log(`Image ${index + 1} is under review:`, response.data.moderation_reason || response.message);
                   return { 
-                    success: false, 
-                    index, 
-                    error: response.data.moderation_reason || 'Image rejected by moderation system' 
+                    success: true, 
+                    url: response.data.url, 
+                    index,
+                    moderationStatus: 'NEEDS_REVIEW',
+                    pending: true
                   };
                 }
-                if (moderationStatus === 'NEEDS_REVIEW') {
-                  // Image is under review but still accepted for now
-                  console.log(`Image ${index + 1} is under review:`, response.data.moderation_reason);
-                }
+                
+                // SAFE - Image approved
                 return { 
                   success: true, 
                   url: response.data.url, 
                   index,
-                  moderationStatus: moderationStatus 
+                  moderationStatus: moderationStatus || 'SAFE'
                 };
               } else {
-                // Handle error response - check for moderation info in error data
-                const errorData = response.data || {};
-                const moderationStatus = errorData.moderation_status;
-                let errorMsg = response.message || errorData.errors?.[0] || 'Upload failed';
-                
-                // If it's a moderation rejection, use the moderation reason
-                if (moderationStatus === 'UNSAFE' && errorData.moderation_reason) {
-                  errorMsg = errorData.moderation_reason;
-                }
-                
-                console.error(`Image ${index + 1} upload failed:`, errorMsg);
-                return { success: false, index, error: errorMsg };
+                return { success: false, index, error: response.message || 'Upload failed' };
               }
             } catch (error) {
+              // Handle REJECTED images - error contains specific rejection message
               console.error(`Image ${index + 1} upload error:`, error);
-              return { success: false, index, error: error.message || 'Upload failed' };
+              
+              // Extract specific error message from API response
+              let errorMsg = 'Upload failed';
+              if (error.message) {
+                errorMsg = error.message; // This is the SPECIFIC error from moderation API
+              } else if (error.details && error.details.detected_issue) {
+                errorMsg = error.details.detected_issue;
+              }
+              
+              return { 
+                success: false, 
+                index, 
+                error: errorMsg,
+                error_code: error.error_code,
+                rejected: error.rejected || false
+              };
             }
           });
           
@@ -729,42 +738,52 @@ export default function AddPropertyPopup({ onClose, editIndex = null, initialDat
             const uploadPromises = imageFiles.map(async (file, index) => {
               try {
                 const response = await sellerPropertiesAPI.uploadImage(file, propertyId);
+                
+                // Handle APPROVED images
                 if (response.success && response.data && response.data.url) {
-                  // Check moderation status
                   const moderationStatus = response.data.moderation_status;
-                  if (moderationStatus === 'UNSAFE') {
+                  
+                  if (moderationStatus === 'NEEDS_REVIEW' || response.pending) {
+                    // Image is under review
+                    console.log(`Image ${index + 1} is under review:`, response.data.moderation_reason || response.message);
                     return { 
-                      success: false, 
-                      index, 
-                      error: response.data.moderation_reason || 'Image rejected by moderation system' 
+                      success: true, 
+                      url: response.data.url, 
+                      index,
+                      moderationStatus: 'NEEDS_REVIEW',
+                      pending: true
                     };
                   }
-                  if (moderationStatus === 'NEEDS_REVIEW') {
-                    console.log(`Image ${index + 1} is under review:`, response.data.moderation_reason);
-                  }
+                  
+                  // SAFE - Image approved
                   return { 
                     success: true, 
                     url: response.data.url, 
                     index,
-                    moderationStatus: moderationStatus 
+                    moderationStatus: moderationStatus || 'SAFE'
                   };
                 } else {
-                  // Handle error response - check for moderation info in error data
-                  const errorData = response.data || {};
-                  const moderationStatus = errorData.moderation_status;
-                  let errorMsg = response.message || errorData.errors?.[0] || 'Upload failed';
-                  
-                  // If it's a moderation rejection, use the moderation reason
-                  if (moderationStatus === 'UNSAFE' && errorData.moderation_reason) {
-                    errorMsg = errorData.moderation_reason;
-                  }
-                  
-                  console.error(`Image ${index + 1} upload failed:`, errorMsg);
-                  return { success: false, index, error: errorMsg };
+                  return { success: false, index, error: response.message || 'Upload failed' };
                 }
               } catch (error) {
+                // Handle REJECTED images - error contains specific rejection message
                 console.error(`Image ${index + 1} upload error:`, error);
-                return { success: false, index, error: error.message || 'Upload failed' };
+                
+                // Extract specific error message from API response
+                let errorMsg = 'Upload failed';
+                if (error.message) {
+                  errorMsg = error.message; // This is the SPECIFIC error from moderation API
+                } else if (error.details && error.details.detected_issue) {
+                  errorMsg = error.details.detected_issue;
+                }
+                
+                return { 
+                  success: false, 
+                  index, 
+                  error: errorMsg,
+                  error_code: error.error_code,
+                  rejected: error.rejected || false
+                };
               }
             });
             
