@@ -88,19 +88,32 @@ export const AuthProvider = ({ children }) => {
         } else {
           // Token is invalid - clear everything
           console.log("❌ Token verification failed - clearing session");
-          logout();
+          // Clear directly instead of calling logout to avoid dependency issues
+          setToken(null);
+          setUser(null);
+          authAPI.logout();
         }
       } catch (error) {
-        // Token expired or invalid - clear everything
-        console.error("❌ Token verification error:", error);
-        logout();
+        // Only clear auth state if it's a 401 (invalid/expired token)
+        // Network errors should not clear the session - allow user to continue with cached auth
+        if (error.status === 401) {
+          console.error("❌ Token verification failed - 401 Unauthorized, clearing session");
+          setToken(null);
+          setUser(null);
+          authAPI.logout();
+        } else {
+          // Network error or other issue - keep the cached auth state from localStorage
+          // The state should already be initialized from localStorage in useState, so just log a warning
+          console.warn("⚠️ Token verification network error, keeping cached session:", error.message);
+        }
       } finally {
         setLoading(false);
       }
     };
 
     initializeAuth();
-  }, [logout, setUser, setToken]); // Add logout, setUser, setToken to dependencies
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []); // Run only once on mount - setUser and setToken are stable callbacks
 
   const login = async (email, password, userType) => {
     try {
