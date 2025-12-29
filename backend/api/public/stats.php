@@ -39,10 +39,33 @@ try {
         $totalAgents = $stmt->fetch()['total'];
     }
     
+    // Total Cities (distinct cities from active properties)
+    // Extract city from location field (format: "City, State" or just "City")
+    try {
+        $stmt = $db->query("
+            SELECT COUNT(DISTINCT 
+                CASE 
+                    WHEN location LIKE '%,%' THEN TRIM(SUBSTRING_INDEX(location, ',', 1))
+                    ELSE TRIM(location)
+                END
+            ) as total 
+            FROM properties 
+            WHERE is_active = 1 
+            AND location IS NOT NULL 
+            AND location != ''
+        ");
+        $totalCities = $stmt->fetch()['total'];
+    } catch (PDOException $e) {
+        // Fallback: count distinct locations if city extraction fails
+        $stmt = $db->query("SELECT COUNT(DISTINCT location) as total FROM properties WHERE is_active = 1 AND location IS NOT NULL AND location != ''");
+        $totalCities = $stmt->fetch()['total'];
+    }
+    
     $stats = [
         'total_properties' => intval($totalProperties),
         'total_users' => intval($totalUsers),
         'total_agents' => intval($totalAgents),
+        'total_cities' => intval($totalCities),
     ];
     
     sendSuccess('Statistics retrieved successfully', $stats);

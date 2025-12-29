@@ -20,6 +20,11 @@ const SearchResults = () => {
   const resultsHeaderRef = useRef(null);
   const propertyCardRefs = useRef({});
 
+  // Scroll to top when navigating to this page
+  useEffect(() => {
+    window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
+  }, [searchParams]);
+
   // Detect mobile/tablet screen size
   useEffect(() => {
     const checkMobile = () => {
@@ -30,20 +35,6 @@ const SearchResults = () => {
     window.addEventListener('resize', checkMobile);
     return () => window.removeEventListener('resize', checkMobile);
   }, []);
-
-  // Scroll to results section when search completes
-  useEffect(() => {
-    if (!loading && resultsHeaderRef.current) {
-      // Small delay to ensure DOM is updated and results are rendered
-      const timer = setTimeout(() => {
-        resultsHeaderRef.current?.scrollIntoView({ 
-          behavior: 'smooth', 
-          block: 'start' 
-        });
-      }, 150);
-      return () => clearTimeout(timer);
-    }
-  }, [loading, filteredProperties.length]);
   const [activeFilters, setActiveFilters] = useState({
     city: '',
     location: '',

@@ -8,11 +8,13 @@ const AboutUs = () => {
     properties: 0,
     users: 0,
     agents: 0,
+    cities: 0,
   });
   const [animatedStats, setAnimatedStats] = useState({
     properties: 0,
     users: 0,
     agents: 0,
+    cities: 0,
   });
   const [loading, setLoading] = useState(true);
   const [hasAnimated, setHasAnimated] = useState(false);
@@ -39,6 +41,7 @@ const AboutUs = () => {
           properties: data.data.total_properties || 0,
           users: data.data.total_users || 0,
           agents: data.data.total_agents || 0,
+          cities: data.data.total_cities || 0,
         });
       }
     } catch (error) {
@@ -77,6 +80,10 @@ const AboutUs = () => {
 
     animateValue(0, stats.agents, (val) => {
       setAnimatedStats(prev => ({ ...prev, agents: val }));
+    });
+
+    animateValue(0, stats.cities, (val) => {
+      setAnimatedStats(prev => ({ ...prev, cities: val }));
     });
   };
 
@@ -247,9 +254,11 @@ const AboutUs = () => {
               </div>
               <div className="stat-label">Properties Listed</div>
             </div>
-            <div className="stat-card stat-card-text">
-              <div className="stat-label stat-label-top">Cities Covered</div>
-              <div className="stat-number stat-text">All over India</div>
+            <div className="stat-card">
+              <div className="stat-number" data-animate="true">
+                {loading ? '...' : formatNumber(animatedStats.cities)}+
+              </div>
+              <div className="stat-label">Cities Covered</div>
             </div>
             <div className="stat-card">
               <div className="stat-number" data-animate="true">
