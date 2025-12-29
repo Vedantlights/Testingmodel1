@@ -23,8 +23,6 @@ const Register = () => {
     : "buyer";
 
   const [userType, setUserType] = useState(initialUserType);
-  const [isChangingType, setIsChangingType] = useState(false);
-  const [backgroundOpacity, setBackgroundOpacity] = useState(1);
 
   // Update userType when role query parameter changes
   useEffect(() => {
@@ -417,30 +415,18 @@ const Register = () => {
   };
 
   const handleUserTypeChange = (type) => {
-    if (type !== userType) {
-      setIsChangingType(true);
-      setBackgroundOpacity(0);
-      setTimeout(() => {
-        setUserType(type);
-        setTimeout(() => {
-          setBackgroundOpacity(1);
-          setIsChangingType(false);
-        }, 100);
-      }, 300);
-    }
+    setUserType(type);
   };
 
   return (
-    <div className={`container ${isChangingType ? "changing" : ""}`}>
+    <div className="container">
       <div 
         className="background-image"
         style={{
           backgroundImage: `url(${backgroundImages[userType]})`,
-          opacity: backgroundOpacity,
-          transition: "opacity 0.6s ease-in-out",
         }}
       />
-      <div className={`card ${isChangingType ? "card-changing" : ""}`} key={userType}>
+      <div className="card" key={userType}>
         <div className="header">
           <h1 className="title">Create Account</h1>
           <p className="subtitle">Fill in your details to get started</p>

@@ -20,7 +20,6 @@
   background-position: center;
   background-repeat: no-repeat;
   z-index: 0;
-  transition: opacity 0.6s ease-in-out;
 }
 
 /* Card */
@@ -45,25 +44,12 @@
   box-shadow: 0 25px 50px rgba(0, 0, 0, 0.3);
 }
 
-.login-card.card-changing {
-  animation: cardPulse 0.4s ease-in-out;
-}
-
 @keyframes slideUp {
   from {
     transform: translateY(30px);
   }
   to {
     transform: translateY(0);
-  }
-}
-
-@keyframes cardPulse {
-  0%, 100% {
-    transform: scale(1);
-  }
-  50% {
-    transform: scale(1.02);
   }
 }
 
