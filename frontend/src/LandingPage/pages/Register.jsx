@@ -410,7 +410,7 @@ const Register = () => {
   // Background images mapping for each role
   const backgroundImages = {
     buyer: "/LoginBuy.jpg",
-    seller: "/LoginSeller.jpg",
+    seller: "/LoginSell.jpg",
     agent: "/landingpageagent.jpeg",
   };
 
