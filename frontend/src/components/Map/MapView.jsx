@@ -636,7 +636,7 @@ const MapView = ({
         className: 'map-card-container'
       })
         .setHTML(`
-          <div class="property-popup-card">
+          <div class="property-popup-card" data-property-id="${property.id}">
             <div class="popup-card-image-container">
               <img src="${allImages[currentImageIndex]}" alt="${property.title || 'Property'}" class="popup-card-image" onerror="this.src='/placeholder-property.jpg';" />
               <div class="popup-card-image-overlay">
@@ -679,12 +679,6 @@ const MapView = ({
               <div class="popup-card-price-section">
                 <span class="popup-card-price">₹${formatPrice(property.price)}</span>
               </div>
-              <button class="popup-card-view-details-btn" data-property-id="${property.id}" title="View Property Details">
-                View Details
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                  <path d="M5 12h14M12 5l7 7-7 7"></path>
-                </svg>
-              </button>
             </div>
           </div>
         `);
@@ -939,16 +933,6 @@ const MapView = ({
             });
           }
           
-          // Handle view details button
-          const viewDetailsBtn = popupElement.querySelector('.popup-card-view-details-btn');
-          if (viewDetailsBtn) {
-            viewDetailsBtn.addEventListener('click', (e) => {
-              e.preventDefault();
-              e.stopPropagation();
-              navigateToProperty(property.id);
-            });
-          }
-          
           // Handle pagination dots
           const paginationDots = popupElement.querySelectorAll('.pagination-dot');
           paginationDots.forEach((dot, index) => {
@@ -1032,14 +1016,18 @@ const MapView = ({
           });
         }
         
-        // View details button
-        const viewDetailsBtn = popupElement.querySelector('.popup-card-view-details-btn');
-        if (viewDetailsBtn && !viewDetailsBtn.hasAttribute('data-listener-attached')) {
-          viewDetailsBtn.setAttribute('data-listener-attached', 'true');
-          viewDetailsBtn.addEventListener('click', (e) => {
-            e.preventDefault();
-            e.stopPropagation();
-            navigateToProperty(property.id);
+        // Make entire popup card clickable (except action buttons)
+        const popupCard = popupElement.querySelector('.property-popup-card');
+        if (popupCard && !popupCard.hasAttribute('data-listener-attached')) {
+          popupCard.setAttribute('data-listener-attached', 'true');
+          popupCard.addEventListener('click', (e) => {
+            // Don't navigate if clicking on action buttons (heart, share, close) or pagination dots
+            const clickedElement = e.target.closest('.popup-card-heart-btn, .popup-card-share-btn, .popup-card-close-btn, .popup-card-action-buttons, .popup-card-pagination, .pagination-dot');
+            if (!clickedElement) {
+              e.preventDefault();
+              e.stopPropagation();
+              navigateToProperty(property.id);
+            }
           });
         }
       };

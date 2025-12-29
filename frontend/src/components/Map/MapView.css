@@ -121,6 +121,12 @@
   background: #ffffff;
   overflow: hidden;
   box-sizing: border-box;
+  cursor: pointer;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.property-popup-card:hover {
+  transform: translateY(-2px);
 }
 
 .popup-card-image-container {
@@ -128,7 +134,7 @@
   position: relative;
   overflow: hidden;
   background: linear-gradient(135deg, #f0f0f0 0%, #e0e0e0 100%);
-  flex: 0 0 60%;
+  flex: 0 0 65%;
   min-height: 200px;
   max-height: 270px;
 }
@@ -233,11 +239,11 @@
 
 /* Content Section */
 .popup-card-content {
-  padding: 14px 18px 18px 18px;
+  padding: 10px 14px 12px 14px;
   display: flex;
   flex-direction: column;
   gap: 0;
-  flex: 0 0 40%;
+  flex: 0 0 35%;
   min-height: 0;
   overflow-y: auto;
   justify-content: flex-start;
@@ -252,13 +258,13 @@
 }
 
 .popup-card-title {
-  font-size: 17px;
+  font-size: 15px;
   font-weight: 700;
   color: #1a1a1a;
   margin: 0;
-  padding: 14px 0 4px 0;
+  padding: 10px 0 3px 0;
   border-top: 1px solid #e5e5e5;
-  line-height: 1.4;
+  line-height: 1.3;
   flex: 1;
   display: -webkit-box;
   -webkit-line-clamp: 2;
@@ -270,11 +276,11 @@
 }
 
 .popup-card-description {
-  font-size: 13px;
+  font-size: 12px;
   color: #717171;
   margin: 0;
-  padding: 4px 0 0 0;
-  line-height: 1.5;
+  padding: 3px 0 0 0;
+  line-height: 1.4;
   display: -webkit-box;
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
@@ -287,12 +293,12 @@
   align-items: baseline;
   justify-content: center;
   gap: 0;
-  margin: 12px 0 0 0;
+  margin: 8px 0 0 0;
   padding: 0;
 }
 
 .popup-card-price {
-  font-size: 20px;
+  font-size: 18px;
   font-weight: 700;
   color: #1a1a1a;
   margin: 0;
