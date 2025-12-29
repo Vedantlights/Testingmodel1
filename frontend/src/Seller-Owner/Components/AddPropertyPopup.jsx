@@ -2,6 +2,7 @@
 import React, { useState, useRef, useEffect } from "react";
 import { useProperty } from "./PropertyContext";
 import { sellerPropertiesAPI } from "../../services/api.service";
+import { API_BASE_URL, API_ENDPOINTS } from "../../config/api.config";
 import {
   sanitizeInput,
   validateTextLength,
@@ -226,6 +227,8 @@ export default function AddPropertyPopup({ onClose, editIndex = null, initialDat
   const [showLimitWarning, setShowLimitWarning] = useState(false);
   const [uploadingImages, setUploadingImages] = useState(false);
   const [imageFiles, setImageFiles] = useState([]); // Store actual File objects
+  const [imageValidationStatus, setImageValidationStatus] = useState([]); // Track validation status for each image
+  const [isCheckingImages, setIsCheckingImages] = useState(false);
   const [showLocationPicker, setShowLocationPicker] = useState(false);
   const fileRef = useRef();
   const popupBodyRef = useRef(null);
@@ -384,59 +387,149 @@ export default function AddPropertyPopup({ onClose, editIndex = null, initialDat
 
   const handleImageUpload = async (e) => {
     const files = Array.from(e.target.files || []);
-    const newErrors = {};
-    const validFiles = [];
-    
-    // Validate each file
-    for (const file of files) {
-      // Basic file validation
-      const fileValidation = validateImageFile(file);
-      if (!fileValidation.valid) {
-        newErrors.images = fileValidation.message;
-        continue;
-      }
-      
-      // Dimension validation
-      try {
-        const dimensionValidation = await validateImageDimensions(file, 200, 200);
-        if (!dimensionValidation.valid) {
-          newErrors.images = dimensionValidation.message;
-          continue;
-        }
-        validFiles.push(file);
-      } catch (error) {
-        newErrors.images = 'Error validating image dimensions';
-        continue;
-      }
-    }
-    
-    if (Object.keys(newErrors).length > 0) {
-      setErrors(prev => ({ ...prev, ...newErrors }));
-      return;
-    }
     
     // Check total image count
     const currentCount = formData.images?.length || 0;
-    if (currentCount + validFiles.length > 10) {
+    if (currentCount + files.length > 10) {
       setErrors(prev => ({ 
         ...prev, 
-        images: `Maximum 10 photos allowed. You have ${currentCount} and trying to add ${validFiles.length}` 
+        images: `Maximum 10 photos allowed. You have ${currentCount} and trying to add ${files.length}` 
       }));
       return;
     }
     
-    // Store file objects for later upload
-    setImageFiles(prev => [...prev, ...validFiles].slice(0, 10));
+    // Basic file validation first
+    const validFiles = [];
+    for (const file of files) {
+      const fileValidation = validateImageFile(file);
+      if (!fileValidation.valid) {
+        setErrors(prev => ({ 
+          ...prev, 
+          images: fileValidation.message 
+        }));
+        continue;
+      }
+      validFiles.push(file);
+    }
     
-    // Create blob URLs for preview (temporary)
+    if (validFiles.length === 0) {
+      return;
+    }
+    
+    // Create image objects with pending status
+    const newImageObjects = validFiles.map(file => ({
+      file: file,
+      preview: URL.createObjectURL(file),
+      status: 'pending', // pending, checking, approved, rejected
+      errorMessage: '',
+      imageId: null,
+      imageUrl: null
+    }));
+    
+    // Add to state immediately
+    setImageFiles(prev => [...prev, ...validFiles].slice(0, 10));
+    setImageValidationStatus(prev => [...prev, ...newImageObjects].slice(0, 10));
+    
+    // Create blob URLs for preview
     const newImages = validFiles.map(f => URL.createObjectURL(f));
     setFormData(prev => ({
       ...prev,
       images: [...(prev.images || []), ...newImages].slice(0, 10)
     }));
     
+    // Clear any previous errors
     if (errors.images) {
       setErrors(prev => ({ ...prev, images: null }));
+    }
+    
+    // Immediately validate each image through moderation API
+    setIsCheckingImages(true);
+    const startIndex = imageValidationStatus.length;
+    
+    for (let i = 0; i < newImageObjects.length; i++) {
+      await validateImageThroughModeration(newImageObjects[i], startIndex + i);
+    }
+    
+    setIsCheckingImages(false);
+  };
+  
+  // Validate single image through moderation API
+  const validateImageThroughModeration = async (imageObj, index) => {
+    // Update status to checking
+    setImageValidationStatus(prev => {
+      const updated = [...prev];
+      if (updated[index]) {
+        updated[index] = { ...updated[index], status: 'checking' };
+      }
+      return updated;
+    });
+    
+    try {
+      // Create a temporary property ID for validation (we'll use actual ID when form is submitted)
+      const tempPropertyId = editIndex !== null ? properties[editIndex]?.id : 0;
+      
+      if (tempPropertyId <= 0) {
+        // For new properties, we can't validate without property ID
+        // So we'll skip validation for now and validate on submit
+        setImageValidationStatus(prev => {
+          const updated = [...prev];
+          if (updated[index]) {
+            updated[index] = { ...updated[index], status: 'pending' };
+          }
+          return updated;
+        });
+        return;
+      }
+      
+      const formData = new FormData();
+      formData.append('image', imageObj.file);
+      formData.append('property_id', tempPropertyId);
+      
+      const token = localStorage.getItem('authToken');
+      const response = await fetch(`${API_BASE_URL}${API_ENDPOINTS.MODERATE_AND_UPLOAD}`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+        },
+        body: formData,
+      });
+      
+      const result = await response.json();
+      
+      setImageValidationStatus(prev => {
+        const updated = [...prev];
+        if (updated[index]) {
+          if (result.status === 'success') {
+            updated[index] = { 
+              ...updated[index], 
+              status: 'approved',
+              imageId: result.data?.image_id,
+              imageUrl: result.data?.image_url
+            };
+          } else {
+            updated[index] = { 
+              ...updated[index], 
+              status: 'rejected',
+              errorMessage: result.message || 'Image was rejected' // Show EXACT error from API
+            };
+          }
+        }
+        return updated;
+      });
+      
+    } catch (error) {
+      console.error(`Image ${index + 1} validation error:`, error);
+      setImageValidationStatus(prev => {
+        const updated = [...prev];
+        if (updated[index]) {
+          updated[index] = { 
+            ...updated[index], 
+            status: 'rejected',
+            errorMessage: error.message || 'Failed to validate image. Please try again.'
+          };
+        }
+        return updated;
+      });
     }
   };
 
@@ -446,6 +539,11 @@ export default function AddPropertyPopup({ onClose, editIndex = null, initialDat
       URL.revokeObjectURL(formData.images[idx]);
     }
     
+    // Also revoke preview URL from validation status
+    if (imageValidationStatus[idx]?.preview && imageValidationStatus[idx].preview.startsWith('blob:')) {
+      URL.revokeObjectURL(imageValidationStatus[idx].preview);
+    }
+    
     setFormData(prev => ({
       ...prev,
       images: prev.images.filter((_, i) => i !== idx)
@@ -453,6 +551,9 @@ export default function AddPropertyPopup({ onClose, editIndex = null, initialDat
     
     // Also remove from imageFiles array
     setImageFiles(prev => prev.filter((_, i) => i !== idx));
+    
+    // Remove from validation status
+    setImageValidationStatus(prev => prev.filter((_, i) => i !== idx));
   };
 
   const validateStep = async (step) => {
@@ -570,13 +671,31 @@ newErrors.description = "Description is required";
         break;
         
       case 4:
-        // Image validation - Images are optional, uploaded separately through moderation endpoint
-        // Images can be added after property creation using the moderation upload component
-        if (formData.images && formData.images.length > 10) {
-          newErrors.images = "Maximum 10 photos allowed";
+        // Image validation - Check if images are validated
+        if (!formData.images || formData.images.length === 0) {
+          newErrors.images = "Please upload at least one image";
+        } else {
+          // Check if any images are still being validated
+          if (isCheckingImages) {
+            newErrors.images = "Please wait while images are being validated";
+          }
+          // Check if any images are rejected
+          else if (imageValidationStatus.some(img => img.status === 'rejected')) {
+            const rejectedCount = imageValidationStatus.filter(img => img.status === 'rejected').length;
+            newErrors.images = `Please remove ${rejectedCount} rejected image(s) and upload valid property images only`;
+          }
+          // Check if any images are still pending validation
+          else if (imageValidationStatus.some(img => img.status === 'pending' || img.status === 'checking')) {
+            newErrors.images = "Please wait for all images to be validated";
+          }
+          // Check if all images are approved (for existing properties with ID)
+          else if (editIndex !== null && properties[editIndex]?.id) {
+            const allApproved = imageValidationStatus.every(img => img.status === 'approved');
+            if (!allApproved) {
+              newErrors.images = "Please remove rejected images and upload valid property images only";
+            }
+          }
         }
-        // Note: Images are uploaded separately through /api/images/moderate-and-upload.php
-        // Property can be created without images, images can be added later
         break;
         
       case 5:
@@ -1581,31 +1700,65 @@ newErrors.description = "Description is required";
               type="button" 
               className="add-more-btn"
               onClick={() => !isRestrictedEdit && fileRef.current?.click()}
-              disabled={isRestrictedEdit}
-              style={{ opacity: isRestrictedEdit ? 0.5 : 1, cursor: isRestrictedEdit ? 'not-allowed' : 'pointer' }}
+              disabled={isRestrictedEdit || isCheckingImages}
+              style={{ opacity: (isRestrictedEdit || isCheckingImages) ? 0.5 : 1, cursor: (isRestrictedEdit || isCheckingImages) ? 'not-allowed' : 'pointer' }}
             >
               + Add More
             </button>
           </div>
           <div className="image-preview-grid">
-            {formData.images.map((src, idx) => (
-              <div key={idx} className="preview-item">
-                <img src={src} alt={`Preview ${idx + 1}`} />
-                {idx === 0 && <span className="cover-badge">Cover</span>}
-                <button
-                  type="button"
-                  className="remove-btn"
-                  onClick={() => !isRestrictedEdit && removeImage(idx)}
-                  disabled={isRestrictedEdit}
-                  style={{ opacity: isRestrictedEdit ? 0.5 : 1, cursor: isRestrictedEdit ? 'not-allowed' : 'pointer' }}
-                >
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
-                    <path d="M18 6L6 18M6 6l12 12" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
-                  </svg>
-                </button>
-              </div>
-            ))}
+            {formData.images.map((src, idx) => {
+              const validationStatus = imageValidationStatus[idx] || { status: 'pending', errorMessage: '' };
+              return (
+                <div key={idx} className={`preview-item image-validation-item ${validationStatus.status}`}>
+                  <img src={src} alt={`Preview ${idx + 1}`} />
+                  {idx === 0 && <span className="cover-badge">Cover</span>}
+                  
+                  {/* Validation Status Display */}
+                  {validationStatus.status === 'checking' && (
+                    <div className="image-status checking">
+                      <span className="status-spinner"></span>
+                      <span>Checking image...</span>
+                    </div>
+                  )}
+                  
+                  {validationStatus.status === 'approved' && (
+                    <div className="image-status approved">
+                      <span className="status-icon">✅</span>
+                      <span>Approved</span>
+                    </div>
+                  )}
+                  
+                  {validationStatus.status === 'rejected' && (
+                    <div className="image-status rejected">
+                      <span className="status-icon">❌</span>
+                      <span className="status-title">REJECTED</span>
+                      <p className="status-message">{validationStatus.errorMessage}</p>
+                    </div>
+                  )}
+                  
+                  <button
+                    type="button"
+                    className="remove-btn"
+                    onClick={() => !isRestrictedEdit && removeImage(idx)}
+                    disabled={isRestrictedEdit}
+                    style={{ opacity: isRestrictedEdit ? 0.5 : 1, cursor: isRestrictedEdit ? 'not-allowed' : 'pointer' }}
+                  >
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
+                      <path d="M18 6L6 18M6 6l12 12" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+                    </svg>
+                  </button>
+                </div>
+              );
+            })}
           </div>
+          
+          {/* Warning if rejected images exist */}
+          {imageValidationStatus.some(img => img.status === 'rejected') && (
+            <div className="image-validation-warning">
+              ⚠️ Please remove rejected images before proceeding. Only approved property images are allowed.
+            </div>
+          )}
         </div>
       )}
     </div>
