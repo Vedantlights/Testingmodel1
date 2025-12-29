@@ -648,27 +648,6 @@ const ViewDetailsPage = () => {
         }
     }, [propertyId]);
 
-    // Fetch interaction limits when property and user are available
-    useEffect(() => {
-        if (property && user && user.user_type === 'buyer') {
-            fetchInteractionLimits();
-        }
-    }, [property, user, fetchInteractionLimits]);
-
-    // Update timer display every minute
-    useEffect(() => {
-        if (!user || user.user_type !== 'buyer') return;
-        
-        const interval = setInterval(() => {
-            // Re-fetch limits to update timers
-            if (propertyId) {
-                fetchInteractionLimits();
-            }
-        }, 60000); // Update every minute
-        
-        return () => clearInterval(interval);
-    }, [user, propertyId, fetchInteractionLimits]);
-
     // Get property details (will be null until loaded)
     const propertyData = property ? getPropertyDetails(property) : null;
 
@@ -777,6 +756,27 @@ const ViewDetailsPage = () => {
             setLoadingLimits(false);
         }
     }, [user, propertyId]);
+
+    // Fetch interaction limits when property and user are available
+    useEffect(() => {
+        if (property && user && user.user_type === 'buyer') {
+            fetchInteractionLimits();
+        }
+    }, [property, user, fetchInteractionLimits]);
+
+    // Update timer display every minute
+    useEffect(() => {
+        if (!user || user.user_type !== 'buyer') return;
+        
+        const interval = setInterval(() => {
+            // Re-fetch limits to update timers
+            if (propertyId) {
+                fetchInteractionLimits();
+            }
+        }, 60000); // Update every minute
+        
+        return () => clearInterval(interval);
+    }, [user, propertyId, fetchInteractionLimits]);
 
     // Format time remaining helper
     const formatTimeRemaining = (resetTimeSeconds) => {
