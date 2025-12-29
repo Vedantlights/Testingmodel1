@@ -108,9 +108,14 @@ export const API_ENDPOINTS = {
   CHAT_CREATE_ROOM: '/chat/create-room.php',
   CHAT_LIST_ROOMS: '/chat/list-rooms.php',
   
+<<<<<<< Updated upstream
   // Buyer Interactions (Rate Limiting)
   BUYER_INTERACTIONS_CHECK: '/buyer/interactions/check.php',
   BUYER_INTERACTIONS_RECORD: '/buyer/interactions/record.php',
+=======
+  // Public Stats
+  PUBLIC_STATS: '/public/stats.php',
+>>>>>>> Stashed changes
 };
 
 export default API_BASE_URL;
