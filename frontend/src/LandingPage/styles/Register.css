@@ -23,15 +23,6 @@
   transition: opacity 0.6s ease-in-out;
 }
 
-@keyframes fadeIn {
-  from {
-    opacity: 0;
-  }
-  to {
-    opacity: 1;
-  }
-}
-
 /* Card */
 .card {
   background: rgba(255, 255, 255, 0.15);
@@ -43,7 +34,7 @@
   width: 100%;
   padding: 40px;
   border: 1px solid rgba(255, 255, 255, 0.2);
-  animation: slideUpFadeIn 0.8s ease-out;
+  animation: slideUp 0.8s ease-out;
   position: relative;
   z-index: 1;
   transition: transform 0.3s ease, box-shadow 0.3s ease;
@@ -58,13 +49,11 @@
   animation: cardPulse 0.4s ease-in-out;
 }
 
-@keyframes slideUpFadeIn {
+@keyframes slideUp {
   from {
-    opacity: 0;
     transform: translateY(30px);
   }
   to {
-    opacity: 1;
     transform: translateY(0);
   }
 }
@@ -82,7 +71,6 @@
 .header {
   text-align: center;
   margin-bottom: 32px;
-  animation: fadeInDown 0.6s ease-out 0.2s both;
 }
 
 .title {
@@ -100,17 +88,6 @@
   text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
 }
 
-@keyframes fadeInDown {
-  from {
-    opacity: 0;
-    transform: translateY(-20px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
 @keyframes textGlow {
   0%, 100% {
     text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
@@ -125,7 +102,6 @@
   display: flex;
   gap: 8px;
   margin-bottom: 12px;
-  animation: fadeInUp 0.6s ease-out 0.3s both;
 }
 
 .type-btn {
@@ -189,17 +165,6 @@
   animation: buttonPulse 2s ease-in-out infinite;
 }
 
-@keyframes fadeInUp {
-  from {
-    opacity: 0;
-    transform: translateY(20px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
 @keyframes buttonPulse {
   0%, 100% {
     box-shadow: 0 4px 12px rgba(102, 126, 234, 0.5);
@@ -212,7 +177,6 @@
 /* Role Info */
 .role-info {
   margin-top: 8px;
-  animation: fadeInScale 0.5s ease-out;
 }
 
 .role-hint {
@@ -241,17 +205,6 @@
 .info-icon {
   font-size: 14px;
   flex-shrink: 0;
-}
-
-@keyframes fadeInScale {
-  from {
-    opacity: 0;
-    transform: scale(0.95);
-  }
-  to {
-    opacity: 1;
-    transform: scale(1);
-  }
 }
 
 @keyframes slideInLeft {
@@ -336,11 +289,9 @@
 
 @keyframes slideInDown {
   from {
-    opacity: 0;
     transform: translateY(-20px);
   }
   to {
-    opacity: 1;
     transform: translateY(0);
   }
 }
@@ -350,7 +301,6 @@
   display: flex;
   flex-direction: column;
   gap: 20px;
-  animation: fadeInUp 0.6s ease-out 0.4s both;
 }
 
 .form-group {
@@ -448,11 +398,9 @@
 
 @keyframes slideInRight {
   from {
-    opacity: 0;
     transform: translateX(20px);
   }
   to {
-    opacity: 1;
     transform: translateX(0);
   }
 }
@@ -522,7 +470,6 @@
   display: flex;
   align-items: flex-start;
   gap: 10px;
-  animation: fadeIn 0.5s ease-out 1.2s both;
 }
 
 .checkbox {
@@ -571,7 +518,6 @@
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   position: relative;
   overflow: hidden;
-  animation: fadeInScale 0.5s ease-out 1.3s both;
 }
 
 .register-btn::before {
@@ -614,7 +560,6 @@
   color: #ffffff;
   margin-top: 8px;
   text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
-  animation: fadeIn 0.5s ease-out 1.4s both;
 }
 
 .login-link button,
@@ -654,7 +599,7 @@
 
 /* FadeIn animation for OTP fields */
 .fadeIn {
-  animation: fadeIn 0.3s ease;
+  /* Animation removed */
 }
 
 /* Responsive */
