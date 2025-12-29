@@ -23,6 +23,8 @@ const Register = () => {
     : "buyer";
 
   const [userType, setUserType] = useState(initialUserType);
+  const [isChangingType, setIsChangingType] = useState(false);
+  const [backgroundOpacity, setBackgroundOpacity] = useState(1);
 
   // Update userType when role query parameter changes
   useEffect(() => {
@@ -407,9 +409,38 @@ const Register = () => {
     }
   };
 
+  // Background images mapping for each role
+  const backgroundImages = {
+    buyer: "/landingpagebuy.jpeg",
+    seller: "/Home.jpg",
+    agent: "/landingpageagent.jpeg",
+  };
+
+  const handleUserTypeChange = (type) => {
+    if (type !== userType) {
+      setIsChangingType(true);
+      setBackgroundOpacity(0);
+      setTimeout(() => {
+        setUserType(type);
+        setTimeout(() => {
+          setBackgroundOpacity(1);
+          setIsChangingType(false);
+        }, 100);
+      }, 300);
+    }
+  };
+
   return (
-    <div className="container">
-      <div className="card">
+    <div className={`container ${isChangingType ? "changing" : ""}`}>
+      <div 
+        className="background-image"
+        style={{
+          backgroundImage: `url(${backgroundImages[userType]})`,
+          opacity: backgroundOpacity,
+          transition: "opacity 0.6s ease-in-out",
+        }}
+      />
+      <div className={`card ${isChangingType ? "card-changing" : ""}`} key={userType}>
         <div className="header">
           <h1 className="title">Create Account</h1>
           <p className="subtitle">Fill in your details to get started</p>
@@ -418,14 +449,16 @@ const Register = () => {
         <div className="form">
           {/* Error Message */}
           {error && (
-            <div className="error-message" style={{ marginBottom: '1rem', padding: '0.75rem', background: '#fee', color: '#c33', borderRadius: '4px' }}>
+            <div className="error-message">
+              <span className="error-icon">✕</span>
               {error}
             </div>
           )}
 
           {/* Success Message */}
           {success && (
-            <div className="success-message" style={{ marginBottom: '1rem', padding: '0.75rem', background: '#efe', color: '#3c3', borderRadius: '4px' }}>
+            <div className="success-message">
+              <span className="success-icon">✓</span>
               {success}
             </div>
           )}
@@ -436,7 +469,7 @@ const Register = () => {
             <div className="user-type-toggle">
               <button
                 type="button"
-                onClick={() => setUserType("buyer")}
+                onClick={() => handleUserTypeChange("buyer")}
                 className={`type-btn ${userType === "buyer" ? "active" : ""}`}
               >
                 <User size={18} /> Buyer/Tenant
@@ -444,7 +477,7 @@ const Register = () => {
 
               <button
                 type="button"
-                onClick={() => setUserType("seller")}
+                onClick={() => handleUserTypeChange("seller")}
                 className={`type-btn ${userType === "seller" ? "active" : ""}`}
               >
                 <Home size={18} /> Seller/Owner
@@ -452,7 +485,7 @@ const Register = () => {
 
               <button
                 type="button"
-                onClick={() => setUserType("agent")}
+                onClick={() => handleUserTypeChange("agent")}
                 className={`type-btn ${userType === "agent" ? "active" : ""}`}
               >
                 <Building2 size={18} /> Agent/Builder
