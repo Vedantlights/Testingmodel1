@@ -3,7 +3,7 @@
 .about-us-page {
   width: 100%;
   min-height: 100vh;
-  background: #ffffff;
+  background: #dedcdc;
 }
 
 /* ==================== */
@@ -118,7 +118,7 @@
 /* ==================== */
 
 .about-story {
-  background: #ffffff;
+  background: transparent;
 }
 
 .about-story-content {
@@ -216,7 +216,7 @@
 /* ==================== */
 
 .about-values {
-  background: #ffffff;
+  background: transparent;
 }
 
 .values-grid {
@@ -328,34 +328,67 @@
 .about-stats {
   background: linear-gradient(135deg, #003B73 0%, #0056A8 100%);
   padding: 100px 0;
+  position: relative;
+  overflow: hidden;
+}
+
+.about-stats::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: url('data:image/svg+xml,<svg width="100" height="100" xmlns="http://www.w3.org/2000/svg"><defs><pattern id="grid" width="100" height="100" patternUnits="userSpaceOnUse"><path d="M 100 0 L 0 0 0 100" fill="none" stroke="rgba(255,255,255,0.05)" stroke-width="1"/></pattern></defs><rect width="100%" height="100%" fill="url(%23grid)"/></svg>');
+  opacity: 0.5;
+  pointer-events: none;
 }
 
 .stats-grid {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
-  gap: 40px;
+  gap: 30px;
+  position: relative;
+  z-index: 1;
 }
 
 .stat-card {
   text-align: center;
   color: white;
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(10px);
+  padding: 40px 30px;
+  border-radius: 16px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  transition: all 0.3s ease;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+}
+
+.stat-card:hover {
+  transform: translateY(-8px);
+  background: rgba(255, 255, 255, 0.15);
+  border-color: rgba(255, 255, 255, 0.3);
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.2);
 }
 
 .stat-number {
-  font-size: 3.5rem;
-  font-weight: 700;
-  margin-bottom: 12px;
-  line-height: 1;
-  background: linear-gradient(135deg, #ffffff 0%, rgba(255, 255, 255, 0.9) 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
+  font-size: 3.8rem;
+  font-weight: 800;
+  margin-bottom: 16px;
+  line-height: 1.1;
+  color: #ffffff;
+  text-shadow: 0 2px 20px rgba(255, 255, 255, 0.3);
+  letter-spacing: -1px;
+  display: block;
 }
 
 .stat-label {
-  font-size: 1.1rem;
-  font-weight: 500;
-  opacity: 0.9;
+  font-size: 1.15rem;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.95);
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  font-size: 0.95rem;
 }
 
 /* ==================== */
@@ -363,7 +396,7 @@
 /* ==================== */
 
 .about-services {
-  background: #ffffff;
+  background: transparent;
 }
 
 .services-grid {
@@ -446,67 +479,94 @@
 
 .about-cta {
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  padding: 100px 0;
+  padding: 120px 0;
+  position: relative;
+  overflow: hidden;
+}
+
+.about-cta::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: url('data:image/svg+xml,<svg width="100" height="100" xmlns="http://www.w3.org/2000/svg"><defs><pattern id="cta-grid" width="100" height="100" patternUnits="userSpaceOnUse"><path d="M 100 0 L 0 0 0 100" fill="none" stroke="rgba(255,255,255,0.08)" stroke-width="1"/></pattern></defs><rect width="100%" height="100%" fill="url(%23cta-grid)"/></svg>');
+  opacity: 0.6;
+  pointer-events: none;
 }
 
 .cta-content {
   text-align: center;
   color: white;
+  position: relative;
+  z-index: 1;
 }
 
 .cta-title {
-  font-size: 2.5rem;
-  font-weight: 700;
-  margin-bottom: 1rem;
-  text-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+  font-size: 3rem;
+  font-weight: 800;
+  margin-bottom: 1.5rem;
+  text-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+  letter-spacing: -0.5px;
+  line-height: 1.2;
+  color: #ffffff;
 }
 
 .cta-subtitle {
-  font-size: 1.2rem;
-  margin-bottom: 40px;
-  opacity: 0.95;
-  max-width: 600px;
+  font-size: 1.3rem;
+  margin-bottom: 50px;
+  color: rgba(255, 255, 255, 0.95);
+  max-width: 650px;
   margin-left: auto;
   margin-right: auto;
+  line-height: 1.6;
+  font-weight: 400;
 }
 
 .cta-buttons {
   display: flex;
-  gap: 20px;
+  gap: 24px;
   justify-content: center;
   flex-wrap: wrap;
 }
 
 .cta-button {
-  padding: 16px 40px;
-  font-size: 1.1rem;
-  font-weight: 600;
-  border-radius: 10px;
+  padding: 18px 48px;
+  font-size: 1.15rem;
+  font-weight: 700;
+  border-radius: 12px;
   text-decoration: none;
-  transition: all 0.3s ease;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   display: inline-block;
+  letter-spacing: 0.3px;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
 }
 
 .cta-primary {
-  background: white;
+  background: #ffffff;
   color: #764ba2;
+  border: 2px solid #ffffff;
 }
 
 .cta-primary:hover {
-  transform: translateY(-3px);
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+  transform: translateY(-4px) scale(1.02);
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.3);
+  background: #f8f9fa;
 }
 
 .cta-secondary {
   background: transparent;
-  color: white;
-  border: 2px solid white;
+  color: #ffffff;
+  border: 2px solid rgba(255, 255, 255, 0.9);
+  backdrop-filter: blur(10px);
 }
 
 .cta-secondary:hover {
-  background: white;
-  color: #764ba2;
-  transform: translateY(-3px);
+  background: rgba(255, 255, 255, 0.15);
+  border-color: #ffffff;
+  transform: translateY(-4px) scale(1.02);
+  box-shadow: 0 12px 40px rgba(255, 255, 255, 0.2);
 }
 
 /* ==================== */
@@ -597,12 +657,17 @@
     gap: 20px;
   }
 
+  .stat-card {
+    padding: 30px 20px;
+  }
+
   .stat-number {
-    font-size: 2.5rem;
+    font-size: 2.8rem;
+    margin-bottom: 12px;
   }
 
   .stat-label {
-    font-size: 0.95rem;
+    font-size: 0.9rem;
   }
 
   .services-grid {
@@ -613,17 +678,23 @@
     padding: 30px;
   }
 
+  .about-cta {
+    padding: 80px 0;
+  }
+
   .cta-title {
-    font-size: 2rem;
+    font-size: 2.2rem;
+    margin-bottom: 1.2rem;
   }
 
   .cta-subtitle {
-    font-size: 1rem;
+    font-size: 1.1rem;
+    margin-bottom: 40px;
   }
 
   .cta-button {
-    padding: 14px 30px;
-    font-size: 1rem;
+    padding: 16px 36px;
+    font-size: 1.05rem;
   }
 }
 
@@ -676,26 +747,51 @@
     grid-template-columns: 1fr;
   }
 
+  .stat-card {
+    padding: 24px 16px;
+  }
+
   .stat-number {
-    font-size: 2.2rem;
+    font-size: 2.4rem;
+    margin-bottom: 10px;
+  }
+
+  .stat-label {
+    font-size: 0.85rem;
   }
 
   .service-card {
     padding: 24px;
   }
 
+  .about-cta {
+    padding: 60px 0;
+  }
+
   .cta-title {
-    font-size: 1.75rem;
+    font-size: 1.9rem;
+    margin-bottom: 1rem;
+    line-height: 1.3;
+  }
+
+  .cta-subtitle {
+    font-size: 1rem;
+    margin-bottom: 35px;
+    padding: 0 10px;
   }
 
   .cta-buttons {
     flex-direction: column;
     align-items: stretch;
+    gap: 16px;
+    padding: 0 20px;
   }
 
   .cta-button {
     width: 100%;
     text-align: center;
+    padding: 16px 32px;
+    font-size: 1rem;
   }
 }
 

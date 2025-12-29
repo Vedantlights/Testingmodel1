@@ -2,7 +2,7 @@
 
 .buyer-search-results-page {
   min-height: 100vh;
-  background: transparent;
+  background: #dedcdc;
   padding: 0;
   width: 100%;
   overflow-x: hidden;
@@ -397,7 +397,7 @@
   width: 55%;
   overflow-y: auto;
   overflow-x: hidden;
-  background: #f9fafb;
+  background: #dedcdc;
   padding: 1.5rem;
   box-sizing: border-box;
   height: calc(100vh - 200px);
