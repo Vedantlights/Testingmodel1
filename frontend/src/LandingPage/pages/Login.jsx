@@ -21,6 +21,8 @@ const Login = () => {
   const [loginError, setLoginError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [showForgotPasswordModal, setShowForgotPasswordModal] = useState(false);
+  const [isChangingType, setIsChangingType] = useState(false);
+  const [backgroundOpacity, setBackgroundOpacity] = useState(1);
 
   const [formData, setFormData] = useState({
     email: "",
@@ -128,9 +130,19 @@ const Login = () => {
   };
 
   const handleUserTypeChange = (type) => {
-    setUserType(type);
-    // Clear error when changing user type
-    if (loginError) setLoginError("");
+    if (type !== userType) {
+      setIsChangingType(true);
+      setBackgroundOpacity(0);
+      setTimeout(() => {
+        setUserType(type);
+        setTimeout(() => {
+          setBackgroundOpacity(1);
+          setIsChangingType(false);
+        }, 100);
+        // Clear error when changing user type
+        if (loginError) setLoginError("");
+      }, 300);
+    }
   };
 
   // Background images mapping for each role
@@ -141,16 +153,16 @@ const Login = () => {
   };
 
   return (
-    <div 
-      className="login-container"
-      style={{
-        backgroundImage: `url(${backgroundImages[userType]})`,
-        backgroundSize: "cover",
-        backgroundPosition: "center",
-        backgroundRepeat: "no-repeat",
-      }}
-    >
-      <div className="login-card">
+    <div className={`login-container ${isChangingType ? "changing" : ""}`}>
+      <div 
+        className="background-image"
+        style={{
+          backgroundImage: `url(${backgroundImages[userType]})`,
+          opacity: backgroundOpacity,
+          transition: "opacity 0.6s ease-in-out",
+        }}
+      />
+      <div className={`login-card ${isChangingType ? "card-changing" : ""}`} key={userType}>
         <div className="login-header">
           <h1>Welcome Back</h1>
           <p>Sign in to continue to your account</p>
