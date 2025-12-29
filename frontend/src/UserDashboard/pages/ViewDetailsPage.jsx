@@ -8,7 +8,7 @@ import { useParams, Navigate, useNavigate, useLocation } from 'react-router-dom'
 import { FaPhone, FaEnvelope, FaAngleLeft, FaAngleRight, FaBed, FaShower, FaRulerCombined, FaTimes, FaCheckCircle, FaUser, FaCommentAlt, FaComments } from "react-icons/fa";
 import '../styles/ViewDetailPage.css';
 import '../styles/PropertyCard.css';
-import { propertiesAPI, chatAPI } from '../../services/api.service';
+import { propertiesAPI, chatAPI, buyerInteractionsAPI } from '../../services/api.service';
 import { useAuth } from '../../context/AuthContext';
 import { FavoritesManager } from '../components/PropertyCard';
 // Note: createOrGetChatRoom is not imported here - chat rooms are created only when first message is sent
@@ -648,6 +648,27 @@ const ViewDetailsPage = () => {
         }
     }, [propertyId]);
 
+    // Fetch interaction limits when property and user are available
+    useEffect(() => {
+        if (property && user && user.user_type === 'buyer') {
+            fetchInteractionLimits();
+        }
+    }, [property, user, fetchInteractionLimits]);
+
+    // Update timer display every minute
+    useEffect(() => {
+        if (!user || user.user_type !== 'buyer') return;
+        
+        const interval = setInterval(() => {
+            // Re-fetch limits to update timers
+            if (propertyId) {
+                fetchInteractionLimits();
+            }
+        }, 60000); // Update every minute
+        
+        return () => clearInterval(interval);
+    }, [user, propertyId, fetchInteractionLimits]);
+
     // Get property details (will be null until loaded)
     const propertyData = property ? getPropertyDetails(property) : null;
 
@@ -665,6 +686,25 @@ const ViewDetailsPage = () => {
     
     // Owner Details State
     const [showOwnerDetails, setShowOwnerDetails] = useState(false);
+    
+    // Interaction Limits State
+    const [ownerDetailsLimit, setOwnerDetailsLimit] = useState({
+        remaining: 5,
+        max: 5,
+        used: 0,
+        canPerform: true,
+        resetTime: null,
+        resetTimeSeconds: null
+    });
+    const [chatLimit, setChatLimit] = useState({
+        remaining: 5,
+        max: 5,
+        used: 0,
+        canPerform: true,
+        resetTime: null,
+        resetTimeSeconds: null
+    });
+    const [loadingLimits, setLoadingLimits] = useState(false);
     
     // --- 2. DEFINE ALL CALLBACK HOOKS UNCONDITIONALLY ---
     
@@ -698,6 +738,135 @@ const ViewDetailsPage = () => {
         window.history.back(); 
     }, []);
 
+    // Fetch interaction limits
+    const fetchInteractionLimits = useCallback(async () => {
+        if (!user || user.user_type !== 'buyer' || !propertyId) return;
+        
+        try {
+            setLoadingLimits(true);
+            const [ownerDetailsResponse, chatResponse] = await Promise.all([
+                buyerInteractionsAPI.checkLimit(propertyId, 'view_owner'),
+                buyerInteractionsAPI.checkLimit(propertyId, 'chat_owner')
+            ]);
+            
+            if (ownerDetailsResponse.success) {
+                setOwnerDetailsLimit({
+                    remaining: ownerDetailsResponse.data.remaining_attempts,
+                    max: ownerDetailsResponse.data.max_attempts,
+                    used: ownerDetailsResponse.data.used_attempts,
+                    canPerform: ownerDetailsResponse.data.can_perform_action,
+                    resetTime: ownerDetailsResponse.data.reset_time,
+                    resetTimeSeconds: ownerDetailsResponse.data.reset_time_seconds
+                });
+            }
+            
+            if (chatResponse.success) {
+                setChatLimit({
+                    remaining: chatResponse.data.remaining_attempts,
+                    max: chatResponse.data.max_attempts,
+                    used: chatResponse.data.used_attempts,
+                    canPerform: chatResponse.data.can_perform_action,
+                    resetTime: chatResponse.data.reset_time,
+                    resetTimeSeconds: chatResponse.data.reset_time_seconds
+                });
+            }
+        } catch (error) {
+            console.error('Error fetching interaction limits:', error);
+            // Don't block user if limit check fails - allow action but log error
+        } finally {
+            setLoadingLimits(false);
+        }
+    }, [user, propertyId]);
+
+    // Format time remaining helper
+    const formatTimeRemaining = (resetTimeSeconds) => {
+        if (!resetTimeSeconds) return null;
+        const now = Math.floor(Date.now() / 1000);
+        const remaining = resetTimeSeconds - now;
+        
+        if (remaining <= 0) return null;
+        
+        const hours = Math.floor(remaining / 3600);
+        const minutes = Math.floor((remaining % 3600) / 60);
+        
+        if (hours > 0) {
+            return `${hours}h ${minutes}m`;
+        }
+        return `${minutes}m`;
+    };
+
+    // Handler for Show Owner Details button
+    const handleShowOwnerDetails = useCallback(async (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        
+        if (!user) {
+            alert('Please login to view owner details');
+            navigate('/login');
+            return;
+        }
+
+        if (user.user_type !== 'buyer') {
+            alert('Only buyers can view owner details');
+            return;
+        }
+
+        // Check if limit is reached
+        if (!ownerDetailsLimit.canPerform) {
+            const resetMsg = ownerDetailsLimit.resetTimeSeconds 
+                ? formatTimeRemaining(ownerDetailsLimit.resetTimeSeconds)
+                : '24 hours';
+            alert(`You have reached the maximum limit of ${ownerDetailsLimit.max} attempts to view owner details. Please try again after ${resetMsg}.`);
+            return;
+        }
+
+        try {
+            // Record the interaction
+            const response = await buyerInteractionsAPI.recordInteraction(propertyId, 'view_owner');
+            
+            if (response.success) {
+                // Update limit state
+                setOwnerDetailsLimit({
+                    remaining: response.data.remaining_attempts,
+                    max: response.data.max_attempts,
+                    used: response.data.used_attempts,
+                    canPerform: response.data.remaining_attempts > 0,
+                    resetTime: response.data.reset_time,
+                    resetTimeSeconds: response.data.reset_time_seconds
+                });
+                
+                // Toggle owner details display
+                const currentScrollY = window.scrollY;
+                setShowOwnerDetails(!showOwnerDetails);
+                setTimeout(() => {
+                    window.scrollTo(0, currentScrollY);
+                }, 0);
+            } else {
+                alert(response.message || 'Failed to record interaction');
+            }
+        } catch (error) {
+            console.error('Error recording interaction:', error);
+            
+            // Check if it's a rate limit error
+            if (error.status === 429 && error.data) {
+                setOwnerDetailsLimit({
+                    remaining: error.data.remaining_attempts || 0,
+                    max: error.data.max_attempts || 5,
+                    used: error.data.used_attempts || 5,
+                    canPerform: false,
+                    resetTime: error.data.reset_time,
+                    resetTimeSeconds: error.data.reset_time_seconds
+                });
+                const resetMsg = error.data.reset_time_seconds 
+                    ? formatTimeRemaining(error.data.reset_time_seconds)
+                    : '24 hours';
+                alert(error.data.message || `You have reached the maximum limit. Please try again after ${resetMsg}.`);
+            } else {
+                alert('Failed to view owner details. Please try again.');
+            }
+        }
+    }, [user, propertyId, ownerDetailsLimit, showOwnerDetails, navigate]);
+
     // Handler for Chat with Owner button
     const handleChatWithOwner = useCallback(async () => {
         if (!user) {
@@ -708,6 +877,15 @@ const ViewDetailsPage = () => {
 
         if (user.user_type !== 'buyer') {
             alert('Only buyers can chat with property owners');
+            return;
+        }
+
+        // Check if limit is reached
+        if (!chatLimit.canPerform) {
+            const resetMsg = chatLimit.resetTimeSeconds 
+                ? formatTimeRemaining(chatLimit.resetTimeSeconds)
+                : '24 hours';
+            alert(`You have reached the maximum limit of ${chatLimit.max} attempts to chat with the owner. Please try again after ${resetMsg}.`);
             return;
         }
 
@@ -738,29 +916,63 @@ const ViewDetailsPage = () => {
         }
 
         try {
-            // Do NOT create chat room here - it will be created when first message is sent
-            // Generate chat room ID deterministically for navigation purposes only
-            const { generateChatRoomId } = await import('../../services/firebase.service');
-            const firebaseChatRoomId = generateChatRoomId(
-                user.id,
-                receiverId,
-                propertyId
-            );
-
-            // Get owner name from property
-            const ownerName = property?.seller_name || property?.seller?.name || property?.seller?.full_name || 'Property Owner';
+            // Record the interaction BEFORE navigating
+            const response = await buyerInteractionsAPI.recordInteraction(propertyId, 'chat_owner');
             
-            // Navigate to chat page with chat room ID and owner name for immediate display
-            // The owner name is passed via URL so ChatUs can display it immediately
-            // Chat room will be created when first message is sent
-            const encodedOwnerName = encodeURIComponent(ownerName);
-            navigate(`/ChatUs?chatId=${firebaseChatRoomId}&ownerName=${encodedOwnerName}&propertyId=${propertyId}`);
+            if (response.success) {
+                // Update limit state
+                setChatLimit({
+                    remaining: response.data.remaining_attempts,
+                    max: response.data.max_attempts,
+                    used: response.data.used_attempts,
+                    canPerform: response.data.remaining_attempts > 0,
+                    resetTime: response.data.reset_time,
+                    resetTimeSeconds: response.data.reset_time_seconds
+                });
+                
+                // Do NOT create chat room here - it will be created when first message is sent
+                // Generate chat room ID deterministically for navigation purposes only
+                const { generateChatRoomId } = await import('../../services/firebase.service');
+                const firebaseChatRoomId = generateChatRoomId(
+                    user.id,
+                    receiverId,
+                    propertyId
+                );
+
+                // Get owner name from property
+                const ownerName = property?.seller_name || property?.seller?.name || property?.seller?.full_name || 'Property Owner';
+                
+                // Navigate to chat page with chat room ID and owner name for immediate display
+                // The owner name is passed via URL so ChatUs can display it immediately
+                // Chat room will be created when first message is sent
+                const encodedOwnerName = encodeURIComponent(ownerName);
+                navigate(`/ChatUs?chatId=${firebaseChatRoomId}&ownerName=${encodedOwnerName}&propertyId=${propertyId}`);
+            } else {
+                alert(response.message || 'Failed to start chat');
+            }
         } catch (error) {
-            console.error('Error navigating to chat:', error);
-            const errorMessage = error.message || 'Failed to start chat. Please try again.';
-            alert(errorMessage);
+            console.error('Error starting chat:', error);
+            
+            // Check if it's a rate limit error
+            if (error.status === 429 && error.data) {
+                setChatLimit({
+                    remaining: error.data.remaining_attempts || 0,
+                    max: error.data.max_attempts || 5,
+                    used: error.data.used_attempts || 5,
+                    canPerform: false,
+                    resetTime: error.data.reset_time,
+                    resetTimeSeconds: error.data.reset_time_seconds
+                });
+                const resetMsg = error.data.reset_time_seconds 
+                    ? formatTimeRemaining(error.data.reset_time_seconds)
+                    : '24 hours';
+                alert(error.data.message || `You have reached the maximum limit. Please try again after ${resetMsg}.`);
+            } else {
+                const errorMessage = error.message || 'Failed to start chat. Please try again.';
+                alert(errorMessage);
+            }
         }
-    }, [user, property, propertyId, navigate]);
+    }, [user, property, propertyId, navigate, chatLimit]);
 
     // Handle favorite button click
     const handleFavoriteClick = async (e) => {
@@ -1145,24 +1357,49 @@ const ViewDetailsPage = () => {
                                     {/* Owner Details Button */}
                                     {property && (property.seller_name || property.seller_email || property.seller_phone) && (
                                         <>
-                                            <button 
-                                                type="button"
-                                                onClick={(e) => {
-                                                    e.preventDefault();
-                                                    e.stopPropagation();
-                                                    const currentScrollY = window.scrollY;
-                                                    setShowOwnerDetails(!showOwnerDetails);
-                                                    // Prevent scroll after state update
-                                                    setTimeout(() => {
-                                                        window.scrollTo(0, currentScrollY);
-                                                    }, 0);
-                                                }}
-                                                className="contact-send-button"
-                                                style={{marginTop: '0', marginBottom: '1rem'}}
-                                            >
-                                                <FaUser style={{marginRight: '8px'}} />
-                                                {showOwnerDetails ? 'Hide Owner Details' : 'Show Owner Details'}
-                                            </button>
+                                            <div style={{marginBottom: '1rem'}}>
+                                                <button 
+                                                    type="button"
+                                                    onClick={handleShowOwnerDetails}
+                                                    className="contact-send-button"
+                                                    disabled={!ownerDetailsLimit.canPerform || loadingLimits}
+                                                    style={{
+                                                        marginTop: '0',
+                                                        marginBottom: '0.5rem',
+                                                        opacity: (!ownerDetailsLimit.canPerform || loadingLimits) ? 0.6 : 1,
+                                                        cursor: (!ownerDetailsLimit.canPerform || loadingLimits) ? 'not-allowed' : 'pointer'
+                                                    }}
+                                                >
+                                                    <FaUser style={{marginRight: '8px'}} />
+                                                    {showOwnerDetails ? 'Hide Owner Details' : 'Show Owner Details'}
+                                                </button>
+                                                
+                                                {/* Usage Limit Display */}
+                                                {user && user.user_type === 'buyer' && (
+                                                    <div style={{
+                                                        fontSize: '12px',
+                                                        color: ownerDetailsLimit.canPerform ? '#666' : '#ef4444',
+                                                        marginTop: '0.5rem',
+                                                        padding: '0.5rem',
+                                                        backgroundColor: ownerDetailsLimit.canPerform ? '#f3f4f6' : '#fee2e2',
+                                                        borderRadius: '4px'
+                                                    }}>
+                                                        <div style={{fontWeight: '500', marginBottom: '0.25rem'}}>
+                                                            {ownerDetailsLimit.remaining} / {ownerDetailsLimit.max} attempts left
+                                                        </div>
+                                                        {ownerDetailsLimit.resetTimeSeconds && (
+                                                            <div style={{fontSize: '11px', color: '#666'}}>
+                                                                Resets in {formatTimeRemaining(ownerDetailsLimit.resetTimeSeconds) || '24h'}
+                                                            </div>
+                                                        )}
+                                                        {!ownerDetailsLimit.canPerform && (
+                                                            <div style={{fontSize: '11px', color: '#ef4444', marginTop: '0.25rem', fontWeight: '500'}}>
+                                                                Limit reached. Please try again after the reset time.
+                                                            </div>
+                                                        )}
+                                                    </div>
+                                                )}
+                                            </div>
                                             
                                             {showOwnerDetails && (
                                                 <div className="owner-details-section">
@@ -1195,15 +1432,45 @@ const ViewDetailsPage = () => {
                                     
                                     {/* Chat with Owner Button - Only show if user is buyer AND not the property owner */}
                                     {user && user.user_type === 'buyer' && property && property.seller_id && Number(user.id) !== Number(property.seller_id) && (
-                                        <button 
-                                            type="button"
-                                            onClick={handleChatWithOwner}
-                                            className="contact-send-button"
-                                            style={{marginTop: showOwnerDetails ? '1rem' : '0'}}
-                                        >
-                                            <FaComments style={{marginRight: '8px'}} />
-                                            Chat with Owner
-                                        </button>
+                                        <div style={{marginTop: showOwnerDetails ? '1rem' : '0'}}>
+                                            <button 
+                                                type="button"
+                                                onClick={handleChatWithOwner}
+                                                className="contact-send-button"
+                                                disabled={!chatLimit.canPerform || loadingLimits}
+                                                style={{
+                                                    opacity: (!chatLimit.canPerform || loadingLimits) ? 0.6 : 1,
+                                                    cursor: (!chatLimit.canPerform || loadingLimits) ? 'not-allowed' : 'pointer'
+                                                }}
+                                            >
+                                                <FaComments style={{marginRight: '8px'}} />
+                                                Chat with Owner
+                                            </button>
+                                            
+                                            {/* Usage Limit Display */}
+                                            <div style={{
+                                                fontSize: '12px',
+                                                color: chatLimit.canPerform ? '#666' : '#ef4444',
+                                                marginTop: '0.5rem',
+                                                padding: '0.5rem',
+                                                backgroundColor: chatLimit.canPerform ? '#f3f4f6' : '#fee2e2',
+                                                borderRadius: '4px'
+                                            }}>
+                                                <div style={{fontWeight: '500', marginBottom: '0.25rem'}}>
+                                                    {chatLimit.remaining} / {chatLimit.max} attempts left
+                                                </div>
+                                                {chatLimit.resetTimeSeconds && (
+                                                    <div style={{fontSize: '11px', color: '#666'}}>
+                                                        Resets in {formatTimeRemaining(chatLimit.resetTimeSeconds) || '24h'}
+                                                    </div>
+                                                )}
+                                                {!chatLimit.canPerform && (
+                                                    <div style={{fontSize: '11px', color: '#ef4444', marginTop: '0.25rem', fontWeight: '500'}}>
+                                                        Limit reached. Please try again after the reset time.
+                                                    </div>
+                                                )}
+                                            </div>
+                                        </div>
                                     )}
                                 </div>
                             </aside>

@@ -588,6 +588,26 @@ export const otpAPI = {
   },
 };
 
+// =====================
+// BUYER INTERACTIONS API (Rate Limiting)
+// =====================
+export const buyerInteractionsAPI = {
+  checkLimit: async (propertyId, actionType) => {
+    const queryString = new URLSearchParams({
+      property_id: propertyId,
+      action_type: actionType,
+    }).toString();
+    return apiRequest(`${API_ENDPOINTS.BUYER_INTERACTIONS_CHECK}?${queryString}`);
+  },
+  
+  recordInteraction: async (propertyId, actionType) => {
+    return apiRequest(API_ENDPOINTS.BUYER_INTERACTIONS_RECORD, {
+      method: 'POST',
+      body: JSON.stringify({ property_id: propertyId, action_type: actionType }),
+    });
+  },
+};
+
 // Export all APIs
 export default {
   auth: authAPI,
@@ -600,4 +620,5 @@ export default {
   favorites: favoritesAPI,
   chat: chatAPI,
   otp: otpAPI,
+  buyerInteractions: buyerInteractionsAPI,
 };

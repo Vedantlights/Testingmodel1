@@ -107,6 +107,10 @@ export const API_ENDPOINTS = {
   // Chat
   CHAT_CREATE_ROOM: '/chat/create-room.php',
   CHAT_LIST_ROOMS: '/chat/list-rooms.php',
+  
+  // Buyer Interactions (Rate Limiting)
+  BUYER_INTERACTIONS_CHECK: '/buyer/interactions/check.php',
+  BUYER_INTERACTIONS_RECORD: '/buyer/interactions/record.php',
 };
 
 export default API_BASE_URL;
