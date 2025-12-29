@@ -9,12 +9,25 @@ const AboutUs = () => {
     users: 0,
     agents: 0,
   });
+  const [animatedStats, setAnimatedStats] = useState({
+    properties: 0,
+    users: 0,
+    agents: 0,
+  });
   const [loading, setLoading] = useState(true);
+  const [hasAnimated, setHasAnimated] = useState(false);
 
   useEffect(() => {
     window.scrollTo(0, 0);
     fetchStats();
   }, []);
+
+  useEffect(() => {
+    if (!loading && !hasAnimated) {
+      animateNumbers();
+      setHasAnimated(true);
+    }
+  }, [loading, stats]);
 
   const fetchStats = async () => {
     try {
@@ -34,6 +47,37 @@ const AboutUs = () => {
     } finally {
       setLoading(false);
     }
+  };
+
+  const animateNumbers = () => {
+    const duration = 2000; // 2 seconds
+    const steps = 60;
+    const stepDuration = duration / steps;
+
+    const animateValue = (start, end, setter) => {
+      let current = start;
+      const increment = (end - start) / steps;
+      const timer = setInterval(() => {
+        current += increment;
+        if ((increment > 0 && current >= end) || (increment < 0 && current <= end)) {
+          current = end;
+          clearInterval(timer);
+        }
+        setter(Math.floor(current));
+      }, stepDuration);
+    };
+
+    animateValue(0, stats.properties, (val) => {
+      setAnimatedStats(prev => ({ ...prev, properties: val }));
+    });
+
+    animateValue(0, stats.users, (val) => {
+      setAnimatedStats(prev => ({ ...prev, users: val }));
+    });
+
+    animateValue(0, stats.agents, (val) => {
+      setAnimatedStats(prev => ({ ...prev, agents: val }));
+    });
   };
 
   // Format number with commas
@@ -194,24 +238,24 @@ const AboutUs = () => {
         <div className="about-container">
           <div className="stats-grid">
             <div className="stat-card">
-              <div className="stat-number">
-                {loading ? '...' : formatNumber(stats.properties)}+
+              <div className="stat-number" data-animate="true">
+                {loading ? '...' : formatNumber(animatedStats.properties)}+
               </div>
               <div className="stat-label">Properties Listed</div>
             </div>
             <div className="stat-card">
-              <div className="stat-number">All Over</div>
+              <div className="stat-number stat-text">All Over</div>
               <div className="stat-label">India</div>
             </div>
             <div className="stat-card">
-              <div className="stat-number">
-                {loading ? '...' : formatNumber(stats.users)}+
+              <div className="stat-number" data-animate="true">
+                {loading ? '...' : formatNumber(animatedStats.users)}+
               </div>
               <div className="stat-label">Happy Customers</div>
             </div>
             <div className="stat-card">
-              <div className="stat-number">
-                {loading ? '...' : formatNumber(stats.agents)}+
+              <div className="stat-number" data-animate="true">
+                {loading ? '...' : formatNumber(animatedStats.agents)}+
               </div>
               <div className="stat-label">Verified Agents</div>
             </div>
