@@ -3,25 +3,16 @@
  * Image Moderation and Upload API
  * POST /api/images/moderate-and-upload.php
  * 
- * COMPLETE REWRITE - Fixed file validation and moderation flow
- * 
- * Steps:
- * 1. Setup and Headers
- * 2. Check Authentication
- * 3. Get Uploaded File
- * 4. File Type Validation (LENIENT - pass if extension OR mime type is valid)
- * 5. File Size Validation
- * 6. Image Dimensions Check
- * 7. Blur Detection
- * 8. Save to Temp Folder
- * 9. Call Google Vision API
- * 10. Check for HUMANS
- * 11. Check for ANIMALS
- * 12. Check SafeSearch
- * 13. Image APPROVED - Add Watermark
- * 14. Move to Properties Folder
- * 15. Save to Database
- * 16. Return Success
+ * Processing Flow (ENFORCED ORDER):
+ * 1. File validation (type, size, corruption check)
+ * 2. Dimension check (400x300 minimum)
+ * 3. Blur detection (BEFORE API call to save costs)
+ * 4. Google Vision API call
+ * 5. SafeSearch evaluation
+ * 6. Human detection (face OR object localization only, NOT labels alone)
+ * 7. Animal detection (object localization OR label+object, NOT labels alone)
+ * 8. Property context scoring
+ * 9. Final decision (approve / reject / manual review)
  */
 
 // Step 1: Setup and Headers
@@ -138,7 +129,7 @@ try {
         exit;
     }
     
-    // Step 4: File Type Validation (LENIENT - pass if extension OR mime type is valid)
+    // Step 4: File Type Validation (JPG, PNG, WebP only)
     $extension = strtolower(pathinfo($file['name'], PATHINFO_EXTENSION));
     
     // Get MIME type using multiple methods
@@ -168,13 +159,12 @@ try {
     // Check if MIME type is valid
     $mimeValid = $mimeType && in_array($mimeType, ALLOWED_MIME_TYPES);
     
-    // LENIENT: Pass if EITHER extension OR mime type is valid
+    // Pass if EITHER extension OR mime type is valid
     if (!$extensionValid && !$mimeValid) {
-        // Both are invalid - reject
         http_response_code(400);
         echo json_encode([
             'status' => 'error',
-            'message' => 'Invalid file type. Please upload JPG, PNG, or WebP images.',
+            'message' => getErrorMessage('invalid_type'),
             'error_code' => 'invalid_type',
             'details' => [
                 'extension' => $extension,
@@ -184,7 +174,19 @@ try {
         exit;
     }
     
-    // Step 5: File Size Validation
+    // Step 4b: Validate file is not corrupted or unreadable
+    $imageInfo = @getimagesize($file['tmp_name']);
+    if ($imageInfo === false) {
+        http_response_code(400);
+        echo json_encode([
+            'status' => 'error',
+            'message' => 'File is not a valid or readable image',
+            'error_code' => 'invalid_image'
+        ]);
+        exit;
+    }
+    
+    // Step 5: File Size Validation (Maximum 5MB)
     $maxSizeBytes = MAX_IMAGE_SIZE_BYTES;
     if ($file['size'] > $maxSizeBytes) {
         $fileSizeMB = round($file['size'] / (1024 * 1024), 2);
@@ -192,24 +194,13 @@ try {
         http_response_code(400);
         echo json_encode([
             'status' => 'error',
-            'message' => "File too large. Maximum size is {$maxSizeMB}MB. Your file is {$fileSizeMB}MB.",
+            'message' => getErrorMessage('file_too_large'),
             'error_code' => 'file_too_large'
         ]);
         exit;
     }
     
-    // Step 6: Image Dimensions Check
-    $imageInfo = @getimagesize($file['tmp_name']);
-    if ($imageInfo === false) {
-        http_response_code(400);
-        echo json_encode([
-            'status' => 'error',
-            'message' => 'File is not a valid image',
-            'error_code' => 'invalid_image'
-        ]);
-        exit;
-    }
-    
+    // Step 6: Image Dimensions Check (Minimum 400x300 pixels)
     $width = $imageInfo[0];
     $height = $imageInfo[1];
     
@@ -217,7 +208,10 @@ try {
         http_response_code(400);
         echo json_encode([
             'status' => 'error',
-            'message' => "You have uploaded a low quality image. Your image is {$width}x{$height} pixels. Minimum required is " . MIN_IMAGE_WIDTH . "x" . MIN_IMAGE_HEIGHT . " pixels.",
+            'message' => getErrorMessage('low_quality', [
+                'width' => $width,
+                'height' => $height
+            ]),
             'error_code' => 'low_quality',
             'details' => [
                 'width' => $width,
@@ -230,22 +224,28 @@ try {
     }
     
     // Step 7: Blur Detection (runs BEFORE Google Vision API to save costs)
+    // Blur severity levels:
+    // - If variance < HIGH_BLUR_THRESHOLD: REJECT (highly blurry)
+    // - If HIGH_BLUR_THRESHOLD <= variance < MEDIUM_BLUR_THRESHOLD: ACCEPT (medium blur, allowed)
+    // - If variance >= MEDIUM_BLUR_THRESHOLD: ACCEPT (clear)
     $blurResult = BlurDetector::calculateBlurScore($file['tmp_name']);
     if (!$blurResult['success']) {
         error_log("Blur detection failed: " . ($blurResult['error'] ?? 'Unknown error'));
         // Continue even if blur detection fails
     } else {
-        // Log variance for debugging (not exposed to user)
+        // Log variance and severity for debugging (not exposed to user)
         $variance = $blurResult['variance'] ?? null;
+        $severity = $blurResult['blur_severity'] ?? 'UNKNOWN';
         if ($variance !== null) {
-            error_log("Blur detection: variance={$variance}, threshold=" . BLUR_THRESHOLD . ", is_blurry=" . ($blurResult['is_blurry'] ? 'true' : 'false'));
+            error_log("Blur detection: variance={$variance}, high_threshold=" . HIGH_BLUR_THRESHOLD . ", medium_threshold=" . MEDIUM_BLUR_THRESHOLD . ", severity={$severity}, is_blurry=" . ($blurResult['is_blurry'] ? 'true' : 'false'));
         }
         
+        // Only reject if highly blurry (variance < HIGH_BLUR_THRESHOLD)
         if ($blurResult['is_blurry']) {
             http_response_code(400);
             echo json_encode([
                 'status' => 'error',
-                'message' => 'You have uploaded a blurry image. Please upload a clear and sharp photo.',
+                'message' => getErrorMessage('blur_detected'),
                 'error_code' => 'blur_detected',
                 'details' => [
                     'blur_score' => $blurResult['blur_score']
@@ -308,8 +308,16 @@ try {
     }
     
     // Step 10: Check for HUMANS
-    // First check FACE_DETECTION
+    // Reject image ONLY IF:
+    // - Face detection confidence ≥ 0.5
+    // OR
+    // - Object localization detects "Person" or "People" with confidence ≥ 0.6
+    // Labels alone must NOT cause rejection (they are supporting signals only)
+    
     $faces = $apiResponse['faces'] ?? [];
+    $objects = $apiResponse['objects'] ?? [];
+    
+    // Check Face Detection (HIGHEST PRIORITY)
     if (!empty($faces)) {
         foreach ($faces as $face) {
             $faceConfidence = $face['detection_confidence'] ?? 0.0;
@@ -318,7 +326,7 @@ try {
                 http_response_code(400);
                 echo json_encode([
                     'status' => 'error',
-                    'message' => 'You have uploaded an image with human appearance. Please upload only property images without any people.',
+                    'message' => getErrorMessage('human_detected'),
                     'error_code' => 'human_detected',
                     'details' => [
                         'detection_method' => 'face_detection',
@@ -330,77 +338,78 @@ try {
         }
     }
     
-    // Check LABELS and OBJECTS for human-related words
-    $labels = $apiResponse['labels'] ?? [];
-    $objects = $apiResponse['objects'] ?? [];
-    $humanLabels = defined('HUMAN_LABELS') ? HUMAN_LABELS : [];
+    // Check Object Localization for Person/People
+    if (!empty($objects)) {
+        foreach ($objects as $object) {
+            $objectName = strtolower($object['name'] ?? '');
+            $objectScore = $object['score'] ?? 0.0;
+            
+            // Check if object is "Person" or "People" with confidence ≥ 0.6
+            if (($objectName === 'person' || $objectName === 'people' || $objectName === 'human') && 
+                $objectScore >= MODERATION_HUMAN_OBJECT_THRESHOLD) {
+                FileHelper::deleteFile($tempPath);
+                http_response_code(400);
+                echo json_encode([
+                    'status' => 'error',
+                    'message' => getErrorMessage('human_detected'),
+                    'error_code' => 'human_detected',
+                    'details' => [
+                        'detection_method' => 'object_localization',
+                        'detected' => ucfirst($object['name']),
+                        'confidence' => round($objectScore * 100, 1)
+                    ]
+                ]);
+                exit;
+            }
+        }
+    }
     
-    $detectedHumans = [];
-    foreach ($labels as $label) {
-        $description = strtolower($label['description'] ?? '');
-        $score = $label['score'] ?? 0.0;
-        
-        foreach ($humanLabels as $humanLabel) {
-            $humanLabelLower = strtolower($humanLabel);
-            if (stripos($description, $humanLabelLower) !== false || $description === $humanLabelLower) {
-                if ($score >= MODERATION_HUMAN_THRESHOLD) {
-                    $detectedHumans[] = [
-                        'name' => $label['description'],
-                        'confidence' => round($score * 100, 1)
-                    ];
+    // Labels are supporting signals only - do NOT reject based on labels alone
+    
+    // Step 11: Check for ANIMALS
+    // Reject image ONLY IF:
+    // - Object localization detects an animal with confidence ≥ 0.6
+    // OR
+    // - Animal label confidence ≥ 0.7 AND animal object is also detected
+    // Do NOT reject based on animal labels alone (avoid false positives from paintings, logos, toys, sculptures)
+    
+    $labels = $apiResponse['labels'] ?? [];
+    $animalLabels = defined('ANIMAL_LABELS') ? ANIMAL_LABELS : [];
+    $detectedAnimalObjects = [];
+    $detectedAnimalLabels = [];
+    
+    // First, check Object Localization for animals
+    if (!empty($objects)) {
+        foreach ($objects as $object) {
+            $objectName = strtolower($object['name'] ?? '');
+            $objectScore = $object['score'] ?? 0.0;
+            
+            // Check if object matches any animal label
+            foreach ($animalLabels as $animalLabel) {
+                $animalLabelLower = strtolower($animalLabel);
+                if ($objectName === $animalLabelLower || stripos($objectName, $animalLabelLower) !== false) {
+                    if ($objectScore >= MODERATION_ANIMAL_OBJECT_THRESHOLD) {
+                        $detectedAnimalObjects[] = [
+                            'name' => $object['name'],
+                            'confidence' => round($objectScore * 100, 1)
+                        ];
+                    }
                 }
             }
         }
     }
     
-    // Check objects for "Person"
-    foreach ($objects as $object) {
-        $objectName = strtolower($object['name'] ?? '');
-        $objectScore = $object['score'] ?? 0.0;
-        
-        if (($objectName === 'person' || $objectName === 'people' || $objectName === 'human') && 
-            $objectScore >= MODERATION_HUMAN_THRESHOLD) {
-            $detectedHumans[] = [
-                'name' => ucfirst($object['name']),
-                'confidence' => round($objectScore * 100, 1)
-            ];
-        }
-    }
-    
-    if (!empty($detectedHumans)) {
-        usort($detectedHumans, function($a, $b) {
-            return $b['confidence'] <=> $a['confidence'];
-        });
-        $topHuman = $detectedHumans[0];
-        
-        FileHelper::deleteFile($tempPath);
-        http_response_code(400);
-        echo json_encode([
-            'status' => 'error',
-            'message' => "You have uploaded an image with human appearance ({$topHuman['name']}). Please upload only property images without any people.",
-            'error_code' => 'human_detected',
-            'details' => [
-                'detected' => $topHuman['name'],
-                'confidence' => $topHuman['confidence']
-            ]
-        ]);
-        exit;
-    }
-    
-    // Step 11: Check for ANIMALS
-    $animalLabels = defined('ANIMAL_LABELS') ? ANIMAL_LABELS : [];
-    $detectedAnimals = [];
-    
-    // Check labels
+    // Check Labels for animals (only used if combined with object detection)
     foreach ($labels as $label) {
         $description = strtolower($label['description'] ?? '');
         $score = $label['score'] ?? 0.0;
         
+        // Check if label matches any animal label
         foreach ($animalLabels as $animalLabel) {
             $animalLabelLower = strtolower($animalLabel);
             if (stripos($description, $animalLabelLower) !== false || $description === $animalLabelLower) {
-                if ($score >= MODERATION_ANIMAL_THRESHOLD) {
-                    $detectedAnimals[] = [
+                if ($score >= MODERATION_ANIMAL_LABEL_THRESHOLD) {
+                    $detectedAnimalLabels[] = [
                         'name' => $label['description'],
                         'confidence' => round($score * 100, 1)
                     ];
@@ -409,55 +418,67 @@ try {
         }
     }
     
-    // Check objects for animals
-    foreach ($objects as $object) {
-        $objectName = strtolower($object['name'] ?? '');
-        $objectScore = $object['score'] ?? 0.0;
-        
-        foreach ($animalLabels as $animalLabel) {
-            $animalLabelLower = strtolower($animalLabel);
-            if ($objectName === $animalLabelLower || stripos($objectName, $animalLabelLower) !== false) {
-                if ($objectScore >= MODERATION_ANIMAL_THRESHOLD) {
-                    $detectedAnimals[] = [
-                        'name' => ucfirst($object['name']),
-                        'confidence' => round($objectScore * 100, 1)
-                    ];
-                }
-            }
-        }
-    }
-    
-    if (!empty($detectedAnimals)) {
-        usort($detectedAnimals, function($a, $b) {
+    // Reject if object detected with confidence ≥ 0.6
+    if (!empty($detectedAnimalObjects)) {
+        usort($detectedAnimalObjects, function($a, $b) {
             return $b['confidence'] <=> $a['confidence'];
         });
-        $topAnimal = $detectedAnimals[0];
+        $topAnimal = $detectedAnimalObjects[0];
         
         FileHelper::deleteFile($tempPath);
         http_response_code(400);
         echo json_encode([
             'status' => 'error',
-            'message' => "You have uploaded an image with animal appearance ({$topAnimal['name']}). Please upload only property images without any animals or pets.",
+            'message' => getErrorMessage('animal_detected', [
+                'animal_name' => $topAnimal['name']
+            ]),
             'error_code' => 'animal_detected',
             'details' => [
                 'detected' => $topAnimal['name'],
-                'confidence' => $topAnimal['confidence']
+                'confidence' => $topAnimal['confidence'],
+                'detection_method' => 'object_localization'
             ]
         ]);
         exit;
     }
     
-    // Step 12: Check SafeSearch
+    // Reject if label ≥ 0.7 AND object also detected
+    if (!empty($detectedAnimalLabels) && !empty($detectedAnimalObjects)) {
+        usort($detectedAnimalLabels, function($a, $b) {
+            return $b['confidence'] <=> $a['confidence'];
+        });
+        $topAnimalLabel = $detectedAnimalLabels[0];
+        
+        FileHelper::deleteFile($tempPath);
+        http_response_code(400);
+        echo json_encode([
+            'status' => 'error',
+            'message' => getErrorMessage('animal_detected', [
+                'animal_name' => $topAnimalLabel['name']
+            ]),
+            'error_code' => 'animal_detected',
+            'details' => [
+                'detected' => $topAnimalLabel['name'],
+                'confidence' => $topAnimalLabel['confidence'],
+                'detection_method' => 'label_with_object'
+            ]
+        ]);
+        exit;
+    }
+    
+    // Step 12: Check SafeSearch (standardized thresholds: all 0.6)
+    // SafeSearch checks must run AFTER image quality checks but BEFORE final approval
     $scores = $apiResponse['safesearch_scores'] ?? [];
     $adult = $scores['adult'] ?? 0.0;
     $violence = $scores['violence'] ?? 0.0;
+    $racy = $scores['racy'] ?? 0.0;
     
     if ($adult >= MODERATION_ADULT_THRESHOLD) {
         FileHelper::deleteFile($tempPath);
         http_response_code(400);
         echo json_encode([
             'status' => 'error',
-            'message' => 'This image contains inappropriate content',
+            'message' => getErrorMessage('adult_content'),
             'error_code' => 'adult_content'
         ]);
         exit;
@@ -468,8 +489,19 @@ try {
         http_response_code(400);
         echo json_encode([
             'status' => 'error',
-            'message' => 'This image contains violent content',
+            'message' => getErrorMessage('violence_content'),
             'error_code' => 'violence_content'
+        ]);
+        exit;
+    }
+    
+    if ($racy >= MODERATION_RACY_THRESHOLD) {
+        FileHelper::deleteFile($tempPath);
+        http_response_code(400);
+        echo json_encode([
+            'status' => 'error',
+            'message' => 'This image contains suggestive content and cannot be uploaded.',
+            'error_code' => 'racy_content'
         ]);
         exit;
     }

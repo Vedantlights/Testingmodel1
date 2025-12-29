@@ -163,19 +163,39 @@ class BlurDetector {
             }
             
             require_once __DIR__ . '/../config/moderation.php';
-            // CORRECT LOGIC: LOW variance = blurry, HIGH variance = sharp
-            // Reject if variance < BLUR_THRESHOLD (100)
-            $isBlurry = $variance < BLUR_THRESHOLD;
             
-            // Log variance for debugging (without exposing to user)
-            error_log("BlurDetector: variance={$variance}, threshold=" . BLUR_THRESHOLD . ", is_blurry=" . ($isBlurry ? 'true' : 'false'));
+            // Blur severity levels:
+            // - If variance < HIGH_BLUR_THRESHOLD: REJECT (highly blurry)
+            // - If HIGH_BLUR_THRESHOLD <= variance < MEDIUM_BLUR_THRESHOLD: ACCEPT (medium blur, allowed)
+            // - If variance >= MEDIUM_BLUR_THRESHOLD: ACCEPT (clear)
+            
+            $blurSeverity = 'LOW'; // Clear/sharp
+            $isBlurry = false;
+            
+            if ($variance < HIGH_BLUR_THRESHOLD) {
+                // Highly blurry - reject
+                $blurSeverity = 'HIGH';
+                $isBlurry = true;
+            } elseif ($variance < MEDIUM_BLUR_THRESHOLD) {
+                // Medium blur - accept but log
+                $blurSeverity = 'MEDIUM';
+                $isBlurry = false;
+            } else {
+                // Clear/sharp - accept
+                $blurSeverity = 'LOW';
+                $isBlurry = false;
+            }
+            
+            // Log variance and severity for debugging (without exposing to user)
+            error_log("BlurDetector: variance={$variance}, high_threshold=" . HIGH_BLUR_THRESHOLD . ", medium_threshold=" . MEDIUM_BLUR_THRESHOLD . ", severity={$blurSeverity}, is_blurry=" . ($isBlurry ? 'true' : 'false'));
             
             return [
                 'success' => true,
                 'blur_score' => round($blurScore, 3),  // Kept for backward compatibility/logging
                 'is_blurry' => $isBlurry,
                 'quality_rating' => $qualityRating,
-                'variance' => round($variance, 2)
+                'variance' => round($variance, 2),
+                'blur_severity' => $blurSeverity  // Internal use only - not exposed to user
             ];
             
         } catch (Exception $e) {

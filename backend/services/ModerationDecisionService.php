@@ -2,7 +2,17 @@
 /**
  * Moderation Decision Service
  * Evaluates Google Vision API responses and makes moderation decisions
- * Checks in EXACT order: Quality → Blur → Humans (Faces) → Humans (Labels/Objects) → Animals → SafeSearch → Property Context
+ * 
+ * Processing Flow (ENFORCED ORDER):
+ * 1. File validation
+ * 2. Dimension check
+ * 3. Blur detection
+ * 4. Google Vision API call
+ * 5. SafeSearch evaluation
+ * 6. Human detection (face OR object localization only, NOT labels alone)
+ * 7. Animal detection (object localization OR label+object, NOT labels alone)
+ * 8. Property context scoring
+ * 9. Final decision (approve / reject / manual review)
  */
 
 require_once __DIR__ . '/../config/moderation.php';
@@ -60,22 +70,28 @@ class ModerationDecisionService {
         }
         
         // STEP 2: Check Blur (using Laplacian variance)
+        // Blur severity levels:
+        // - If variance < HIGH_BLUR_THRESHOLD: REJECT (highly blurry)
+        // - If HIGH_BLUR_THRESHOLD <= variance < MEDIUM_BLUR_THRESHOLD: ACCEPT (medium blur, allowed)
+        // - If variance >= MEDIUM_BLUR_THRESHOLD: ACCEPT (clear)
         $blurResult = BlurDetector::calculateBlurScore($imagePath);
         $details['blur_score'] = $blurResult['blur_score'];
         $variance = $blurResult['variance'] ?? null;
+        $severity = $blurResult['blur_severity'] ?? 'UNKNOWN';
         
-        // Log variance for debugging
+        // Log variance and severity for debugging (not exposed to user)
         if ($variance !== null) {
-            error_log("ModerationDecisionService: blur variance={$variance}, threshold=" . BLUR_THRESHOLD . ", is_blurry=" . ($blurResult['is_blurry'] ? 'true' : 'false'));
+            error_log("ModerationDecisionService: blur variance={$variance}, high_threshold=" . HIGH_BLUR_THRESHOLD . ", medium_threshold=" . MEDIUM_BLUR_THRESHOLD . ", severity={$severity}, is_blurry=" . ($blurResult['is_blurry'] ? 'true' : 'false'));
         }
         
+        // Only reject if highly blurry (variance < HIGH_BLUR_THRESHOLD)
         if ($blurResult['is_blurry']) {
             return [
                 'status' => 'REJECTED',
                 'message' => getErrorMessage('blur_detected'),
                 'reason_code' => 'blur_detected',
                 'details' => array_merge($details, [
-                    'detected_issue' => "Image is too blurry (variance: " . ($variance ?? 'N/A') . ", threshold: " . BLUR_THRESHOLD . ")",
+                    'detected_issue' => "Image is highly blurry (variance: " . ($variance ?? 'N/A') . ", high_threshold: " . HIGH_BLUR_THRESHOLD . ")",
                     'quality_rating' => $blurResult['quality_rating']
                 ])
             ];
@@ -102,8 +118,14 @@ class ModerationDecisionService {
         $racy = $scores['racy'] ?? 0.0;
         $violence = $scores['violence'] ?? 0.0;
         
-        // STEP 3: Check for HUMANS using Face Detection (HIGHEST PRIORITY)
-        // Face detection is the most reliable method for detecting humans
+        // STEP 3: Check for HUMANS
+        // Reject image ONLY IF:
+        // - Face detection confidence ≥ 0.5
+        // OR
+        // - Object localization detects "Person" or "People" with confidence ≥ 0.6
+        // Labels alone must NOT cause rejection (they are supporting signals only)
+        
+        // Check Face Detection (HIGHEST PRIORITY)
         if (!empty($faces)) {
             foreach ($faces as $face) {
                 $faceConfidence = $face['detection_confidence'] ?? 0.0;
@@ -123,16 +145,15 @@ class ModerationDecisionService {
             }
         }
         
-        // STEP 4: Check for HUMANS in Objects (OBJECT_LOCALIZATION)
-        // Check for "Person" object specifically
+        // Check Object Localization for Person/People
         if (!empty($objects)) {
             foreach ($objects as $object) {
                 $objectName = strtolower($object['name'] ?? '');
                 $objectScore = $object['score'] ?? 0.0;
                 
-                // Check if object is "Person" or human-related
+                // Check if object is "Person" or "People" with confidence ≥ 0.6
                 if (($objectName === 'person' || $objectName === 'people' || $objectName === 'human') && 
-                    $objectScore >= MODERATION_HUMAN_THRESHOLD) {
+                    $objectScore >= MODERATION_HUMAN_OBJECT_THRESHOLD) {
                     return [
                         'status' => 'REJECTED',
                         'message' => getErrorMessage('human_detected'),
@@ -148,54 +169,20 @@ class ModerationDecisionService {
             }
         }
         
-        // STEP 5: Check for HUMANS in Labels
-        $humanLabels = defined('HUMAN_LABELS') ? HUMAN_LABELS : [];
-        $detectedHumans = [];
+        // Labels are supporting signals only - do NOT reject based on labels alone
         
-        foreach ($labels as $label) {
-            $description = strtolower($label['description'] ?? '');
-            $score = $label['score'] ?? 0.0;
-            
-            // Check if label matches any human label
-            foreach ($humanLabels as $humanLabel) {
-                $humanLabelLower = strtolower($humanLabel);
-                if (stripos($description, $humanLabelLower) !== false || $description === $humanLabelLower) {
-                    if ($score >= MODERATION_HUMAN_THRESHOLD) {
-                        $detectedHumans[] = [
-                            'name' => $label['description'],
-                            'confidence' => round($score * 100, 1)
-                        ];
-                    }
-                }
-            }
-        }
+        // STEP 4: Check for ANIMALS
+        // Reject image ONLY IF:
+        // - Object localization detects an animal with confidence ≥ 0.6
+        // OR
+        // - Animal label confidence ≥ 0.7 AND animal object is also detected
+        // Do NOT reject based on animal labels alone (avoid false positives from paintings, logos, toys, sculptures)
         
-        if (!empty($detectedHumans)) {
-            // Get the highest confidence human detection
-            usort($detectedHumans, function($a, $b) {
-                return $b['confidence'] <=> $a['confidence'];
-            });
-            $topHuman = $detectedHumans[0];
-            
-            return [
-                'status' => 'REJECTED',
-                'message' => getErrorMessage('human_detected'),
-                'reason_code' => 'human_detected',
-                'details' => array_merge($details, [
-                    'detected_issue' => ucfirst($topHuman['name']) . " detected (confidence: {$topHuman['confidence']}%)",
-                    'human_detected' => true,
-                    'human_labels' => array_map(function($h) { return $h['name']; }, $detectedHumans),
-                    'human_confidence' => $topHuman['confidence'],
-                    'detection_method' => 'label_detection'
-                ])
-            ];
-        }
-        
-        // STEP 6: Check for ANIMALS in Objects (OBJECT_LOCALIZATION)
-        // Check for specific animal objects like "Dog", "Cat", etc.
         $animalLabels = defined('ANIMAL_LABELS') ? ANIMAL_LABELS : [];
-        $detectedAnimals = [];
+        $detectedAnimalObjects = [];
+        $detectedAnimalLabels = [];
         
+        // First, check Object Localization for animals
         if (!empty($objects)) {
             foreach ($objects as $object) {
                 $objectName = strtolower($object['name'] ?? '');
@@ -205,8 +192,8 @@ class ModerationDecisionService {
                 foreach ($animalLabels as $animalLabel) {
                     $animalLabelLower = strtolower($animalLabel);
                     if ($objectName === $animalLabelLower || stripos($objectName, $animalLabelLower) !== false) {
-                        if ($objectScore >= MODERATION_ANIMAL_THRESHOLD) {
-                            $detectedAnimals[] = [
+                        if ($objectScore >= MODERATION_ANIMAL_OBJECT_THRESHOLD) {
+                            $detectedAnimalObjects[] = [
                                 'name' => $object['name'],
                                 'confidence' => round($objectScore * 100, 1)
                             ];
@@ -216,7 +203,7 @@ class ModerationDecisionService {
             }
         }
         
-        // STEP 7: Check for ANIMALS in Labels
+        // Check Labels for animals (only used if combined with object detection)
         foreach ($labels as $label) {
             $description = strtolower($label['description'] ?? '');
             $score = $label['score'] ?? 0.0;
@@ -225,32 +212,22 @@ class ModerationDecisionService {
             foreach ($animalLabels as $animalLabel) {
                 $animalLabelLower = strtolower($animalLabel);
                 if (stripos($description, $animalLabelLower) !== false || $description === $animalLabelLower) {
-                    if ($score >= MODERATION_ANIMAL_THRESHOLD) {
-                        // Check if already detected
-                        $alreadyDetected = false;
-                        foreach ($detectedAnimals as $detected) {
-                            if (strtolower($detected['name']) === strtolower($label['description'])) {
-                                $alreadyDetected = true;
-                                break;
-                            }
-                        }
-                        if (!$alreadyDetected) {
-                            $detectedAnimals[] = [
-                                'name' => $label['description'],
-                                'confidence' => round($score * 100, 1)
-                            ];
-                        }
+                    if ($score >= MODERATION_ANIMAL_LABEL_THRESHOLD) {
+                        $detectedAnimalLabels[] = [
+                            'name' => $label['description'],
+                            'confidence' => round($score * 100, 1)
+                        ];
                     }
                 }
             }
         }
         
-        if (!empty($detectedAnimals)) {
-            // Get the highest confidence animal
-            usort($detectedAnimals, function($a, $b) {
+        // Reject if object detected with confidence ≥ 0.6
+        if (!empty($detectedAnimalObjects)) {
+            usort($detectedAnimalObjects, function($a, $b) {
                 return $b['confidence'] <=> $a['confidence'];
             });
-            $topAnimal = $detectedAnimals[0];
+            $topAnimal = $detectedAnimalObjects[0];
             
             return [
                 'status' => 'REJECTED',
@@ -259,15 +236,40 @@ class ModerationDecisionService {
                 ]),
                 'reason_code' => 'animal_detected',
                 'details' => array_merge($details, [
-                    'detected_issue' => ucfirst($topAnimal['name']) . " detected (confidence: {$topAnimal['confidence']}%)",
+                    'detected_issue' => ucfirst($topAnimal['name']) . " detected via object localization (confidence: {$topAnimal['confidence']}%)",
                     'animal_detected' => true,
-                    'animal_labels' => array_map(function($a) { return $a['name']; }, $detectedAnimals),
-                    'animal_confidence' => $topAnimal['confidence']
+                    'animal_labels' => array_map(function($a) { return $a['name']; }, $detectedAnimalObjects),
+                    'animal_confidence' => $topAnimal['confidence'],
+                    'detection_method' => 'object_localization'
                 ])
             ];
         }
         
-        // STEP 8: Check SafeSearch
+        // Reject if label ≥ 0.7 AND object also detected
+        if (!empty($detectedAnimalLabels) && !empty($detectedAnimalObjects)) {
+            usort($detectedAnimalLabels, function($a, $b) {
+                return $b['confidence'] <=> $a['confidence'];
+            });
+            $topAnimalLabel = $detectedAnimalLabels[0];
+            
+            return [
+                'status' => 'REJECTED',
+                'message' => getErrorMessage('animal_detected', [
+                    'animal_name' => $topAnimalLabel['name']
+                ]),
+                'reason_code' => 'animal_detected',
+                'details' => array_merge($details, [
+                    'detected_issue' => ucfirst($topAnimalLabel['name']) . " detected via label (confidence: {$topAnimalLabel['confidence']}%) with object confirmation",
+                    'animal_detected' => true,
+                    'animal_labels' => array_map(function($a) { return $a['name']; }, $detectedAnimalLabels),
+                    'animal_confidence' => $topAnimalLabel['confidence'],
+                    'detection_method' => 'label_with_object'
+                ])
+            ];
+        }
+        
+        // STEP 5: Check SafeSearch (standardized thresholds: all 0.6)
+        // SafeSearch checks must run AFTER image quality checks but BEFORE final approval
         if ($adult >= MODERATION_ADULT_THRESHOLD) {
             return [
                 'status' => 'REJECTED',
@@ -304,33 +306,77 @@ class ModerationDecisionService {
             ];
         }
         
-        // STEP 9: Check Property Context (optional - for review queue)
+        // STEP 6: Check Property Context (score-based, not binary)
+        // Property context must be score-based, not binary
+        // Compute: propertyContextScore = (property-related detections) / (total meaningful detections)
+        // If propertyContextScore >= 0.3 → Acceptable
+        // If propertyContextScore < 0.3 → Flag for manual review
+        // Do NOT auto-reject based only on missing property labels
+        
         $propertyLabels = defined('PROPERTY_LABELS') ? PROPERTY_LABELS : [];
         $propertyLabelsFound = [];
+        $propertyObjectsFound = [];
+        $totalMeaningfulDetections = 0;
         
+        // Count property-related labels
         foreach ($labels as $label) {
             $description = $label['description'] ?? '';
             $score = $label['score'] ?? 0.0;
             
-            foreach ($propertyLabels as $propertyLabel) {
-                if (stripos($description, $propertyLabel) !== false && $score > 0.3) {
-                    $propertyLabelsFound[] = $description;
-                    break;
+            // Only count meaningful detections (score > 0.3)
+            if ($score > 0.3) {
+                $totalMeaningfulDetections++;
+                
+                foreach ($propertyLabels as $propertyLabel) {
+                    if (stripos($description, $propertyLabel) !== false) {
+                        $propertyLabelsFound[] = $description;
+                        break;
+                    }
                 }
             }
         }
         
-        $details['property_labels'] = array_unique($propertyLabelsFound);
+        // Count property-related objects
+        if (!empty($objects)) {
+            foreach ($objects as $object) {
+                $objectName = strtolower($object['name'] ?? '');
+                $objectScore = $object['score'] ?? 0.0;
+                
+                // Only count meaningful detections (score > 0.3)
+                if ($objectScore > 0.3) {
+                    $totalMeaningfulDetections++;
+                    
+                    // Check if object is property-related
+                    $propertyObjectNames = ['building', 'house', 'room', 'interior', 'exterior', 'structure'];
+                    foreach ($propertyObjectNames as $propObjName) {
+                        if ($objectName === $propObjName || stripos($objectName, $propObjName) !== false) {
+                            $propertyObjectsFound[] = $object['name'];
+                            break;
+                        }
+                    }
+                }
+            }
+        }
         
-        // If no property context found but has other labels, mark for review
-        if (empty($propertyLabelsFound) && !empty($labels)) {
+        $propertyDetections = count($propertyLabelsFound) + count($propertyObjectsFound);
+        $propertyContextScore = $totalMeaningfulDetections > 0 
+            ? ($propertyDetections / $totalMeaningfulDetections) 
+            : 0.0;
+        
+        $details['property_labels'] = array_unique(array_merge($propertyLabelsFound, $propertyObjectsFound));
+        $details['property_context_score'] = round($propertyContextScore, 3);
+        
+        // If property context score is too low, flag for manual review (but don't auto-reject)
+        if ($propertyContextScore < PROPERTY_CONTEXT_THRESHOLD && $totalMeaningfulDetections > 0) {
             return [
                 'status' => 'NEEDS_REVIEW',
                 'message' => 'This image may not be a property photo. Under review.',
                 'reason_code' => 'not_property',
                 'details' => array_merge($details, [
-                    'detected_issue' => 'No clear property context detected',
-                    'detected_labels' => array_slice(array_map(function($l) { return $l['description']; }, $labels), 0, 5)
+                    'detected_issue' => "Low property context score: {$propertyContextScore} (threshold: " . PROPERTY_CONTEXT_THRESHOLD . ")",
+                    'detected_labels' => array_slice(array_map(function($l) { return $l['description']; }, $labels), 0, 5),
+                    'property_detections' => $propertyDetections,
+                    'total_detections' => $totalMeaningfulDetections
                 ])
             ];
         }

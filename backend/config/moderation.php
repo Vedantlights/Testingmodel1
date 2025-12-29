@@ -8,26 +8,39 @@
 define('GOOGLE_APPLICATION_CREDENTIALS', '/home/u123456789/Secure/indiapropertys-8fab286d41e4.json');
 
 // Content Moderation Thresholds (0.0 to 1.0)
-// Lower thresholds (0.5) to catch more humans and animals
+// Standardized SafeSearch thresholds
 define('MODERATION_ADULT_THRESHOLD', 0.6);
-define('MODERATION_RACY_THRESHOLD', 0.7);
-define('MODERATION_VIOLENCE_THRESHOLD', 0.5);
+define('MODERATION_RACY_THRESHOLD', 0.6);
+define('MODERATION_VIOLENCE_THRESHOLD', 0.6);
 
-// Human Detection Threshold (lower to catch more)
-define('MODERATION_HUMAN_THRESHOLD', 0.5);
-
-// Animal Detection Threshold (lower to catch more)
-define('MODERATION_ANIMAL_THRESHOLD', 0.5);
-
-// Face Detection Threshold
+// Human Detection Thresholds
+// Face detection threshold (for face detection API)
 define('MODERATION_FACE_THRESHOLD', 0.5);
+// Object localization threshold for Person/People detection
+define('MODERATION_HUMAN_OBJECT_THRESHOLD', 0.6);
+
+// Animal Detection Thresholds
+// Object localization threshold for animal detection
+define('MODERATION_ANIMAL_OBJECT_THRESHOLD', 0.6);
+// Label threshold (only used when combined with object detection)
+define('MODERATION_ANIMAL_LABEL_THRESHOLD', 0.7);
 
 // Image Quality Thresholds
 define('MIN_IMAGE_WIDTH', 400);
 define('MIN_IMAGE_HEIGHT', 300);
-define('BLUR_THRESHOLD', 100);  // Laplacian variance threshold: LOW variance = blurry, HIGH variance = sharp
-// Images with variance < BLUR_THRESHOLD are rejected as blurry
-// Images with variance >= BLUR_THRESHOLD are accepted as sharp
+
+// Blur Detection Thresholds (Laplacian variance)
+// LOW Laplacian variance = blurry image
+// HIGH Laplacian variance = sharp image
+// 
+// Blur severity levels:
+// - If variance < HIGH_BLUR_THRESHOLD: REJECT (highly blurry)
+// - If HIGH_BLUR_THRESHOLD <= variance < MEDIUM_BLUR_THRESHOLD: ACCEPT (medium blur, allowed)
+// - If variance >= MEDIUM_BLUR_THRESHOLD: ACCEPT (clear)
+define('HIGH_BLUR_THRESHOLD', 60);     // highly blurry - reject
+define('MEDIUM_BLUR_THRESHOLD', 100);   // acceptable quality boundary
+// Backward compatibility
+define('BLUR_THRESHOLD', HIGH_BLUR_THRESHOLD);
 
 // File Upload Settings
 define('MAX_IMAGE_SIZE_MB', 5);
@@ -125,13 +138,19 @@ define('PROPERTY_LABELS', [
     'Hall', 'Office', 'Commercial', 'Residential', 'Construction', 'Structure'
 ]);
 
+// Property Context Scoring Threshold
+// propertyContextScore = (property-related detections) / (total meaningful detections)
+// If propertyContextScore >= PROPERTY_CONTEXT_THRESHOLD → Acceptable
+// If propertyContextScore < PROPERTY_CONTEXT_THRESHOLD → Flag for manual review
+define('PROPERTY_CONTEXT_THRESHOLD', 0.3);
+
 // Error Messages (User-Friendly)
 if (!function_exists('getErrorMessage')) {
     function getErrorMessage($code, $replacements = []) {
         $messages = [
             'human_detected' => 'You have uploaded an image with human appearance. Please upload only property images without any people.',
             'animal_detected' => 'You have uploaded an image with animal appearance ({animal_name}). Please upload only property images without any animals or pets.',
-            'blur_detected' => 'You have uploaded a blurry image. Please upload a clear and sharp photo of the property.',
+            'blur_detected' => 'You have uploaded a blurry image. Please upload a clear and sharp photo.',
             'low_quality' => 'You have uploaded a low quality image. Your image is {width}x{height} pixels. Minimum required is 400x300 pixels.',
             'adult_content' => 'This image contains inappropriate content and cannot be uploaded.',
             'violence_content' => 'This image contains violent content and cannot be uploaded.',
