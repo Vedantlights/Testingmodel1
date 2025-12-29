@@ -224,23 +224,26 @@ try {
     }
     
     // Step 7: Blur Detection (runs BEFORE Google Vision API to save costs)
-    // Blur severity levels:
-    // - If variance < HIGH_BLUR_THRESHOLD: REJECT (highly blurry)
-    // - If HIGH_BLUR_THRESHOLD <= variance < MEDIUM_BLUR_THRESHOLD: ACCEPT (medium blur, allowed)
-    // - If variance >= MEDIUM_BLUR_THRESHOLD: ACCEPT (clear)
+    // Blur decision logic:
+    // IF variance < HIGH_BLUR_THRESHOLD: REJECT (highly blurry - motion blur / defocus)
+    // ELSE: ACCEPT (includes medium blur and clear images)
+    // 
+    // Medium blur (50-100) is common for outdoor properties, landscape shots,
+    // wide-angle photos, and mobile camera uploads - these are ACCEPTED
     $blurResult = BlurDetector::calculateBlurScore($file['tmp_name']);
     if (!$blurResult['success']) {
         error_log("Blur detection failed: " . ($blurResult['error'] ?? 'Unknown error'));
         // Continue even if blur detection fails
     } else {
-        // Log variance and severity for debugging (not exposed to user)
+        // Log variance and severity for debugging (not exposed to user - for tuning only)
         $variance = $blurResult['variance'] ?? null;
         $severity = $blurResult['blur_severity'] ?? 'UNKNOWN';
         if ($variance !== null) {
             error_log("Blur detection: variance={$variance}, high_threshold=" . HIGH_BLUR_THRESHOLD . ", medium_threshold=" . MEDIUM_BLUR_THRESHOLD . ", severity={$severity}, is_blurry=" . ($blurResult['is_blurry'] ? 'true' : 'false'));
         }
         
-        // Only reject if highly blurry (variance < HIGH_BLUR_THRESHOLD)
+        // Only reject if highly blurry (variance < HIGH_BLUR_THRESHOLD = 50)
+        // Medium blur images (50-100) are accepted as they have visible edges and structures
         if ($blurResult['is_blurry']) {
             http_response_code(400);
             echo json_encode([

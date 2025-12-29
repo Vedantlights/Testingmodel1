@@ -164,20 +164,22 @@ class BlurDetector {
             
             require_once __DIR__ . '/../config/moderation.php';
             
-            // Blur severity levels:
-            // - If variance < HIGH_BLUR_THRESHOLD: REJECT (highly blurry)
-            // - If HIGH_BLUR_THRESHOLD <= variance < MEDIUM_BLUR_THRESHOLD: ACCEPT (medium blur, allowed)
-            // - If variance >= MEDIUM_BLUR_THRESHOLD: ACCEPT (clear)
+            // Blur decision logic:
+            // IF variance < HIGH_BLUR_THRESHOLD: REJECT (highly blurry - motion blur / defocus)
+            // ELSE: ACCEPT (includes medium blur and clear images)
+            // 
+            // Medium blur (50-100) is common for outdoor properties, landscape shots,
+            // wide-angle photos, and mobile camera uploads - these are ACCEPTED
             
-            $blurSeverity = 'LOW'; // Clear/sharp
+            $blurSeverity = 'LOW'; // Clear/sharp (default)
             $isBlurry = false;
             
             if ($variance < HIGH_BLUR_THRESHOLD) {
-                // Highly blurry - reject
+                // Highly blurry - reject (motion blur / defocus)
                 $blurSeverity = 'HIGH';
                 $isBlurry = true;
             } elseif ($variance < MEDIUM_BLUR_THRESHOLD) {
-                // Medium blur - accept but log
+                // Medium blur - accept (visible edges and structures)
                 $blurSeverity = 'MEDIUM';
                 $isBlurry = false;
             } else {

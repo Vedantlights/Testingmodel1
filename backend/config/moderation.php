@@ -33,12 +33,15 @@ define('MIN_IMAGE_HEIGHT', 300);
 // LOW Laplacian variance = blurry image
 // HIGH Laplacian variance = sharp image
 // 
-// Blur severity levels:
-// - If variance < HIGH_BLUR_THRESHOLD: REJECT (highly blurry)
-// - If HIGH_BLUR_THRESHOLD <= variance < MEDIUM_BLUR_THRESHOLD: ACCEPT (medium blur, allowed)
-// - If variance >= MEDIUM_BLUR_THRESHOLD: ACCEPT (clear)
-define('HIGH_BLUR_THRESHOLD', 60);     // highly blurry - reject
-define('MEDIUM_BLUR_THRESHOLD', 100);   // acceptable quality boundary
+// Blur decision logic:
+// - If variance < HIGH_BLUR_THRESHOLD: REJECT (highly blurry - motion blur / defocus)
+// - If variance >= HIGH_BLUR_THRESHOLD: ACCEPT (includes medium blur and clear images)
+// 
+// Medium blur (50-100) is common for:
+// - Outdoor properties, landscape shots, wide-angle photos, mobile camera uploads
+// These images are ACCEPTED as they have visible edges and structures
+define('HIGH_BLUR_THRESHOLD', 50);      // only reject below this (highly blurry)
+define('MEDIUM_BLUR_THRESHOLD', 100);   // informational only (for logging)
 // Backward compatibility
 define('BLUR_THRESHOLD', HIGH_BLUR_THRESHOLD);
 
