@@ -249,7 +249,7 @@
   font-weight: 700;
   color: #1a1a1a;
   margin: 0;
-  padding: 14px 0 8px 0;
+  padding: 14px 0 4px 0;
   border-top: 1px solid #e5e5e5;
   line-height: 1.4;
   flex: 1;
@@ -259,13 +259,14 @@
   overflow: hidden;
   text-overflow: ellipsis;
   letter-spacing: -0.2px;
+  text-transform: uppercase;
 }
 
 .popup-card-description {
   font-size: 13px;
   color: #717171;
   margin: 0;
-  padding: 8px 0 0 0;
+  padding: 4px 0 0 0;
   line-height: 1.5;
   display: -webkit-box;
   -webkit-line-clamp: 2;
@@ -277,6 +278,7 @@
 .popup-card-price-section {
   display: flex;
   align-items: baseline;
+  justify-content: center;
   gap: 0;
   margin: 12px 0 0 0;
   padding: 0;
