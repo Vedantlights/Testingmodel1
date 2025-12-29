@@ -278,19 +278,36 @@ try {
     
     // Step 10: Check for HUMANS
     // Reject image ONLY IF:
-    // - Face detection confidence ≥ 0.5
+    // - Face detection confidence ≥ 0.7 (increased to reduce false positives)
     // OR
-    // - Object localization detects "Person" or "People" with confidence ≥ 0.6
+    // - Object localization detects "Person" or "People" with confidence ≥ 0.7 (increased to reduce false positives)
     // Labels alone must NOT cause rejection (they are supporting signals only)
     
     $faces = $apiResponse['faces'] ?? [];
     $objects = $apiResponse['objects'] ?? [];
+    
+    // Log all detections for debugging
+    error_log("Human detection check: faces_count=" . count($faces) . ", objects_count=" . count($objects));
+    if (!empty($faces)) {
+        foreach ($faces as $idx => $face) {
+            $faceConfidence = $face['detection_confidence'] ?? 0.0;
+            error_log("Face #{$idx}: confidence={$faceConfidence}, threshold=" . MODERATION_FACE_THRESHOLD);
+        }
+    }
+    if (!empty($objects)) {
+        foreach ($objects as $idx => $object) {
+            $objectName = strtolower($object['name'] ?? '');
+            $objectScore = $object['score'] ?? 0.0;
+            error_log("Object #{$idx}: name={$objectName}, score={$objectScore}");
+        }
+    }
     
     // Check Face Detection (HIGHEST PRIORITY)
     if (!empty($faces)) {
         foreach ($faces as $face) {
             $faceConfidence = $face['detection_confidence'] ?? 0.0;
             if ($faceConfidence >= MODERATION_FACE_THRESHOLD) {
+                error_log("REJECTED: Human face detected with confidence {$faceConfidence} (threshold: " . MODERATION_FACE_THRESHOLD . ")");
                 FileHelper::deleteFile($tempPath);
                 http_response_code(400);
                 echo json_encode([
@@ -316,6 +333,7 @@ try {
             // Check if object is "Person" or "People" with confidence ≥ 0.6
             if (($objectName === 'person' || $objectName === 'people' || $objectName === 'human') && 
                 $objectScore >= MODERATION_HUMAN_OBJECT_THRESHOLD) {
+                error_log("REJECTED: Human object detected - name={$objectName}, score={$objectScore} (threshold: " . MODERATION_HUMAN_OBJECT_THRESHOLD . ")");
                 FileHelper::deleteFile($tempPath);
                 http_response_code(400);
                 echo json_encode([
@@ -346,6 +364,9 @@ try {
     $animalLabels = defined('ANIMAL_LABELS') ? ANIMAL_LABELS : [];
     $detectedAnimalObjects = [];
     $detectedAnimalLabels = [];
+    
+    // Log for debugging
+    error_log("Animal detection check: labels_count=" . count($labels) . ", objects_count=" . count($objects));
     
     // First, check Object Localization for animals
     if (!empty($objects)) {
@@ -394,6 +415,7 @@ try {
         });
         $topAnimal = $detectedAnimalObjects[0];
         
+        error_log("REJECTED: Animal object detected - name={$topAnimal['name']}, confidence={$topAnimal['confidence']}%");
         FileHelper::deleteFile($tempPath);
         http_response_code(400);
         echo json_encode([
@@ -442,7 +464,11 @@ try {
     $violence = $scores['violence'] ?? 0.0;
     $racy = $scores['racy'] ?? 0.0;
     
+    // Log SafeSearch scores for debugging
+    error_log("SafeSearch scores: adult={$adult}, violence={$violence}, racy={$racy}");
+    
     if ($adult >= MODERATION_ADULT_THRESHOLD) {
+        error_log("REJECTED: Adult content detected - score={$adult} (threshold: " . MODERATION_ADULT_THRESHOLD . ")");
         FileHelper::deleteFile($tempPath);
         http_response_code(400);
         echo json_encode([
@@ -454,6 +480,7 @@ try {
     }
     
     if ($violence >= MODERATION_VIOLENCE_THRESHOLD) {
+        error_log("REJECTED: Violence content detected - score={$violence} (threshold: " . MODERATION_VIOLENCE_THRESHOLD . ")");
         FileHelper::deleteFile($tempPath);
         http_response_code(400);
         echo json_encode([
@@ -465,6 +492,7 @@ try {
     }
     
     if ($racy >= MODERATION_RACY_THRESHOLD) {
+        error_log("REJECTED: Racy content detected - score={$racy} (threshold: " . MODERATION_RACY_THRESHOLD . ")");
         FileHelper::deleteFile($tempPath);
         http_response_code(400);
         echo json_encode([
@@ -474,6 +502,9 @@ try {
         ]);
         exit;
     }
+    
+    // Log that image passed all checks
+    error_log("Image passed all moderation checks - APPROVED");
     
     // Step 13: Image APPROVED - Handle based on mode
     

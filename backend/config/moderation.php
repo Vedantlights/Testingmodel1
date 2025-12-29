@@ -15,9 +15,11 @@ define('MODERATION_VIOLENCE_THRESHOLD', 0.6);
 
 // Human Detection Thresholds
 // Face detection threshold (for face detection API)
-define('MODERATION_FACE_THRESHOLD', 0.5);
+// Increased to 0.7 to reduce false positives (statues, paintings, etc.)
+define('MODERATION_FACE_THRESHOLD', 0.7);
 // Object localization threshold for Person/People detection
-define('MODERATION_HUMAN_OBJECT_THRESHOLD', 0.6);
+// Increased to 0.7 to reduce false positives (people in background, decorative elements)
+define('MODERATION_HUMAN_OBJECT_THRESHOLD', 0.7);
 
 // Animal Detection Thresholds
 // Object localization threshold for animal detection
