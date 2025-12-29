@@ -141,6 +141,7 @@
 .buyer-contact-info-item {
   margin-bottom: 2rem;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+  border: 2px solid #e2e8f0;
   padding: 1rem;
   border-radius: 8px;
   background: white;
