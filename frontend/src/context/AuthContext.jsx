@@ -42,6 +42,24 @@ export const AuthProvider = ({ children }) => {
     }
   }, []);
 
+  // Define logout function BEFORE useEffect that uses it
+  const logout = useCallback(() => {
+    console.log("🔒 Logging out - clearing all auth data");
+    
+    // Clear from API service
+    authAPI.logout();
+    
+    // Clear state (which also clears localStorage via setUser/setToken)
+    setToken(null);
+    setUser(null);
+    
+    // Clear any additional session data
+    localStorage.removeItem('currentSession');
+    localStorage.removeItem('registeredUser');
+    
+    console.log("✅ Logout complete - all auth data cleared");
+  }, [setToken, setUser]);
+
   // Auto verify token on app load/refresh
   useEffect(() => {
     const initializeAuth = async () => {
@@ -82,7 +100,7 @@ export const AuthProvider = ({ children }) => {
     };
 
     initializeAuth();
-  }, []); // Run only once on mount
+  }, [logout, setUser, setToken]); // Add logout, setUser, setToken to dependencies
 
   const login = async (email, password, userType) => {
     try {
@@ -129,23 +147,6 @@ export const AuthProvider = ({ children }) => {
       };
     }
   };
-
-  const logout = useCallback(() => {
-    console.log("🔒 Logging out - clearing all auth data");
-    
-    // Clear from API service
-    authAPI.logout();
-    
-    // Clear state (which also clears localStorage via setUser/setToken)
-    setToken(null);
-    setUser(null);
-    
-    // Clear any additional session data
-    localStorage.removeItem('currentSession');
-    localStorage.removeItem('registeredUser');
-    
-    console.log("✅ Logout complete - all auth data cleared");
-  }, [setToken, setUser]);
 
   return (
     <AuthContext.Provider value={{ user, token, login, logout, loading }}>
