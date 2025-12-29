@@ -236,6 +236,10 @@ const AboutUs = () => {
       {/* Statistics Section */}
       <section className="about-section about-stats">
         <div className="about-container">
+          <div className="about-section-header">
+            <h2 className="about-section-title">Our Achievements</h2>
+            <div className="about-title-underline"></div>
+          </div>
           <div className="stats-grid">
             <div className="stat-card">
               <div className="stat-number" data-animate="true">
@@ -243,9 +247,9 @@ const AboutUs = () => {
               </div>
               <div className="stat-label">Properties Listed</div>
             </div>
-            <div className="stat-card">
-              <div className="stat-number stat-text">All Over</div>
-              <div className="stat-label">India</div>
+            <div className="stat-card stat-card-text">
+              <div className="stat-label stat-label-top">Cities Covered</div>
+              <div className="stat-number stat-text">All over India</div>
             </div>
             <div className="stat-card">
               <div className="stat-number" data-animate="true">
