@@ -6,13 +6,12 @@
  * Processing Flow (ENFORCED ORDER):
  * 1. File validation (type, size, corruption check)
  * 2. Dimension check (400x300 minimum)
- * 3. Blur detection (BEFORE API call to save costs)
- * 4. Google Vision API call
- * 5. SafeSearch evaluation
- * 6. Human detection (face OR object localization only, NOT labels alone)
- * 7. Animal detection (object localization OR label+object, NOT labels alone)
- * 8. Property context scoring
- * 9. Final decision (approve / reject / manual review)
+ * 3. Google Vision API call
+ * 4. SafeSearch evaluation
+ * 5. Human detection (face OR object localization only, NOT labels alone)
+ * 6. Animal detection (object localization OR label+object, NOT labels alone)
+ * 7. Property context scoring
+ * 8. Final decision (approve / reject / manual review)
  */
 
 // Step 1: Setup and Headers
@@ -34,7 +33,6 @@ require_once __DIR__ . '/../../config/moderation.php';
 require_once __DIR__ . '/../../utils/auth.php';
 require_once __DIR__ . '/../../services/GoogleVisionService.php';
 require_once __DIR__ . '/../../services/WatermarkService.php';
-require_once __DIR__ . '/../../helpers/BlurDetector.php';
 require_once __DIR__ . '/../../helpers/FileHelper.php';
 
 // Load Composer autoload if available
@@ -223,40 +221,8 @@ try {
         exit;
     }
     
-    // Step 7: Blur Detection (runs BEFORE Google Vision API to save costs)
-    // Blur decision logic:
-    // IF variance < HIGH_BLUR_THRESHOLD: REJECT (highly blurry - motion blur / defocus)
-    // ELSE: ACCEPT (includes medium blur and clear images)
-    // 
-    // Medium blur (50-100) is common for outdoor properties, landscape shots,
-    // wide-angle photos, and mobile camera uploads - these are ACCEPTED
-    $blurResult = BlurDetector::calculateBlurScore($file['tmp_name']);
-    if (!$blurResult['success']) {
-        error_log("Blur detection failed: " . ($blurResult['error'] ?? 'Unknown error'));
-        // Continue even if blur detection fails
-    } else {
-        // Log variance and severity for debugging (not exposed to user - for tuning only)
-        $variance = $blurResult['variance'] ?? null;
-        $severity = $blurResult['blur_severity'] ?? 'UNKNOWN';
-        if ($variance !== null) {
-            error_log("Blur detection: variance={$variance}, high_threshold=" . HIGH_BLUR_THRESHOLD . ", medium_threshold=" . MEDIUM_BLUR_THRESHOLD . ", severity={$severity}, is_blurry=" . ($blurResult['is_blurry'] ? 'true' : 'false'));
-        }
-        
-        // Only reject if highly blurry (variance < HIGH_BLUR_THRESHOLD = 50)
-        // Medium blur images (50-100) are accepted as they have visible edges and structures
-        if ($blurResult['is_blurry']) {
-            http_response_code(400);
-            echo json_encode([
-                'status' => 'error',
-                'message' => getErrorMessage('blur_detected'),
-                'error_code' => 'blur_detected',
-                'details' => [
-                    'blur_score' => $blurResult['blur_score']
-                ]
-            ]);
-            exit;
-        }
-    }
+    // Step 7: Blur Detection - DISABLED
+    // Blur detection has been removed from the moderation system
     
     // Step 8: Save to Temp Folder
     $uniqueFilename = FileHelper::generateUniqueFilename($file['name']);

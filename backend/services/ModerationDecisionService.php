@@ -6,17 +6,15 @@
  * Processing Flow (ENFORCED ORDER):
  * 1. File validation
  * 2. Dimension check
- * 3. Blur detection
- * 4. Google Vision API call
- * 5. SafeSearch evaluation
- * 6. Human detection (face OR object localization only, NOT labels alone)
- * 7. Animal detection (object localization OR label+object, NOT labels alone)
- * 8. Property context scoring
- * 9. Final decision (approve / reject / manual review)
+ * 3. Google Vision API call
+ * 4. SafeSearch evaluation
+ * 5. Human detection (face OR object localization only, NOT labels alone)
+ * 6. Animal detection (object localization OR label+object, NOT labels alone)
+ * 7. Property context scoring
+ * 8. Final decision (approve / reject / manual review)
  */
 
 require_once __DIR__ . '/../config/moderation.php';
-require_once __DIR__ . '/../helpers/BlurDetector.php';
 require_once __DIR__ . '/../helpers/FileHelper.php';
 
 // Ensure error message function is available
@@ -69,36 +67,8 @@ class ModerationDecisionService {
             error_log("ModerationDecisionService: Could not read image dimensions for: {$imagePath}");
         }
         
-        // STEP 2: Check Blur (using Laplacian variance)
-        // Blur decision logic:
-        // IF variance < HIGH_BLUR_THRESHOLD: REJECT (highly blurry - motion blur / defocus)
-        // ELSE: ACCEPT (includes medium blur and clear images)
-        // 
-        // Medium blur (50-100) is common for outdoor properties, landscape shots,
-        // wide-angle photos, and mobile camera uploads - these are ACCEPTED
-        $blurResult = BlurDetector::calculateBlurScore($imagePath);
-        $details['blur_score'] = $blurResult['blur_score'];
-        $variance = $blurResult['variance'] ?? null;
-        $severity = $blurResult['blur_severity'] ?? 'UNKNOWN';
-        
-        // Log variance and severity for debugging (not exposed to user - for tuning only)
-        if ($variance !== null) {
-            error_log("ModerationDecisionService: blur variance={$variance}, high_threshold=" . HIGH_BLUR_THRESHOLD . ", medium_threshold=" . MEDIUM_BLUR_THRESHOLD . ", severity={$severity}, is_blurry=" . ($blurResult['is_blurry'] ? 'true' : 'false'));
-        }
-        
-        // Only reject if highly blurry (variance < HIGH_BLUR_THRESHOLD = 50)
-        // Medium blur images (50-100) are accepted as they have visible edges and structures
-        if ($blurResult['is_blurry']) {
-            return [
-                'status' => 'REJECTED',
-                'message' => getErrorMessage('blur_detected'),
-                'reason_code' => 'blur_detected',
-                'details' => array_merge($details, [
-                    'detected_issue' => "Image is highly blurry (variance: " . ($variance ?? 'N/A') . ", high_threshold: " . HIGH_BLUR_THRESHOLD . ")",
-                    'quality_rating' => $blurResult['quality_rating']
-                ])
-            ];
-        }
+        // STEP 2: Blur Detection - DISABLED
+        // Blur detection has been removed from the moderation system
         
         // Check if API call was successful
         if (!$visionResponse['success']) {
