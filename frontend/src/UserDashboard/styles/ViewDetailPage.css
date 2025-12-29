@@ -943,8 +943,19 @@
     font-size: 16px;
     line-height: 1.7;
     color: #222222;
-    white-space: pre-line;
     letter-spacing: 0.01em;
+    margin: 0;
+    padding: 0;
+    /* Preserve line breaks but normalize spacing */
+    white-space: pre-line;
+    /* Ensure left alignment - prevent centering issues */
+    text-align: left;
+    /* Ensure proper wrapping for long words and URLs */
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+    word-break: break-word;
+    /* Remove any unwanted indentation */
+    text-indent: 0;
 }
 
 /* --- Amenities Section (Airbnb Style) --- */

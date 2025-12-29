@@ -167,6 +167,38 @@ const formatListedDate = (dateString) => {
     }
 };
 
+// --- Helper function to normalize and sanitize property description ---
+const normalizeDescription = (description) => {
+    if (!description || typeof description !== 'string') {
+        return '';
+    }
+    
+    // Step 1: Replace all types of line breaks with a consistent newline character
+    let normalized = description.replace(/\r\n/g, '\n').replace(/\r/g, '\n');
+    
+    // Step 2: Remove excessive consecutive line breaks (more than 2 consecutive newlines)
+    // Replace 3+ consecutive newlines with just 2 newlines (one blank line)
+    normalized = normalized.replace(/\n{3,}/g, '\n\n');
+    
+    // Step 3: Normalize multiple spaces to single spaces (but preserve intentional spacing)
+    // Replace 2+ spaces with single space, but keep single spaces
+    normalized = normalized.replace(/[ \t]{2,}/g, ' ');
+    
+    // Step 4: Trim whitespace from the start and end of each line
+    normalized = normalized.split('\n').map(line => line.trim()).join('\n');
+    
+    // Step 5: Remove leading and trailing newlines/whitespace from the entire string
+    normalized = normalized.trim();
+    
+    // Step 6: Remove any remaining excessive blank lines at the start/end
+    normalized = normalized.replace(/^\n+|\n+$/g, '');
+    
+    // Step 7: Ensure consistent spacing around punctuation (optional enhancement)
+    // This helps with readability but doesn't change the content structure
+    
+    return normalized;
+};
+
 // --- Helper function to map property data to ViewDetailsPage structure ---
 const getPropertyDetails = (property) => {
     window.scrollTo(0,0);
@@ -182,8 +214,9 @@ const getPropertyDetails = (property) => {
         ? property.amenities
         : ["Swimming Pool", "Gymnasium", "24/7 Security", "Covered Parking", "Clubhouse", "Children's Play Area"];
     
-    // Use actual description or generate one
-    const description = property.description || `Discover unparalleled living in this magnificent ${property.type || 'property'}. Featuring modern amenities, panoramic city views, and spacious interiors. Perfect blend of comfort and luxury.`;
+    // Use actual description or generate one, then normalize it
+    const rawDescription = property.description || `Discover unparalleled living in this magnificent ${property.type || 'property'}. Featuring modern amenities, panoramic city views, and spacious interiors. Perfect blend of comfort and luxury.`;
+    const description = normalizeDescription(rawDescription);
     
     return {
         title: property.title,
