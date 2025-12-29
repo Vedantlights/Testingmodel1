@@ -100,7 +100,12 @@ export default function Contact() {
         <div className="buyer-info-section">
 
           {/* LOCATION */}
-          <div className="buyer-info-card">
+          <a 
+            href="https://www.google.com/maps/search/?api=1&query=Office+No.21+%26+22,+3rd+Floor,+S%2FNo.+56,+Aston+Plaza,+Ambegaon+Bk.,+Pune,+Maharashtra+411046"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="buyer-info-card-clickable"
+          >
             <div className="buyer-info-icon buyer-bg-blue">
               <MapPin />
             </div>
@@ -110,7 +115,7 @@ export default function Contact() {
               Aston Plaza, Ambegaon Bk.<br />
               Pune , Maharashtra– 411046</p>
             </div>
-          </div>
+          </a>
 
           {/* EMAIL */}
           <a 
