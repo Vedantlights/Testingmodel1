@@ -84,15 +84,8 @@ const apiRequest = async (endpoint, options = {}) => {
     }
     
     if (!response.ok) {
-      // Handle 401 Unauthorized (expired/invalid token)
-      if (response.status === 401) {
-        // Clear invalid token
-        removeToken();
-        removeUser();
-        console.log("❌ 401 Unauthorized - Token expired or invalid, clearing auth data");
-      }
-      
       // Include more details in error for debugging
+      // Note: 401 handling is done in AuthContext, not here
       const errorDetails = {
         status: response.status,
         message: data.message || 'Request failed',
@@ -146,14 +139,7 @@ export const authAPI = {
       
       console.log("authAPI.login response:", response);
       
-      if (response.success && response.data) {
-        setToken(response.data.token);
-        setUser(response.data.user);
-        console.log("Token and user set successfully");
-      } else {
-        console.error("Login response not successful:", response);
-      }
-      
+      // Return response.data only - AuthContext will handle saving to localStorage
       return response;
     } catch (error) {
       console.error("authAPI.login error:", error);
@@ -167,11 +153,7 @@ export const authAPI = {
       body: JSON.stringify(userData),
     });
     
-    if (response.success && response.data) {
-      setToken(response.data.token);
-      setUser(response.data.user);
-    }
-    
+    // Return response only - AuthContext will handle saving to localStorage if needed
     return response;
   },
   
@@ -186,24 +168,10 @@ export const authAPI = {
       const response = await apiRequest(API_ENDPOINTS.VERIFY_TOKEN, {
         method: 'GET'
       });
-      if (response.success && response.data) {
-        // Update user data if provided
-        if (response.data.user) {
-          setUser(response.data.user);
-        }
-        // Update token if a new one is provided (refresh token scenario)
-        if (response.data.token) {
-          setToken(response.data.token);
-        }
-      }
+      // Return response only - AuthContext will handle updating localStorage
       return response;
     } catch (error) {
-      // Token is invalid or expired - clear everything
-      if (error.status === 401) {
-        console.log("❌ Token verification failed - 401 Unauthorized");
-        removeToken();
-        removeUser();
-      }
+      // Just throw the error - AuthContext will handle clearing localStorage
       throw error;
     }
   },

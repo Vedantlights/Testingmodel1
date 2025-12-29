@@ -201,7 +201,6 @@ const normalizeDescription = (description) => {
 
 // --- Helper function to map property data to ViewDetailsPage structure ---
 const getPropertyDetails = (property) => {
-    window.scrollTo(0,0);
     if (!property) return null;
     
     // Use actual property data from API
@@ -678,6 +677,13 @@ const ViewDetailsPage = () => {
         } else {
             setError('Invalid property ID');
             setLoading(false);
+        }
+    }, [propertyId]);
+
+    // Scroll to top only when property ID changes (viewing a new property)
+    useEffect(() => {
+        if (propertyId) {
+            window.scrollTo(0, 0);
         }
     }, [propertyId]);
 

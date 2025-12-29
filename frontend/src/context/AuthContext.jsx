@@ -21,6 +21,8 @@ export const AuthProvider = ({ children }) => {
   });
   
   const [loading, setLoading] = useState(true);
+  const [isVerified, setIsVerified] = useState(false);
+  const [verificationError, setVerificationError] = useState(null);
 
   // Sync user state with localStorage
   const setUser = useCallback((userData) => {
@@ -42,78 +44,142 @@ export const AuthProvider = ({ children }) => {
     }
   }, []);
 
-  // Define logout function BEFORE useEffect that uses it
-  const logout = useCallback(() => {
-    console.log("🔒 Logging out - clearing all auth data");
+  // Clear auth state function - single source of truth for clearing auth
+  const clearAuthState = useCallback(() => {
+    console.log("🔒 Clearing auth state");
+    setToken(null);
+    setUser(null);
+    setIsVerified(false);
+    setVerificationError(null);
     
     // Clear from API service
     authAPI.logout();
-    
-    // Clear state (which also clears localStorage via setUser/setToken)
-    setToken(null);
-    setUser(null);
     
     // Clear any additional session data
     localStorage.removeItem('currentSession');
     localStorage.removeItem('registeredUser');
     
-    console.log("✅ Logout complete - all auth data cleared");
+    console.log("✅ Auth state cleared");
   }, [setToken, setUser]);
+
+  // Define logout function
+  const logout = useCallback(() => {
+    console.log("🔒 Logging out - clearing all auth data");
+    clearAuthState();
+    console.log("✅ Logout complete - all auth data cleared");
+  }, [clearAuthState]);
+
+  // Verify token with retry logic and exponential backoff
+  const verifyTokenWithRetry = useCallback(async (retryCount = 0) => {
+    const maxRetries = 3;
+    const delays = [1000, 2000, 4000]; // 1s, 2s, 4s
+    
+    try {
+      const response = await authAPI.verifyToken();
+      
+      if (response.success && response.data) {
+        // Token is valid - restore session
+        const storedUser = localStorage.getItem("userData");
+        const storedToken = localStorage.getItem("authToken");
+        
+        const userData = response.data.user || (storedUser ? JSON.parse(storedUser) : null);
+        const tokenData = response.data.token || storedToken;
+        
+        setUser(userData);
+        setToken(tokenData);
+        // Also sync with api.service
+        authAPI.setToken(tokenData);
+        authAPI.setUser(userData);
+        setIsVerified(true);
+        setVerificationError(null);
+        console.log("✅ Session restored from persistent storage");
+        return { success: true };
+      } else {
+        // Token is invalid - clear everything
+        console.log("❌ Token verification failed - clearing session");
+        clearAuthState();
+        return { success: false };
+      }
+    } catch (error) {
+      // Handle 401 errors - clear auth state
+      if (error.status === 401) {
+        console.error("❌ Token verification failed - 401 Unauthorized, clearing session");
+        clearAuthState();
+        return { success: false, error };
+      }
+      
+      // Handle network errors - keep cached state and set error
+      if (error.status === 0 || !error.status) {
+        console.warn("⚠️ Token verification network error, keeping cached session:", error.message);
+        
+        // Restore from localStorage to ensure state is set
+        const storedToken = localStorage.getItem("authToken");
+        const storedUser = localStorage.getItem("userData");
+        
+        if (storedToken && storedUser) {
+          try {
+            const parsedUser = JSON.parse(storedUser);
+            setUser(parsedUser);
+            setToken(storedToken);
+            // Also sync with api.service
+            authAPI.setToken(storedToken);
+            authAPI.setUser(parsedUser);
+            setIsVerified(false);
+            setVerificationError(error);
+            console.log("✅ Restored session from localStorage after network error");
+          } catch (parseError) {
+            console.error("Error parsing stored user data:", parseError);
+          }
+        }
+        
+        // Retry with exponential backoff if we haven't exceeded max retries
+        if (retryCount < maxRetries) {
+          const delay = delays[retryCount];
+          console.log(`⏳ Retrying token verification in ${delay}ms (attempt ${retryCount + 1}/${maxRetries})`);
+          await new Promise(resolve => setTimeout(resolve, delay));
+          return verifyTokenWithRetry(retryCount + 1);
+        }
+        
+        return { success: false, error };
+      }
+      
+      // Other errors - clear auth state
+      console.error("❌ Token verification failed with error:", error);
+      clearAuthState();
+      return { success: false, error };
+    }
+  }, [setUser, setToken, clearAuthState]);
+
+  // Manual retry function for user-initiated retry
+  const retryVerification = useCallback(async () => {
+    setVerificationError(null);
+    setLoading(true);
+    const result = await verifyTokenWithRetry(0);
+    setLoading(false);
+    return result;
+  }, [verifyTokenWithRetry]);
 
   // Auto verify token on app load/refresh
   useEffect(() => {
     const initializeAuth = async () => {
       // Check localStorage first (for persistence after browser close)
       const storedToken = localStorage.getItem("authToken");
-      const storedUser = localStorage.getItem("userData");
 
       // If no token in localStorage, user is not logged in
       if (!storedToken) {
         setLoading(false);
+        setIsVerified(false);
         return;
       }
 
-      // If we have a token, verify it with backend
-      try {
-        const response = await authAPI.verifyToken();
-        
-        if (response.success && response.data) {
-          // Token is valid - restore session
-          const userData = response.data.user || (storedUser ? JSON.parse(storedUser) : null);
-          const tokenData = response.data.token || storedToken;
-          
-          setUser(userData);
-          setToken(tokenData);
-          console.log("✅ Session restored from persistent storage");
-        } else {
-          // Token is invalid - clear everything
-          console.log("❌ Token verification failed - clearing session");
-          // Clear directly instead of calling logout to avoid dependency issues
-          setToken(null);
-          setUser(null);
-          authAPI.logout();
-        }
-      } catch (error) {
-        // Only clear auth state if it's a 401 (invalid/expired token)
-        // Network errors should not clear the session - allow user to continue with cached auth
-        if (error.status === 401) {
-          console.error("❌ Token verification failed - 401 Unauthorized, clearing session");
-          setToken(null);
-          setUser(null);
-          authAPI.logout();
-        } else {
-          // Network error or other issue - keep the cached auth state from localStorage
-          // The state should already be initialized from localStorage in useState, so just log a warning
-          console.warn("⚠️ Token verification network error, keeping cached session:", error.message);
-        }
-      } finally {
-        setLoading(false);
-      }
+      // If we have a token, verify it with backend (with retry logic)
+      await verifyTokenWithRetry(0);
+      setLoading(false);
     };
 
     initializeAuth();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []); // Run only once on mount - setUser and setToken are stable callbacks
+  }, []); // Run only once on mount
 
   const login = async (email, password, userType) => {
     try {
@@ -137,11 +203,13 @@ export const AuthProvider = ({ children }) => {
 
         console.log("✅ Setting token and user in persistent storage");
         
-        // Save to state (which syncs to localStorage via setUser/setToken)
+        // ONLY save to localStorage here - this is the single source of truth
         setToken(token);
         setUser(user);
+        setIsVerified(true);
+        setVerificationError(null);
 
-        // Also ensure api.service has the token
+        // Also ensure api.service has the token (for API requests)
         authAPI.setToken(token);
         authAPI.setUser(user);
 
@@ -161,8 +229,56 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
+  const register = async (userData) => {
+    try {
+      const response = await authAPI.register(userData);
+      
+      if (response.success && response.data) {
+        const token = response.data.token;
+        const user = response.data.user;
+        
+        if (token && user) {
+          // ONLY save to localStorage here - this is the single source of truth
+          setToken(token);
+          setUser(user);
+          setIsVerified(true);
+          setVerificationError(null);
+          
+          // Also ensure api.service has the token
+          authAPI.setToken(token);
+          authAPI.setUser(user);
+        }
+      }
+      
+      return response;
+    } catch (error) {
+      console.error("Register error in AuthContext:", error);
+      const errorMessage = error.data?.message || error.message || 'Registration failed';
+      return { 
+        success: false, 
+        message: errorMessage
+      };
+    }
+  };
+
+  // Compute isAuthenticated based on user and token
+  const isAuthenticated = !!(user && token);
+
   return (
-    <AuthContext.Provider value={{ user, token, login, logout, loading }}>
+    <AuthContext.Provider value={{ 
+      user, 
+      token, 
+      loading, 
+      isVerified, 
+      verificationError, 
+      isAuthenticated,
+      login, 
+      logout, 
+      register,
+      retryVerification,
+      setUser,
+      setToken
+    }}>
       {children}
     </AuthContext.Provider>
   );
