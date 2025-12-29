@@ -120,10 +120,10 @@
   border-radius: 16px;
   padding: 2.5rem;
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.06);
-  border: 2px solid #8b5cf6;
   animation: buyer-fadeInUp 0.8s ease forwards;
   opacity: 0;
   height: fit-content;
+  text-align: left;
 }
 
 .buyer-contact-info-card:nth-child(1) {
@@ -135,10 +135,15 @@
   font-weight: 700;
   color: #1e3a8a;
   margin: 0 0 2rem 0;
+  text-align: left;
 }
 
 .buyer-contact-info-item {
   margin-bottom: 2rem;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+  padding: 1rem;
+  border-radius: 8px;
+  background: white;
 }
 
 .buyer-contact-info-item:last-child {
@@ -150,6 +155,7 @@
   font-weight: 700;
   color: #334155;
   margin-bottom: 0.5rem;
+  text-align: left;
 }
 
 .buyer-contact-info-link {
@@ -374,9 +380,8 @@
   border-radius: 16px;
   padding: 2.5rem;
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.06);
-  border: 2px solid #8b5cf6;
-  /* Optimize transitions - only animate border and box-shadow, not 'all' */
-  transition: border-color 0.3s ease, box-shadow 0.3s ease;
+  /* Optimize transitions - only animate box-shadow, not 'all' */
+  transition: box-shadow 0.3s ease;
   animation: buyer-fadeInUp 0.8s ease forwards;
   opacity: 0;
   position: relative;
@@ -423,7 +428,6 @@
 }
 
 .buyer-form-card:hover {
-  border-color: #6d28d9;
   box-shadow: 0 12px 50px rgba(139, 92, 246, 0.15);
 }
 
@@ -512,7 +516,7 @@
   border-radius: 12px;
   font-size: 0.95rem;
   color: #1e293b;
-  background: rgb(229, 225, 225);
+  background: white;
   transition: border-color 0.3s ease, box-shadow 0.3s ease;
   font-family: inherit;
   box-sizing: border-box;

@@ -127,15 +127,6 @@ export default function Contact() {
                 Pune, Maharashtra– 411046
               </a>
             </div>
-
-            <div className="buyer-contact-info-item">
-              <div className="buyer-contact-info-label">Business Hours</div>
-              <div className="buyer-contact-info-hours">
-                <div>Monday - Saturday: 8:00 AM - 6:00 PM</div>
-                <div>Sunday: Emergency Only</div>
-                <div className="buyer-contact-emergency">24/7 Emergency Service Available</div>
-              </div>
-            </div>
           </div>
 
           {/* RIGHT COLUMN - CONTACT FORM */}
