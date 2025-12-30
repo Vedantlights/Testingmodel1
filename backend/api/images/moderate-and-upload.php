@@ -573,28 +573,71 @@ try {
     // Normal mode: Add Watermark and Save
     // Move to properties folder first
     $propertyFolder = UPLOAD_PROPERTIES_PATH . $propertyId . '/';
+    
+    // Log directory creation attempt
+    error_log("Creating property folder: {$propertyFolder}");
+    error_log("UPLOAD_PROPERTIES_PATH: " . UPLOAD_PROPERTIES_PATH);
+    error_log("Property ID: {$propertyId}");
+    
+    // Ensure base properties directory exists first
+    if (!is_dir(UPLOAD_PROPERTIES_PATH)) {
+        error_log("Base properties directory does not exist, creating: " . UPLOAD_PROPERTIES_PATH);
+        if (!@mkdir(UPLOAD_PROPERTIES_PATH, 0755, true)) {
+            error_log("Failed to create base properties directory: " . UPLOAD_PROPERTIES_PATH);
+        }
+    }
+    
     if (!FileHelper::createDirectory($propertyFolder)) {
         error_log("Failed to create property folder: {$propertyFolder}");
+        error_log("Base directory exists: " . (is_dir(UPLOAD_PROPERTIES_PATH) ? 'YES' : 'NO'));
+        error_log("Base directory writable: " . (is_writable(UPLOAD_PROPERTIES_PATH) ? 'YES' : 'NO'));
         FileHelper::deleteFile($tempPath);
         http_response_code(500);
         echo json_encode(['status' => 'error', 'message' => 'Failed to create property folder']);
         exit;
     }
     
+    error_log("Property folder created/verified: {$propertyFolder}");
+    
     $finalPath = $propertyFolder . $uniqueFilename;
+    
+    // Log the paths for debugging
+    error_log("Image save paths:");
+    error_log("  Property folder: {$propertyFolder}");
+    error_log("  Final path: {$finalPath}");
+    error_log("  Temp path: {$tempPath}");
+    error_log("  File exists (temp): " . (file_exists($tempPath) ? 'YES' : 'NO'));
+    
     if (!FileHelper::moveFile($tempPath, $finalPath)) {
         error_log("Failed to move file to property folder");
+        error_log("  Source exists: " . (file_exists($tempPath) ? 'YES' : 'NO'));
+        error_log("  Destination folder exists: " . (is_dir($propertyFolder) ? 'YES' : 'NO'));
+        error_log("  Destination folder writable: " . (is_writable($propertyFolder) ? 'YES' : 'NO'));
         FileHelper::deleteFile($tempPath);
         http_response_code(500);
         echo json_encode(['status' => 'error', 'message' => 'Failed to save image']);
         exit;
     }
     
+    // Verify file was saved
+    if (!file_exists($finalPath)) {
+        error_log("CRITICAL: File move reported success but file not found at: {$finalPath}");
+        FileHelper::deleteFile($tempPath);
+        http_response_code(500);
+        echo json_encode(['status' => 'error', 'message' => 'Image file was not saved correctly']);
+        exit;
+    }
+    
+    error_log("Image successfully saved to: {$finalPath}");
+    error_log("File size: " . filesize($finalPath) . " bytes");
+    
     // Add watermark
     try {
         if (!WatermarkService::addWatermark($finalPath)) {
             error_log("Failed to add watermark to image: {$finalPath}");
             // Continue even if watermark fails - image is still valid
+        } else {
+            error_log("Watermark added successfully");
         }
     } catch (Exception $e) {
         error_log("Watermark error: " . $e->getMessage());
@@ -604,8 +647,17 @@ try {
     // Step 14: Move to Properties Folder (already done above)
     
     // Step 15: Save to Database
+    // Calculate relative path from uploads folder
     $relativePath = 'properties/' . $propertyId . '/' . $uniqueFilename;
+    
+    // Build full URL - ensure it's accessible
+    // BASE_URL is already set to include /backend, so we need /uploads/...
     $imageUrl = BASE_URL . '/uploads/' . $relativePath;
+    
+    // Log the URL being returned
+    error_log("Image URL being returned: {$imageUrl}");
+    error_log("Relative path: {$relativePath}");
+    error_log("BASE_URL: " . (defined('BASE_URL') ? BASE_URL : 'NOT DEFINED'));
     
     $apisUsed = ['google_vision'];
     $confidenceScores = [
@@ -643,13 +695,19 @@ try {
         $imageId = $db->lastInsertId();
         
         // Step 16: Return Success
+        // Verify the URL is correct before returning
+        error_log("Final image URL: {$imageUrl}");
+        error_log("Image ID: {$imageId}");
+        error_log("Relative path: {$relativePath}");
+        
         http_response_code(200);
         echo json_encode([
             'status' => 'success',
             'message' => 'Image approved',
             'data' => [
                 'image_id' => $imageId,
-                'image_url' => $imageUrl,
+                'image_url' => $imageUrl, // Full URL: https://demo1.indiapropertys.com/backend/uploads/properties/74/img.webp
+                'relative_path' => $relativePath, // For reference: properties/74/img.webp
                 'filename' => $uniqueFilename,
                 'moderation_status' => 'SAFE'
             ]

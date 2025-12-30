@@ -176,38 +176,68 @@ try {
         if (isset($input['images'])) {
             if (!is_array($input['images'])) {
                 error_log('Update property - Images field is not an array: ' . gettype($input['images']));
+                error_log('Update property - Images value: ' . print_r($input['images'], true));
                 sendError('Images must be an array', null, 400);
             }
+            
+            error_log('Update property - Processing ' . count($input['images']) . ' images');
             
             // Delete existing images
             $stmt = $db->prepare("DELETE FROM property_images WHERE property_id = ?");
             $stmt->execute([$propertyId]);
+            error_log('Update property - Deleted existing images');
             
             // Insert new images (only if array is not empty)
             if (count($input['images']) > 0) {
                 $stmt = $db->prepare("INSERT INTO property_images (property_id, image_url, image_order, file_name, file_path, moderation_status, checked_at) VALUES (?, ?, ?, ?, ?, 'SAFE', NOW())");
+                $insertedCount = 0;
                 foreach ($input['images'] as $index => $imageUrl) {
                     if (!empty($imageUrl) && is_string($imageUrl)) {
                         // Extract filename from URL
-                        $filename = basename(parse_url($imageUrl, PHP_URL_PATH));
-                        $relativePath = str_replace(BASE_URL . '/uploads/', '', $imageUrl);
+                        $parsedUrl = parse_url($imageUrl);
+                        $path = $parsedUrl['path'] ?? $imageUrl;
+                        $filename = basename($path);
+                        
+                        // Calculate relative path
+                        // Remove BASE_URL and /uploads/ prefix if present
+                        $relativePath = $imageUrl;
+                        if (defined('BASE_URL')) {
+                            $baseUrlPattern = preg_quote(BASE_URL, '/');
+                            $relativePath = preg_replace('/^' . $baseUrlPattern . '\/uploads\//', '', $imageUrl);
+                        }
+                        // Also handle if it starts with /uploads/
+                        if (strpos($relativePath, '/uploads/') === 0) {
+                            $relativePath = substr($relativePath, 9); // Remove '/uploads/' prefix
+                        }
+                        // Also handle if it starts with 'uploads/'
                         if (strpos($relativePath, 'uploads/') === 0) {
                             $relativePath = substr($relativePath, 8); // Remove 'uploads/' prefix
                         }
                         
-                        $stmt->execute([
-                            $propertyId, 
-                            $imageUrl, 
-                            $index,
-                            $filename,
-                            $relativePath
-                        ]);
+                        error_log("Update property - Image {$index}: URL={$imageUrl}, filename={$filename}, relative={$relativePath}");
+                        
+                        try {
+                            $stmt->execute([
+                                $propertyId, 
+                                $imageUrl, // Store full URL
+                                $index,
+                                $filename,
+                                $relativePath
+                            ]);
+                            $insertedCount++;
+                        } catch (PDOException $e) {
+                            error_log("Update property - Failed to insert image {$index}: " . $e->getMessage());
+                        }
+                    } else {
+                        error_log("Update property - Skipping invalid image at index {$index}: " . gettype($imageUrl));
                     }
                 }
-                error_log('Update property - Inserted ' . count($input['images']) . ' images');
+                error_log("Update property - Successfully inserted {$insertedCount} of " . count($input['images']) . " images");
             } else {
                 error_log('Update property - Images array is empty, all images removed');
             }
+        } else {
+            error_log('Update property - No images field in input, keeping existing images');
         }
         
         // Update amenities if provided
@@ -240,10 +270,34 @@ try {
         $property = $stmt->fetch();
         
         if ($property) {
-            $property['images'] = $property['images'] ? explode(',', $property['images']) : [];
+            // Format images - ensure full URLs
+            if ($property['images']) {
+                $imageArray = explode(',', $property['images']);
+                $property['images'] = array_map(function($img) {
+                    $img = trim($img);
+                    // If already a full URL, return as is
+                    if (strpos($img, 'http://') === 0 || strpos($img, 'https://') === 0) {
+                        return $img;
+                    }
+                    // If relative path, make it full URL
+                    if (defined('BASE_URL')) {
+                        if (strpos($img, '/uploads/') === 0) {
+                            return BASE_URL . $img;
+                        }
+                        if (strpos($img, 'uploads/') === 0) {
+                            return BASE_URL . '/' . $img;
+                        }
+                        return BASE_URL . '/uploads/' . $img;
+                    }
+                    return $img;
+                }, $imageArray);
+            } else {
+                $property['images'] = [];
+            }
             $property['amenities'] = $property['amenities'] ? explode(',', $property['amenities']) : [];
         }
         
+        error_log("Update property - Success! Property ID: {$propertyId}");
         sendSuccess('Property updated successfully', ['property' => $property]);
         
     } catch (Exception $e) {

@@ -96,7 +96,28 @@ try {
     foreach ($properties as &$property) {
         // Handle images
         if ($hasImagesTable && isset($property['images']) && !empty($property['images'])) {
-            $property['images'] = explode(',', $property['images']);
+            $imageArray = explode(',', $property['images']);
+            // Ensure all image URLs are full URLs (not relative paths)
+            $property['images'] = array_map(function($img) {
+                $img = trim($img);
+                // If already a full URL, return as is
+                if (strpos($img, 'http://') === 0 || strpos($img, 'https://') === 0) {
+                    return $img;
+                }
+                // If relative path, make it full URL
+                if (defined('BASE_URL')) {
+                    // Remove /uploads/ prefix if present
+                    if (strpos($img, '/uploads/') === 0) {
+                        return BASE_URL . $img;
+                    }
+                    if (strpos($img, 'uploads/') === 0) {
+                        return BASE_URL . '/' . $img;
+                    }
+                    // Assume it's relative to uploads
+                    return BASE_URL . '/uploads/' . $img;
+                }
+                return $img;
+            }, $imageArray);
         } else {
             // Use cover_image as single image
             $property['images'] = !empty($property['cover_image']) ? [$property['cover_image']] : [];
