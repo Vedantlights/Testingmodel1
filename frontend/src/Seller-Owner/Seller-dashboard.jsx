@@ -28,9 +28,9 @@ const SellerDashboardContent = () => {
   const [showUserMenu, setShowUserMenu] = useState(false);
   const [imageError, setImageError] = useState(false);
   const userMenuRef = useRef(null);
-  const previousPathnameRef = useRef(location.pathname);
   const navigate = useNavigate();
   const location = useLocation();
+  const previousPathnameRef = useRef(location.pathname);
 
   // Get inquiries from PropertyContext - this is already dynamic and updates when inquiries change
   const { inquiries } = useProperty();
