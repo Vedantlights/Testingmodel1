@@ -10,6 +10,8 @@ import SellerProfile from './Components/SellerProfile';
 import Subscription from './Components/PlainTimerPage';
 // Use buyer's ViewDetailsPage for all property details (same layout for buyers and sellers)
 import ViewDetailsPage from '../UserDashboard/pages/ViewDetailsPage';
+import SellerFooter from './components/SellerFooter';
+import BuyerContactPage from '../UserDashboard/pages/BuyerContactPage';
 
 import { PropertyProvider, useProperty } from './Components/PropertyContext';
 import { sellerDashboardAPI } from '../services/api.service';
@@ -57,6 +59,8 @@ const SellerDashboardContent = () => {
       setActiveTab('profile');
     } else if (location.pathname.includes('/subscription') || location.pathname === '/seller-dashboard/subscription') {
       setActiveTab('subscription');
+    } else if (location.pathname.includes('/support') || location.pathname === '/seller-dashboard/support') {
+      setActiveTab('support');
     } else if (location.pathname === '/seller-dashboard' || location.pathname === '/seller-dashboard/') {
       setActiveTab('overview');
     }
@@ -187,6 +191,8 @@ const SellerDashboardContent = () => {
       navigate('/seller-dashboard/profile');
     } else if (tab === 'subscription') {
       navigate('/seller-dashboard/subscription');
+    } else if (tab === 'support') {
+      navigate('/seller-dashboard/support');
     }
   };
 
@@ -217,6 +223,9 @@ const SellerDashboardContent = () => {
       case 'subscription':
         console.log('💳 Rendering Subscription');
         return <Subscription />;
+      case 'support':
+        console.log('📞 Rendering Support/Contact');
+        return <BuyerContactPage />;
       default:
         console.log('📊 Rendering SellerOverview (default)');
         return <SellerOverview onNavigate={handleTabChange} />;
@@ -256,6 +265,13 @@ const SellerDashboardContent = () => {
         <path d="M6 15h4" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
         <path d="M14 15h4" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
       </svg>
+    )},
+    { id: 'support', label: 'Support', icon: (
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+        <path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+        <path d="M13 7H7" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+        <path d="M17 11H7" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+      </svg>
     )}
   ];
 
@@ -282,7 +298,7 @@ const SellerDashboardContent = () => {
             title="Go to Dashboard"
           >
             <div className="logo-icon-wrapper">
-            <img src='/Media/logo.png' alt='logo'/>
+            <img src='/logo.png' alt='logo'/>
             </div>
           </div>
         </div>
@@ -464,6 +480,9 @@ const SellerDashboardContent = () => {
           {renderContent()}
         </div>
       </main>
+
+      {/* Footer */}
+      <SellerFooter />
     </div>
   );
 };

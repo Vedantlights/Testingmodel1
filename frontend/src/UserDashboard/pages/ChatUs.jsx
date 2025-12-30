@@ -590,19 +590,17 @@ const ChatUs = () => {
     };
   }, [selectedChatRoomId, chatIdFromUrl, user, selectedOwner]);
 
-  const handleSendMessage = async (e) => {
-    e.preventDefault();
-    
-    if (inputMessage.trim() === '' || !user) {
+  // Core function to send a message - can be called with any message text
+  const sendMessageCore = async (messageText) => {
+    if (!messageText || !messageText.trim() || !user) {
       console.error('Cannot send message - missing data:', { 
         user: !!user, 
-        message: inputMessage.trim() 
+        message: messageText?.trim() 
       });
       return;
     }
 
-    const messageText = inputMessage.trim();
-    setInputMessage(''); // Clear input immediately for better UX
+    const trimmedMessage = messageText.trim();
 
     try {
       // Resolve receiver and propertyId STRICTLY from property data
@@ -701,7 +699,7 @@ const ChatUs = () => {
         finalChatRoomId,
         user.id,
         user.user_type,
-        messageText
+        trimmedMessage
       );
       console.log('✅ Message sent successfully');
       
@@ -712,7 +710,7 @@ const ChatUs = () => {
           if (owner.chatRoomId === finalChatRoomId) {
             return {
               ...owner,
-              lastMessage: messageText,
+              lastMessage: trimmedMessage,
               lastMessageTime: formatMessageTime(now)
             };
           }
@@ -724,7 +722,7 @@ const ChatUs = () => {
           const newOwner = {
             ...selectedOwner,
             chatRoomId: finalChatRoomId,
-            lastMessage: messageText,
+            lastMessage: trimmedMessage,
             lastMessageTime: formatMessageTime(now)
           };
           // Add to beginning of list (most recent)
@@ -737,10 +735,31 @@ const ChatUs = () => {
       // Message will also be added via real-time listener
     } catch (error) {
       console.error('Error sending message:', error);
-      // Restore message on error
-      setInputMessage(messageText);
       const errorMessage = error.message || 'Failed to send message. Please try again.';
       alert(errorMessage);
+      throw error; // Re-throw to allow caller to handle
+    }
+  };
+
+  const handleSendMessage = async (e) => {
+    e.preventDefault();
+    
+    if (inputMessage.trim() === '' || !user) {
+      console.error('Cannot send message - missing data:', { 
+        user: !!user, 
+        message: inputMessage.trim() 
+      });
+      return;
+    }
+
+    const messageText = inputMessage.trim();
+    setInputMessage(''); // Clear input immediately for better UX
+
+    try {
+      await sendMessageCore(messageText);
+    } catch (error) {
+      // Restore message on error
+      setInputMessage(messageText);
     }
   };
 
@@ -751,8 +770,15 @@ const ChatUs = () => {
     "Can we negotiate price?"
   ];
 
-  const handleQuickReply = (reply) => {
-    setInputMessage(reply);
+  const handleQuickReply = async (reply) => {
+    if (!reply || !reply.trim()) return;
+    
+    // Directly send the reply message without setting inputMessage
+    try {
+      await sendMessageCore(reply.trim());
+    } catch (error) {
+      console.error('Error sending quick reply:', error);
+    }
   };
 
   return (

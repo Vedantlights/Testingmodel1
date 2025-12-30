@@ -584,12 +584,12 @@ const BuyerProfile = () => {
                           const date = new Date(user.created_at);
                           const month = date.toLocaleDateString('en-US', { month: 'long' });
                           const year = date.getFullYear();
-                          return `${month} ${year}`;
+                          return `Member since ${month} ${year}`;
                         } catch (error) {
-                          return 'Recently';
+                          return 'Member since recently';
                         }
                       })()
-                    : 'Recently'}
+                    : 'Member since recently'}
                 </span>
               </div>
             </div>

@@ -20,7 +20,6 @@ const SearchBar = () => {
     'Apartment',
     'Studio Apartment',
     'Villa / Row House / Bungalow / Farm House',
-    'Row House',
     'Penthouse',
     'Plot / Land / Industrial Property',
     'Commercial Office',
@@ -34,7 +33,6 @@ const SearchBar = () => {
     'Apartment',
     'Studio Apartment',
     'Villa / Row House / Bungalow / Farm House',
-    'Row House',
     'Penthouse',
     'PG / Hostel'
   ];
@@ -112,7 +110,6 @@ const SearchBar = () => {
       'Apartment': saleResidentialBudget,
       'Studio Apartment': saleResidentialBudget,
       'Villa / Row House / Bungalow / Farm House': saleResidentialBudget,
-      'Row House': saleResidentialBudget,
       'Penthouse': saleResidentialBudget,
       'PG / Hostel': rentResidentialBudget,
       'Plot / Land / Industrial Property': commercialBudget,
