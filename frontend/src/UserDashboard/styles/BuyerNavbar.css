@@ -12,7 +12,7 @@
   /* CRITICAL: Use will-change for GPU acceleration, remove transition to prevent reflows */
   will-change: transform;
   /* Removed backdrop-filter for better performance */
-  height: 90px; /* FIXED HEIGHT - must match buyer-navbar-content height */
+  height: 8rem; /* FIXED HEIGHT - must match buyer-navbar-content height */
   border-bottom-left-radius: 10px;
   border-bottom-right-radius: 10px;
   width: 100%;
@@ -22,7 +22,7 @@
   background: #022b5f;
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
   /* CRITICAL: Height stays exactly the same - no size change to prevent layout shift */
-  height: 90px; /* Must match base height */
+  height: 8rem; /* Must match base height */
 }
 
 .buyer-navbar-container {
