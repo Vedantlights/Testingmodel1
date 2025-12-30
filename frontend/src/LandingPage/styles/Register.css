@@ -43,6 +43,7 @@
   display: flex;
   flex-direction: column;
   overflow: hidden;
+  min-height: 0;
 }
 
 .card:hover {
@@ -298,6 +299,7 @@
   overflow-x: hidden;
   flex: 1;
   min-height: 0;
+  padding-bottom: 20px;
   /* Hide scrollbar but keep scrolling functionality */
   scrollbar-width: none; /* Firefox */
   -ms-overflow-style: none; /* IE and Edge */
@@ -523,10 +525,13 @@
   background: linear-gradient(to right, #7b5fc9, #667eea);
   cursor: pointer;
   margin-top: 8px;
+  margin-bottom: 8px;
   box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   position: relative;
-  overflow: hidden;
+  overflow: visible;
+  flex-shrink: 0;
+  z-index: 10;
 }
 
 .register-btn::before {
@@ -568,7 +573,9 @@
   font-size: 14px;
   color: #ffffff;
   margin-top: 8px;
+  margin-bottom: 8px;
   text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+  flex-shrink: 0;
 }
 
 .login-link button,
@@ -620,6 +627,21 @@
   .card {
     padding: 24px;
     max-height: calc(100vh - 32px);
+    min-height: 0;
+  }
+
+  .form {
+    padding-bottom: 16px;
+  }
+
+  .register-btn {
+    padding: 14px;
+    font-size: 15px;
+    margin-bottom: 12px;
+  }
+
+  .login-link {
+    margin-bottom: 12px;
   }
 
   .user-type-toggle {
