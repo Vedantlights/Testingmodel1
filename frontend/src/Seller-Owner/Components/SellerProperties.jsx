@@ -1,9 +1,10 @@
 // src/pages/SellerProperties.jsx
-import React, { useState } from "react";
+import React, { useState, useMemo, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { useProperty } from "./PropertyContext";
 import AddPropertyPopup from "./AddPropertyPopup";
 import DeletePropertyModal from "../../components/DeletePropertyModal/DeletePropertyModal";
+import { API_BASE_URL } from "../../config/api.config";
 import "../styles/SellerProperties.css";
 
 const MAX_PROPERTIES = 3;
@@ -20,49 +21,51 @@ const SellerProperties = () => {
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
   const [propertyToDelete, setPropertyToDelete] = useState(null);
 
-  // Filter and sort properties
-  const filteredProperties = properties
-    .filter(p => {
-      const matchesStatus = filterStatus === 'all' || p.status === filterStatus;
-      const matchesSearch = p.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                           p.location.toLowerCase().includes(searchTerm.toLowerCase());
-      return matchesStatus && matchesSearch;
-    })
-    .sort((a, b) => {
-      switch (sortBy) {
-        case 'newest':
-          return new Date(b.createdAt) - new Date(a.createdAt);
-        case 'oldest':
-          return new Date(a.createdAt) - new Date(b.createdAt);
-        case 'price-high':
-          return parseFloat(b.price) - parseFloat(a.price);
-        case 'price-low':
-          return parseFloat(a.price) - parseFloat(b.price);
-        default:
-          return 0;
-      }
-    });
+  // Filter and sort properties - memoized for performance
+  const filteredProperties = useMemo(() => {
+    return properties
+      .filter(p => {
+        const matchesStatus = filterStatus === 'all' || p.status === filterStatus;
+        const matchesSearch = p.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                             p.location.toLowerCase().includes(searchTerm.toLowerCase());
+        return matchesStatus && matchesSearch;
+      })
+      .sort((a, b) => {
+        switch (sortBy) {
+          case 'newest':
+            return new Date(b.createdAt) - new Date(a.createdAt);
+          case 'oldest':
+            return new Date(a.createdAt) - new Date(b.createdAt);
+          case 'price-high':
+            return parseFloat(b.price) - parseFloat(a.price);
+          case 'price-low':
+            return parseFloat(a.price) - parseFloat(b.price);
+          default:
+            return 0;
+        }
+      });
+  }, [properties, filterStatus, searchTerm, sortBy]);
 
-  const openNew = () => {
+  const openNew = useCallback(() => {
     if (properties.length >= MAX_PROPERTIES) {
       alert(`You can add maximum ${MAX_PROPERTIES} properties.`);
       return;
     }
     setEditIndex(null);
     setShowForm(true);
-  };
+  }, [properties.length]);
 
-  const openEdit = (idx) => {
+  const openEdit = useCallback((idx) => {
     setEditIndex(idx);
     setShowForm(true);
-  };
+  }, []);
 
-  const handleDeleteClick = (id) => {
+  const handleDeleteClick = useCallback((id) => {
     setPropertyToDelete(id);
     setDeleteModalOpen(true);
-  };
+  }, []);
 
-  const handleDeleteConfirm = async () => {
+  const handleDeleteConfirm = useCallback(async () => {
     if (!propertyToDelete) return;
     try {
       await deleteProperty(propertyToDelete);
@@ -71,18 +74,18 @@ const SellerProperties = () => {
       console.error('Error deleting property:', error);
       alert('Failed to delete property. Please try again.');
     }
-  };
+  }, [propertyToDelete, deleteProperty]);
 
-  const handleViewDetails = (propertyId) => {
+  const handleViewDetails = useCallback((propertyId) => {
     console.log('Navigating to property:', propertyId);
     // Navigate to seller dashboard details route to keep seller navbar - open in new tab
     const path = `/seller-dashboard/details/${propertyId}`;
     console.log('Navigation path:', path);
     window.open(path, '_blank', 'noopener,noreferrer');
-  };
+  }, []);
 
   // Helper function to check if property is older than 24 hours
-  const isPropertyOlderThan24Hours = (property) => {
+  const isPropertyOlderThan24Hours = useCallback((property) => {
     if (!property || !property.createdAt) {
       return false; // If no timestamp, assume it's new (backward compatibility)
     }
@@ -92,9 +95,9 @@ const SellerProperties = () => {
     const hoursSinceCreation = (now.getTime() - createdAt.getTime()) / (1000 * 60 * 60);
     
     return hoursSinceCreation >= 24;
-  };
+  }, []);
 
-  const formatPrice = (price) => {
+  const formatPrice = useCallback((price) => {
     const num = parseFloat(price);
     if (num >= 10000000) {
       return `₹${(num / 10000000).toFixed(2)} Cr`;
@@ -104,11 +107,11 @@ const SellerProperties = () => {
       return `₹${(num / 1000).toFixed(1)}K`;
     }
     return `₹${num}`;
-  };
+  }, []);
 
-  const getPropertyIndex = (propertyId) => {
+  const getPropertyIndex = useCallback((propertyId) => {
     return properties.findIndex(p => p.id === propertyId);
-  };
+  }, [properties]);
 
   return (
     <div className="seller-properties">
@@ -218,7 +221,23 @@ const SellerProperties = () => {
               style={{ animationDelay: `${index * 0.05}s` }}
             >
               <div className="seller-props-image">
-                <img src={property.images?.[0]} alt={property.title} />
+                <img 
+                  src={(() => {
+                    const imageUrl = property.images?.[0] || property.cover_image;
+                    if (!imageUrl) return 'https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?w=500';
+                    if (imageUrl.startsWith('http://') || imageUrl.startsWith('https://')) {
+                      return imageUrl;
+                    }
+                    if (imageUrl.startsWith('/')) {
+                      return `${API_BASE_URL.replace('/api', '')}${imageUrl}`;
+                    }
+                    return `${API_BASE_URL.replace('/api', '')}/uploads/${imageUrl}`;
+                  })()} 
+                  alt={property.title} 
+                  onError={(e) => {
+                    e.target.src = 'https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?w=500';
+                  }}
+                />
                 <div className="seller-props-image-overlay">
                   <button className="seller-props-overlay-btn" onClick={() => openEdit(getPropertyIndex(property.id))}>
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none">

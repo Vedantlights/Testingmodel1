@@ -1110,7 +1110,33 @@ newErrors.description = "Description is required";
         // Editing existing property
         const propertyId = properties[editIndex]?.id;
         if (propertyId) {
-          await updateProperty(propertyId, formData);
+          // Prepare update data - filter out blob URLs and ensure images are URLs
+          const updateData = { ...formData };
+          
+          // Filter images to only include valid URLs (not blob URLs)
+          if (updateData.images && Array.isArray(updateData.images)) {
+            updateData.images = updateData.images
+              .filter(img => typeof img === 'string' && !img.startsWith('blob:'))
+              .map(img => {
+                // If image is already a full URL, use it; otherwise ensure it's a valid path
+                if (img.startsWith('http://') || img.startsWith('https://')) {
+                  return img;
+                }
+                // If it's a relative path, make it absolute
+                if (img.startsWith('/')) {
+                  return img;
+                }
+                return img;
+              });
+          }
+          
+          console.log('Updating property with data:', {
+            propertyId,
+            images: updateData.images,
+            imageCount: updateData.images?.length || 0
+          });
+          
+          await updateProperty(propertyId, updateData);
           alert('Property updated successfully!');
         }
       }
@@ -1854,18 +1880,21 @@ newErrors.description = "Description is required";
                     </div>
                   )}
                   
-                  {/* Remove Button (only show when not checking) */}
+                  {/* Remove Button - ALWAYS visible (except when checking) */}
                   {validationStatus.status !== 'checking' && (
                     <button
                       type="button"
-                      className="remove-btn"
+                      className="remove-image-btn"
                       onClick={() => !isRestrictedEdit && removeImage(idx)}
                       disabled={isRestrictedEdit}
-                      style={{ opacity: isRestrictedEdit ? 0.5 : 1, cursor: isRestrictedEdit ? 'not-allowed' : 'pointer' }}
+                      title="Remove image"
+                      style={{ 
+                        opacity: isRestrictedEdit ? 0.5 : 1, 
+                        cursor: isRestrictedEdit ? 'not-allowed' : 'pointer',
+                        zIndex: 20
+                      }}
                     >
-                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
-                        <path d="M18 6L6 18M6 6l12 12" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
-                      </svg>
+                      ✕
                     </button>
                   )}
                 </div>

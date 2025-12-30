@@ -678,25 +678,39 @@
   border-radius: 4px;
 }
 
-.remove-btn {
+.remove-btn,
+.remove-image-btn {
   position: absolute;
-  top: 6px;
-  right: 6px;
+  top: 5px;
+  right: 5px;
   width: 24px;
   height: 24px;
   border-radius: 50%;
   border: none;
-  background: rgba(0, 0, 0, 0.6);
+  background: rgba(255, 0, 0, 0.8);
   color: white;
   cursor: pointer;
+  font-size: 14px;
+  font-weight: bold;
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: background var(--transition-fast);
+  transition: all var(--transition-fast);
+  z-index: 20;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
 }
 
-.remove-btn:hover {
-  background: var(--danger-color);
+.remove-btn:hover,
+.remove-image-btn:hover {
+  background: rgba(255, 0, 0, 1);
+  transform: scale(1.1);
+}
+
+.remove-btn:disabled,
+.remove-image-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  background: rgba(128, 128, 128, 0.6);
 }
 
 /* Image Validation Status Styles */

@@ -49,7 +49,32 @@ try {
     $isOlderThan24Hours = $hoursSinceCreation >= 24;
     
     // Get input data
-    $input = json_decode(file_get_contents('php://input'), true);
+    $rawInput = file_get_contents('php://input');
+    $input = json_decode($rawInput, true);
+    
+    // Debug logging
+    error_log('Update property request - Property ID: ' . $propertyId);
+    error_log('Update property request - Raw input length: ' . strlen($rawInput));
+    error_log('Update property request - Input keys: ' . (is_array($input) ? implode(', ', array_keys($input)) : 'NOT ARRAY'));
+    
+    if (isset($input['images'])) {
+        error_log('Update property - Images received: ' . (is_array($input['images']) ? count($input['images']) . ' images' : 'NOT ARRAY'));
+        if (is_array($input['images'])) {
+            error_log('Update property - First image: ' . (isset($input['images'][0]) ? substr($input['images'][0], 0, 100) : 'NONE'));
+        }
+    } else {
+        error_log('Update property - No images field in input');
+    }
+    
+    if (json_last_error() !== JSON_ERROR_NONE) {
+        error_log('Update property - JSON decode error: ' . json_last_error_msg());
+        sendError('Invalid JSON in request body: ' . json_last_error_msg(), null, 400);
+    }
+    
+    if (!is_array($input)) {
+        error_log('Update property - Input is not an array after JSON decode');
+        sendError('Invalid request data format', null, 400);
+    }
     
     // If property is older than 24 hours, only allow price and title to be updated
     // Location-related fields (location, latitude, longitude, state, additional_address) are also restricted
@@ -148,15 +173,40 @@ try {
         $stmt->execute($params);
         
         // Update images if provided
-        if (isset($input['images']) && is_array($input['images'])) {
+        if (isset($input['images'])) {
+            if (!is_array($input['images'])) {
+                error_log('Update property - Images field is not an array: ' . gettype($input['images']));
+                sendError('Images must be an array', null, 400);
+            }
+            
             // Delete existing images
             $stmt = $db->prepare("DELETE FROM property_images WHERE property_id = ?");
             $stmt->execute([$propertyId]);
             
-            // Insert new images
-            $stmt = $db->prepare("INSERT INTO property_images (property_id, image_url, image_order) VALUES (?, ?, ?)");
-            foreach ($input['images'] as $index => $imageUrl) {
-                $stmt->execute([$propertyId, $imageUrl, $index]);
+            // Insert new images (only if array is not empty)
+            if (count($input['images']) > 0) {
+                $stmt = $db->prepare("INSERT INTO property_images (property_id, image_url, image_order, file_name, file_path, moderation_status, checked_at) VALUES (?, ?, ?, ?, ?, 'SAFE', NOW())");
+                foreach ($input['images'] as $index => $imageUrl) {
+                    if (!empty($imageUrl) && is_string($imageUrl)) {
+                        // Extract filename from URL
+                        $filename = basename(parse_url($imageUrl, PHP_URL_PATH));
+                        $relativePath = str_replace(BASE_URL . '/uploads/', '', $imageUrl);
+                        if (strpos($relativePath, 'uploads/') === 0) {
+                            $relativePath = substr($relativePath, 8); // Remove 'uploads/' prefix
+                        }
+                        
+                        $stmt->execute([
+                            $propertyId, 
+                            $imageUrl, 
+                            $index,
+                            $filename,
+                            $relativePath
+                        ]);
+                    }
+                }
+                error_log('Update property - Inserted ' . count($input['images']) . ' images');
+            } else {
+                error_log('Update property - Images array is empty, all images removed');
             }
         }
         
