@@ -49,6 +49,8 @@
   flex-direction: column;
   max-height: calc(100vh - 4rem);
   animation: slideUp 0.3s ease;
+  position: relative;
+  z-index: 2001; /* Above overlay */
 }
 
 @keyframes slideUp { from { opacity: 0; transform: translateY(20px);} to { opacity: 1; transform: translateY(0);} }
@@ -163,7 +165,13 @@
 }
 
 /* body */
-.popup-body { flex:1; overflow-y:auto; padding:2rem; position: relative; }
+.popup-body { 
+  flex:1; 
+  overflow-y:auto; 
+  padding:2rem; 
+  position: relative; 
+  z-index: 1; /* Lower than location dropdown */
+}
 .step-content { animation:fadeInUp 0.3s ease; }
 @keyframes fadeInUp { from { opacity:0; transform:translateY(10px);} to { opacity:1; transform:translateY(0);} }
 .step-heading { font-size:1.35rem; font-weight:700; color:var(--text-primary); margin-bottom:0.5rem; }
@@ -172,6 +180,10 @@
 /* form elements */
 .form-group { margin-bottom:1.25rem; }
 .form-group label { display:block; font-size:0.9rem; font-weight:600; color:var(--text-primary); margin-bottom:0.5rem; }
+
+/* Map location form group - separate styling */
+.form-group-map { margin-bottom:1.25rem; }
+.form-group-map label { display:block; font-size:0.9rem; font-weight:600; color:var(--text-primary); margin-bottom:0.5rem; }
 .required { color:var(--danger-color); }
 .form-group input, .form-group select, .form-group textarea { width:100%; padding:0.875rem 1rem; border:2px solid var(--border-color); border-radius:var(--radius-md); font-size:0.95rem; color:var(--text-primary); background:white; transition:all var(--transition-fast); outline:none; }
 .form-group input:focus, .form-group select:focus, .form-group textarea:focus { border-color:var(--accent-color); box-shadow:0 0 0 3px rgba(124,58,237,0.08); }
