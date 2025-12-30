@@ -7,6 +7,12 @@
 // Google Cloud Vision API Configuration
 define('GOOGLE_APPLICATION_CREDENTIALS', '/home/u449667423/domains/indiapropertys.com/Secure/indiapropertys-8fab286d41e4.json');
 
+// Validate credentials file exists
+if (!file_exists(GOOGLE_APPLICATION_CREDENTIALS)) {
+    error_log("CRITICAL: Google Vision credentials file not found at: " . GOOGLE_APPLICATION_CREDENTIALS);
+    error_log("Please verify the credentials file path is correct and the file exists.");
+}
+
 // Content Moderation Thresholds (0.0 to 1.0)
 // Standardized SafeSearch thresholds
 define('MODERATION_ADULT_THRESHOLD', 0.6);

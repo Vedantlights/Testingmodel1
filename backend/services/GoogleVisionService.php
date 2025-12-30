@@ -94,64 +94,71 @@ class GoogleVisionService {
             $request->setImage($image);
             $request->setFeatures($features);
             
-            // Perform annotation (v2.x may return batch response)
-            $batchResponse = $this->client->annotateImage($request);
+            // Perform annotation using batchAnnotateImages (v2.x standard method)
+            $batchResponse = $this->client->batchAnnotateImages([$request]);
             
-            // Handle response - v2.x may return BatchAnnotateImagesResponse
-            // If it's a batch response, get the first response
-            if (method_exists($batchResponse, 'getResponses')) {
-                $responses = $batchResponse->getResponses();
-                if (empty($responses)) {
-                    throw new Exception("No responses from Vision API");
-                }
-                $response = $responses[0];
-            } else {
-                // Single response (v1.x style)
-                $response = $batchResponse;
+            // Get response from batch
+            $responses = $batchResponse->getResponses();
+            if (empty($responses)) {
+                throw new Exception("No response from Google Vision API");
+            }
+            $response = $responses[0];
+            
+            // Check for errors in response
+            if (method_exists($response, 'hasError') && $response->hasError()) {
+                $error = $response->getError();
+                $errorMessage = method_exists($error, 'getMessage') ? $error->getMessage() : 'Unknown API error';
+                throw new Exception("API Error: " . $errorMessage);
             }
             
-            // Extract SafeSearch results
+            // Extract SafeSearch results with null checks
             $safeSearchAnnotation = $response->getSafeSearchAnnotation();
             $safesearchScores = [
-                'adult' => $this->likelihoodToScore($safeSearchAnnotation->getAdult()),
-                'racy' => $this->likelihoodToScore($safeSearchAnnotation->getRacy()),
-                'violence' => $this->likelihoodToScore($safeSearchAnnotation->getViolence()),
-                'medical' => $this->likelihoodToScore($safeSearchAnnotation->getMedical()),
-                'spoof' => $this->likelihoodToScore($safeSearchAnnotation->getSpoof())
+                'adult' => $safeSearchAnnotation ? $this->likelihoodToScore($safeSearchAnnotation->getAdult()) : 0,
+                'racy' => $safeSearchAnnotation ? $this->likelihoodToScore($safeSearchAnnotation->getRacy()) : 0,
+                'violence' => $safeSearchAnnotation ? $this->likelihoodToScore($safeSearchAnnotation->getViolence()) : 0,
+                'medical' => $safeSearchAnnotation ? $this->likelihoodToScore($safeSearchAnnotation->getMedical()) : 0,
+                'spoof' => $safeSearchAnnotation ? $this->likelihoodToScore($safeSearchAnnotation->getSpoof()) : 0
             ];
             
-            // Extract labels
+            // Extract labels with null checks
             $labels = [];
             $labelAnnotations = $response->getLabelAnnotations();
-            foreach ($labelAnnotations as $label) {
-                $labels[] = [
-                    'description' => $label->getDescription(),
-                    'score' => $label->getScore()
-                ];
+            if ($labelAnnotations) {
+                foreach ($labelAnnotations as $label) {
+                    $labels[] = [
+                        'description' => strtolower($label->getDescription()),
+                        'score' => $label->getScore()
+                    ];
+                }
             }
             
-            // Extract faces (CRITICAL for human detection)
+            // Extract faces (CRITICAL for human detection) with null checks
             $faces = [];
             $faceAnnotations = $response->getFaceAnnotations();
-            foreach ($faceAnnotations as $face) {
-                $faces[] = [
-                    'detection_confidence' => $face->getDetectionConfidence(),
-                    'landmarking_confidence' => $face->getLandmarkingConfidence(),
-                    'joy_likelihood' => $this->likelihoodToScore($face->getJoyLikelihood()),
-                    'sorrow_likelihood' => $this->likelihoodToScore($face->getSorrowLikelihood()),
-                    'anger_likelihood' => $this->likelihoodToScore($face->getAngerLikelihood()),
-                    'surprise_likelihood' => $this->likelihoodToScore($face->getSurpriseLikelihood())
-                ];
+            if ($faceAnnotations) {
+                foreach ($faceAnnotations as $face) {
+                    $faces[] = [
+                        'detection_confidence' => $face->getDetectionConfidence(),
+                        'landmarking_confidence' => $face->getLandmarkingConfidence(),
+                        'joy_likelihood' => $this->likelihoodToScore($face->getJoyLikelihood()),
+                        'sorrow_likelihood' => $this->likelihoodToScore($face->getSorrowLikelihood()),
+                        'anger_likelihood' => $this->likelihoodToScore($face->getAngerLikelihood()),
+                        'surprise_likelihood' => $this->likelihoodToScore($face->getSurpriseLikelihood())
+                    ];
+                }
             }
             
-            // Extract objects (CRITICAL for detecting "Person", "Dog", "Cat", etc.)
+            // Extract objects (CRITICAL for detecting "Person", "Dog", "Cat", etc.) with null checks
             $objects = [];
             $objectAnnotations = $response->getLocalizedObjectAnnotations();
-            foreach ($objectAnnotations as $object) {
-                $objects[] = [
-                    'name' => $object->getName(),
-                    'score' => $object->getScore()
-                ];
+            if ($objectAnnotations) {
+                foreach ($objectAnnotations as $object) {
+                    $objects[] = [
+                        'name' => strtolower($object->getName()),
+                        'score' => $object->getScore()
+                    ];
+                }
             }
             
             // Extract image properties
@@ -178,15 +185,15 @@ class GoogleVisionService {
                 ];
             }
             
-            // Get raw response as JSON
+            // Get raw response as JSON (with null checks)
             $rawResponse = json_encode([
-                'safesearch' => [
+                'safesearch' => $safeSearchAnnotation ? [
                     'adult' => $safeSearchAnnotation->getAdult(),
                     'racy' => $safeSearchAnnotation->getRacy(),
                     'violence' => $safeSearchAnnotation->getViolence(),
                     'medical' => $safeSearchAnnotation->getMedical(),
                     'spoof' => $safeSearchAnnotation->getSpoof()
-                ],
+                ] : null,
                 'labels' => $labels,
                 'faces' => $faces,
                 'objects' => $objects,
@@ -206,7 +213,41 @@ class GoogleVisionService {
             
         } catch (Exception $e) {
             error_log("GoogleVisionService::analyzeImage - Error: " . $e->getMessage());
+            error_log("Exception class: " . get_class($e));
+            error_log("File: " . $e->getFile() . " Line: " . $e->getLine());
             error_log("Stack trace: " . $e->getTraceAsString());
+            
+            if ($this->client) {
+                try {
+                    $this->client->close();
+                } catch (Exception $closeError) {
+                    error_log("Error closing client: " . $closeError->getMessage());
+                }
+            }
+            
+            return [
+                'success' => false,
+                'safesearch_scores' => [],
+                'labels' => [],
+                'faces' => [],
+                'objects' => [],
+                'image_properties' => [],
+                'raw_response' => null,
+                'error' => $e->getMessage()
+            ];
+        } catch (Error $e) {
+            error_log("GoogleVisionService::analyzeImage - Fatal Error: " . $e->getMessage());
+            error_log("Error class: " . get_class($e));
+            error_log("File: " . $e->getFile() . " Line: " . $e->getLine());
+            
+            if ($this->client) {
+                try {
+                    $this->client->close();
+                } catch (Exception $closeError) {
+                    error_log("Error closing client: " . $closeError->getMessage());
+                }
+            }
+            
             return [
                 'success' => false,
                 'safesearch_scores' => [],

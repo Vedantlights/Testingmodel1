@@ -1,11 +1,4 @@
 <?php
-ini_set('display_errors', 1);
-error_reporting(E_ALL);
-
-// Check credentials file
-$credPath = '/home/u123456789/Secure/indiapropertys-8fab286d41e4.json';
-error_log("Credentials file exists: " . (file_exists($credPath) ? 'YES' : 'NO'));
-error_log("Credentials file readable: " . (is_readable($credPath) ? 'YES' : 'NO'));
 /**
  * Image Moderation and Upload API
  * POST /api/images/moderate-and-upload.php
