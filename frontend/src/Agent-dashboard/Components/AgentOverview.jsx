@@ -348,7 +348,7 @@ const AgentOverview = ({ onNavigate }) => {
                   className="property-list-item" 
                   key={property.id}
                   style={{ animationDelay: `${index * 0.1}s`, cursor: 'pointer' }}
-                  onClick={() => window.open(`/details/${property.id}`, '_blank', 'noopener,noreferrer')}
+                  onClick={() => window.open(`/agent-dashboard/details/${property.id}`, '_blank', 'noopener,noreferrer')}
                 >
                   <div className="property-thumbnail">
                     <img src={property.images?.[0]} alt={property.title} />
