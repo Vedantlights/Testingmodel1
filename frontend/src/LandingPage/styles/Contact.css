@@ -4,7 +4,7 @@
   min-height: 100vh;
   background: linear-gradient(180deg, #f8f9fa 0%, #ffffff 50%, #f8f9fa 100%);
   position: relative;
-  overflow: visible; /* Don't create scroll context - let parent handle it */
+  overflow: visible; /* Don't create scroll context - let body handle scrolling */
   width: 100%;
   box-sizing: border-box;
 }
@@ -58,7 +58,7 @@
   padding-top: calc(8rem + 5rem); /* Account for fixed navbar (8rem) + original padding */
   position: relative;
   z-index: 1;
-  overflow: visible; /* Don't create scroll context - let parent handle it */
+  overflow: visible; /* Don't create scroll context - let body handle scrolling */
   width: 100%;
   box-sizing: border-box;
 }

@@ -11,18 +11,6 @@
   min-height: 550px;
 }
 
-/* Optional: Add overlay for better text readability */
-.buyer-buy-search-bar-banner::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: rgba(0, 0, 0, 0.7); /* Adjust opacity as needed */
-  z-index: 0;
-}
-
 /* Ensure content appears above overlay */
 .buyer-buy-search-bar-banner .buyer-search-bar-wrapper {
   position: relative;

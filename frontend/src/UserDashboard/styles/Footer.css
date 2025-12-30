@@ -22,7 +22,7 @@
   display: block;
   width: calc(100% + 1.3px);
   height: 60px;
-  fill: rgb(222, 220, 220);
+  fill: #ffffff;
 }
 
 .buyer-footer-container {
