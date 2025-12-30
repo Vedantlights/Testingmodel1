@@ -1,148 +1,62 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { FaArrowRight, FaPhone, FaTimes, FaUser, FaEnvelope, FaCheckCircle, FaCommentAlt, FaMapMarkerAlt } from 'react-icons/fa';
+import { propertiesAPI } from '../../services/api.service';
 import '../styles/UpcomingProjectCard.css';
 
-// --- EXPANDED MOCK DATA with Multiple Cities ---
-const projects = [
-    // PUNE Properties
-    {
-        id: 1,
-        image: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQrwhJLMPEoFagfU0bV3Ql_O05PJzFvbtV3cA&s',
-        title: 'Pristine Heights',
-        location: 'Baner, Pune',
-        city: 'Pune',
-        bhkType: '2, 3 BHK',
-        priceRange: '1.2 - 2.1',
-        builder: 'Pristine Properties',
-        builderLink: '#builder-profile-1',
-    },
-    {
-        id: 2,
-        image: 'https://i.pinimg.com/736x/07/74/49/07744957e8be77e47b38d38865f6e804.jpg',
-        title: 'Kalpataru Vista',
-        location: 'Wakad, Pune',
-        city: 'Pune',
-        bhkType: '3, 4 BHK',
-        priceRange: '2.5 - 3.8',
-        builder: 'Kalpataru Ltd',
-        builderLink: '#builder-profile-2',
-    },
-    // BANGALORE Properties
-    {
-        id: 3,
-        image: 'https://i.pinimg.com/736x/84/1d/10/841d10e6e8e8199738f6583995f57356.jpg',
-        title: 'Assetz Zen and Sato',
-        location: 'Yelahanka, Bangalore',
-        city: 'Bangalore',
-        bhkType: '3, 4 BHK',
-        priceRange: '2.7 - 3.7',
-        builder: 'Assetz Lifestyle Builders',
-        builderLink: '#builder-profile-3',
-    },
-    {
-        id: 4,
-        image: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQrwhJLMPEoFagfU0bV3Ql_O05PJzFvbtV3cA&s',
-        title: 'Prestige Elysian',
-        location: 'Bannerghatta Road, Bangalore',
-        city: 'Bangalore',
-        bhkType: '2, 3 BHK',
-        priceRange: '1.5 - 2.5',
-        builder: 'Prestige Group',
-        builderLink: '#builder-profile-4',
-    },
-    // MUMBAI Properties
-    {
-        id: 5,
-        image: 'https://i.pinimg.com/736x/07/74/49/07744957e8be77e47b38d38865f6e804.jpg',
-        title: 'Lodha Serenity',
-        location: 'Thane West, Mumbai',
-        city: 'Mumbai',
-        bhkType: '2, 3 BHK',
-        priceRange: '1.8 - 3.2',
-        builder: 'Lodha Group',
-        builderLink: '#builder-profile-5',
-    },
-    {
-        id: 6,
-        image: 'https://i.pinimg.com/736x/84/1d/10/841d10e6e8e8199738f6583995f57356.jpg',
-        title: 'Oberoi Exquisite',
-        location: 'Goregaon East, Mumbai',
-        city: 'Mumbai',
-        bhkType: '3, 4 BHK',
-        priceRange: '4.5 - 6.8',
-        builder: 'Oberoi Realty',
-        builderLink: '#builder-profile-6',
-    },
-    // DELHI Properties
-    {
-        id: 7,
-        image: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQrwhJLMPEoFagfU0bV3Ql_O05PJzFvbtV3cA&s',
-        title: 'DLF Gardencity',
-        location: 'Sector 92, Delhi',
-        city: 'Delhi',
-        bhkType: '3, 4, 5 BHK',
-        priceRange: '3.2 - 5.5',
-        builder: 'DLF Limited',
-        builderLink: '#builder-profile-7',
-    },
-    {
-        id: 8,
-        image: 'https://i.pinimg.com/736x/07/74/49/07744957e8be77e47b38d38865f6e804.jpg',
-        title: 'Godrej Meridien',
-        location: 'Sector 106, Delhi',
-        city: 'Delhi',
-        bhkType: '2, 3 BHK',
-        priceRange: '2.1 - 3.5',
-        builder: 'Godrej Properties',
-        builderLink: '#builder-profile-8',
-    },
-    // HYDERABAD Properties
-    {
-        id: 9,
-        image: 'https://i.pinimg.com/736x/84/1d/10/841d10e6e8e8199738f6583995f57356.jpg',
-        title: 'My Home Avatar',
-        location: 'Gachibowli, Hyderabad',
-        city: 'Hyderabad',
-        bhkType: '3, 4 BHK',
-        priceRange: '1.8 - 2.9',
-        builder: 'My Home Group',
-        builderLink: '#builder-profile-9',
-    },
-    {
-        id: 10,
-        image: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQrwhJLMPEoFagfU0bV3Ql_O05PJzFvbtV3cA&s',
-        title: 'Brigade Orchards',
-        location: 'Devanahalli, Hyderabad',
-        city: 'Hyderabad',
-        bhkType: '2, 3 BHK',
-        priceRange: '1.2 - 2.2',
-        builder: 'Brigade Group',
-        builderLink: '#builder-profile-10',
-    },
-    // CHENNAI Properties
-    {
-        id: 11,
-        image: 'https://i.pinimg.com/736x/07/74/49/07744957e8be77e47b38d38865f6e804.jpg',
-        title: 'Casagrand Vivante',
-        location: 'Pallavaram, Chennai',
-        city: 'Chennai',
-        bhkType: '2, 3 BHK',
-        priceRange: '0.95 - 1.8',
-        builder: 'Casagrand Builder',
-        builderLink: '#builder-profile-11',
-    },
-    {
-        id: 12,
-        image: 'https://i.pinimg.com/736x/84/1d/10/841d10e6e8e8199738f6583995f57356.jpg',
-        title: 'Shriram Grand City',
-        location: 'West Tambaram, Chennai',
-        city: 'Chennai',
-        bhkType: '1, 2, 3 BHK',
-        priceRange: '0.65 - 1.5',
-        builder: 'Shriram Properties',
-        builderLink: '#builder-profile-12',
-    },
-];
+// Helper function to extract city from location string
+const extractCity = (location) => {
+  if (!location) return 'Unknown';
+  // Common city names to check
+  const cities = ['Mumbai', 'Delhi', 'Bangalore', 'Hyderabad', 'Chennai', 'Pune', 'Kolkata', 'Ahmedabad', 'Jaipur', 'Surat'];
+  const locationUpper = location.toUpperCase();
+  for (const city of cities) {
+    if (locationUpper.includes(city.toUpperCase())) {
+      return city;
+    }
+  }
+  // If no match, try to extract from location (take first part before comma)
+  const parts = location.split(',');
+  return parts.length > 1 ? parts[parts.length - 1].trim() : location.split(' ')[0];
+};
+
+// Helper function to format price in Crores
+const formatPriceRange = (price) => {
+  if (!price) return '0';
+  const priceInCr = price / 10000000; // Convert to crores
+  return priceInCr.toFixed(1);
+};
+
+// Helper function to format BHK types from configurations
+const formatBhkType = (configurations) => {
+  if (!configurations || !Array.isArray(configurations) || configurations.length === 0) {
+    return 'N/A';
+  }
+  // Filter and format BHK configurations
+  const bhkConfigs = configurations
+    .filter(config => config && (config.includes('BHK') || config.includes('bhk')))
+    .map(config => {
+      // Extract number from "1 BHK", "2 BHK", etc.
+      const match = config.match(/(\d+)\s*BHK/i);
+      return match ? `${match[1]} BHK` : config;
+    })
+    .filter((value, index, self) => self.indexOf(value) === index) // Remove duplicates
+    .sort((a, b) => {
+      const numA = parseInt(a.match(/\d+/)?.[0] || '0');
+      const numB = parseInt(b.match(/\d+/)?.[0] || '0');
+      return numA - numB;
+    });
+  
+  if (bhkConfigs.length === 0) {
+    // If no BHK found, check for Villa or Plot
+    if (configurations.some(c => c.toLowerCase().includes('villa'))) return 'Villa';
+    if (configurations.some(c => c.toLowerCase().includes('plot'))) return 'Plot';
+    return configurations.join(', ');
+  }
+  
+  return bhkConfigs.join(', ');
+};
+
+// Dummy data removed - now using API data
 
 /**
  * Contact Modal Component
@@ -289,16 +203,137 @@ const ProjectCard = ({ project, onContactClick }) => {
 const UpcomingProjectCard = () => {
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [selectedProject, setSelectedProject] = useState(null);
+    const [projects, setProjects] = useState([]);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState(null);
+
+    // Fetch upcoming projects from API
+    useEffect(() => {
+        const fetchUpcomingProjects = async () => {
+            try {
+                setLoading(true);
+                setError(null);
+                const response = await propertiesAPI.list({ limit: 50 });
+                
+                if (response.success && response.data && response.data.properties) {
+                    // Filter for upcoming projects only
+                    const upcomingProperties = response.data.properties.filter(
+                        prop => prop.project_type === 'upcoming'
+                    );
+                    
+                    // Map API response to ProjectCard format
+                    const mappedProjects = upcomingProperties.map(prop => {
+                        // Get image
+                        let imageUrl = null;
+                        if (prop.cover_image && prop.cover_image.trim() !== '') {
+                            imageUrl = prop.cover_image;
+                        } else if (Array.isArray(prop.images) && prop.images.length > 0) {
+                            const validImage = prop.images.find(img => img && img.trim() !== '');
+                            imageUrl = validImage || null;
+                        }
+                        if (!imageUrl || imageUrl.trim() === '') {
+                            imageUrl = 'https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?w=500';
+                        }
+                        
+                        // Parse upcoming_project_data JSON
+                        let upcomingData = {};
+                        try {
+                            if (typeof prop.upcoming_project_data === 'string') {
+                                upcomingData = JSON.parse(prop.upcoming_project_data);
+                            } else if (typeof prop.upcoming_project_data === 'object') {
+                                upcomingData = prop.upcoming_project_data;
+                            }
+                        } catch (e) {
+                            console.warn('Failed to parse upcoming_project_data:', e);
+                        }
+                        
+                        // Extract city from location
+                        const city = extractCity(prop.location);
+                        
+                        // Format BHK type from configurations
+                        const bhkType = formatBhkType(upcomingData.configurations);
+                        
+                        // Format price range in Crores
+                        const priceRange = formatPriceRange(prop.price);
+                        
+                        // Get builder name
+                        const builder = upcomingData.builderName || prop.seller_name || 'Builder';
+                        
+                        // Create builder link (placeholder - can be enhanced later)
+                        const builderLink = `#builder-${prop.id}`;
+                        
+                        return {
+                            id: prop.id,
+                            image: imageUrl,
+                            title: prop.title,
+                            location: prop.location,
+                            city: city,
+                            bhkType: bhkType,
+                            priceRange: priceRange,
+                            builder: builder,
+                            builderLink: builderLink
+                        };
+                    });
+                    
+                    setProjects(mappedProjects);
+                    console.log('✅ Loaded', mappedProjects.length, 'upcoming projects from API');
+                } else {
+                    setProjects([]);
+                }
+            } catch (err) {
+                console.error('Error fetching upcoming projects:', err);
+                setError('Failed to load upcoming projects');
+                setProjects([]);
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        fetchUpcomingProjects();
+    }, []);
 
     const handleContactClick = (project) => {
         setSelectedProject(project);
         setIsModalOpen(true);
     };
 
+    // Don't render section if there are no upcoming projects
+    if (loading) {
+        return (
+            <div className="buyer-upcoming-projects-section">
+                <div className="buyer-section-header">
+                    <h2 className="buyer-section-title">Upcoming Projects</h2>
+                    <p className="buyer-section-subtitle">Visit these projects and get benefits before the official launch!</p>
+                </div>
+                <div style={{ textAlign: 'center', padding: '2rem' }}>
+                    <p>Loading upcoming projects...</p>
+                </div>
+            </div>
+        );
+    }
+
+    if (error) {
+        return (
+            <div className="buyer-upcoming-projects-section">
+                <div className="buyer-section-header">
+                    <h2 className="buyer-section-title">Upcoming Projects</h2>
+                    <p className="buyer-section-subtitle">Visit these projects and get benefits before the official launch!</p>
+                </div>
+                <div style={{ textAlign: 'center', padding: '2rem', color: '#c33' }}>
+                    <p>{error}</p>
+                </div>
+            </div>
+        );
+    }
+
+    if (projects.length === 0) {
+        return null; // Don't show section if no upcoming projects
+    }
+
     return (
         <div className="buyer-upcoming-projects-section">
             <div className="buyer-section-header">
-                <h2 className="buyer-section-title"> Upcoming Projects </h2>
+                <h2 className="buyer-section-title">Upcoming Projects</h2>
                 <p className="buyer-section-subtitle">Visit these projects and get benefits before the official launch!</p>
             </div>
 

@@ -53,6 +53,7 @@ const Home = () => {
               status: prop.status === 'sale' ? 'For Sale' : (prop.status === 'rent' ? 'For Rent' : prop.status),
               // Additional fields
               propertyType: prop.property_type,
+              projectType: prop.project_type || null, // Include project_type for filtering
               description: prop.description || '',
               amenities: Array.isArray(prop.amenities) ? prop.amenities : (prop.amenities ? [prop.amenities] : []),
               images: Array.isArray(prop.images) ? prop.images : (prop.images ? [prop.images] : []),
@@ -64,8 +65,13 @@ const Home = () => {
             };
           });
           
-          setProperties(backendProperties);
-          console.log('✅ Loaded', backendProperties.length, 'properties from backend');
+          // Filter out upcoming projects - they should only appear in Upcoming Projects section
+          const regularProperties = backendProperties.filter(prop => 
+            !prop.projectType || prop.projectType !== 'upcoming'
+          );
+          
+          setProperties(regularProperties);
+          console.log('✅ Loaded', regularProperties.length, 'regular properties from backend (upcoming projects excluded)');
         } else {
           setProperties([]);
           setError('No properties available');
