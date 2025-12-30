@@ -8,7 +8,7 @@
  * 
  * NOTE: Rate limits are GLOBAL per buyer (across all properties)
  * - property_id is stored in database for logging/reference but NOT used for limit calculation
- * - A buyer has 5 total attempts per action type across ALL properties
+ * - A buyer has 12 total attempts per action type across ALL properties
  */
 
 // Register shutdown function to catch fatal errors
@@ -76,13 +76,13 @@ try {
     }
     
     // Constants
-    $MAX_ATTEMPTS = 5;
-    $WINDOW_HOURS = 24;
+    $MAX_ATTEMPTS = 12;
+    $WINDOW_HOURS = 12;
     
-    // Calculate the cutoff time (24 hours ago)
+    // Calculate the cutoff time (12 hours ago)
     $cutoffTime = date('Y-m-d H:i:s', strtotime("-{$WINDOW_HOURS} hours"));
     
-    // Count attempts in the last 24 hours (GLOBAL - across all properties)
+    // Count attempts in the last 12 hours (GLOBAL - across all properties)
     // NOTE: property_id is NOT included in WHERE clause - limits are global per buyer
     $stmt = $db->prepare("
         SELECT COUNT(*) as attempt_count,
@@ -104,7 +104,7 @@ try {
     
     // Check if limit is reached
     if ($attemptCount >= $MAX_ATTEMPTS) {
-        // When limit is reached, reset 24 hours from now
+        // When limit is reached, reset 12 hours from now
         $resetTimeSeconds = time() + ($WINDOW_HOURS * 3600);
         $resetTime = date('Y-m-d H:i:s', $resetTimeSeconds);
         
@@ -146,12 +146,12 @@ try {
     $updatedAttemptCount = intval($updatedResult['attempt_count'] ?? 0);
     $remainingAttempts = max(0, $MAX_ATTEMPTS - $updatedAttemptCount);
     
-    // Calculate reset time (24 hours from when limit is reached, or from first attempt if not at limit)
+    // Calculate reset time (12 hours from when limit is reached, or from first attempt if not at limit)
     $resetTime = null;
     $resetTimeSeconds = null;
     if ($updatedAttemptCount > 0) {
-        // If limit is reached, reset 24 hours from now
-        // Otherwise, reset 24 hours from first attempt
+        // If limit is reached, reset 12 hours from now
+        // Otherwise, reset 12 hours from first attempt
         if ($updatedAttemptCount >= $MAX_ATTEMPTS) {
             $resetTimeSeconds = time() + ($WINDOW_HOURS * 3600);
         } else if ($updatedResult['first_attempt_time']) {

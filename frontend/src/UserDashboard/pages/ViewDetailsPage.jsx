@@ -861,7 +861,7 @@ const ViewDetailsPage = () => {
         if (!ownerDetailsLimit.canPerform) {
             const resetMsg = ownerDetailsLimit.resetTimeSeconds 
                 ? formatTimeRemaining(ownerDetailsLimit.resetTimeSeconds)
-                : '24 hours';
+                : '12 hours';
             alert(`You have reached the maximum limit of ${ownerDetailsLimit.max} attempts to view owner details. Please try again after ${resetMsg}.`);
             return;
         }
@@ -894,15 +894,15 @@ const ViewDetailsPage = () => {
             if (error.status === 429 && error.data) {
                 setOwnerDetailsLimit({
                     remaining: error.data.remaining_attempts || 0,
-                    max: error.data.max_attempts || 5,
-                    used: error.data.used_attempts || 5,
+                    max: error.data.max_attempts || 12,
+                    used: error.data.used_attempts || 12,
                     canPerform: false,
                     resetTime: error.data.reset_time,
                     resetTimeSeconds: error.data.reset_time_seconds
                 });
                 const resetMsg = error.data.reset_time_seconds 
                     ? formatTimeRemaining(error.data.reset_time_seconds)
-                    : '24 hours';
+                    : '12 hours';
                 alert(error.data.message || `You have reached the maximum limit. Please try again after ${resetMsg}.`);
             } else {
                 // Show more detailed error message
@@ -930,7 +930,7 @@ const ViewDetailsPage = () => {
         if (!chatLimit.canPerform) {
             const resetMsg = chatLimit.resetTimeSeconds 
                 ? formatTimeRemaining(chatLimit.resetTimeSeconds)
-                : '24 hours';
+                : '12 hours';
             alert(`You have reached the maximum limit of ${chatLimit.max} attempts to chat with the owner. Please try again after ${resetMsg}.`);
             return;
         }
@@ -1003,15 +1003,15 @@ const ViewDetailsPage = () => {
             if (error.status === 429 && error.data) {
                 setChatLimit({
                     remaining: error.data.remaining_attempts || 0,
-                    max: error.data.max_attempts || 5,
-                    used: error.data.used_attempts || 5,
+                    max: error.data.max_attempts || 12,
+                    used: error.data.used_attempts || 12,
                     canPerform: false,
                     resetTime: error.data.reset_time,
                     resetTimeSeconds: error.data.reset_time_seconds
                 });
                 const resetMsg = error.data.reset_time_seconds 
                     ? formatTimeRemaining(error.data.reset_time_seconds)
-                    : '24 hours';
+                    : '12 hours';
                 alert(error.data.message || `You have reached the maximum limit. Please try again after ${resetMsg}.`);
             } else {
                 const errorMessage = error.message || 'Failed to start chat. Please try again.';
@@ -1430,10 +1430,10 @@ const ViewDetailsPage = () => {
                                                         backgroundColor: ownerDetailsLimit.canPerform ? '#f3f4f6' : '#fee2e2',
                                                         borderRadius: '4px'
                                                     }}>
-                                                        {ownerDetailsLimit.remaining} / {ownerDetailsLimit.max} attempts left
+                                                        {ownerDetailsLimit.remaining} / {ownerDetailsLimit.max} requests remaining
                                                         {ownerDetailsLimit.resetTimeSeconds && (
                                                             <span style={{display: 'block', marginTop: '0.125rem'}}>
-                                                                Resets in 24 hours
+                                                                Resets in 12 hours
                                                             </span>
                                                         )}
                                                         {!ownerDetailsLimit.canPerform && (
@@ -1516,11 +1516,11 @@ const ViewDetailsPage = () => {
                                                 borderRadius: '4px'
                                             }}>
                                                 <div style={{fontWeight: '500', marginBottom: '0.25rem'}}>
-                                                    {chatLimit.remaining} / {chatLimit.max} attempts left
+                                                    {chatLimit.remaining} / {chatLimit.max} requests remaining
                                                 </div>
                                                 {chatLimit.resetTimeSeconds && (
                                                     <div style={{fontSize: '11px', color: '#666'}}>
-                                                        Resets in 24 hours
+                                                        Resets in 12 hours
                                                     </div>
                                                 )}
                                                 {!chatLimit.canPerform && (
