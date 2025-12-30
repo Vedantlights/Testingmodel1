@@ -227,7 +227,7 @@
   display: block;
   font-size: 0.9rem;
   font-weight: 600;
-  color: var(--text-primary);
+  color: var(--text-primary) !important;
   margin-bottom: 0.5rem;
 }
 
