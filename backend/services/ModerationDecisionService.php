@@ -22,6 +22,38 @@ if (!function_exists('getErrorMessage')) {
     require_once __DIR__ . '/../config/moderation.php';
 }
 
+// Ensure moderation thresholds are defined (with fallback defaults)
+if (!defined('MODERATION_ADULT_THRESHOLD')) {
+    define('MODERATION_ADULT_THRESHOLD', 0.6);
+}
+if (!defined('MODERATION_VIOLENCE_THRESHOLD')) {
+    define('MODERATION_VIOLENCE_THRESHOLD', 0.6);
+}
+if (!defined('MODERATION_RACY_THRESHOLD')) {
+    define('MODERATION_RACY_THRESHOLD', 0.6);
+}
+if (!defined('MODERATION_FACE_THRESHOLD')) {
+    define('MODERATION_FACE_THRESHOLD', 0.7);
+}
+if (!defined('MODERATION_HUMAN_OBJECT_THRESHOLD')) {
+    define('MODERATION_HUMAN_OBJECT_THRESHOLD', 0.7);
+}
+if (!defined('MODERATION_ANIMAL_OBJECT_THRESHOLD')) {
+    define('MODERATION_ANIMAL_OBJECT_THRESHOLD', 0.6);
+}
+if (!defined('MODERATION_ANIMAL_LABEL_THRESHOLD')) {
+    define('MODERATION_ANIMAL_LABEL_THRESHOLD', 0.7);
+}
+if (!defined('MIN_IMAGE_WIDTH')) {
+    define('MIN_IMAGE_WIDTH', 400);
+}
+if (!defined('MIN_IMAGE_HEIGHT')) {
+    define('MIN_IMAGE_HEIGHT', 300);
+}
+if (!defined('PROPERTY_CONTEXT_THRESHOLD')) {
+    define('PROPERTY_CONTEXT_THRESHOLD', 0.3);
+}
+
 class ModerationDecisionService {
     
     /**

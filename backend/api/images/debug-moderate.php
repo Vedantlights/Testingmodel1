@@ -146,14 +146,38 @@ foreach ($uploadDirs as $name => $dir) {
 
 // Test 6: Check moderation thresholds
 echo "6. Checking moderation thresholds... ";
-if (defined('MODERATION_HUMAN_THRESHOLD')) {
-    echo "OK\n";
-    echo "   - Human threshold: " . MODERATION_HUMAN_THRESHOLD . "\n";
-    echo "   - Face threshold: " . (defined('MODERATION_FACE_THRESHOLD') ? MODERATION_FACE_THRESHOLD : 'NOT SET') . "\n";
-    echo "   - Animal threshold: " . (defined('MODERATION_ANIMAL_THRESHOLD') ? MODERATION_ANIMAL_THRESHOLD : 'NOT SET') . "\n";
-    echo "   - Blur threshold: " . (defined('MODERATION_BLUR_THRESHOLD') ? MODERATION_BLUR_THRESHOLD : 'NOT SET') . "\n";
+$thresholdsFound = false;
+$thresholds = [
+    'MODERATION_ADULT_THRESHOLD' => 'Adult content',
+    'MODERATION_VIOLENCE_THRESHOLD' => 'Violence content',
+    'MODERATION_RACY_THRESHOLD' => 'Racy content',
+    'MODERATION_FACE_THRESHOLD' => 'Face detection',
+    'MODERATION_HUMAN_OBJECT_THRESHOLD' => 'Human object detection',
+    'MODERATION_ANIMAL_OBJECT_THRESHOLD' => 'Animal object detection',
+    'MODERATION_ANIMAL_LABEL_THRESHOLD' => 'Animal label detection',
+    'MIN_IMAGE_WIDTH' => 'Min image width',
+    'MIN_IMAGE_HEIGHT' => 'Min image height',
+    'MODERATION_BLUR_THRESHOLD' => 'Blur detection'
+];
+
+$missingThresholds = [];
+foreach ($thresholds as $constant => $description) {
+    if (defined($constant)) {
+        echo "   - {$description}: " . constant($constant) . "\n";
+        $thresholdsFound = true;
+    } else {
+        $missingThresholds[] = $constant;
+    }
+}
+
+if (empty($missingThresholds)) {
+    echo "   Status: All thresholds defined\n";
 } else {
-    echo "MISSING - Thresholds not defined\n";
+    echo "   Status: MISSING thresholds:\n";
+    foreach ($missingThresholds as $missing) {
+        echo "     - {$missing}\n";
+    }
+    echo "   WARNING: Using fallback defaults in moderate-and-upload.php\n";
 }
 
 // Test 7: Check helper classes
