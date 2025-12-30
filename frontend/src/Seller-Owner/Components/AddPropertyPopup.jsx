@@ -225,6 +225,7 @@ export default function AddPropertyPopup({ onClose, editIndex = null, initialDat
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errors, setErrors] = useState({});
   const [showLimitWarning, setShowLimitWarning] = useState(false);
+  const [showEditNoticeModal, setShowEditNoticeModal] = useState(false);
   const [uploadingImages, setUploadingImages] = useState(false);
   const [imageFiles, setImageFiles] = useState([]); // Store actual File objects
   const [imageValidationStatus, setImageValidationStatus] = useState([]); // Track validation status for each image
@@ -1093,7 +1094,7 @@ newErrors.description = "Description is required";
             }
             
             setUploadingImages(false);
-            alert('Property published successfully! Images are being checked for quality and appropriateness.');
+            setShowEditNoticeModal(true);
           } catch (uploadError) {
             console.error('Image upload error:', uploadError);
             alert(`Property created but failed to upload images: ${uploadError.message || 'Please try uploading images again later.'}`);
@@ -1104,7 +1105,7 @@ newErrors.description = "Description is required";
           }
         } else {
           // No images to upload, property already created
-          alert('Property published successfully! You can edit your property within 24 hours of creation.');
+          setShowEditNoticeModal(true);
         }
       } else {
         // Editing existing property
@@ -2200,8 +2201,58 @@ newErrors.description = "Description is required";
         </div>
       )}
 
-      {/* Main Popup - Only show if limit not reached */}
-      {!showLimitWarning && (
+      {/* 24-Hour Edit Notice Modal */}
+      {showEditNoticeModal && (
+        <div className="seller-popup-limit-warning-overlay">
+          <div className="seller-popup-limit-warning-modal">
+            <div className="seller-popup-limit-warning-icon" style={{ color: '#667eea' }}>
+              <svg width="48" height="48" viewBox="0 0 24 24" fill="none">
+                <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="2"/>
+                <path d="M12 16v-4M12 8h.01" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+              </svg>
+            </div>
+            
+            <div className="seller-popup-limit-warning-content">
+              <h3>Property Published Successfully!</h3>
+              <p style={{ fontSize: '1rem', lineHeight: '1.6', marginTop: '1rem' }}>
+                You can edit this property only within <strong style={{ color: '#667eea' }}>24 hours</strong> of creation.
+              </p>
+              <p style={{ fontSize: '0.9rem', color: '#666', marginTop: '0.5rem' }}>
+                After 24 hours, you'll only be able to edit the title and price.
+              </p>
+            </div>
+
+            <div className="seller-popup-limit-warning-actions">
+              <button 
+                className="seller-popup-limit-btn-primary" 
+                onClick={() => {
+                  setShowEditNoticeModal(false);
+                  onClose();
+                }}
+                style={{ width: '100%' }}
+              >
+                Got it
+              </button>
+            </div>
+
+            <button 
+              className="seller-popup-limit-warning-close" 
+              onClick={() => {
+                setShowEditNoticeModal(false);
+                onClose();
+              }} 
+              aria-label="Close"
+            >
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+                <path d="M18 6L6 18M6 6l12 12" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+              </svg>
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Main Popup - Only show if limit not reached and edit notice not shown */}
+      {!showLimitWarning && !showEditNoticeModal && (
       <div className="seller-popup-container" role="dialog" aria-modal="true">
         {/* Header */}
         <div className="seller-popup-header">

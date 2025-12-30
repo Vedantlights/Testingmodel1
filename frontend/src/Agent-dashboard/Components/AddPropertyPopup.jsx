@@ -212,10 +212,12 @@ export default function AddPropertyPopup({ onClose, editIndex = null, initialDat
   const [currentStep, setCurrentStep] = useState(1);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [uploadingImages, setUploadingImages] = useState(false);
+  const [showEditNoticeModal, setShowEditNoticeModal] = useState(false);
   const [errors, setErrors] = useState({});
   const [showLocationPicker, setShowLocationPicker] = useState(false);
   const [imageFiles, setImageFiles] = useState([]); // Store actual File objects
   const [imageValidationStatus, setImageValidationStatus] = useState([]); // Track validation status for each image
+  const [showEditNoticeModal, setShowEditNoticeModal] = useState(false);
   const [isCheckingImages, setIsCheckingImages] = useState(false);
   // separate refs for images, video, brochure
   const imagesRef = useRef();
@@ -951,7 +953,7 @@ export default function AddPropertyPopup({ onClose, editIndex = null, initialDat
             }
             
             setUploadingImages(false);
-            alert('Property published successfully!');
+            setShowEditNoticeModal(true);
           } catch (uploadError) {
             console.error('Image upload error:', uploadError);
             alert(`Property created but failed to upload images: ${uploadError.message || 'Please try uploading images again later.'}`);
@@ -962,10 +964,9 @@ export default function AddPropertyPopup({ onClose, editIndex = null, initialDat
           }
         } else {
           // No approved images
-          alert('Property created successfully, but no approved images were found. You can edit the property to add images.');
           setUploadingImages(false);
           setIsSubmitting(false);
-          onClose();
+          setShowEditNoticeModal(true);
           return;
         }
       } else {
@@ -1955,6 +1956,71 @@ export default function AddPropertyPopup({ onClose, editIndex = null, initialDat
 
   return (
     <div className="popup-overlay" onClick={(e) => e.target.classList.contains('popup-overlay') && onClose()}>
+      
+      {/* 24-Hour Edit Notice Modal */}
+      {showEditNoticeModal && (
+        <div className="popup-overlay" style={{ zIndex: 10001 }}>
+          <div className="popup-container" style={{ maxWidth: '500px', padding: '2rem' }}>
+            <div style={{ textAlign: 'center', marginBottom: '1.5rem' }}>
+              <div style={{ 
+                width: '64px', 
+                height: '64px', 
+                borderRadius: '50%', 
+                background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                margin: '0 auto 1.5rem'
+              }}>
+                <svg width="32" height="32" viewBox="0 0 24 24" fill="none" style={{ color: 'white' }}>
+                  <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="2"/>
+                  <path d="M12 16v-4M12 8h.01" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+                </svg>
+              </div>
+              
+              <h2 style={{ fontSize: '1.5rem', fontWeight: '600', marginBottom: '1rem', color: '#1a1a1a' }}>
+                Property Published Successfully!
+              </h2>
+              <p style={{ fontSize: '1rem', lineHeight: '1.6', marginBottom: '0.5rem', color: '#333' }}>
+                You can edit this property only within <strong style={{ color: '#667eea' }}>24 hours</strong> of creation.
+              </p>
+              <p style={{ fontSize: '0.9rem', color: '#666', marginTop: '0.5rem' }}>
+                After 24 hours, you'll only be able to edit the title and price.
+              </p>
+            </div>
+
+            <div style={{ display: 'flex', justifyContent: 'center', marginTop: '2rem' }}>
+              <button 
+                className="next-btn" 
+                onClick={() => {
+                  setShowEditNoticeModal(false);
+                  onClose();
+                }}
+                style={{ minWidth: '150px' }}
+              >
+                Got it
+              </button>
+            </div>
+
+            <button 
+              className="close-btn" 
+              onClick={() => {
+                setShowEditNoticeModal(false);
+                onClose();
+              }} 
+              aria-label="Close"
+              style={{ position: 'absolute', top: '1rem', right: '1rem' }}
+            >
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+                <path d="M18 6L6 18M6 6l12 12" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+              </svg>
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Main Popup - Only show if edit notice not shown */}
+      {!showEditNoticeModal && (
       <div className="popup-container" role="dialog" aria-modal="true">
         {/* Header */}
         <div className="popup-header">
@@ -2040,6 +2106,7 @@ export default function AddPropertyPopup({ onClose, editIndex = null, initialDat
             onClose={() => setShowLocationPicker(false)}
           />
         </div>
+      )}
       )}
     </div>
   );
