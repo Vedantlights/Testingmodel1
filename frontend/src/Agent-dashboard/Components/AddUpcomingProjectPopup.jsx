@@ -206,6 +206,15 @@ export default function AddUpcomingProjectPopup({ onClose }) {
     }));
   };
 
+  const toggleBank = (bank) => {
+    setFormData(prev => ({
+      ...prev,
+      approvedBanks: prev.approvedBanks.includes(bank)
+        ? prev.approvedBanks.filter(b => b !== bank)
+        : [...prev.approvedBanks, bank]
+    }));
+  };
+
   const handleLocationSelect = (locationData) => {
     setFormData(prev => ({
       ...prev,
