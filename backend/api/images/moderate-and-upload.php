@@ -255,12 +255,15 @@ try {
         
         if (!$apiResponse['success']) {
             // API failed - delete temp file and return error
+            $apiError = $apiResponse['error'] ?? 'Unknown error';
+            error_log("Google Vision API failed: " . $apiError);
             FileHelper::deleteFile($tempPath);
             http_response_code(500);
             echo json_encode([
                 'status' => 'error',
                 'message' => 'Image verification failed. Please try again.',
-                'error_code' => 'api_error'
+                'error_code' => 'api_error',
+                'details' => $apiError
             ]);
             exit;
         }
