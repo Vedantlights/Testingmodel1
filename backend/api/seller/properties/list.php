@@ -27,47 +27,8 @@ try {
     $offset = ($page - 1) * $limit;
     $status = isset($_GET['status']) ? sanitizeInput($_GET['status']) : null;
     
-    // Check which tables exist
-    $checkImages = $db->query("SHOW TABLES LIKE 'property_images'");
-    $hasImagesTable = $checkImages->rowCount() > 0;
-    
-    $checkAmenities = $db->query("SHOW TABLES LIKE 'property_amenities'");
-    $hasAmenitiesTable = $checkAmenities->rowCount() > 0;
-    
-    $checkInquiries = $db->query("SHOW TABLES LIKE 'inquiries'");
-    $hasInquiriesTable = $checkInquiries->rowCount() > 0;
-    
-    // Build query based on available tables
-    if ($hasImagesTable && $hasAmenitiesTable && $hasInquiriesTable) {
-        $query = "
-            SELECT 
-                p.*,
-                COUNT(DISTINCT pi.id) as image_count,
-                COUNT(DISTINCT i.id) as inquiry_count,
-                (SELECT image_url FROM property_images WHERE property_id = p.id ORDER BY image_order ASC LIMIT 1) as first_image,
-                (SELECT GROUP_CONCAT(image_url ORDER BY image_order) FROM property_images WHERE property_id = p.id) as all_images,
-                GROUP_CONCAT(DISTINCT pa.amenity_id) as amenities
-            FROM properties p
-            LEFT JOIN property_images pi ON p.id = pi.property_id
-            LEFT JOIN property_amenities pa ON p.id = pa.property_id
-            LEFT JOIN inquiries i ON p.id = i.property_id
-            WHERE p.user_id = ?
-            GROUP BY p.id
-        ";
-    } else {
-        // Simplified query without JOINs
-        $query = "
-            SELECT p.*,
-                   0 as image_count,
-                   0 as inquiry_count,
-                   p.cover_image as first_image,
-                   p.cover_image as all_images,
-                   '' as amenities
-            FROM properties p
-            WHERE p.user_id = ?
-        ";
-    }
-    
+    // Simplified query - get properties first, then fetch images separately to avoid GROUP BY issues
+    $query = "SELECT p.* FROM properties p WHERE p.user_id = ?";
     $params = [$user['id']];
     
     if ($status && in_array($status, ['sale', 'rent'])) {
@@ -75,11 +36,11 @@ try {
         $params[] = $status;
     }
     
-    $query .= " GROUP BY p.id ORDER BY p.created_at DESC LIMIT " . intval($limit) . " OFFSET " . intval($offset);
+    $query .= " ORDER BY p.created_at DESC LIMIT " . intval($limit) . " OFFSET " . intval($offset);
     
     $stmt = $db->prepare($query);
     $stmt->execute($params);
-    $properties = $stmt->fetchAll();
+    $properties = $stmt->fetchAll(PDO::FETCH_ASSOC);
     
     // Get total count
     $countQuery = "SELECT COUNT(*) as total FROM properties WHERE user_id = ?";
@@ -94,30 +55,24 @@ try {
     $stmt->execute($countParams);
     $total = $stmt->fetch()['total'];
     
-    // Format properties
+    // Format properties - fetch images separately to avoid GROUP BY issues
     foreach ($properties as &$property) {
-        // Handle images - prioritize first_image from property_images, fallback to cover_image
-        $displayImage = null;
-        $allImages = [];
-        
-        if ($hasImagesTable) {
-            // Use first_image from property_images table (first image by image_order)
-            if (!empty($property['first_image'])) {
-                $displayImage = $property['first_image'];
-            }
-            
-            // Get all images from property_images table
-            if (!empty($property['all_images'])) {
-                $allImages = explode(',', $property['all_images']);
-            }
+        // Get first image from property_images table
+        try {
+            $imgStmt = $db->prepare("SELECT image_url FROM property_images WHERE property_id = ? ORDER BY image_order ASC LIMIT 1");
+            $imgStmt->execute([$property['id']]);
+            $firstImage = $imgStmt->fetchColumn();
+        } catch (Exception $e) {
+            $firstImage = false;
         }
         
-        // Fallback to cover_image if no images from property_images table
-        if (empty($displayImage) && !empty($property['cover_image'])) {
-            $displayImage = $property['cover_image'];
-            if (empty($allImages)) {
-                $allImages = [$property['cover_image']];
-            }
+        // Get all images from property_images table
+        try {
+            $imgStmt = $db->prepare("SELECT image_url FROM property_images WHERE property_id = ? ORDER BY image_order");
+            $imgStmt->execute([$property['id']]);
+            $allImages = $imgStmt->fetchAll(PDO::FETCH_COLUMN);
+        } catch (Exception $e) {
+            $allImages = [];
         }
         
         // Normalize image URLs - ensure all are full URLs
@@ -157,7 +112,11 @@ try {
         $allImages = array_values($allImages);
         
         // Set display_image (for property cards) - prioritize first_image, then first of all_images, then cover_image
-        $property['display_image'] = $displayImage ? $normalizeImageUrl($displayImage) : (!empty($allImages[0]) ? $allImages[0] : null);
+        $displayImage = $firstImage ? $normalizeImageUrl($firstImage) : (!empty($allImages[0]) ? $allImages[0] : null);
+        if (empty($displayImage) && !empty($property['cover_image'])) {
+            $displayImage = $normalizeImageUrl($property['cover_image']);
+        }
+        $property['display_image'] = $displayImage;
         
         // Set images array
         $property['images'] = $allImages;
@@ -169,15 +128,32 @@ try {
             $property['cover_image'] = !empty($allImages[0]) ? $allImages[0] : null;
         }
         
-        // Handle amenities
-        if ($hasAmenitiesTable && isset($property['amenities']) && !empty($property['amenities'])) {
-            $property['amenities'] = explode(',', $property['amenities']);
-        } else {
+        // Get amenities
+        try {
+            $amenStmt = $db->prepare("SELECT amenity_id FROM property_amenities WHERE property_id = ?");
+            $amenStmt->execute([$property['id']]);
+            $property['amenities'] = $amenStmt->fetchAll(PDO::FETCH_COLUMN);
+        } catch (Exception $e) {
             $property['amenities'] = [];
         }
         
-        $property['image_count'] = intval($property['image_count'] ?? 0);
-        $property['inquiry_count'] = intval($property['inquiry_count'] ?? 0);
+        // Get counts
+        try {
+            $countStmt = $db->prepare("SELECT COUNT(*) FROM property_images WHERE property_id = ?");
+            $countStmt->execute([$property['id']]);
+            $property['image_count'] = intval($countStmt->fetchColumn());
+        } catch (Exception $e) {
+            $property['image_count'] = 0;
+        }
+        
+        try {
+            $countStmt = $db->prepare("SELECT COUNT(*) FROM inquiries WHERE property_id = ?");
+            $countStmt->execute([$property['id']]);
+            $property['inquiry_count'] = intval($countStmt->fetchColumn());
+        } catch (Exception $e) {
+            $property['inquiry_count'] = 0;
+        }
+        
         $property['price_negotiable'] = (bool)($property['price_negotiable'] ?? false);
         $property['is_active'] = (bool)($property['is_active'] ?? true);
     }

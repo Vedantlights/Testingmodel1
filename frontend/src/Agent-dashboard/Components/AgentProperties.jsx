@@ -7,8 +7,7 @@ import DeletePropertyModal from "../../components/DeletePropertyModal/DeleteProp
 import { API_BASE_URL } from "../../config/api.config";
 import "../styles/AgentProperties.css";
 
-const MAX_PROPERTIES = 10;
-
+// AGENTS: NO LIMIT - They can add unlimited properties
 const AgentProperties = () => {
   const navigate = useNavigate();
   const { properties, deleteProperty, loading, error, refreshData } = useProperty();
@@ -46,10 +45,7 @@ const AgentProperties = () => {
     });
 
   const openNew = () => {
-    if (properties.length >= MAX_PROPERTIES) {
-      alert(`You can add maximum ${MAX_PROPERTIES} properties.`);
-      return;
-    }
+    // AGENTS: NO LIMIT - They can add unlimited properties
     setEditIndex(null);
     setShowForm(true);
   };
@@ -166,7 +162,7 @@ const AgentProperties = () => {
           <div>
             <h1>My Properties</h1>
             <p className="seller-props-subtitle">
-              {loading ? 'Loading...' : `${properties.length} of ${MAX_PROPERTIES} properties listed`}
+              {loading ? 'Loading...' : `${properties.length} properties listed`}
             </p>
           </div>
           <button className="seller-props-add-btn" onClick={openNew}>
@@ -413,8 +409,8 @@ const AgentProperties = () => {
             </div>
           ))}
 
-          {/* Add Property Card */}
-          {properties.length < MAX_PROPERTIES && viewMode === 'grid' && (
+          {/* Add Property Card - AGENTS: Always show (no limit) */}
+          {viewMode === 'grid' && (
             <div className="seller-props-card seller-props-add-card" onClick={openNew}>
               <div className="seller-props-add-card-content">
                 <div className="seller-props-add-icon">

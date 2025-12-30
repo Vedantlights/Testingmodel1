@@ -27,42 +27,48 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
 try {
     $user = requireUserType(['seller', 'agent']);
     
-    // Check property limit based on subscription
+    // AGENTS: NO LIMIT - Skip all limit checks for agents
+    // SELLERS: Check property limit based on subscription
     $db = getDB();
-    $planType = 'free'; // Default
-    try {
-        // Check if subscriptions table exists
-        $checkStmt = $db->query("SHOW TABLES LIKE 'subscriptions'");
-        if ($checkStmt->rowCount() > 0) {
-            $stmt = $db->prepare("SELECT plan_type FROM subscriptions WHERE user_id = ? AND is_active = 1 ORDER BY created_at DESC LIMIT 1");
-            $stmt->execute([$user['id']]);
-            $subscription = $stmt->fetch();
-            $planType = $subscription['plan_type'] ?? 'free';
+    
+    // Only check limits for sellers, not agents
+    if ($user['user_type'] === 'seller') {
+        $planType = 'free'; // Default
+        try {
+            // Check if subscriptions table exists
+            $checkStmt = $db->query("SHOW TABLES LIKE 'subscriptions'");
+            if ($checkStmt->rowCount() > 0) {
+                $stmt = $db->prepare("SELECT plan_type FROM subscriptions WHERE user_id = ? AND is_active = 1 ORDER BY created_at DESC LIMIT 1");
+                $stmt->execute([$user['id']]);
+                $subscription = $stmt->fetch();
+                $planType = $subscription['plan_type'] ?? 'free';
+            }
+        } catch (Exception $e) {
+            // Table doesn't exist or error, use default
+            error_log("Add Property: Subscriptions table check failed: " . $e->getMessage());
+            $planType = 'free';
         }
-    } catch (Exception $e) {
-        // Table doesn't exist or error, use default
-        error_log("Add Property: Subscriptions table check failed: " . $e->getMessage());
-        $planType = 'free';
+        
+        // Get current property count
+        $stmt = $db->prepare("SELECT COUNT(*) as count FROM properties WHERE user_id = ?");
+        $stmt->execute([$user['id']]);
+        $countResult = $stmt->fetch();
+        $currentCount = $countResult['count'];
+        
+        // Check limit
+        $limits = [
+            'free' => FREE_PLAN_PROPERTY_LIMIT,
+            'basic' => BASIC_PLAN_PROPERTY_LIMIT,
+            'pro' => PRO_PLAN_PROPERTY_LIMIT,
+            'premium' => PREMIUM_PLAN_PROPERTY_LIMIT
+        ];
+        
+        $limit = $limits[$planType] ?? FREE_PLAN_PROPERTY_LIMIT;
+        if ($limit > 0 && $currentCount >= $limit) {
+            sendError("Property limit reached. You can list up to $limit properties in your current plan. Please upgrade to add more.", null, 403);
+        }
     }
-    
-    // Get current property count
-    $stmt = $db->prepare("SELECT COUNT(*) as count FROM properties WHERE user_id = ?");
-    $stmt->execute([$user['id']]);
-    $countResult = $stmt->fetch();
-    $currentCount = $countResult['count'];
-    
-    // Check limit
-    $limits = [
-        'free' => FREE_PLAN_PROPERTY_LIMIT,
-        'basic' => BASIC_PLAN_PROPERTY_LIMIT,
-        'pro' => PRO_PLAN_PROPERTY_LIMIT,
-        'premium' => PREMIUM_PLAN_PROPERTY_LIMIT
-    ];
-    
-    $limit = $limits[$planType] ?? FREE_PLAN_PROPERTY_LIMIT;
-    if ($limit > 0 && $currentCount >= $limit) {
-        sendError("Property limit reached. You can list up to $limit properties in your current plan.", null, 403);
-    }
+    // AGENTS: No limit check - they can add unlimited properties
     
     // Get input data
     $input = json_decode(file_get_contents('php://input'), true);
