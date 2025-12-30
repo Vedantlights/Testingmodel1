@@ -38,20 +38,7 @@
   box-sizing: border-box;
 }
 
-html {
-  overscroll-behavior-x: none;
-}
-
-html, body {
-  width: 100%;
-  max-width: 100%;
-  overflow-x: hidden;
-  overflow-y: auto;
-  font-family: 'Inter', sans-serif;
-  background-color: var(--bg-primary);
-  color: var(--text-primary);
-}
-
+/* Seller Dashboard specific styles - scoped to prevent affecting Buyer Dashboard */
 .seller-dashboard {
   width: 100%;
   min-height: 100vh;
@@ -59,6 +46,9 @@ html, body {
   padding-top: var(--header-height);
   overflow-x: hidden;
   overflow-y: visible;
+  /* CRITICAL: This container does NOT scroll - body handles all scrolling */
+  height: auto;
+  max-height: none;
 }
 
 /* ======================= */
@@ -782,12 +772,18 @@ html, body {
   min-height: calc(100vh - var(--header-height));
   overflow-x: hidden;
   overflow-y: visible;
+  /* CRITICAL: This container does NOT scroll independently - body handles all scrolling */
+  height: auto;
+  max-height: none;
 }
 
 .main-content-wrapper {
   animation: fadeInUp 0.4s ease-out;
   overflow-x: hidden;
   overflow-y: visible;
+  /* CRITICAL: This container does NOT scroll independently - body handles all scrolling */
+  height: auto;
+  max-height: none;
 }
 
 @keyframes fadeInUp {

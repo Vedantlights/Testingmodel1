@@ -46,7 +46,13 @@ body {
 .buyer-contact-main,
 .buyer-contact-container,
 .App,
-.buyer-app-container {
+.buyer-app-container,
+/* Seller Dashboard containers - prevent nested scrollbars */
+.seller-dashboard,
+.seller-main,
+.seller-main-content-wrapper,
+.main-content-wrapper,
+.seller-content-area {
   overflow: visible !important;
   overflow-y: visible !important;
   height: auto !important;
@@ -59,7 +65,12 @@ body {
 .buyer-page-wrapper,
 .buyer-content-wrapper,
 .buyer-layout-wrapper,
-.buyer-contact-main {
+.buyer-contact-main,
+.seller-dashboard,
+.seller-main,
+.seller-main-content-wrapper,
+.main-content-wrapper,
+.seller-content-area {
   overflow-x: hidden;
 }
 

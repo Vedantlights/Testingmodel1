@@ -19,6 +19,18 @@
   max-height: none !important;
 }
 
+/* When BuyerContactPage is inside Seller Dashboard, ensure no double scrollbar */
+.seller-dashboard .buyer-contact-main,
+.seller-main .buyer-contact-main,
+.main-content-wrapper .buyer-contact-main {
+  overflow: visible !important;
+  overflow-x: visible !important;
+  overflow-y: visible !important;
+  height: auto !important;
+  max-height: none !important;
+  min-height: auto !important;
+}
+
 /* Decorative Background Elements */
 .buyer-contact-main::before,
 .buyer-contact-main::after {
@@ -72,6 +84,17 @@
   position: relative;
   z-index: 1;
   /* CRITICAL: NO overflow - let body handle scrolling */
+  overflow: visible !important;
+  overflow-x: visible !important;
+  overflow-y: visible !important;
+  height: auto !important;
+  max-height: none !important;
+}
+
+/* When inside Seller Dashboard, ensure container doesn't create scroll */
+.seller-dashboard .buyer-contact-container,
+.seller-main .buyer-contact-container,
+.main-content-wrapper .buyer-contact-container {
   overflow: visible !important;
   overflow-x: visible !important;
   overflow-y: visible !important;
