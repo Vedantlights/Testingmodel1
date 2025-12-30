@@ -4,6 +4,7 @@ import { useNavigate } from "react-router-dom";
 import { useProperty } from "./PropertyContext";
 import { authAPI, sellerDashboardAPI } from "../../services/api.service";
 import AddPropertyPopup from "./AddPropertyPopup";
+import AddUpcomingProjectPopup from "./AddUpcomingProjectPopup";
 import "../styles/AgentOverview.css";
 
 const MAX_PROPERTIES = 10;
@@ -21,6 +22,7 @@ const AgentOverview = ({ onNavigate }) => {
     refreshData 
   } = useProperty();
   const [showPopup, setShowPopup] = useState(false);
+  const [showUpcomingProjectPopup, setShowUpcomingProjectPopup] = useState(false);
   const [userName, setUserName] = useState('');
   const [viewsPercentageChange, setViewsPercentageChange] = useState(0);
 
@@ -62,6 +64,14 @@ const AgentOverview = ({ onNavigate }) => {
       return;
     }
     setShowPopup(true);
+  };
+
+  const handleAddUpcomingProject = () => {
+    if (properties.length >= MAX_PROPERTIES) {
+      alert(`You can add maximum ${MAX_PROPERTIES} properties.`);
+      return;
+    }
+    setShowUpcomingProjectPopup(true);
   };
 
   const formatPrice = (price) => {
@@ -134,6 +144,12 @@ const AgentOverview = ({ onNavigate }) => {
                 <path d="M12 5v14M5 12h14" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
               </svg>
               <span>Add New Property</span>
+            </button>
+            <button className="add-property-header-btn" onClick={handleAddUpcomingProject}>
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+                <path d="M12 5v14M5 12h14" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+              </svg>
+              <span>Add Upcoming Project</span>
             </button>
           </div>
         </div>
@@ -439,6 +455,9 @@ const AgentOverview = ({ onNavigate }) => {
 
       {/* Add Property Popup */}
       {showPopup && <AddPropertyPopup onClose={() => setShowPopup(false)} />}
+      
+      {/* Add Upcoming Project Popup */}
+      {showUpcomingProjectPopup && <AddUpcomingProjectPopup onClose={() => setShowUpcomingProjectPopup(false)} />}
     </div>
   );
 };

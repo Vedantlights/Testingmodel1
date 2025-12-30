@@ -386,6 +386,18 @@
 .summary-label { font-size:0.8rem; color:var(--text-muted); }
 .summary-value { font-size:0.9rem; font-weight:600; color:var(--text-primary); }
 
+/* preview section */
+.preview-section { margin-top:1rem; }
+.preview-section h4 { font-size:1rem; font-weight:600; color:var(--text-primary); margin-top:1.5rem; margin-bottom:0.75rem; }
+.preview-section h4:first-child { margin-top:0; }
+.preview-section p { font-size:0.9rem; color:var(--text-secondary); margin-bottom:0.5rem; line-height:1.6; }
+.preview-section strong { color:var(--text-primary); font-weight:600; }
+
+/* info box */
+.info-box { margin-top:1rem; padding:1rem; background:#f0f9ff; border:1px solid #bae6fd; border-radius:var(--radius-md); }
+.info-box p { margin:0; font-size:0.9rem; color:var(--text-primary); line-height:1.5; }
+.info-box strong { font-weight:600; }
+
 /* footer */
 .popup-footer { display:flex; justify-content:space-between; align-items:center; padding:1.25rem 2rem; border-top:1px solid var(--border-color); background:#fafbfc; border-radius:0 0 var(--radius-xl) var(--radius-xl); }
 .footer-right { display:flex; gap:0.75rem; margin-left:auto; }

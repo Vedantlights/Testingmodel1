@@ -150,6 +150,27 @@ try {
     $videoUrl = $input['video_url'] ?? null;
     $brochureUrl = $input['brochure_url'] ?? null;
     
+    // Handle project_type (for upcoming/pre-launch projects)
+    $projectType = isset($input['project_type']) && !empty($input['project_type']) 
+        ? sanitizeInput($input['project_type']) 
+        : null;
+    
+    // Handle upcoming_project_data (additional fields for upcoming projects stored as JSON)
+    $upcomingProjectData = null;
+    if ($projectType === 'upcoming' && isset($input['upcoming_project_data'])) {
+        // Validate and sanitize JSON data
+        $upcomingData = $input['upcoming_project_data'];
+        if (is_array($upcomingData)) {
+            // Sanitize string values in the array
+            array_walk_recursive($upcomingData, function(&$value) {
+                if (is_string($value)) {
+                    $value = sanitizeInput($value);
+                }
+            });
+            $upcomingProjectData = json_encode($upcomingData);
+        }
+    }
+    
     // Images are uploaded separately through moderation endpoint
     // Commented out image validation to allow property creation without images
     // Images will be uploaded via /api/images/moderate-and-upload.php after property is created
@@ -176,23 +197,52 @@ try {
         $userFullName = $userData['full_name'] ?? $user['full_name'] ?? '';
         
         // Insert property (is_active defaults to 1, but explicitly set it)
-        $stmt = $db->prepare("
-            INSERT INTO properties (
-                user_id, user_full_name, title, status, property_type, location, latitude, longitude,
-                state, additional_address, bedrooms, bathrooms, balconies, area, carpet_area, floor, total_floors,
-                facing, age, furnishing, description, price, price_negotiable,
-                maintenance_charges, deposit_amount, cover_image, video_url, brochure_url, is_active
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-        ");
+        // Check if project_type column exists (for backward compatibility)
+        $checkProjectType = $db->query("SHOW COLUMNS FROM properties LIKE 'project_type'");
+        $hasProjectType = $checkProjectType->rowCount() > 0;
         
-        $coverImage = !empty($images[0]) ? $images[0] : null;
+        $checkUpcomingData = $db->query("SHOW COLUMNS FROM properties LIKE 'upcoming_project_data'");
+        $hasUpcomingData = $checkUpcomingData->rowCount() > 0;
         
-        $stmt->execute([
-            $user['id'], $userFullName, $title, $status, $propertyType, $location, $latitude, $longitude,
-            $state, $additionalAddress, $bedrooms, $bathrooms, $balconies, $area, $carpetArea, $floor, $totalFloors,
-            $facing, $age, $furnishing, $description, $price, $priceNegotiable,
-            $maintenanceCharges, $depositAmount, $coverImage, $videoUrl, $brochureUrl, 1
-        ]);
+        if ($hasProjectType && $hasUpcomingData) {
+            // New schema with project_type and upcoming_project_data
+            $stmt = $db->prepare("
+                INSERT INTO properties (
+                    user_id, user_full_name, title, status, property_type, project_type, location, latitude, longitude,
+                    state, additional_address, bedrooms, bathrooms, balconies, area, carpet_area, floor, total_floors,
+                    facing, age, furnishing, description, price, price_negotiable,
+                    maintenance_charges, deposit_amount, cover_image, video_url, brochure_url, upcoming_project_data, is_active
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            ");
+            
+            $coverImage = !empty($images[0]) ? $images[0] : null;
+            
+            $stmt->execute([
+                $user['id'], $userFullName, $title, $status, $propertyType, $projectType, $location, $latitude, $longitude,
+                $state, $additionalAddress, $bedrooms, $bathrooms, $balconies, $area, $carpetArea, $floor, $totalFloors,
+                $facing, $age, $furnishing, $description, $price, $priceNegotiable,
+                $maintenanceCharges, $depositAmount, $coverImage, $videoUrl, $brochureUrl, $upcomingProjectData, 1
+            ]);
+        } else {
+            // Old schema without project_type (backward compatibility)
+            $stmt = $db->prepare("
+                INSERT INTO properties (
+                    user_id, user_full_name, title, status, property_type, location, latitude, longitude,
+                    state, additional_address, bedrooms, bathrooms, balconies, area, carpet_area, floor, total_floors,
+                    facing, age, furnishing, description, price, price_negotiable,
+                    maintenance_charges, deposit_amount, cover_image, video_url, brochure_url, is_active
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            ");
+            
+            $coverImage = !empty($images[0]) ? $images[0] : null;
+            
+            $stmt->execute([
+                $user['id'], $userFullName, $title, $status, $propertyType, $location, $latitude, $longitude,
+                $state, $additionalAddress, $bedrooms, $bathrooms, $balconies, $area, $carpetArea, $floor, $totalFloors,
+                $facing, $age, $furnishing, $description, $price, $priceNegotiable,
+                $maintenanceCharges, $depositAmount, $coverImage, $videoUrl, $brochureUrl, 1
+            ]);
+        }
         
         $propertyId = $db->lastInsertId();
         
