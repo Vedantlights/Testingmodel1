@@ -98,6 +98,15 @@
    border:2px solid#7C3AED;
 }
 
+.stat-card.clickable-stat {
+  cursor: pointer;
+}
+
+.stat-card.clickable-stat:hover {
+  transform: translateY(-4px);
+  box-shadow: var(--shadow-md);
+}
+
 .stat-card.primary {
   background: linear-gradient(135deg, #7C3AED 0%, #9D5CFF 100%);
   color: white;
@@ -446,6 +455,11 @@
 
 .property-badge.rent {
   background: #3B82F6;
+  color: white;
+}
+
+.property-badge.upcoming {
+  background: #10B981;
   color: white;
 }
 

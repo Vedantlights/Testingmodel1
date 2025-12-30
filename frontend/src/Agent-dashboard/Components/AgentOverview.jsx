@@ -183,7 +183,11 @@ const AgentOverview = ({ onNavigate }) => {
 
       {/* Stats Grid */}
       <div className="stats-grid">
-        <div className="stat-card primary">
+        <div 
+          className="stat-card primary clickable-stat" 
+          onClick={() => onNavigate && onNavigate('properties')}
+          style={{ cursor: 'pointer' }}
+        >
           <div className="stat-icon-wrapper">
             <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
               <path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z" stroke="currentColor" strokeWidth="2"/>
@@ -226,7 +230,11 @@ const AgentOverview = ({ onNavigate }) => {
           </div>
         </div>
 
-        <div className="stat-card">
+        <div 
+          className="stat-card clickable-stat"
+          onClick={() => onNavigate && onNavigate('inquiries')}
+          style={{ cursor: 'pointer' }}
+        >
           <div className="stat-icon-wrapper green">
             <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
               <path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z" stroke="currentColor" strokeWidth="2"/>
@@ -352,8 +360,8 @@ const AgentOverview = ({ onNavigate }) => {
                 >
                   <div className="property-thumbnail">
                     <img src={property.images?.[0]} alt={property.title} />
-                    <span className={`property-badge ${property.status}`}>
-                      {property.status === 'sale' ? 'For Sale' : 'For Rent'}
+                    <span className={`property-badge ${property.project_type === 'upcoming' ? 'upcoming' : property.status}`}>
+                      {property.project_type === 'upcoming' ? 'Upcoming' : (property.status === 'sale' ? 'For Sale' : 'For Rent')}
                     </span>
                   </div>
                   <div className="property-info">
