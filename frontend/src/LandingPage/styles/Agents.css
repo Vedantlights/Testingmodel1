@@ -43,7 +43,7 @@ h2 {
   padding: 100px 20px;
   padding-top: calc(8rem + 100px); /* Account for fixed navbar (8rem) + original padding */
   position: relative;
-  min-height: calc(570px + 8rem); /* Add navbar height to min-height */
+  min-height: calc(100vh - 8rem); /* Exactly viewport height minus navbar */
   display: flex;
   flex-direction: column;
   justify-content: center;
@@ -522,12 +522,11 @@ h2 {
   opacity: 0.95;
 }
 
-/* Fully Responsive Design */
-@media (min-width: 1920px) {
+/* Fully Responsive Design - Viewport height only */
+@media (min-width: 1024px) {
   .agent-hero-sections {
-    padding: 120px 40px;
-    padding-top: calc(8rem + 120px);
-    min-height: calc(800px + 8rem);
+    min-height: calc(100vh - 8rem);
+    padding-top: calc(8rem + 100px);
   }
   
   section {
@@ -535,38 +534,10 @@ h2 {
   }
 }
 
-@media (max-width: 1919px) and (min-width: 1400px) {
-  .agent-hero-sections {
-    padding: 100px 30px;
-    padding-top: calc(8rem + 100px);
-    min-height: calc(700px + 8rem);
-  }
-}
-
-@media (max-width: 1399px) and (min-width: 1200px) {
-  .agent-hero-sections {
-    padding: 90px 25px;
-    padding-top: calc(8rem + 90px);
-    min-height: calc(650px + 8rem);
-  }
-}
-
-@media (max-width: 1199px) and (min-width: 1024px) {
-  .agent-hero-sections {
-    padding: 80px 20px;
-    padding-top: calc(5rem + 80px);
-    min-height: calc(600px + 5rem);
-  }
-  
-  section {
-    padding: 50px 20px;
-  }
-}
-
 @media (max-width: 1099px) {
   .agent-hero-sections {
-    padding-top: calc(5rem + 100px); /* Tablet navbar height */
-    min-height: calc(550px + 5rem);
+    min-height: calc(100vh - 5rem);
+    padding-top: calc(5rem + 100px);
     padding: 80px 20px;
   }
   
