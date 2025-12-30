@@ -275,19 +275,29 @@ try {
                 $imageArray = explode(',', $property['images']);
                 $property['images'] = array_map(function($img) {
                     $img = trim($img);
-                    // If already a full URL, return as is
+                    // If already a full URL, return as is (but fix old /backend/uploads/ paths)
                     if (strpos($img, 'http://') === 0 || strpos($img, 'https://') === 0) {
-                        return $img;
+                        // Fix old URLs that have /backend/uploads/ to /uploads/
+                        return str_replace('/backend/uploads/', '/uploads/', $img);
                     }
-                    // If relative path, make it full URL
-                    if (defined('BASE_URL')) {
+                    // If relative path, make it full URL using UPLOAD_BASE_URL
+                    if (defined('UPLOAD_BASE_URL')) {
                         if (strpos($img, '/uploads/') === 0) {
-                            return BASE_URL . $img;
+                            return UPLOAD_BASE_URL . substr($img, 9); // Remove '/uploads/' prefix
                         }
                         if (strpos($img, 'uploads/') === 0) {
-                            return BASE_URL . '/' . $img;
+                            return UPLOAD_BASE_URL . '/' . substr($img, 8); // Remove 'uploads/' prefix
                         }
-                        return BASE_URL . '/uploads/' . $img;
+                        return UPLOAD_BASE_URL . '/' . $img;
+                    }
+                    // Fallback to BASE_URL if UPLOAD_BASE_URL not defined
+                    if (defined('BASE_URL')) {
+                        $host = $_SERVER['HTTP_HOST'] ?? 'demo1.indiapropertys.com';
+                        $protocol = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? 'https' : 'http';
+                        if (strpos($img, '/uploads/') === 0) {
+                            return $protocol . '://' . $host . $img;
+                        }
+                        return $protocol . '://' . $host . '/uploads/' . $img;
                     }
                     return $img;
                 }, $imageArray);

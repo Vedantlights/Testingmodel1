@@ -80,7 +80,12 @@ if ($isLocalhost) {
 }
 
 define('API_BASE_URL', BASE_URL . '/api');
-define('UPLOAD_BASE_URL', BASE_URL . '/uploads');
+// UPLOAD_BASE_URL should point to /uploads (not /backend/uploads) since files are saved to /uploads/
+// Files are physically at: /public_html/demo1/uploads/properties/
+// URLs should be: https://demo1.indiapropertys.com/uploads/properties/
+$protocol = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? 'https' : 'http';
+$host = $_SERVER['HTTP_HOST'];
+define('UPLOAD_BASE_URL', $protocol . '://' . $host . '/uploads');
 
 // File Upload Paths
 define('UPLOAD_DIR', __DIR__ . '/../uploads/');

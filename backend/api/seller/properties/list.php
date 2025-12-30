@@ -102,18 +102,29 @@ try {
                 $img = trim($img);
                 // If already a full URL, return as is
                 if (strpos($img, 'http://') === 0 || strpos($img, 'https://') === 0) {
-                    return $img;
+                    // Fix old URLs that have /backend/uploads/ to /uploads/
+                    return str_replace('/backend/uploads/', '/uploads/', $img);
                 }
-                // If relative path, make it full URL
-                if (defined('BASE_URL')) {
+                // If relative path, make it full URL using UPLOAD_BASE_URL
+                if (defined('UPLOAD_BASE_URL')) {
                     // Remove /uploads/ prefix if present
                     if (strpos($img, '/uploads/') === 0) {
-                        return BASE_URL . $img;
+                        return UPLOAD_BASE_URL . substr($img, 9); // Remove '/uploads/' prefix
                     }
                     if (strpos($img, 'uploads/') === 0) {
-                        return BASE_URL . '/' . $img;
+                        return UPLOAD_BASE_URL . '/' . substr($img, 8); // Remove 'uploads/' prefix
                     }
                     // Assume it's relative to uploads
+                    return UPLOAD_BASE_URL . '/' . $img;
+                }
+                // Fallback to BASE_URL if UPLOAD_BASE_URL not defined
+                if (defined('BASE_URL')) {
+                    if (strpos($img, '/uploads/') === 0) {
+                        // Remove /backend from BASE_URL for uploads
+                        $host = $_SERVER['HTTP_HOST'] ?? 'demo1.indiapropertys.com';
+                        $protocol = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? 'https' : 'http';
+                        return $protocol . '://' . $host . $img;
+                    }
                     return BASE_URL . '/uploads/' . $img;
                 }
                 return $img;

@@ -650,9 +650,10 @@ try {
     // Calculate relative path from uploads folder
     $relativePath = 'properties/' . $propertyId . '/' . $uniqueFilename;
     
-    // Build full URL - ensure it's accessible
-    // BASE_URL is already set to include /backend, so we need /uploads/...
-    $imageUrl = BASE_URL . '/uploads/' . $relativePath;
+    // Build full URL - use UPLOAD_BASE_URL (which points to /uploads, not /backend/uploads)
+    // Files are saved to: /uploads/properties/{id}/{filename}
+    // URLs should be: https://demo1.indiapropertys.com/uploads/properties/{id}/{filename}
+    $imageUrl = UPLOAD_BASE_URL . '/' . $relativePath;
     
     // Log the URL being returned
     error_log("Image URL being returned: {$imageUrl}");
