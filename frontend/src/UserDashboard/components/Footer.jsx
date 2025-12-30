@@ -3,7 +3,6 @@ import { Link } from 'react-router-dom';
 import '../styles/Footer.css';
 
 const Footer = () => {
-  window.scrollTo(0,0);
   const currentYear = new Date().getFullYear();
 
   return (
