@@ -8,7 +8,6 @@
 .view-details-page {
     flex-grow: 1;
     padding: 0;
-    background-color: #dedcdc;
     background-image: 
         radial-gradient(circle at 20% 50%, rgba(136, 106, 206, 0.03) 0%, transparent 50%),
         radial-gradient(circle at 80% 80%, rgba(136, 106, 206, 0.03) 0%, transparent 50%);

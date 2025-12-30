@@ -20,10 +20,7 @@ const SearchResults = () => {
   const resultsHeaderRef = useRef(null);
   const propertyCardRefs = useRef({});
 
-  // Scroll to top when navigating to this page
-  useEffect(() => {
-    window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
-  }, [searchParams]);
+  // Scroll to top is handled by ScrollToTop component in buyer-dashboard.jsx
 
   // Detect mobile/tablet screen size
   useEffect(() => {

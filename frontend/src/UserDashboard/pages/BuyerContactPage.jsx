@@ -4,15 +4,8 @@ import { MapPin, Mail, MessageSquare, ChevronDown } from "lucide-react";
 import "../styles/BuyerContactPage.css";
 
 export default function Contact() {
-  // Only scroll to top once on component mount, not on every render
-  useEffect(() => {
-    // Use auto behavior for instant scroll without lag
-    window.scrollTo({
-      top: 0,
-      behavior: 'auto' // Changed from default 'smooth' to 'auto' for better performance
-    });
-  }, []); // Empty dependency array means it only runs once on mount
-
+  // Scroll to top is handled by ScrollToTop component in buyer-dashboard.jsx
+  
   const formRef = useRef(null);
   const [formData, setFormData] = useState({
     name: "",
