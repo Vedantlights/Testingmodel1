@@ -261,8 +261,14 @@ const CityFilteredBuy = () => {
         
         if (response.success && response.data && response.data.properties) {
           // Convert backend properties to frontend format and filter only 'sale' properties
+          // Exclude upcoming projects - they should only appear in Upcoming Projects section
           const backendProperties = response.data.properties
-            .filter(prop => prop.status === 'sale' || prop.status === 'For Sale') // Only include sale properties
+            .filter(prop => {
+              // Only include sale properties and exclude upcoming projects
+              const isSale = prop.status === 'sale' || prop.status === 'For Sale';
+              const isNotUpcoming = !prop.project_type || prop.project_type !== 'upcoming';
+              return isSale && isNotUpcoming;
+            })
             .map(prop => {
               let imageUrl = null;
               if (prop.cover_image && prop.cover_image.trim() !== '') {
@@ -287,6 +293,7 @@ const CityFilteredBuy = () => {
                 type: prop.property_type,
                 status: 'For Sale', // Always set to 'For Sale' for this page
                 propertyType: prop.property_type,
+                projectType: prop.project_type || null, // Include project_type for reference
                 description: prop.description || '',
                 amenities: Array.isArray(prop.amenities) ? prop.amenities : (prop.amenities ? [prop.amenities] : []),
                 images: Array.isArray(prop.images) ? prop.images : (prop.images ? [prop.images] : []),

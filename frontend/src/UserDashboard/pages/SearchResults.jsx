@@ -104,36 +104,40 @@ const SearchResults = () => {
           
           if (Array.isArray(properties) && properties.length > 0) {
             // Convert backend properties to frontend format
-            const backendProperties = properties.map(prop => {
-              // Get the best image (cover_image or first image from array)
-              let imageUrl = prop.cover_image || 
-                            (Array.isArray(prop.images) && prop.images.length > 0 ? prop.images[0] : null) ||
-                            'https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?w=500';
-              
-              return {
-                id: prop.id,
-                image: imageUrl,
-                title: prop.title || 'Untitled Property',
-                price: parseFloat(prop.price) || 0,
-                location: prop.location || 'Location not specified',
-                bedrooms: prop.bedrooms || '0',
-                bathrooms: prop.bathrooms || '0',
-                area: parseFloat(prop.area) || 0,
-                type: prop.property_type || prop.type || 'Unknown',
-                status: prop.status === 'sale' ? 'For Sale' : (prop.status === 'rent' ? 'For Rent' : prop.status || 'For Sale'),
-                propertyType: prop.property_type || prop.type || 'Unknown',
-                description: prop.description || '',
-                amenities: Array.isArray(prop.amenities) ? prop.amenities : (prop.amenities ? [prop.amenities] : []),
-                images: Array.isArray(prop.images) ? prop.images : (prop.images ? [prop.images] : []),
-                latitude: prop.latitude,
-                longitude: prop.longitude,
-                createdAt: prop.created_at,
-                seller_name: prop.seller_name,
-                seller_phone: prop.seller_phone
-              };
-            });
+            // Exclude upcoming projects - they should only appear in Upcoming Projects section
+            const backendProperties = properties
+              .filter(prop => !prop.project_type || prop.project_type !== 'upcoming')
+              .map(prop => {
+                // Get the best image (cover_image or first image from array)
+                let imageUrl = prop.cover_image || 
+                              (Array.isArray(prop.images) && prop.images.length > 0 ? prop.images[0] : null) ||
+                              'https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?w=500';
+                
+                return {
+                  id: prop.id,
+                  image: imageUrl,
+                  title: prop.title || 'Untitled Property',
+                  price: parseFloat(prop.price) || 0,
+                  location: prop.location || 'Location not specified',
+                  bedrooms: prop.bedrooms || '0',
+                  bathrooms: prop.bathrooms || '0',
+                  area: parseFloat(prop.area) || 0,
+                  type: prop.property_type || prop.type || 'Unknown',
+                  status: prop.status === 'sale' ? 'For Sale' : (prop.status === 'rent' ? 'For Rent' : prop.status || 'For Sale'),
+                  propertyType: prop.property_type || prop.type || 'Unknown',
+                  projectType: prop.project_type || null, // Include project_type for reference
+                  description: prop.description || '',
+                  amenities: Array.isArray(prop.amenities) ? prop.amenities : (prop.amenities ? [prop.amenities] : []),
+                  images: Array.isArray(prop.images) ? prop.images : (prop.images ? [prop.images] : []),
+                  latitude: prop.latitude,
+                  longitude: prop.longitude,
+                  createdAt: prop.created_at,
+                  seller_name: prop.seller_name,
+                  seller_phone: prop.seller_phone
+                };
+              });
             
-            console.log(`✅ Setting ${backendProperties.length} properties to state`);
+            console.log(`✅ Setting ${backendProperties.length} properties to state (upcoming projects excluded)`);
             setFilteredProperties(backendProperties);
           } else {
             console.log('⚠️ No properties found in response array');
@@ -158,28 +162,32 @@ const SearchResults = () => {
           if (fallbackResponse.success && fallbackResponse.data) {
             const fallbackProperties = fallbackResponse.data.properties || fallbackResponse.data.property || [];
             if (Array.isArray(fallbackProperties) && fallbackProperties.length > 0) {
-              const convertedProperties = fallbackProperties.map(prop => ({
-                id: prop.id,
-                image: prop.cover_image || (Array.isArray(prop.images) && prop.images[0]) || 'https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?w=500',
-                title: prop.title || 'Untitled Property',
-                price: parseFloat(prop.price) || 0,
-                location: prop.location || 'Location not specified',
-                bedrooms: prop.bedrooms || '0',
-                bathrooms: prop.bathrooms || '0',
-                area: parseFloat(prop.area) || 0,
-                type: prop.property_type || prop.type || 'Unknown',
-                status: prop.status === 'sale' ? 'For Sale' : (prop.status === 'rent' ? 'For Rent' : prop.status || 'For Sale'),
-                propertyType: prop.property_type || prop.type || 'Unknown',
-                description: prop.description || '',
-                amenities: Array.isArray(prop.amenities) ? prop.amenities : [],
-                images: Array.isArray(prop.images) ? prop.images : [],
-                latitude: prop.latitude,
-                longitude: prop.longitude,
-                createdAt: prop.created_at,
-                seller_name: prop.seller_name,
-                seller_phone: prop.seller_phone
-              }));
-              console.log(`✅ Fallback: Setting ${convertedProperties.length} properties`);
+              // Exclude upcoming projects in fallback as well
+              const convertedProperties = fallbackProperties
+                .filter(prop => !prop.project_type || prop.project_type !== 'upcoming')
+                .map(prop => ({
+                  id: prop.id,
+                  image: prop.cover_image || (Array.isArray(prop.images) && prop.images[0]) || 'https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?w=500',
+                  title: prop.title || 'Untitled Property',
+                  price: parseFloat(prop.price) || 0,
+                  location: prop.location || 'Location not specified',
+                  bedrooms: prop.bedrooms || '0',
+                  bathrooms: prop.bathrooms || '0',
+                  area: parseFloat(prop.area) || 0,
+                  type: prop.property_type || prop.type || 'Unknown',
+                  status: prop.status === 'sale' ? 'For Sale' : (prop.status === 'rent' ? 'For Rent' : prop.status || 'For Sale'),
+                  propertyType: prop.property_type || prop.type || 'Unknown',
+                  projectType: prop.project_type || null, // Include project_type for reference
+                  description: prop.description || '',
+                  amenities: Array.isArray(prop.amenities) ? prop.amenities : [],
+                  images: Array.isArray(prop.images) ? prop.images : [],
+                  latitude: prop.latitude,
+                  longitude: prop.longitude,
+                  createdAt: prop.created_at,
+                  seller_name: prop.seller_name,
+                  seller_phone: prop.seller_phone
+                }));
+              console.log(`✅ Fallback: Setting ${convertedProperties.length} properties (upcoming projects excluded)`);
               setFilteredProperties(convertedProperties);
             } else {
               setFilteredProperties([]);

@@ -513,10 +513,10 @@ export default function AddPropertyPopup({ onClose, editIndex = null, initialDat
         if (!formData.description || !formData.description.trim()) {
           newErrors.description = "Description is required";
         } else {
-          // Check minimum word count (100 words)
-          const wordCount = formData.description.trim().split(/\s+/).filter(word => word.length > 0).length;
-          if (wordCount < 100) {
-            newErrors.description = `Description must contain at least 100 words. Currently: ${wordCount} words.`;
+          // Check minimum character count (100 characters)
+          const charCount = formData.description.trim().length;
+          if (charCount < 100) {
+            newErrors.description = `Description must contain at least 100 characters. Currently: ${charCount} characters.`;
           }
           
           // Check for mobile numbers (Indian format: 10 digits, may have +91, spaces, dashes)
@@ -1386,15 +1386,14 @@ export default function AddPropertyPopup({ onClose, editIndex = null, initialDat
         <div className="form-group">
           <label>Property Description <span className="required">*</span></label>
           <textarea
-            placeholder="Describe your property in detail (minimum 100 words required). Mention unique features, nearby landmarks, connectivity, etc. Note: Mobile numbers and email addresses are not allowed."
+            placeholder="Describe your property in detail (minimum 100 characters required). Mention unique features, nearby landmarks, connectivity, etc. Note: Mobile numbers and email addresses are not allowed."
             value={formData.description}
             onChange={(e) => handleChange('description', e.target.value)}
             rows={5}
             className={errors.description ? 'error' : ''}
           />
           <span className="char-count">
-            Words: {formData.description ? formData.description.trim().split(/\s+/).filter(word => word.length > 0).length : 0}/100 (min) | 
-            Characters: {(formData.description || '').length}/1000
+            Characters: {(formData.description || '').length}/1000 (min: 100)
           </span>
           {errors.description && <span className="error-text">{errors.description}</span>}
         </div>

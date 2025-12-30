@@ -246,8 +246,14 @@ const CityFilteredRent = () => {
         
         if (response.success && response.data && response.data.properties) {
           // Convert backend properties to frontend format and filter only 'rent' properties
+          // Exclude upcoming projects - they should only appear in Upcoming Projects section
           const backendProperties = response.data.properties
-            .filter(prop => prop.status === 'rent' || prop.status === 'For Rent') // Only include rent properties
+            .filter(prop => {
+              // Only include rent properties and exclude upcoming projects
+              const isRent = prop.status === 'rent' || prop.status === 'For Rent';
+              const isNotUpcoming = !prop.project_type || prop.project_type !== 'upcoming';
+              return isRent && isNotUpcoming;
+            })
             .map(prop => {
               let imageUrl = null;
               if (prop.cover_image && prop.cover_image.trim() !== '') {
@@ -272,6 +278,7 @@ const CityFilteredRent = () => {
                 type: prop.property_type,
                 status: 'For Rent', // Always set to 'For Rent' for this page
                 propertyType: prop.property_type,
+                projectType: prop.project_type || null, // Include project_type for reference
                 description: prop.description || '',
                 amenities: Array.isArray(prop.amenities) ? prop.amenities : (prop.amenities ? [prop.amenities] : []),
                 images: Array.isArray(prop.images) ? prop.images : (prop.images ? [prop.images] : []),
