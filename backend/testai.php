@@ -1,33 +1,31 @@
 <?php
 header('Content-Type: text/plain');
 
-echo "=== CREDENTIALS TEST ===\n\n";
+echo "=== FIND CREDENTIALS FILE ===\n\n";
 
-$path = '/home/u123456789/Secure/indiapropertys-8fab286d41e4.json';
+// Your actual home directory
+$homeDir = '/home/u449667423';
 
-echo "Path: $path\n";
-echo "Exists: " . (file_exists($path) ? 'YES' : 'NO') . "\n";
-echo "Readable: " . (is_readable($path) ? 'YES' : 'NO') . "\n";
+// Check common locations
+$possiblePaths = [
+    $homeDir . '/Secure/indiapropertys-8fab286d41e4.json',
+    $homeDir . '/secure/indiapropertys-8fab286d41e4.json',
+    $homeDir . '/domains/indiapropertys.com/Secure/indiapropertys-8fab286d41e4.json',
+    $homeDir . '/domains/indiapropertys.com/public_html/demo1/config/indiapropertys-8fab286d41e4.json',
+    $homeDir . '/domains/indiapropertys.com/public_html/demo1/backend/config/indiapropertys-8fab286d41e4.json',
+];
 
-if (file_exists($path)) {
-    $content = file_get_contents($path);
-    $json = json_decode($content);
-    echo "Valid JSON: " . ($json ? 'YES' : 'NO') . "\n";
-    if ($json) {
-        echo "Project ID: " . ($json->project_id ?? 'NOT FOUND') . "\n";
-        echo "Client Email: " . ($json->client_email ?? 'NOT FOUND') . "\n";
-    }
-} else {
-    echo "\n⚠️ FILE NOT FOUND!\n";
-    echo "Check if the path is correct for your hosting.\n";
+foreach ($possiblePaths as $path) {
+    $exists = file_exists($path) ? '✅ EXISTS' : '❌ NO';
+    echo "$exists: $path\n";
 }
 
-echo "\n=== UPLOAD PATHS TEST ===\n\n";
-
-$docRoot = $_SERVER['DOCUMENT_ROOT'];
-echo "Document Root: $docRoot\n\n";
-
-$tempPath = $docRoot . '/uploads/temp/';
-echo "Temp Path: $tempPath\n";
-echo "Exists: " . (file_exists($tempPath) ? 'YES' : 'NO') . "\n";
-echo "Writable: " . (is_writable($tempPath) ? 'YES' : 'NO') . "\n";
+echo "\n=== LIST HOME DIRECTORY ===\n";
+$dirs = @scandir($homeDir);
+if ($dirs) {
+    foreach ($dirs as $dir) {
+        if ($dir !== '.' && $dir !== '..') {
+            echo "  - $dir\n";
+        }
+    }
+}
