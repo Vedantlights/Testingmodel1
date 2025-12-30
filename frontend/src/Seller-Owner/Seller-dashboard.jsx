@@ -10,7 +10,6 @@ import SellerProfile from './Components/SellerProfile';
 import Subscription from './Components/PlainTimerPage';
 // Use buyer's ViewDetailsPage for all property details (same layout for buyers and sellers)
 import ViewDetailsPage from '../UserDashboard/pages/ViewDetailsPage';
-import SellerFooter from './components/SellerFooter';
 import BuyerContactPage from '../UserDashboard/pages/BuyerContactPage';
 
 import { PropertyProvider, useProperty } from './Components/PropertyContext';
@@ -519,9 +518,6 @@ const SellerDashboardContent = () => {
           {renderContent()}
         </div>
       </main>
-
-      {/* Footer */}
-      <SellerFooter />
     </div>
   );
 };
