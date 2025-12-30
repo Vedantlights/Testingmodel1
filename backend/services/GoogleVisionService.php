@@ -81,6 +81,7 @@ class GoogleVisionService {
             
             $feature2 = new Feature();
             $feature2->setType(Type::LABEL_DETECTION);
+            $feature2->setMaxResults(20); // Get more labels for better detection
             
             $feature3 = new Feature();
             $feature3->setType(Type::FACE_DETECTION);
