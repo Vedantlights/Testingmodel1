@@ -1,10 +1,7 @@
 /* SearchBar.css */
 
 .landing-search-bar-container {
-  background-size: 100% 100%;
-  background-position: center center;
-  background-repeat: no-repeat;
-  background-attachment: scroll;
+  /* Background image handled by separate .landing-background-image div */
   color: rgb(255, 251, 251);
   text-align: center;
   padding: 100px 20px;
@@ -17,6 +14,7 @@
   justify-content: center;
   align-items: center;
   overflow: hidden;
+  z-index: 2; /* Above background image */
 }
 
 /* Responsive background sizing for better image display */

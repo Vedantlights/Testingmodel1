@@ -1,31 +1,41 @@
 // Contact.jsx
-import React, { useState, useRef } from "react";
-import { MapPin, Mail, MessageSquare } from "lucide-react";
+import React, { useState, useRef, useEffect, useCallback } from "react";
+import { MapPin, Mail, MessageSquare, ChevronDown } from "lucide-react";
 import emailjs from "@emailjs/browser";     // ✅ Correct EmailJS package
 import '../styles/Contact.css';
 
 export default function Contact() {
+  // Only scroll to top once on component mount, not on every render
+  useEffect(() => {
+    // Use auto behavior for instant scroll without lag
+    window.scrollTo({
+      top: 0,
+      behavior: 'auto' // Changed from default 'smooth' to 'auto' for better performance
+    });
+  }, []); // Empty dependency array means it only runs once on mount
+
   const formRef = useRef(null);
   const [formData, setFormData] = useState({
     name: "",
     email: "",
     phone: "",
-    subject: "",
     message: "",
   });
 
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
+  const [openFaqIndex, setOpenFaqIndex] = useState(null);
   const [errors, setErrors] = useState({});
 
-  const handleChange = (e) => {
+  // Memoize handleChange to prevent unnecessary re-renders
+  const handleChange = useCallback((e) => {
     const { name, value } = e.target;
-    setFormData({ ...formData, [name]: value });
+    setFormData(prev => ({ ...prev, [name]: value }));
     // Clear error when user starts typing
     if (errors[name]) {
-      setErrors({ ...errors, [name]: "" });
+      setErrors(prev => ({ ...prev, [name]: "" }));
     }
-  };
+  }, [errors]);
 
   // Email validation function
   const validateEmail = (email) => {
@@ -41,9 +51,12 @@ export default function Contact() {
   };
 
   const handleSubmit = (e) => {
-    e.preventDefault();
-    e.stopPropagation(); // Prevent event bubbling
-
+    // Prevent default form submission behavior
+    if (e) {
+      e.preventDefault();
+      e.stopPropagation();
+    }
+    
     // Save current scroll position
     const scrollPosition = window.pageYOffset || document.documentElement.scrollTop;
 
@@ -52,7 +65,6 @@ export default function Contact() {
     const trimmedName = formData.name?.trim();
     const trimmedEmail = formData.email?.trim();
     const trimmedPhone = formData.phone?.trim();
-    const trimmedSubject = formData.subject?.trim();
     const trimmedMessage = formData.message?.trim();
 
     if (!trimmedName || trimmedName.length < 2) {
@@ -71,10 +83,6 @@ export default function Contact() {
       newErrors.phone = "Please enter a valid phone number";
     }
 
-    if (!trimmedSubject || trimmedSubject.length < 3) {
-      newErrors.subject = "Subject must be at least 3 characters";
-    }
-
     if (!trimmedMessage || trimmedMessage.length < 10) {
       newErrors.message = "Message must be at least 10 characters";
     }
@@ -82,7 +90,10 @@ export default function Contact() {
     if (Object.keys(newErrors).length > 0) {
       setErrors(newErrors);
       // Restore scroll position
-      window.scrollTo(0, scrollPosition);
+      window.scrollTo({
+        top: scrollPosition,
+        behavior: 'auto'
+      });
       return;
     }
 
@@ -96,7 +107,7 @@ export default function Contact() {
       name: trimmedName,
       from_email: trimmedEmail,
       phone: trimmedPhone,
-      subject: trimmedSubject,
+      subject: "Contact Form Inquiry",
       message: trimmedMessage,
     };
 
@@ -115,14 +126,16 @@ export default function Contact() {
           name: "",
           email: "",
           phone: "",
-          subject: "",
           message: "",
         });
 
-        // Maintain scroll position after submission
-        const scrollPosition = window.pageYOffset || document.documentElement.scrollTop;
+        // Maintain scroll position after submission - use smooth scroll only if needed
+        // Using requestAnimationFrame for better performance
         requestAnimationFrame(() => {
-          window.scrollTo(0, scrollPosition);
+          window.scrollTo({
+            top: scrollPosition,
+            behavior: 'auto' // Use 'auto' instead of 'smooth' for better performance
+          });
         });
 
         setTimeout(() => setSubmitted(false), 2500);
@@ -134,7 +147,7 @@ export default function Contact() {
         });
         console.error("EmailJS Error:", error);
         // Scroll to top to show error
-        window.scrollTo({ top: 0, behavior: 'smooth' });
+        window.scrollTo({ top: 0, behavior: 'auto' });
       });
   };
 
@@ -144,180 +157,172 @@ export default function Contact() {
 
         {/* HEADER */}
         <div className="contact-header">
-          <h1 className="contact-title">Contact Us</h1>
+          <h1 className="contact-title">
+            Get In Touch
+          </h1>
           <p className="header-text">
-            We'd love to hear from you! Fill out the form and we'll be in touch.
+            Contact us for a free quote or emergency service
           </p>
         </div>
 
-        {/* INFO SECTION */}
-        <div className="info-section">
-
-          <div className="info-card">
-            <div className="info-icon bg-blue">
-              <MapPin />
+        {/* TWO COLUMN LAYOUT */}
+        <div className="contact-two-column">
+          
+          {/* LEFT COLUMN - CONTACT INFORMATION */}
+          <div className="contact-info-card">
+            <h2 className="contact-info-title">Contact Information</h2>
+            
+            <div className="contact-info-item">
+              <div className="contact-info-label">Phone</div>
+              <a href="tel:+919876543210" className="contact-info-link">
+                +91 98765 43210
+              </a>
             </div>
-            <div className="info-text">
-              <h3>Visit Us</h3>
-              <p>
+
+            <div className="contact-info-item">
+              <div className="contact-info-label">Email</div>
+              <a href="mailto:info@indiapropertys.com" className="contact-info-link">
+                info@indiapropertys.com
+              </a>
+            </div>
+
+            <div className="contact-info-item">
+              <div className="contact-info-label">Address</div>
+              <a 
+                href="https://www.google.com/maps/search/?api=1&query=Office+No.21+%26+22,+3rd+Floor,+S%2FNo.+56,+Aston+Plaza,+Ambegaon+Bk.,+Pune,+Maharashtra+411046"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="contact-info-address"
+              >
                 Office No.21 & 22, 3rd Floor, S/No. 56<br />
                 Aston Plaza, Ambegaon Bk.<br />
-                Pune , Maharashtra– 411046
-              </p>
+                Pune, Maharashtra– 411046
+              </a>
             </div>
           </div>
 
-          <a 
-            href="mailto:info@indiapropertys.com" 
-            className="info-card-clickable"
-          >
-            <div className="info-icon bg-purple">
-              <Mail />
-            </div>
-            <div className="info-text">
-              <h3>Email Us</h3>
-              <p>info@indiapropertys.com</p>
-            </div>
-          </a>
-
-        </div>
-
-        <div className="contact-grid">
-
-          {/* CONTACT FORM */}
+          {/* RIGHT COLUMN - CONTACT FORM */}
           <div className="form-card">
-            <div className="form-header">
-              <MessageSquare className="header-icon" />
-              <h2>Get in Touch</h2>
-            </div>
+            <h2 className="form-title">Send Us a Message</h2>
 
             {submitted && (
-              <div className="success-box" role="alert">
+              <div className="success-box">
                 Message sent successfully!
               </div>
             )}
 
             {errors.submit && (
-              <div className="error-box" role="alert">
+              <div className="error-box">
                 {errors.submit}
               </div>
             )}
 
             <form 
               ref={formRef}
-              className="form-inputs" 
-              onSubmit={handleSubmit} 
+              className="form-inputs"
+              onSubmit={handleSubmit}
               onKeyDown={(e) => {
-                // Prevent Enter key from submitting form and causing scroll jump
+                // Prevent Enter key from submitting form and causing scroll jump (except in textarea)
                 if (e.key === 'Enter' && e.target.tagName !== 'TEXTAREA') {
                   e.preventDefault();
                 }
               }}
-              noValidate
             >
+              
+              <input
+                type="text"
+                name="name"
+                value={formData.name}
+                onChange={handleChange}
+                placeholder="Your Name"
+                className={errors.name ? "error" : ""}
+              />
+              {errors.name && <span className="error-message">{errors.name}</span>}
 
-              <div className="form-field">
-                <label htmlFor="name">Your Name</label>
-                <input
-                  type="text"
-                  id="name"
-                  name="name"
-                  value={formData.name}
-                  onChange={handleChange}
-                  placeholder="John Doe"
-                  required
-                  minLength={2}
-                  className={errors.name ? "error" : ""}
-                  aria-invalid={errors.name ? "true" : "false"}
-                  aria-describedby={errors.name ? "name-error" : undefined}
-                />
-                {errors.name && <span className="error-message" id="name-error">{errors.name}</span>}
-              </div>
+              <input
+                type="email"
+                name="email"
+                value={formData.email}
+                onChange={handleChange}
+                placeholder="Your Email"
+                className={errors.email ? "error" : ""}
+              />
+              {errors.email && <span className="error-message">{errors.email}</span>}
 
-              <div className="form-field">
-                <label htmlFor="email">Email Address</label>
-                <input
-                  type="email"
-                  id="email"
-                  name="email"
-                  value={formData.email}
-                  onChange={handleChange}
-                  placeholder="john@example.com"
-                  required
-                  className={errors.email ? "error" : ""}
-                  aria-invalid={errors.email ? "true" : "false"}
-                  aria-describedby={errors.email ? "email-error" : undefined}
-                />
-                {errors.email && <span className="error-message" id="email-error">{errors.email}</span>}
-              </div>
+              <input
+                type="text"
+                name="phone"
+                value={formData.phone}
+                onChange={handleChange}
+                placeholder="Phone Number"
+                className={errors.phone ? "error" : ""}
+              />
+              {errors.phone && <span className="error-message">{errors.phone}</span>}
 
-              <div className="form-field">
-                <label htmlFor="phone">Phone Number</label>
-                <input
-                  type="tel"
-                  id="phone"
-                  name="phone"
-                  value={formData.phone}
-                  onChange={handleChange}
-                  placeholder="+91 98765 43210"
-                  required
-                  className={errors.phone ? "error" : ""}
-                  aria-invalid={errors.phone ? "true" : "false"}
-                  aria-describedby={errors.phone ? "phone-error" : undefined}
-                />
-                {errors.phone && <span className="error-message" id="phone-error">{errors.phone}</span>}
-              </div>
+              <textarea
+                name="message"
+                rows="4"
+                value={formData.message}
+                onChange={handleChange}
+                placeholder="Message"
+                className={errors.message ? "error" : ""}
+              ></textarea>
+              {errors.message && <span className="error-message">{errors.message}</span>}
 
-              <div className="form-field">
-                <label htmlFor="subject">Subject</label>
-                <input
-                  type="text"
-                  id="subject"
-                  name="subject"
-                  value={formData.subject}
-                  onChange={handleChange}
-                  placeholder="How can we help?"
-                  required
-                  minLength={3}
-                  className={errors.subject ? "error" : ""}
-                  aria-invalid={errors.subject ? "true" : "false"}
-                  aria-describedby={errors.subject ? "subject-error" : undefined}
-                />
-                {errors.subject && <span className="error-message" id="subject-error">{errors.subject}</span>}
-              </div>
-
-              <div className="form-field">
-                <label htmlFor="message">Message</label>
-                <textarea
-                  id="message"
-                  name="message"
-                  rows="4"
-                  value={formData.message}
-                  onChange={handleChange}
-                  placeholder="Tell us more..."
-                  required
-                  minLength={10}
-                  className={errors.message ? "error" : ""}
-                  aria-invalid={errors.message ? "true" : "false"}
-                  aria-describedby={errors.message ? "message-error" : undefined}
-                ></textarea>
-                {errors.message && <span className="error-message" id="message-error">{errors.message}</span>}
-              </div>
-
-              <button type="submit" disabled={isSubmitting} className={isSubmitting ? "submitting" : ""}>
-                {isSubmitting ? (
-                  <>
-                    <span className="spinner"></span>
-                    Sending...
-                  </>
-                ) : (
-                  "Submit"
-                )}
+              <button type="submit" disabled={isSubmitting}>
+                {isSubmitting ? "Sending..." : "Send Message"}
               </button>
 
             </form>
           </div>
 
+        </div>
+
+        {/* FAQ Section */}
+        <div className="faq-section">
+          <h2 className="faq-title">Frequently Asked Questions</h2>
+          <div className="faq-list">
+            {[
+              {
+                question: "How do I list a property?",
+                answer: "To list your property, log in to your seller dashboard and click on 'My Properties'. Then click the 'Add Property' button and fill in all the required details including property type, location, price, and images. Once submitted, your property will be reviewed and published."
+              },
+              {
+                question: "How can I contact the property owner?",
+                answer: "You can contact property owners directly through our chat feature. Simply click on the 'Chat' button on any property listing page, or use the ChatUs page in your dashboard. Property owners will receive your message and can respond to your inquiries."
+              },
+              {
+                question: "Is my data secure?",
+                answer: "Yes, we take data security seriously. All your personal information, including contact details and property data, is encrypted and stored securely. We follow industry-standard security practices and never share your information with third parties without your consent."
+              },
+              {
+                question: "How do I edit my profile?",
+                answer: "To edit your profile, go to your dashboard and click on 'Profile' in the navigation menu. From there, you can update your personal information, contact details, profile picture, and other settings. Remember to save your changes before leaving the page."
+              },
+              {
+                question: "How can I get support?",
+                answer: "You can get support by filling out the contact form on this page, or by emailing us directly at info@indiapropertys.com. Our support team typically responds within 24 hours. You can also call us at +91 98765 43210 during business hours."
+              }
+            ].map((faq, index) => (
+              <div key={index} className={`faq-item ${openFaqIndex === index ? 'open' : ''}`}>
+                <button
+                  className="faq-question"
+                  onClick={() => setOpenFaqIndex(openFaqIndex === index ? null : index)}
+                >
+                  <span>{faq.question}</span>
+                  <ChevronDown 
+                    size={20} 
+                    className={`faq-icon ${openFaqIndex === index ? 'open' : ''}`}
+                  />
+                </button>
+                {openFaqIndex === index && (
+                  <div className="faq-answer">
+                    <p>{faq.answer}</p>
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
         </div>
 
       </div>

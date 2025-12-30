@@ -1,0 +1,62 @@
+/* LandingPage.css */
+
+.landing-page {
+  position: relative;
+  width: 100%;
+  min-height: 100vh;
+}
+
+/* Separate Navbar Wrapper Div */
+.navbar-wrapper {
+  position: relative;
+  width: 100%;
+  z-index: 1000;
+}
+
+/* Separate Background Image Div */
+.landing-background-image {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  width: 100%;
+  min-height: calc(570px + 8rem); /* Match searchbar container height */
+  background-size: 100% 100%;
+  background-position: center center;
+  background-repeat: no-repeat;
+  background-attachment: scroll;
+  z-index: 0; /* Behind content but above page background */
+  pointer-events: none; /* Allow clicks to pass through */
+}
+
+/* Ensure main-content is positioned relative for absolute background */
+.main-content {
+  position: relative;
+  z-index: 1;
+  width: 100%;
+}
+
+/* Responsive background sizing */
+@media (max-width: 768px) {
+  .landing-background-image {
+    background-size: cover;
+    background-position: center center;
+    background-attachment: scroll;
+  }
+}
+
+@media (max-width: 480px) {
+  .landing-background-image {
+    background-size: cover;
+    background-position: center center;
+    background-attachment: scroll;
+  }
+}
+
+/* Main Content */
+.main-content {
+  position: relative;
+  z-index: 1;
+  width: 100%;
+}
+

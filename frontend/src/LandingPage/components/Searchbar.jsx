@@ -195,8 +195,8 @@ const SearchBar = () => {
 
   return (
     <>
-      {/* Search Bar Container - WITH background image */}
-      <div className="landing-search-bar-container" style={{ backgroundImage: 'url(/AboutUs.jpg)' }}>
+      {/* Search Bar Container - Background image handled by parent */}
+      <div className="landing-search-bar-container">
         <div className="landing-search-bar-wrapper">
           <h2 className="search-title">Find Your Dream Property</h2>
           <p className="search-subtitle">Search from thousands of verified properties across India</p>
