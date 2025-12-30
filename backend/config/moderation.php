@@ -5,7 +5,7 @@
  */
 
 // Google Cloud Vision API Configuration
-define('GOOGLE_APPLICATION_CREDENTIALS', '/home/u123456789/Secure/indiapropertys-8fab286d41e4.json');
+define('GOOGLE_APPLICATION_CREDENTIALS', '/home/u449667423/domains/indiapropertys.com/Secure/indiapropertys-8fab286d41e4.json');
 
 // Content Moderation Thresholds (0.0 to 1.0)
 // Standardized SafeSearch thresholds
