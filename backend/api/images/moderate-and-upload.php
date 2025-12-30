@@ -264,7 +264,7 @@ try {
             ]);
             exit;
         }
-    } catch (Exception $e) {
+    } catch (Throwable $e) {
         error_log("Google Vision API exception: " . $e->getMessage());
         FileHelper::deleteFile($tempPath);
         http_response_code(500);
@@ -621,7 +621,7 @@ try {
         exit;
     }
     
-} catch (Exception $e) {
+} catch (Throwable $e) {
     error_log("Image moderation error: " . $e->getMessage());
     error_log("Stack trace: " . $e->getTraceAsString());
     http_response_code(500);
