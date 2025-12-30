@@ -514,26 +514,50 @@ export default function AddUpcomingProjectPopup({ onClose }) {
       if (imageFiles.length > 0) {
         setUploadingImages(true);
         try {
-          const uploadPromises = imageFiles.map(async (file) => {
+          const uploadPromises = imageFiles.map(async (file, index) => {
             try {
+              console.log(`Uploading image ${index + 1}/${imageFiles.length}:`, file.name);
               const response = await sellerPropertiesAPI.uploadImage(file, propertyId);
-              if (response.success && response.data && response.data.url) {
-                return { success: true, url: response.data.url };
+              console.log(`Image ${index + 1} upload response:`, response);
+              
+              if (response.success && response.data) {
+                const imageUrl = response.data.image_url || response.data.url;
+                if (imageUrl) {
+                  return { success: true, url: imageUrl };
+                }
               }
-              return { success: false, error: response.message || 'Upload failed' };
+              return { success: false, error: response.message || 'Upload failed - no URL returned' };
             } catch (error) {
-              return { success: false, error: error.message || 'Upload failed' };
+              console.error(`Image ${index + 1} upload error:`, error);
+              return { 
+                success: false, 
+                error: error.message || error.status || 'Upload failed',
+                details: error
+              };
             }
           });
           
           const results = await Promise.all(uploadPromises);
+          const successful = results.filter(r => r.success);
           const failed = results.filter(r => !r.success);
           
+          console.log(`Image upload results: ${successful.length} successful, ${failed.length} failed`);
+          
           if (failed.length > 0) {
-            console.warn(`${failed.length} images failed to upload`);
+            console.warn('Failed image uploads:', failed);
+            // Show warning but don't fail the entire project creation
+            const errorMessages = failed.map((f, i) => `Image ${i + 1}: ${f.error}`).join('; ');
+            console.warn(`Some images failed to upload: ${errorMessages}`);
+          }
+          
+          if (successful.length === 0 && imageFiles.length > 0) {
+            console.warn('All images failed to upload, but project was created successfully');
           }
         } catch (uploadError) {
-          console.error('Image upload error:', uploadError);
+          console.error('Image upload batch error:', uploadError);
+          // Don't throw - project was created successfully
+        } finally {
+          setUploadingImages(false);
         }
       }
       

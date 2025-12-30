@@ -273,6 +273,18 @@ export const sellerPropertiesAPI = {
         };
       }
       
+      // Handle HTTP error status codes
+      if (!response.ok) {
+        console.error('Image upload HTTP error:', response.status, responseText);
+        throw {
+          status: response.status,
+          message: data.message || `Server error (${response.status})`,
+          errors: data.errors || null,
+          data: data,
+          rawResponse: responseText
+        };
+      }
+      
       // Handle different response statuses from moderation endpoint
       if (data.status === 'success') {
         // APPROVED - Image passed moderation
