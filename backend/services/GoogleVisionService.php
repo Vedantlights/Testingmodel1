@@ -5,6 +5,11 @@
  * Includes: SafeSearch, Labels, Faces, and Object Localization
  */
 
+// Load Composer autoload if available
+if (file_exists(__DIR__ . '/../vendor/autoload.php')) {
+    require_once __DIR__ . '/../vendor/autoload.php';
+}
+
 require_once __DIR__ . '/../config/moderation.php';
 
 use Google\Cloud\Vision\V1\Client\ImageAnnotatorClient;
@@ -12,6 +17,7 @@ use Google\Cloud\Vision\V1\Feature;
 use Google\Cloud\Vision\V1\Feature\Type;
 use Google\Cloud\Vision\V1\Image;
 use Google\Cloud\Vision\V1\AnnotateImageRequest;
+use Google\Cloud\Vision\V1\Likelihood;
 
 class GoogleVisionService {
     private $client;
