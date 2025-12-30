@@ -35,7 +35,6 @@ h2 {
 
 /* Hero Section */
 .agent-hero-sections {
-  background-image: url('/AgentBuilder.jpg');
   background-size: cover;
   background-position: top;
   background-repeat: no-repeat;
