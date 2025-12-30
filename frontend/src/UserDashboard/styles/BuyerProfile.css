@@ -1,6 +1,7 @@
 .buyer-seller-profile {
   background-color: #ffffff;
   animation: buyer-fadeIn 0.5s ease-in;
+  padding: 2rem;
   padding-bottom: 50px;
 }
 
@@ -37,7 +38,7 @@
 .buyer-profile-card {
   background-color: rgb(255, 255, 255);
   border-radius: 12px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
   padding: 2rem;
   height: fit-content;
   border: 1px solid #e5e5e5;
@@ -438,7 +439,7 @@
 .buyer-profile-form-card {
   background-color: rgb(255, 255, 255);
   border-radius: 12px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
   padding: 2rem;
   border: 1px solid #e5e5e5;
 }
@@ -482,7 +483,7 @@
   padding: 0.875rem 3rem;
   border-radius: 8px;
   transition: all 0.3s;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);
 }
 
 .buyer-input-wrapper:focus-within {
@@ -516,7 +517,7 @@
 .buyer-input-wrapper.buyer-disabled-wrapper {
   background: #ffffff !important;
   border-color: #e5e5e5 !important;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);
 }
 
 .buyer-input-wrapper.buyer-disabled-wrapper:focus-within {
