@@ -7,9 +7,11 @@
 
 require_once __DIR__ . '/../config/moderation.php';
 
-use Google\Cloud\Vision\V1\ImageAnnotatorClient;
+use Google\Cloud\Vision\V1\Client\ImageAnnotatorClient;
+use Google\Cloud\Vision\V1\Feature;
 use Google\Cloud\Vision\V1\Feature\Type;
 use Google\Cloud\Vision\V1\Image;
+use Google\Cloud\Vision\V1\AnnotateImageRequest;
 
 class GoogleVisionService {
     private $client;
@@ -66,16 +68,41 @@ class GoogleVisionService {
             $image = new Image();
             $image->setContent($imageContent);
             
-            // Request FOUR detection features for comprehensive detection
-            $features = [
-                Type::SAFE_SEARCH_DETECTION,      // For adult/violence content
-                Type::LABEL_DETECTION,            // For detecting objects, animals, humans
-                Type::FACE_DETECTION,             // For detecting human faces (CRITICAL for human detection)
-                Type::OBJECT_LOCALIZATION         // For detecting specific objects like "Person", "Dog", "Cat"
-            ];
+            // Request FOUR detection features for comprehensive detection (v2.x format)
+            $feature1 = new Feature();
+            $feature1->setType(Type::SAFE_SEARCH_DETECTION);
             
-            // Perform annotation
-            $response = $this->client->annotateImage($image, $features);
+            $feature2 = new Feature();
+            $feature2->setType(Type::LABEL_DETECTION);
+            
+            $feature3 = new Feature();
+            $feature3->setType(Type::FACE_DETECTION);
+            
+            $feature4 = new Feature();
+            $feature4->setType(Type::OBJECT_LOCALIZATION);
+            
+            $features = [$feature1, $feature2, $feature3, $feature4];
+            
+            // Create annotate image request (v2.x format)
+            $request = new AnnotateImageRequest();
+            $request->setImage($image);
+            $request->setFeatures($features);
+            
+            // Perform annotation (v2.x may return batch response)
+            $batchResponse = $this->client->annotateImage($request);
+            
+            // Handle response - v2.x may return BatchAnnotateImagesResponse
+            // If it's a batch response, get the first response
+            if (method_exists($batchResponse, 'getResponses')) {
+                $responses = $batchResponse->getResponses();
+                if (empty($responses)) {
+                    throw new Exception("No responses from Vision API");
+                }
+                $response = $responses[0];
+            } else {
+                // Single response (v1.x style)
+                $response = $batchResponse;
+            }
             
             // Extract SafeSearch results
             $safeSearchAnnotation = $response->getSafeSearchAnnotation();
