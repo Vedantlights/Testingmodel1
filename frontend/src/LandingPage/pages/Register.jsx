@@ -32,6 +32,23 @@ const Register = () => {
     }
   }, [searchParams]);
 
+  // Prevent body scrolling when component mounts
+  useEffect(() => {
+    // Store original overflow values
+    const originalBodyOverflow = document.body.style.overflow;
+    const originalHtmlOverflow = document.documentElement.style.overflow;
+    
+    // Prevent scrolling on body and html
+    document.body.style.overflow = 'hidden';
+    document.documentElement.style.overflow = 'hidden';
+    
+    // Cleanup: restore original overflow values when component unmounts
+    return () => {
+      document.body.style.overflow = originalBodyOverflow;
+      document.documentElement.style.overflow = originalHtmlOverflow;
+    };
+  }, []);
+
   const [formData, setFormData] = useState({
     fullName: "",
     email: "",
@@ -253,7 +270,17 @@ const Register = () => {
     }
   };
 
-  const handleSubmit = async () => {
+  const handleSubmit = async (e) => {
+    // Prevent default form submission
+    if (e) {
+      e.preventDefault();
+    }
+    
+    // Prevent double submission
+    if (isLoading) {
+      return;
+    }
+
     setError("");
     setSuccess("");
 
@@ -418,6 +445,46 @@ const Register = () => {
     setUserType(type);
   };
 
+  // Handle ENTER key to move to next input or submit form
+  const handleKeyDown = (e, currentFieldName) => {
+    if (e.key === "Enter") {
+      e.preventDefault();
+      
+      // Get all input fields in order (excluding disabled/verified fields)
+      const inputFields = [
+        "fullName",
+        "email",
+        "phone",
+        "password",
+        "confirmPassword"
+      ];
+      
+      const currentIndex = inputFields.indexOf(currentFieldName);
+      
+      if (currentIndex < inputFields.length - 1) {
+        // Move to next input field
+        const nextFieldName = inputFields[currentIndex + 1];
+        const nextInput = document.querySelector(`input[name="${nextFieldName}"]`);
+        if (nextInput && !nextInput.disabled) {
+          nextInput.focus();
+        } else {
+          // If next field is disabled, try to find the next enabled field
+          for (let i = currentIndex + 1; i < inputFields.length; i++) {
+            const fieldName = inputFields[i];
+            const fieldInput = document.querySelector(`input[name="${fieldName}"]`);
+            if (fieldInput && !fieldInput.disabled) {
+              fieldInput.focus();
+              break;
+            }
+          }
+        }
+      } else {
+        // Last field - submit the form
+        handleSubmit(e);
+      }
+    }
+  };
+
   return (
     <div className="container">
       <div 
@@ -432,7 +499,7 @@ const Register = () => {
           <p className="subtitle">Fill in your details to get started</p>
         </div>
 
-        <div className="form">
+        <form className="form" onSubmit={handleSubmit}>
           {/* Error Message */}
           {error && (
             <div className="error-message">
@@ -509,6 +576,7 @@ const Register = () => {
               name="fullName"
               value={formData.fullName}
               onChange={handleChange}
+              onKeyDown={(e) => handleKeyDown(e, "fullName")}
               placeholder="John Doe"
               className="input"
             />
@@ -523,6 +591,24 @@ const Register = () => {
                 name="email"
                 value={formData.email}
                 onChange={handleChange}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" && !emailVerified) {
+                    e.preventDefault();
+                    // If email is not verified, move to phone field
+                    const phoneInput = document.querySelector(`input[name="phone"]`);
+                    if (phoneInput && !phoneInput.disabled) {
+                      phoneInput.focus();
+                    } else {
+                      // If phone is also disabled, move to password
+                      const passwordInput = document.querySelector(`input[name="password"]`);
+                      if (passwordInput) {
+                        passwordInput.focus();
+                      }
+                    }
+                  } else if (e.key === "Enter") {
+                    handleKeyDown(e, "email");
+                  }
+                }}
                 placeholder="john@example.com"
                 className="input input-pr"
                 disabled={emailVerified}
@@ -552,6 +638,18 @@ const Register = () => {
                 name="phone"
                 value={formData.phone}
                 onChange={handleChange}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" && !phoneVerified) {
+                    e.preventDefault();
+                    // If phone is not verified, move to password field
+                    const passwordInput = document.querySelector(`input[name="password"]`);
+                    if (passwordInput) {
+                      passwordInput.focus();
+                    }
+                  } else if (e.key === "Enter") {
+                    handleKeyDown(e, "phone");
+                  }
+                }}
                 placeholder="+91 98765 43210"
                 className="input input-pr"
                 disabled={phoneVerified}
@@ -581,6 +679,7 @@ const Register = () => {
                 name="password"
                 value={formData.password}
                 onChange={handleChange}
+                onKeyDown={(e) => handleKeyDown(e, "password")}
                 placeholder="••••••••"
                 className="input input-small-pr"
               />
@@ -603,6 +702,7 @@ const Register = () => {
                 name="confirmPassword"
                 value={formData.confirmPassword}
                 onChange={handleChange}
+                onKeyDown={(e) => handleKeyDown(e, "confirmPassword")}
                 placeholder="••••••••"
                 className="input input-small-pr"
               />
@@ -640,9 +740,8 @@ const Register = () => {
 
           {/* Register Button */}
           <button 
-            type="button" 
+            type="submit"
             className="register-btn" 
-            onClick={handleSubmit}
             disabled={isLoading}
           >
             {isLoading ? "Registering..." : `Register as ${getUserTypeLabel(userType)}`}
@@ -651,11 +750,11 @@ const Register = () => {
           {/* Login Link */}
           <p className="login-link">
             Already have an account?{" "}
-            <button className="link-btn" onClick={() => navigate("/login")}>
+            <button type="button" className="link-btn" onClick={() => navigate("/login")}>
               Sign In
             </button>
           </p>
-        </div>
+        </form>
       </div>
     </div>
   );

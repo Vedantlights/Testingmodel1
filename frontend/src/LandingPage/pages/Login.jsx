@@ -67,7 +67,17 @@ const Login = () => {
     return "Access denied for this role.";
   };
 
-  const handleSubmit = async () => {
+  const handleSubmit = async (e) => {
+    // Prevent default form submission
+    if (e) {
+      e.preventDefault();
+    }
+    
+    // Prevent double submission
+    if (isLoading) {
+      return;
+    }
+
     setLoginError("");
     
     // Basic validation
@@ -131,6 +141,29 @@ const Login = () => {
     setUserType(type);
     // Clear error when changing user type
     if (loginError) setLoginError("");
+  };
+
+  // Handle ENTER key to move to next input or submit form
+  const handleKeyDown = (e, currentFieldName) => {
+    if (e.key === "Enter") {
+      e.preventDefault();
+      
+      // Get all input fields in order
+      const inputFields = ["email", "password"];
+      const currentIndex = inputFields.indexOf(currentFieldName);
+      
+      if (currentIndex < inputFields.length - 1) {
+        // Move to next input field
+        const nextFieldName = inputFields[currentIndex + 1];
+        const nextInput = document.querySelector(`input[name="${nextFieldName}"]`);
+        if (nextInput) {
+          nextInput.focus();
+        }
+      } else {
+        // Last field - submit the form
+        handleSubmit(e);
+      }
+    }
   };
 
   // Background images mapping for each role
@@ -201,7 +234,7 @@ const Login = () => {
           </div>
         )}
 
-        <div className="login-form">
+        <form className="login-form" onSubmit={handleSubmit}>
           <div className="form-group">
             <label>Email Address</label>
             <input
@@ -209,6 +242,7 @@ const Login = () => {
               name="email"
               value={formData.email}
               onChange={handleChange}
+              onKeyDown={(e) => handleKeyDown(e, "email")}
               placeholder="john@example.com"
             />
           </div>
@@ -221,6 +255,7 @@ const Login = () => {
                 name="password"
                 value={formData.password}
                 onChange={handleChange}
+                onKeyDown={(e) => handleKeyDown(e, "password")}
                 placeholder="••••••••"
               />
               <button
@@ -253,8 +288,8 @@ const Login = () => {
           </div>
 
           <button 
+            type="submit"
             className="login-btn" 
-            onClick={handleSubmit}
             disabled={isLoading}
           >
             {isLoading ? "Signing In..." : `Sign In as ${userType === "buyer" ? "Buyer/Tenant" : userType === "seller" ? "Seller/Owner" : "Agent/Builder"}`}
@@ -262,9 +297,9 @@ const Login = () => {
 
           <div className="signup-link">
             Don't have an account?{" "}
-            <button onClick={() => navigate("/register")}>Register now</button>
+            <button type="button" onClick={() => navigate("/register")}>Register now</button>
           </div>
-        </div>
+        </form>
       </div>
 
       {/* Forgot Password Modal */}
