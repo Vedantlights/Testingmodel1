@@ -191,6 +191,7 @@ export default function AddUpcomingProjectPopup({ onClose }) {
       ...prev,
       latitude: locationData.latitude.toString(),
       longitude: locationData.longitude.toString(),
+      location: locationData.fullAddress || prev.location || prev.area,
       fullAddress: locationData.fullAddress || prev.fullAddress
     }));
     setShowLocationPicker(false);
@@ -245,9 +246,9 @@ export default function AddUpcomingProjectPopup({ onClose }) {
         if (!formData.description?.trim()) newErrors.description = "Project description is required";
         break;
       case 2:
-        if (!formData.city?.trim()) newErrors.city = "City is required";
-        if (!formData.area?.trim()) newErrors.area = "Area/Locality is required";
-        if (!formData.fullAddress?.trim()) newErrors.fullAddress = "Full address is required";
+        if (!formData.location?.trim() && !formData.area?.trim()) {
+          newErrors.location = "Location is required";
+        }
         break;
       case 3:
         if (formData.configurations.length === 0) newErrors.configurations = "At least one configuration is required";
@@ -324,7 +325,7 @@ export default function AddUpcomingProjectPopup({ onClose }) {
         title: formData.projectName,
         property_type: formData.projectType,
         status: "sale", // Upcoming projects are always for sale
-        location: formData.area ? `${formData.area}, ${formData.city}` : formData.city,
+        location: formData.location || formData.area || '',
         latitude: formData.latitude || null,
         longitude: formData.longitude || null,
         state: formData.state || null,
@@ -545,78 +546,182 @@ export default function AddUpcomingProjectPopup({ onClose }) {
       <p className="step-subheading">Where is your project located?</p>
 
       <div className="form-group">
-        <label>City <span className="required">*</span></label>
+        <label>Location <span className="required">*</span></label>
         <LocationAutoSuggest
-          value={formData.city}
-          onChange={(value) => handleChange('city', value)}
-          placeholder="Enter city"
+          placeholder="Enter locality, area or landmark"
+          value={formData.location || formData.area || ''}
+          onChange={(locationData) => {
+            if (!locationData) {
+              setFormData(prev => ({ 
+                ...prev, 
+                location: "", 
+                area: "",
+                city: "",
+                latitude: "", 
+                longitude: "" 
+              }));
+              return;
+            }
+            setFormData(prev => ({
+              ...prev,
+              location: locationData.fullAddress || locationData.placeName || "",
+              area: locationData.placeName || prev.area || "",
+              city: locationData.city || prev.city || "",
+              latitude: locationData.coordinates?.lat ?? "",
+              longitude: locationData.coordinates?.lng ?? ""
+            }));
+          }}
+          className={errors.location || errors.area ? 'agent-location-error' : ''}
+          error={errors.location || errors.area}
         />
-        {errors.city && <span className="error-text">{errors.city}</span>}
+        {(errors.location || errors.area) && (
+          <span className="error-text">{errors.location || errors.area}</span>
+        )}
+      </div>
+
+      {/* Location Picker Button */}
+      <div className="form-group">
+        <label>Project Location on Map (Optional)</label>
+        {!formData.latitude || !formData.longitude ? (
+          <>
+            <button
+              type="button"
+              className="location-picker-btn"
+              onClick={() => setShowLocationPicker(true)}
+              style={{
+                width: '100%',
+                padding: '0.875rem 1rem',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: '0.5rem',
+                background: 'white',
+                border: '2px solid var(--border-color)',
+                borderRadius: 'var(--radius-md)',
+                cursor: 'pointer',
+                fontSize: '0.95rem',
+                fontWeight: '600',
+                color: 'var(--text-primary)',
+                transition: 'all var(--transition-fast)'
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.borderColor = 'var(--accent-color)';
+                e.currentTarget.style.color = 'var(--accent-color)';
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.borderColor = 'var(--border-color)';
+                e.currentTarget.style.color = 'var(--text-primary)';
+              }}
+            >
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+                <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z" stroke="currentColor" strokeWidth="2"/>
+                <circle cx="12" cy="10" r="3" stroke="currentColor" strokeWidth="2"/>
+              </svg>
+              <span>Add Location on Map</span>
+            </button>
+            <span className="hint-text" style={{ 
+              display: 'block', 
+              marginTop: '0.5rem', 
+              fontSize: '0.85rem', 
+              color: 'var(--text-muted)' 
+            }}>
+              Select exact location on map for better visibility
+            </span>
+          </>
+        ) : (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <span className="location-icon" style={{ fontSize: '18px' }}>📍</span>
+              <div style={{ flex: 1 }}>
+                <span style={{ fontSize: '0.875rem', color: '#059669', fontWeight: '500' }}>
+                  Location set on map
+                </span>
+              </div>
+            </div>
+            <small className="location-picker-coordinates" style={{ 
+              marginLeft: '26px', 
+              fontSize: '0.75rem', 
+              color: '#059669', 
+              fontFamily: 'monospace' 
+            }}>
+              Coordinates: {parseFloat(formData.latitude).toFixed(6)}, {parseFloat(formData.longitude).toFixed(6)}
+            </small>
+            <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+              <button
+                type="button"
+                className="location-picker-change-btn"
+                onClick={() => setShowLocationPicker(true)}
+                style={{
+                  padding: '6px 12px',
+                  fontSize: '0.875rem',
+                  backgroundColor: '#f3f4f6',
+                  border: '1px solid #d1d5db',
+                  borderRadius: '6px',
+                  cursor: 'pointer',
+                  color: '#374151',
+                  fontWeight: '500'
+                }}
+              >
+                Change Location
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setFormData(prev => ({ ...prev, latitude: '', longitude: '' }));
+                }}
+                style={{
+                  padding: '6px 12px',
+                  fontSize: '0.875rem',
+                  backgroundColor: '#fee2e2',
+                  border: '1px solid #fecaca',
+                  borderRadius: '6px',
+                  cursor: 'pointer',
+                  color: '#991b1b',
+                  fontWeight: '500'
+                }}
+              >
+                Remove
+              </button>
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* State and Additional Address Fields */}
+      <div className="form-row two-cols">
+        <div className="form-group">
+          <label>State (Optional)</label>
+          <StateAutoSuggest
+            placeholder="Enter state"
+            value={formData.state || ''}
+            onChange={(stateName) => {
+              handleChange('state', stateName);
+            }}
+            className={errors.state ? 'agent-state-error' : ''}
+            error={errors.state}
+          />
+        </div>
+
+        <div className="form-group">
+          <label>Additional Address (Optional)</label>
+          <input
+            type="text"
+            placeholder="Enter additional address details"
+            value={formData.fullAddress || formData.additionalAddress || ''}
+            onChange={(e) => handleChange('fullAddress', e.target.value)}
+          />
+        </div>
       </div>
 
       <div className="form-group">
-        <label>Area / Locality <span className="required">*</span></label>
+        <label>Pincode (Optional)</label>
         <input
           type="text"
-          value={formData.area}
-          onChange={(e) => handleChange('area', e.target.value)}
-          placeholder="e.g., Sector 62, Noida"
-          className={errors.area ? 'error' : ''}
-        />
-        {errors.area && <span className="error-text">{errors.area}</span>}
-      </div>
-
-      <div className="form-group">
-        <label>Full Address <span className="required">*</span></label>
-        <textarea
-          value={formData.fullAddress}
-          onChange={(e) => handleChange('fullAddress', e.target.value)}
-          placeholder="Complete address with landmark"
-          rows={3}
-          className={errors.fullAddress ? 'error' : ''}
-        />
-        {errors.fullAddress && <span className="error-text">{errors.fullAddress}</span>}
-      </div>
-
-      <div className="form-group">
-        <label>State</label>
-        <StateAutoSuggest
-          value={formData.state}
-          onChange={(value) => handleChange('state', value)}
-          placeholder="Select state"
-        />
-      </div>
-
-      <div className="form-group">
-        <label>Pincode</label>
-        <input
-          type="text"
-          value={formData.pincode}
+          value={formData.pincode || ''}
           onChange={(e) => handleChange('pincode', e.target.value.replace(/\D/g, ''))}
           placeholder="Enter pincode"
           maxLength={6}
         />
-      </div>
-
-      <div className="form-group">
-        <label>Google Map Location</label>
-        <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
-          <button
-            type="button"
-            className="cancel-btn"
-            onClick={() => setShowLocationPicker(true)}
-            style={{ background: 'white', border: '2px solid var(--border-color)' }}
-          >
-            📍 Pick on Map
-          </button>
-          <input
-            type="text"
-            value={formData.mapLink}
-            onChange={(e) => handleChange('mapLink', e.target.value)}
-            placeholder="Or paste Google Maps link"
-            style={{ flex: 1 }}
-          />
-        </div>
       </div>
     </div>
   );
@@ -1193,12 +1298,21 @@ export default function AddUpcomingProjectPopup({ onClose }) {
 
       {/* Location Picker Modal */}
       {showLocationPicker && (
-        <LocationPicker
-          onSelect={handleLocationSelect}
-          onClose={() => setShowLocationPicker(false)}
-          initialLat={formData.latitude ? parseFloat(formData.latitude) : null}
-          initialLng={formData.longitude ? parseFloat(formData.longitude) : null}
-        />
+        <div className="location-picker-modal-overlay" onClick={(e) => {
+          if (e.target.classList.contains('location-picker-modal-overlay')) {
+            setShowLocationPicker(false);
+          }
+        }}>
+          <LocationPicker
+            initialLocation={formData.latitude && formData.longitude ? {
+              latitude: parseFloat(formData.latitude),
+              longitude: parseFloat(formData.longitude),
+              fullAddress: formData.location || formData.fullAddress
+            } : null}
+            onLocationChange={handleLocationSelect}
+            onClose={() => setShowLocationPicker(false)}
+          />
+        </div>
       )}
     </>
   );
