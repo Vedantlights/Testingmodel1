@@ -673,7 +673,7 @@ export default function AddUpcomingProjectPopup({ onClose }) {
       </div>
 
       {/* Location Picker Button */}
-      <div className="form-group">
+      <div className="form-group-map">
         <label>Project Location on Map (Optional)</label>
         {!formData.latitude || !formData.longitude ? (
           <>
@@ -1248,7 +1248,7 @@ export default function AddUpcomingProjectPopup({ onClose }) {
       <h3 className="step-heading">Contact & Sales Information</h3>
       <p className="step-subheading">How can buyers reach you?</p>
 
-      <div className="form-row">
+      <div className="form-row two-cols">
         <div className="form-group">
           <label>Sales Name <span className="required">*</span></label>
           <input
@@ -1287,18 +1287,18 @@ export default function AddUpcomingProjectPopup({ onClose }) {
         {errors.emailId && <span className="error-text">{errors.emailId}</span>}
       </div>
 
-      <div className="form-row">
-        <div className="form-group">
-          <label>Mobile Number (Optional)</label>
-          <input
-            type="tel"
-            value={formData.mobileNumber}
-            onChange={(e) => handleChange('mobileNumber', e.target.value.replace(/\D/g, ''))}
-            placeholder="10"
-            maxLength={10}
-          />
-        </div>
+      <div className="form-group">
+        <label>Mobile Number (Optional)</label>
+        <input
+          type="tel"
+          value={formData.mobileNumber}
+          onChange={(e) => handleChange('mobileNumber', e.target.value.replace(/\D/g, ''))}
+          placeholder="10"
+          maxLength={10}
+        />
+      </div>
 
+      <div className="form-row two-cols">
         <div className="form-group">
           <label>WhatsApp Number (Optional)</label>
           <input
@@ -1309,17 +1309,17 @@ export default function AddUpcomingProjectPopup({ onClose }) {
             maxLength={10}
           />
         </div>
-      </div>
 
-      <div className="form-group">
-        <label>Alternative Number (Optional)</label>
-        <input
-          type="tel"
-          value={formData.alternativeNumber}
-          onChange={(e) => handleChange('alternativeNumber', e.target.value.replace(/\D/g, ''))}
-          placeholder="10"
-          maxLength={10}
-        />
+        <div className="form-group">
+          <label>Alternative Number (Optional)</label>
+          <input
+            type="tel"
+            value={formData.alternativeNumber}
+            onChange={(e) => handleChange('alternativeNumber', e.target.value.replace(/\D/g, ''))}
+            placeholder="10"
+            maxLength={10}
+          />
+        </div>
       </div>
     </div>
   );

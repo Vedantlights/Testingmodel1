@@ -230,16 +230,16 @@ export const PropertyProvider = ({ children }) => {
       const propertyData = {
         title: property.title,
         status: property.status,
-        property_type: property.propertyType,
+        property_type: property.property_type || property.propertyType,
         location: property.location,
         latitude: property.latitude || null,
         longitude: property.longitude || null,
         state: property.state || null,
-        additional_address: property.additionalAddress || null,
-        bedrooms: property.bedrooms,
-        bathrooms: property.bathrooms,
+        additional_address: property.additional_address || property.additionalAddress || null,
+        bedrooms: property.bedrooms || 0,
+        bathrooms: property.bathrooms || 0,
         balconies: property.balconies || '',
-        area: parseFloat(property.area),
+        area: parseFloat(property.area) || 0,
         carpet_area: property.carpetArea ? parseFloat(property.carpetArea) : null,
         floor: property.floor || '',
         total_floors: property.totalFloors ? parseInt(property.totalFloors) : null,
@@ -247,14 +247,17 @@ export const PropertyProvider = ({ children }) => {
         age: property.age || '',
         furnishing: property.furnishing || '',
         description: property.description,
-        price: parseFloat(property.price),
+        price: parseFloat(property.price) || 0,
         price_negotiable: property.priceNegotiable || false,
         maintenance_charges: property.maintenanceCharges ? parseFloat(property.maintenanceCharges) : null,
         deposit_amount: property.depositAmount ? parseFloat(property.depositAmount) : null,
         images: property.images || [],
-        video_url: property.videoUrl || null,
-        brochure_url: property.brochureUrl || null,
-        amenities: property.amenities || []
+        video_url: property.videoUrl || property.video_url || null,
+        brochure_url: property.brochureUrl || property.brochure_url || null,
+        amenities: property.amenities || [],
+        // Upcoming project fields
+        project_type: property.project_type || null,
+        upcoming_project_data: property.upcoming_project_data || null
       };
 
       const response = await sellerPropertiesAPI.add(propertyData);

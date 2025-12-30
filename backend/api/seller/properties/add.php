@@ -70,12 +70,19 @@ try {
     // Validate required fields (bedrooms/bathrooms are conditional based on property type)
     $requiredFields = ['title', 'property_type', 'location', 'area', 'price', 'description'];
     
-    // Check if property type requires bedrooms/bathrooms
+    // Check if this is an upcoming project (skip bedrooms/bathrooms validation)
+    $projectType = isset($input['project_type']) && !empty($input['project_type']) 
+        ? sanitizeInput($input['project_type']) 
+        : null;
+    $isUpcomingProject = ($projectType === 'upcoming');
+    
+    // Check if property type requires bedrooms/bathrooms (skip for upcoming projects)
     $propertyType = sanitizeInput($input['property_type'] ?? '');
     
     // Studio Apartment doesn't need bedrooms (it's 0 bedrooms by definition)
-    $needsBedrooms = in_array($propertyType, ['Apartment', 'Flat', 'Villa', 'Independent House', 'Row House', 'Penthouse', 'Farm House', 'PG / Hostel']);
-    $needsBathrooms = in_array($propertyType, ['Apartment', 'Flat', 'Villa', 'Independent House', 'Row House', 'Penthouse', 'Studio Apartment', 'Farm House', 'PG / Hostel', 'Commercial Office', 'Commercial Shop']);
+    // Upcoming projects don't need bedrooms/bathrooms as they're pre-launch
+    $needsBedrooms = !$isUpcomingProject && in_array($propertyType, ['Apartment', 'Flat', 'Villa', 'Independent House', 'Row House', 'Penthouse', 'Farm House', 'PG / Hostel']);
+    $needsBathrooms = !$isUpcomingProject && in_array($propertyType, ['Apartment', 'Flat', 'Villa', 'Independent House', 'Row House', 'Penthouse', 'Studio Apartment', 'Farm House', 'PG / Hostel', 'Commercial Office', 'Commercial Shop']);
     
     if ($needsBedrooms) {
         $requiredFields[] = 'bedrooms';
@@ -126,10 +133,16 @@ try {
         }
     }
     // Studio Apartment should have bedrooms as "0" or null
-    $bedrooms = isset($input['bedrooms']) && !empty($input['bedrooms']) && $input['bedrooms'] !== '0' 
-      ? sanitizeInput($input['bedrooms']) 
-      : ($propertyType === 'Studio Apartment' ? '0' : null);
-    $bathrooms = isset($input['bathrooms']) && !empty($input['bathrooms']) ? sanitizeInput($input['bathrooms']) : null;
+    // For upcoming projects, default to 0 if not provided
+    if ($isUpcomingProject) {
+        $bedrooms = isset($input['bedrooms']) ? intval($input['bedrooms']) : 0;
+        $bathrooms = isset($input['bathrooms']) ? intval($input['bathrooms']) : 0;
+    } else {
+        $bedrooms = isset($input['bedrooms']) && !empty($input['bedrooms']) && $input['bedrooms'] !== '0' 
+          ? sanitizeInput($input['bedrooms']) 
+          : ($propertyType === 'Studio Apartment' ? '0' : null);
+        $bathrooms = isset($input['bathrooms']) && !empty($input['bathrooms']) ? sanitizeInput($input['bathrooms']) : null;
+    }
     $balconies = isset($input['balconies']) && !empty($input['balconies']) ? sanitizeInput($input['balconies']) : null;
     $area = floatval($input['area']);
     $carpetArea = isset($input['carpet_area']) && !empty($input['carpet_area']) ? floatval($input['carpet_area']) : null;
