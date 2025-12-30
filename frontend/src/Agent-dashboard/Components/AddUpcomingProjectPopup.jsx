@@ -664,7 +664,7 @@ export default function AddUpcomingProjectPopup({ onClose }) {
               longitude: locationData.coordinates?.lng ?? ""
             }));
           }}
-          className={errors.location || errors.area ? 'agent-location-error' : ''}
+          className={`location-autosuggest-popup ${errors.location || errors.area ? 'agent-location-error' : ''}`}
           error={errors.location || errors.area}
         />
         {(errors.location || errors.area) && (
@@ -790,7 +790,7 @@ export default function AddUpcomingProjectPopup({ onClose }) {
             onChange={(stateName) => {
               handleChange('state', stateName);
             }}
-            className={errors.state ? 'agent-state-error' : ''}
+            className={`state-autosuggest-popup ${errors.state ? 'agent-state-error' : ''}`}
             error={errors.state}
           />
         </div>

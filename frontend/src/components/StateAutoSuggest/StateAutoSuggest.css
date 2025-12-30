@@ -103,6 +103,23 @@
   margin: 0;
 }
 
+/* Ensure dropdown appears above popup modals */
+.popup-overlay .state-autosuggest,
+.popup-container .state-autosuggest,
+.popup-body .state-autosuggest,
+.state-autosuggest-popup {
+  position: relative;
+  z-index: 2001 !important; /* Above popup overlay (2000) */
+}
+
+.popup-overlay .state-dropdown,
+.popup-container .state-dropdown,
+.popup-body .state-dropdown,
+.state-autosuggest-popup .state-dropdown {
+  z-index: 10000 !important; /* Ensure dropdown is above everything */
+  position: absolute !important;
+}
+
 .state-option {
   padding: 0.75rem 1rem;
   cursor: pointer;

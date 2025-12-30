@@ -105,14 +105,16 @@
 /* Ensure dropdown appears above popup modals */
 .popup-overlay .location-autosuggest,
 .popup-container .location-autosuggest,
-.popup-body .location-autosuggest {
+.popup-body .location-autosuggest,
+.location-autosuggest-popup {
   position: relative;
   z-index: 2001 !important; /* Above popup overlay (2000) */
 }
 
 .popup-overlay .location-dropdown,
 .popup-container .location-dropdown,
-.popup-body .location-dropdown {
+.popup-body .location-dropdown,
+.location-autosuggest-popup .location-dropdown {
   z-index: 10000 !important; /* Ensure dropdown is above everything */
   position: absolute !important;
 }
