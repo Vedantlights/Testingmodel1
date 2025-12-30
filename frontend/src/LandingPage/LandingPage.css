@@ -34,14 +34,59 @@
   position: relative;
   z-index: 1;
   width: 100%;
+  overflow-x: hidden; /* Prevent horizontal scroll */
 }
 
-/* Responsive background sizing */
+/* Responsive background sizing - Fully Responsive */
+@media (min-width: 1920px) {
+  .landing-background-image {
+    background-size: 100% 100%;
+    min-height: calc(800px + 8rem);
+  }
+}
+
+@media (max-width: 1919px) and (min-width: 1400px) {
+  .landing-background-image {
+    background-size: 100% 100%;
+    min-height: calc(700px + 8rem);
+  }
+}
+
+@media (max-width: 1399px) and (min-width: 1200px) {
+  .landing-background-image {
+    background-size: cover;
+    background-position: center center;
+    min-height: calc(650px + 8rem);
+  }
+}
+
+@media (max-width: 1199px) and (min-width: 1024px) {
+  .landing-background-image {
+    background-size: cover;
+    background-position: center center;
+    min-height: calc(600px + 5rem);
+  }
+}
+
+@media (max-width: 1099px) {
+  .landing-background-image {
+    background-size: cover;
+    background-position: center center;
+    min-height: calc(550px + 5rem);
+  }
+}
+
 @media (max-width: 768px) {
   .landing-background-image {
     background-size: cover;
     background-position: center center;
     background-attachment: scroll;
+    min-height: calc(500px + 4.5rem);
+  }
+  
+  .main-content {
+    width: 100%;
+    overflow-x: hidden;
   }
 }
 
@@ -50,13 +95,15 @@
     background-size: cover;
     background-position: center center;
     background-attachment: scroll;
+    min-height: calc(450px + 4rem);
   }
 }
 
-/* Main Content */
-.main-content {
-  position: relative;
-  z-index: 1;
-  width: 100%;
+@media (max-width: 360px) {
+  .landing-background-image {
+    background-size: cover;
+    background-position: center center;
+    min-height: calc(400px + 3.75rem);
+  }
 }
 

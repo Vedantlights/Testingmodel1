@@ -37,6 +37,7 @@ function LandingPage() {
     if (path === '/buyer' || path === '/dashboard') return '/LoginBuy.jpg';
     if (path === '/agents') return '/landingpageagent.jpeg';
     if (path === '/contact') return null; // Contact page has its own background
+    if (path === '/about') return null; // About page has its own background
     return null;
   };
 

@@ -231,19 +231,74 @@
   background: #7c3aed;
 }
 
-/* Responsive Design */
+/* Fully Responsive Design */
+@media (min-width: 1920px) {
+  .featured-properties-section {
+    padding: 80px 40px;
+  }
+  
+  .property-card {
+    min-width: 350px;
+    max-width: 350px;
+  }
+}
+
+@media (max-width: 1919px) and (min-width: 1400px) {
+  .featured-properties-section {
+    padding: 70px 30px;
+  }
+  
+  .property-card {
+    min-width: 330px;
+    max-width: 330px;
+  }
+}
+
+@media (max-width: 1399px) and (min-width: 1200px) {
+  .featured-properties-section {
+    padding: 60px 25px;
+  }
+  
+  .property-card {
+    min-width: 320px;
+    max-width: 320px;
+  }
+}
+
+@media (max-width: 1199px) and (min-width: 1024px) {
+  .featured-properties-section {
+    padding: 50px 20px;
+  }
+  
+  .property-card {
+    min-width: 300px;
+    max-width: 300px;
+  }
+}
+
+@media (max-width: 1023px) and (min-width: 769px) {
+  .featured-properties-section {
+    padding: 45px 18px;
+  }
+  
+  .property-card {
+    min-width: 290px;
+    max-width: 290px;
+  }
+}
+
 @media (max-width: 768px) {
   .featured-properties-section {
     padding: 40px 16px;
   }
 
   .featured-properties-title {
-    font-size: 1.8rem;
+    font-size: clamp(1.5rem, 5vw, 1.8rem);
   }
 
   .featured-properties-subtitle {
-    font-size: 1rem;
-    margin-bottom: 30px; /* Maintain spacing on mobile */
+    font-size: clamp(0.9rem, 2.5vw, 1rem);
+    margin-bottom: 30px;
   }
 
   .property-card {
@@ -263,6 +318,7 @@
   .property-footer {
     flex-direction: column;
     align-items: flex-start;
+    gap: 12px;
   }
   
   .view-details-btn {
@@ -271,5 +327,67 @@
 
   .property-image-container {
     height: 180px;
+  }
+  
+  .property-cards-horizontal-container {
+    padding: 0 16px 16px 16px;
+    gap: 20px;
+  }
+}
+
+@media (max-width: 480px) {
+  .featured-properties-section {
+    padding: 30px 12px;
+  }
+
+  .featured-properties-title {
+    font-size: clamp(1.3rem, 5vw, 1.5rem);
+  }
+
+  .featured-properties-subtitle {
+    font-size: clamp(0.85rem, 2.5vw, 0.95rem);
+    margin-bottom: 25px;
+  }
+
+  .property-card {
+    min-width: 260px;
+    max-width: 260px;
+  }
+  
+  .property-content {
+    padding: 16px;
+  }
+  
+  .property-title {
+    font-size: 16px;
+  }
+  
+  .property-image-container {
+    height: 160px;
+  }
+  
+  .property-cards-horizontal-container {
+    padding: 0 12px 12px 12px;
+    gap: 16px;
+  }
+}
+
+@media (max-width: 360px) {
+  .featured-properties-section {
+    padding: 25px 10px;
+  }
+  
+  .property-card {
+    min-width: 240px;
+    max-width: 240px;
+  }
+  
+  .property-image-container {
+    height: 150px;
+  }
+  
+  .property-cards-horizontal-container {
+    padding: 0 10px 10px 10px;
+    gap: 12px;
   }
 }

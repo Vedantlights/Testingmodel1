@@ -220,7 +220,71 @@
   }
 }
 
-/* Responsive Design */
+/* Fully Responsive Design */
+@media (min-width: 1920px) {
+  .explore-section {
+    padding: 6rem 0;
+  }
+  
+  .explore-main-title {
+    font-size: clamp(2.5rem, 3vw, 3rem);
+  }
+  
+  .explore-grid {
+    grid-template-columns: repeat(4, 1fr);
+    gap: 2rem;
+  }
+  
+  .explore-card-image {
+    height: 260px;
+  }
+}
+
+@media (max-width: 1919px) and (min-width: 1400px) {
+  .explore-section {
+    padding: 5rem 0;
+  }
+  
+  .explore-grid {
+    grid-template-columns: repeat(4, 1fr);
+    gap: 1.75rem;
+  }
+  
+  .explore-card-image {
+    height: 250px;
+  }
+}
+
+@media (max-width: 1399px) and (min-width: 1200px) {
+  .explore-section {
+    padding: 4.5rem 0;
+  }
+  
+  .explore-grid {
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1.5rem;
+  }
+  
+  .explore-card-image {
+    height: 240px;
+  }
+}
+
+@media (max-width: 1199px) and (min-width: 1024px) {
+  .explore-section {
+    padding: 4rem 0;
+  }
+  
+  .explore-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1.5rem;
+  }
+  
+  .explore-card-image {
+    height: 240px;
+  }
+}
+
 @media (max-width: 1200px) {
   .explore-grid {
     grid-template-columns: repeat(2, 1fr);
@@ -236,34 +300,36 @@
   }
 
   .explore-card-title {
-    font-size: 1.35rem;
+    font-size: clamp(1.15rem, 2.5vw, 1.35rem);
   }
 
   .explore-card-details {
-    font-size: 0.95rem;
+    font-size: clamp(0.85rem, 2vw, 0.95rem);
   }
 
   .explore-card-button {
-    font-size: 0.95rem;
+    font-size: clamp(0.9rem, 2vw, 0.95rem);
     padding: 0.875rem 1.5rem;
   }
 }
 
 @media (max-width: 768px) {
   .explore-section {
-    padding: 3rem 0;
+    padding: clamp(2.5rem, 5vw, 3rem) 0;
   }
 
   .explore-header {
-    margin-bottom: 2.5rem;
+    margin-bottom: clamp(2rem, 4vw, 2.5rem);
   }
 
   .explore-main-title {
-    font-size: 1.875rem;
+    font-size: clamp(1.5rem, 5vw, 1.875rem);
+    padding: 0 16px;
   }
 
   .explore-main-subtitle {
-    font-size: 1rem;
+    font-size: clamp(0.9rem, 2.5vw, 1rem);
+    padding: 0 16px;
   }
 
   .explore-grid {
@@ -272,7 +338,7 @@
   }
 
   .explore-card-image {
-    height: 220px;
+    height: clamp(200px, 30vw, 220px);
   }
 
   .explore-card-content {
@@ -280,7 +346,7 @@
   }
 
   .explore-card-title {
-    font-size: 1.25rem;
+    font-size: clamp(1.1rem, 3vw, 1.25rem);
   }
 
   .explore-card-button {
@@ -290,19 +356,21 @@
 
 @media (max-width: 480px) {
   .explore-section {
-    padding: 2rem 0;
+    padding: clamp(1.5rem, 4vw, 2rem) 0;
   }
 
   .explore-main-title {
-    font-size: 1.5rem;
+    font-size: clamp(1.3rem, 5vw, 1.5rem);
+    padding: 0 12px;
   }
 
   .explore-main-subtitle {
-    font-size: 0.9rem;
+    font-size: clamp(0.85rem, 2.5vw, 0.9rem);
+    padding: 0 12px;
   }
 
   .explore-card-image {
-    height: 200px;
+    height: clamp(180px, 28vw, 200px);
   }
 
   .explore-card-content {
@@ -310,8 +378,27 @@
   }
 
   .explore-card-button {
-    font-size: 0.95rem;
+    font-size: clamp(0.85rem, 2vw, 0.95rem);
     padding: 0.75rem 1.5rem;
+  }
+}
+
+@media (max-width: 360px) {
+  .explore-section {
+    padding: 1.5rem 0;
+  }
+  
+  .explore-main-title {
+    font-size: clamp(1.2rem, 5vw, 1.4rem);
+    padding: 0 10px;
+  }
+  
+  .explore-card-image {
+    height: 180px;
+  }
+  
+  .explore-card-content {
+    padding: 1rem;
   }
 }
 

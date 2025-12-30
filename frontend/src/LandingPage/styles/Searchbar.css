@@ -17,18 +17,72 @@
   z-index: 2; /* Above background image */
 }
 
-/* Responsive background sizing for better image display */
+/* Fully Responsive Container Sizing */
+@media (min-width: 1920px) {
+  .landing-search-bar-container {
+    padding: 120px 40px;
+    padding-top: calc(8rem + 120px);
+    min-height: calc(800px + 8rem);
+  }
+  
+  .landing-search-bar-wrapper {
+    max-width: 1400px;
+  }
+}
+
+@media (max-width: 1919px) and (min-width: 1400px) {
+  .landing-search-bar-container {
+    padding: 100px 30px;
+    padding-top: calc(8rem + 100px);
+    min-height: calc(700px + 8rem);
+  }
+}
+
+@media (max-width: 1399px) and (min-width: 1200px) {
+  .landing-search-bar-container {
+    padding: 90px 25px;
+    padding-top: calc(8rem + 90px);
+    min-height: calc(650px + 8rem);
+  }
+}
+
+@media (max-width: 1199px) and (min-width: 1024px) {
+  .landing-search-bar-container {
+    padding: 80px 20px;
+    padding-top: calc(5rem + 80px);
+    min-height: calc(600px + 5rem);
+  }
+}
+
+@media (max-width: 1099px) {
+  .landing-search-bar-container {
+    padding-top: calc(5rem + 100px); /* Tablet navbar height */
+    min-height: calc(550px + 5rem);
+    padding: 80px 20px;
+  }
+}
+
 @media (max-width: 768px) {
   .landing-search-bar-container {
-    background-size: cover;
-    background-position: center center;
+    padding-top: calc(4.5rem + 80px); /* Mobile navbar height */
+    min-height: calc(500px + 4.5rem);
+    padding: 60px 16px;
   }
 }
 
 @media (max-width: 480px) {
   .landing-search-bar-container {
-    background-size: cover;
-    background-position: center center;
+    padding-top: calc(4rem + 70px); /* Small mobile navbar height */
+    min-height: calc(450px + 4rem);
+    padding: 50px 12px;
+  }
+}
+
+@media (max-width: 360px) {
+  .landing-search-bar-container {
+    padding-top: calc(3.75rem + 60px); /* Extra small navbar height */
+    min-height: calc(400px + 3.75rem);
+    padding: 40px 10px;
   }
 }
 
@@ -382,15 +436,24 @@
 @media (max-width: 1099px) {
   .landing-search-bar-container {
     padding-top: calc(5rem + 100px); /* Tablet navbar height */
-    min-height: calc(570px + 5rem);
-    background-size: cover;
-    background-position: center center;
+    min-height: calc(550px + 5rem);
+    padding: 80px 20px;
+  }
+  
+  .quick-search-buttons {
+    max-width: 900px;
+    gap: 1.25rem;
+  }
+  
+  .quick-search-btn-image {
+    max-width: 160px;
   }
 }
 
 @media (max-width: 1024px) {
   .search-inputs {
     grid-template-columns: repeat(2, 1fr);
+    gap: 1.25rem;
   }
 
   .quick-search-buttons {
@@ -407,17 +470,18 @@
 @media (max-width: 768px) {
   .landing-search-bar-container {
     padding-top: calc(4.5rem + 80px); /* Mobile navbar height */
-    min-height: calc(570px + 4.5rem);
-    background-size: cover;
-    background-position: center center;
+    min-height: calc(500px + 4.5rem);
+    padding: 60px 16px;
   }
 
   .search-title {
-    font-size: 2rem;
+    font-size: clamp(1.5rem, 5vw, 2rem);
+    padding: 0 16px;
   }
 
   .search-subtitle {
-    font-size: 1rem;
+    font-size: clamp(0.9rem, 2.5vw, 1rem);
+    padding: 0 16px;
   }
 
   .search-form {
@@ -435,7 +499,7 @@
   }
 
   .quick-search-label {
-    font-size: 1rem;
+    font-size: clamp(0.9rem, 2.5vw, 1rem);
   }
 
   .quick-search-buttons {
@@ -449,7 +513,7 @@
   }
 
   .city-name {
-    font-size: 0.85rem;
+    font-size: clamp(0.8rem, 2vw, 0.85rem);
     padding: 0.625rem;
   }
 }
@@ -457,17 +521,18 @@
 @media (max-width: 480px) {
   .landing-search-bar-container {
     padding-top: calc(4rem + 70px); /* Small mobile navbar height */
-    min-height: calc(570px + 4rem);
-    background-size: cover;
-    background-position: center center;
-  }
-
-  .search-bar-container {
-    padding: 2rem 0;
+    min-height: calc(450px + 4rem);
+    padding: 50px 12px;
   }
 
   .search-title {
-    font-size: 1.75rem;
+    font-size: clamp(1.3rem, 5vw, 1.75rem);
+    padding: 0 12px;
+  }
+
+  .search-subtitle {
+    font-size: clamp(0.85rem, 2.5vw, 0.95rem);
+    padding: 0 12px;
   }
 
   .search-form {
@@ -475,7 +540,7 @@
   }
 
   .search-button {
-    font-size: 1rem;
+    font-size: clamp(0.9rem, 2.5vw, 1rem);
     padding: 0.875rem 1.5rem;
   }
 
@@ -494,7 +559,7 @@
   }
 
   .city-name {
-    font-size: 0.8rem;
+    font-size: clamp(0.75rem, 2vw, 0.8rem);
     padding: 0.5rem;
   }
 
@@ -506,8 +571,30 @@
 @media (max-width: 360px) {
   .landing-search-bar-container {
     padding-top: calc(3.75rem + 60px); /* Extra small navbar height */
-    min-height: calc(570px + 3.75rem);
-    background-size: cover;
-    background-position: center center;
+    min-height: calc(400px + 3.75rem);
+    padding: 40px 10px;
+  }
+  
+  .search-title {
+    font-size: clamp(1.2rem, 5vw, 1.5rem);
+    padding: 0 10px;
+  }
+  
+  .search-subtitle {
+    font-size: clamp(0.8rem, 2.5vw, 0.9rem);
+    padding: 0 10px;
+  }
+  
+  .search-form {
+    padding: 1rem;
+  }
+  
+  .quick-search-buttons {
+    max-width: 280px;
+    gap: 0.75rem;
+  }
+  
+  .quick-search-btn-image {
+    max-width: 120px;
   }
 }

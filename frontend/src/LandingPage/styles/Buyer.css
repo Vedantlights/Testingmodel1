@@ -17,20 +17,25 @@ body {
 }
 
 section {
-  padding: 60px 20px;
+  padding: clamp(40px, 5vw, 60px) clamp(16px, 3vw, 20px);
   max-width: 1200px;
   margin: 0 auto;
+  width: 100%;
+  box-sizing: border-box;
 }
 
 h2 {
   text-align: center;
-  font-size: 2.2rem;
-  margin-bottom: 40px;
+  font-size: clamp(1.5rem, 4vw, 2.2rem);
+  margin-bottom: clamp(30px, 4vw, 40px);
   color: #1a1a1a;
+  padding: 0 16px;
+  width: 100%;
 }
 
 /* Hero Section */
 .buy-hero-sections {
+  background-image: url('/LoginBuy.jpg');
   background-size: cover;
   background-position: center;
   background-repeat: no-repeat;
@@ -44,6 +49,8 @@ h2 {
   flex-direction: column;
   justify-content: center;
   align-items: center;
+  width: 100%;
+  overflow-x: hidden;
 }
 
 /* Overlay for better text readability */
@@ -56,19 +63,24 @@ h2 {
 }
 
 .buy-hero-title {
-  font-size: 2.8rem;
+  font-size: clamp(1.75rem, 5vw, 2.8rem);
   margin-bottom: 20px;
   font-weight: 700;
   line-height: 1.3;
+  padding: 0 20px;
+  width: 100%;
+  max-width: 1200px;
 }
 
 .buy-hero-subtitle {
-  font-size: 1.2rem;
+  font-size: clamp(1rem, 2.5vw, 1.2rem);
   margin-bottom: 30px;
   opacity: 0.95;
   max-width: 700px;
   margin-left: auto;
   margin-right: auto;
+  padding: 0 20px;
+  width: 100%;
 }
 
 .buy-cta-buttons {
@@ -599,51 +611,103 @@ h2 {
   box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
 }
 
-/* Responsive Design */
+/* Fully Responsive Design */
+@media (min-width: 1920px) {
+  .buy-hero-sections {
+    padding: 120px 40px;
+    padding-top: calc(8rem + 120px);
+    min-height: calc(800px + 8rem);
+  }
+  
+  section {
+    padding: 80px 40px;
+  }
+}
+
+@media (max-width: 1919px) and (min-width: 1400px) {
+  .buy-hero-sections {
+    padding: 100px 30px;
+    padding-top: calc(8rem + 100px);
+    min-height: calc(700px + 8rem);
+  }
+}
+
+@media (max-width: 1399px) and (min-width: 1200px) {
+  .buy-hero-sections {
+    padding: 90px 25px;
+    padding-top: calc(8rem + 90px);
+    min-height: calc(650px + 8rem);
+  }
+}
+
+@media (max-width: 1199px) and (min-width: 1024px) {
+  .buy-hero-sections {
+    padding: 80px 20px;
+    padding-top: calc(5rem + 80px);
+    min-height: calc(600px + 5rem);
+  }
+  
+  section {
+    padding: 50px 20px;
+  }
+}
+
 @media (max-width: 1099px) {
   .buy-hero-sections {
     padding-top: calc(5rem + 100px); /* Tablet navbar height */
-    min-height: calc(570px + 5rem);
+    min-height: calc(550px + 5rem);
+    padding: 80px 20px;
+  }
+  
+  section {
+    padding: 50px 20px;
+  }
+  
+  .types-grid {
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
   }
 }
 
 @media (max-width: 768px) {
   .buy-hero-sections {
     padding-top: calc(4.5rem + 80px); /* Mobile navbar height */
-    min-height: calc(570px + 4.5rem);
+    min-height: calc(500px + 4.5rem);
+    padding: 60px 16px;
   }
 
-  .hero-title {
-    font-size: 2rem;
-  }
-
-  .hero-subtitle {
-    font-size: 1rem;
+  section {
+    padding: 40px 16px;
   }
 
   h2 {
-    font-size: 1.8rem;
+    font-size: clamp(1.5rem, 5vw, 1.8rem);
+    margin-bottom: 30px;
   }
 
   .steps-container {
     grid-template-columns: 1fr;
+    gap: 20px;
   }
 
   .reviews-container,
   .reviews-grid {
     grid-template-columns: 1fr;
+    gap: 20px;
   }
   
   .stats-grid {
     grid-template-columns: repeat(2, 1fr);
+    gap: 20px;
   }
 
   .benefits-grid {
     grid-template-columns: 1fr;
+    gap: 20px;
   }
 
   .types-grid {
-    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 20px;
   }
 
   .type-card {
@@ -652,27 +716,64 @@ h2 {
 
   .features-grid {
     grid-template-columns: 1fr;
+    gap: 20px;
+  }
+  
+  .buy-cta-buttons {
+    flex-direction: column;
+    width: 100%;
+    max-width: 300px;
+    margin: 0 auto;
+  }
+  
+  .buy-btn {
+    width: 100%;
   }
 }
 
 @media (max-width: 480px) {
   .buy-hero-sections {
     padding-top: calc(4rem + 70px); /* Small mobile navbar height */
-    min-height: calc(570px + 4rem);
+    min-height: calc(450px + 4rem);
+    padding: 50px 12px;
+  }
+
+  section {
+    padding: 30px 12px;
   }
 
   .types-grid {
     grid-template-columns: 1fr;
+    gap: 16px;
   }
 
   .type-card {
     height: 180px;
+  }
+  
+  .stats-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .benefit-card,
+  .step-card,
+  .review-card {
+    padding: 20px;
   }
 }
 
 @media (max-width: 360px) {
   .buy-hero-sections {
     padding-top: calc(3.75rem + 60px); /* Extra small navbar height */
-    min-height: calc(570px + 3.75rem);
+    min-height: calc(400px + 3.75rem);
+    padding: 40px 10px;
+  }
+  
+  section {
+    padding: 25px 10px;
+  }
+  
+  .type-card {
+    height: 160px;
   }
 }
