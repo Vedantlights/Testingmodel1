@@ -17,6 +17,7 @@ use Google\Cloud\Vision\V1\Feature;
 use Google\Cloud\Vision\V1\Feature\Type;
 use Google\Cloud\Vision\V1\Image;
 use Google\Cloud\Vision\V1\AnnotateImageRequest;
+use Google\Cloud\Vision\V1\BatchAnnotateImagesRequest;
 use Google\Cloud\Vision\V1\Likelihood;
 
 class GoogleVisionService {
@@ -80,6 +81,7 @@ class GoogleVisionService {
             
             $feature2 = new Feature();
             $feature2->setType(Type::LABEL_DETECTION);
+            $feature2->setMaxResults(20); // Get more labels for better detection
             
             $feature3 = new Feature();
             $feature3->setType(Type::FACE_DETECTION);
@@ -90,12 +92,16 @@ class GoogleVisionService {
             $features = [$feature1, $feature2, $feature3, $feature4];
             
             // Create annotate image request (v2.x format)
-            $request = new AnnotateImageRequest();
-            $request->setImage($image);
-            $request->setFeatures($features);
+            $annotateRequest = new AnnotateImageRequest();
+            $annotateRequest->setImage($image);
+            $annotateRequest->setFeatures($features);
+            
+            // Create batch request (v2.x requires BatchAnnotateImagesRequest object)
+            $batchRequest = new BatchAnnotateImagesRequest();
+            $batchRequest->setRequests([$annotateRequest]);
             
             // Perform annotation using batchAnnotateImages (v2.x standard method)
-            $batchResponse = $this->client->batchAnnotateImages([$request]);
+            $batchResponse = $this->client->batchAnnotateImages($batchRequest);
             
             // Get response from batch
             $responses = $batchResponse->getResponses();
