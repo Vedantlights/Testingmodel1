@@ -997,7 +997,7 @@ export default function AddPropertyPopup({ onClose, editIndex = null, initialDat
                 longitude: locationData.coordinates?.lng ?? ""
               }));
             }}
-            className={errors.location ? 'agent-location-error' : ''}
+            className={`location-autosuggest-popup ${errors.location ? 'agent-location-error' : ''}`}
             error={errors.location}
             disabled={isRestrictedEdit}
           />
