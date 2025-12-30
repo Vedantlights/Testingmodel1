@@ -28,8 +28,9 @@ const PROJECT_TYPES = [
 ];
 
 const PROJECT_STATUS_OPTIONS = [
-  { value: "Upcoming", label: "Upcoming" },
-  { value: "Pre-Launch", label: "Pre-Launch" }
+  { value: "UNDER CONSTRUCTION", label: "UNDER CONSTRUCTION" },
+  { value: "PRE-LAUNCH", label: "PRE-LAUNCH" },
+  { value: "COMPLETED", label: "COMPLETED" }
 ];
 
 const CONFIGURATION_OPTIONS = [
@@ -55,6 +56,16 @@ const RERA_STATUS_OPTIONS = [
 
 const LAND_OWNERSHIP_OPTIONS = [
   "Freehold", "Leasehold", "Power of Attorney", "Co-operative Society"
+];
+
+const BANK_OPTIONS = [
+  "SBI",
+  "HDFC Bank",
+  "Kotak Mahindra Bank",
+  "ICICI Bank",
+  "Axis Bank",
+  "Bank of Baroda (BoB)",
+  "Other"
 ];
 
 export default function AddUpcomingProjectPopup({ onClose }) {
@@ -86,7 +97,7 @@ export default function AddUpcomingProjectPopup({ onClose }) {
     projectName: "",
     builderName: "",
     projectType: "",
-    projectStatus: "Upcoming",
+    projectStatus: "UNDER CONSTRUCTION",
     reraNumber: "",
     description: "",
     
@@ -121,6 +132,8 @@ export default function AddUpcomingProjectPopup({ onClose }) {
     reraStatus: "",
     landOwnershipType: "",
     bankApproved: "",
+    approvedBanks: [],
+    otherBankName: "",
     
     // Step 7: Media
     coverImage: null,
@@ -130,11 +143,11 @@ export default function AddUpcomingProjectPopup({ onClose }) {
     masterPlan: null,
     
     // Step 8: Contact & Sales
-    salesContactName: "",
-    mobileNumber: "",
+    salesNumber: "",
     emailId: "",
-    siteVisitAvailable: "Yes",
-    preferredContactTime: "",
+    mobileNumber: "",
+    whatsappNumber: "",
+    alternativeNumber: "",
     
     // Step 9: Marketing
     projectHighlights: "",
@@ -166,6 +179,13 @@ export default function AddUpcomingProjectPopup({ onClose }) {
     if (errors[field]) {
       setErrors(prev => ({ ...prev, [field]: null }));
     }
+  };
+
+  // Handle carpet area range input - strip sq.ft if user types it, store numeric only
+  const handleCarpetAreaChange = (value) => {
+    // Remove "sq.ft" if user typed it
+    const cleanValue = value.replace(/\s*sq\.ft\s*/gi, '').trim();
+    handleChange('carpetAreaRange', cleanValue);
   };
 
   const toggleConfiguration = (config) => {
@@ -261,8 +281,7 @@ export default function AddUpcomingProjectPopup({ onClose }) {
         if (formData.projectImages.length === 0) newErrors.projectImages = "At least one project image is required";
         break;
       case 8:
-        if (!formData.salesContactName?.trim()) newErrors.salesContactName = "Sales contact name is required";
-        if (!formData.mobileNumber?.trim()) newErrors.mobileNumber = "Mobile number is required";
+        if (!formData.salesNumber?.trim()) newErrors.salesNumber = "Sales number is required";
         if (!formData.emailId?.trim()) newErrors.emailId = "Email ID is required";
         break;
       default:
@@ -299,6 +318,33 @@ export default function AddUpcomingProjectPopup({ onClose }) {
       popupBodyRef.current.scrollTop = 0;
     }
   }, [currentStep]);
+
+  // Format price in words (same as List Property)
+  const formatPriceInWords = (price) => {
+    if (!price) return '';
+    // Extract numeric value from string (e.g., "₹45 Lakhs onwards" -> 4500000)
+    let num = 0;
+    const priceStr = price.toString().replace(/[^\d.]/g, '');
+    num = parseFloat(priceStr) || 0;
+    
+    // If the string contains "lakh" or "lac", multiply by 100000
+    if (price.toString().toLowerCase().includes('lakh') || price.toString().toLowerCase().includes('lac')) {
+      num = num * 100000;
+    } else if (price.toString().toLowerCase().includes('crore') || price.toString().toLowerCase().includes('cr')) {
+      num = num * 10000000;
+    }
+    
+    if (isNaN(num) || num === 0) return '';
+    
+    if (num >= 10000000) {
+      return `₹${(num / 10000000).toFixed(2)} Crore`;
+    } else if (num >= 100000) {
+      return `₹${(num / 100000).toFixed(2)} Lakh`;
+    } else if (num >= 1000) {
+      return `₹${(num / 1000).toFixed(2)} Thousand`;
+    }
+    return `₹${num}`;
+  };
 
   const handleSubmit = async () => {
     if (!validateStep(currentStep)) return;
@@ -351,11 +397,23 @@ export default function AddUpcomingProjectPopup({ onClose }) {
           reraStatus: formData.reraStatus || null,
           landOwnershipType: formData.landOwnershipType || null,
           bankApproved: formData.bankApproved || null,
-          salesContactName: formData.salesContactName || null,
-          mobileNumber: formData.mobileNumber || null,
+          approvedBanks: (() => {
+            // Combine selected banks and custom bank names
+            const banks = [...(formData.approvedBanks || [])];
+            // Remove "Other" from the array as it's just a trigger
+            const banksWithoutOther = banks.filter(b => b !== 'Other');
+            if (formData.otherBankName && formData.otherBankName.trim()) {
+              // Parse comma-separated custom bank names and add them
+              const customBanks = formData.otherBankName.split(',').map(b => b.trim()).filter(b => b);
+              banksWithoutOther.push(...customBanks);
+            }
+            return banksWithoutOther;
+          })(),
+          salesNumber: formData.salesNumber || null,
           emailId: formData.emailId || null,
-          siteVisitAvailable: formData.siteVisitAvailable || null,
-          preferredContactTime: formData.preferredContactTime || null,
+          mobileNumber: formData.mobileNumber || null,
+          whatsappNumber: formData.whatsappNumber || null,
+          alternativeNumber: formData.alternativeNumber || null,
           projectHighlights: formData.projectHighlights || null,
           usp: formData.usp || null,
           pincode: formData.pincode || null,
@@ -751,13 +809,16 @@ export default function AddUpcomingProjectPopup({ onClose }) {
 
       <div className="form-group">
         <label>Carpet Area Range <span className="required">*</span></label>
-        <input
-          type="text"
-          value={formData.carpetAreaRange}
-          onChange={(e) => handleChange('carpetAreaRange', e.target.value)}
-          placeholder="e.g., 650 - 1200 sq.ft"
-          className={errors.carpetAreaRange ? 'error' : ''}
-        />
+        <div className="input-with-suffix">
+          <input
+            type="text"
+            value={formData.carpetAreaRange}
+            onChange={(e) => handleCarpetAreaChange(e.target.value)}
+            placeholder="e.g., 650 - 1200"
+            className={errors.carpetAreaRange ? 'error' : ''}
+          />
+          <span className="suffix">sq.ft</span>
+        </div>
         {errors.carpetAreaRange && <span className="error-text">{errors.carpetAreaRange}</span>}
       </div>
 
@@ -806,13 +867,21 @@ export default function AddUpcomingProjectPopup({ onClose }) {
 
       <div className="form-group">
         <label>Starting Price <span className="required">*</span></label>
-        <input
-          type="text"
-          value={formData.startingPrice}
-          onChange={(e) => handleChange('startingPrice', e.target.value)}
-          placeholder="e.g., ₹45 Lakhs onwards"
-          className={errors.startingPrice ? 'error' : ''}
-        />
+        <div className="price-input-wrapper">
+          <span className="currency">₹</span>
+          <input
+            type="text"
+            value={formData.startingPrice}
+            onChange={(e) => handleChange('startingPrice', e.target.value)}
+            placeholder="e.g., 4500000 or 45 Lakhs"
+            className={errors.startingPrice ? 'error' : ''}
+          />
+        </div>
+        {formData.startingPrice && (
+          <span className="price-words">
+            {formatPriceInWords(formData.startingPrice)}
+          </span>
+        )}
         {errors.startingPrice && <span className="error-text">{errors.startingPrice}</span>}
       </div>
 
@@ -840,7 +909,7 @@ export default function AddUpcomingProjectPopup({ onClose }) {
 
       <div className="form-row">
         <div className="form-group">
-          <label>Expected Launch Date</label>
+          <label>Launch Date</label>
           <input
             type="date"
             value={formData.expectedLaunchDate}
@@ -921,13 +990,61 @@ export default function AddUpcomingProjectPopup({ onClose }) {
         <label>Bank Approved</label>
         <select
           value={formData.bankApproved}
-          onChange={(e) => handleChange('bankApproved', e.target.value)}
+          onChange={(e) => {
+            handleChange('bankApproved', e.target.value);
+            // Clear approved banks if "No" or empty is selected
+            if (e.target.value !== 'Yes') {
+              setFormData(prev => ({
+                ...prev,
+                approvedBanks: [],
+                otherBankName: ''
+              }));
+            }
+          }}
         >
           <option value="">Select</option>
           <option value="Yes">Yes</option>
           <option value="No">No</option>
         </select>
       </div>
+
+      {formData.bankApproved === 'Yes' && (
+        <>
+          <div className="form-group">
+            <label>Select Approved Banks <span className="required">*</span></label>
+            <div className="amenities-grid">
+              {BANK_OPTIONS.map(bank => (
+                <button
+                  key={bank}
+                  type="button"
+                  className={`amenity-btn ${(formData.approvedBanks || []).includes(bank) ? 'active' : ''}`}
+                  onClick={() => toggleBank(bank)}
+                >
+                  <span className="amenity-label">{bank}</span>
+                  {(formData.approvedBanks || []).includes(bank) && (
+                    <span className="check-icon">✓</span>
+                  )}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {(formData.approvedBanks || []).includes('Other') && (
+            <div className="form-group">
+              <label>Other Bank Name(s)</label>
+              <input
+                type="text"
+                value={formData.otherBankName || ''}
+                onChange={(e) => handleChange('otherBankName', e.target.value)}
+                placeholder="Enter bank names separated by comma (e.g., PNB, Canara Bank)"
+              />
+              <small style={{ display: 'block', marginTop: '0.5rem', color: 'var(--text-muted)', fontSize: '0.85rem' }}>
+                You can enter multiple bank names separated by commas
+              </small>
+            </div>
+          )}
+        </>
+      )}
     </div>
   );
 
@@ -1080,30 +1197,18 @@ export default function AddUpcomingProjectPopup({ onClose }) {
       <h3 className="step-heading">Contact & Sales Information</h3>
       <p className="step-subheading">How can buyers reach you?</p>
 
-      <div className="form-group">
-        <label>Sales Contact Name <span className="required">*</span></label>
-        <input
-          type="text"
-          value={formData.salesContactName}
-          onChange={(e) => handleChange('salesContactName', e.target.value)}
-          placeholder="Enter contact person name"
-          className={errors.salesContactName ? 'error' : ''}
-        />
-        {errors.salesContactName && <span className="error-text">{errors.salesContactName}</span>}
-      </div>
-
       <div className="form-row">
         <div className="form-group">
-          <label>Mobile Number <span className="required">*</span></label>
+          <label>Sales Number <span className="required">*</span></label>
           <input
             type="tel"
-            value={formData.mobileNumber}
-            onChange={(e) => handleChange('mobileNumber', e.target.value.replace(/\D/g, ''))}
-            placeholder="Enter mobile number"
-            maxLength={10}
-            className={errors.mobileNumber ? 'error' : ''}
+            value={formData.salesNumber}
+            onChange={(e) => handleChange('salesNumber', e.target.value.replace(/\D/g, ''))}
+            placeholder="Enter sales number"
+            maxLength={15}
+            className={errors.salesNumber ? 'error' : ''}
           />
-          {errors.mobileNumber && <span className="error-text">{errors.mobileNumber}</span>}
+          {errors.salesNumber && <span className="error-text">{errors.salesNumber}</span>}
         </div>
 
         <div className="form-group">
@@ -1119,24 +1224,38 @@ export default function AddUpcomingProjectPopup({ onClose }) {
         </div>
       </div>
 
-      <div className="form-group">
-        <label>Site Visit Available</label>
-        <select
-          value={formData.siteVisitAvailable}
-          onChange={(e) => handleChange('siteVisitAvailable', e.target.value)}
-        >
-          <option value="Yes">Yes</option>
-          <option value="No">No</option>
-        </select>
+      <div className="form-row">
+        <div className="form-group">
+          <label>Mobile Number (Optional)</label>
+          <input
+            type="tel"
+            value={formData.mobileNumber}
+            onChange={(e) => handleChange('mobileNumber', e.target.value.replace(/\D/g, ''))}
+            placeholder="Enter mobile number"
+            maxLength={10}
+          />
+        </div>
+
+        <div className="form-group">
+          <label>WhatsApp Number (Optional)</label>
+          <input
+            type="tel"
+            value={formData.whatsappNumber}
+            onChange={(e) => handleChange('whatsappNumber', e.target.value.replace(/\D/g, ''))}
+            placeholder="Enter WhatsApp number"
+            maxLength={10}
+          />
+        </div>
       </div>
 
       <div className="form-group">
-        <label>Preferred Contact Time</label>
+        <label>Alternative Number (Optional)</label>
         <input
-          type="text"
-          value={formData.preferredContactTime}
-          onChange={(e) => handleChange('preferredContactTime', e.target.value)}
-          placeholder="e.g., 10 AM - 7 PM"
+          type="tel"
+          value={formData.alternativeNumber}
+          onChange={(e) => handleChange('alternativeNumber', e.target.value.replace(/\D/g, ''))}
+          placeholder="Enter alternative number"
+          maxLength={15}
         />
       </div>
     </div>
@@ -1176,7 +1295,7 @@ export default function AddUpcomingProjectPopup({ onClose }) {
       <h3 className="step-heading">Preview & Submit</h3>
       <p className="step-subheading">Review your project details before submitting</p>
 
-      <div className="preview-section">
+      <div className="preview-section preview-uppercase" style={{ textAlign: 'left' }}>
         <h4>Basic Information</h4>
         <p><strong>Project Name:</strong> {formData.projectName}</p>
         <p><strong>Builder:</strong> {formData.builderName || builderName}</p>
@@ -1185,21 +1304,27 @@ export default function AddUpcomingProjectPopup({ onClose }) {
         {formData.reraNumber && <p><strong>RERA Number:</strong> {formData.reraNumber}</p>}
 
         <h4>Location</h4>
-        <p><strong>Address:</strong> {formData.fullAddress}</p>
-        <p><strong>Area:</strong> {formData.area}, {formData.city}</p>
+        <p><strong>Location:</strong> {formData.location || formData.area || 'Not specified'}</p>
+        {formData.fullAddress && <p><strong>Full Address:</strong> {formData.fullAddress}</p>}
+        {formData.state && <p><strong>State:</strong> {formData.state}</p>}
+        {(formData.latitude && formData.longitude) && (
+          <p><strong>Coordinates:</strong> {parseFloat(formData.latitude).toFixed(6)}, {parseFloat(formData.longitude).toFixed(6)}</p>
+        )}
 
         <h4>Configuration</h4>
         <p><strong>Configurations:</strong> {formData.configurations.join(', ') || 'None'}</p>
-        <p><strong>Carpet Area Range:</strong> {formData.carpetAreaRange}</p>
+        <p><strong>Carpet Area Range:</strong> {formData.carpetAreaRange ? `${formData.carpetAreaRange} sq.ft` : 'Not specified'}</p>
 
         <h4>Pricing</h4>
         <p><strong>Starting Price:</strong> {formData.startingPrice}</p>
         {formData.pricePerSqft && <p><strong>Price per Sq.ft:</strong> {formData.pricePerSqft}</p>}
 
         <h4>Contact</h4>
-        <p><strong>Contact Name:</strong> {formData.salesContactName}</p>
-        <p><strong>Mobile:</strong> {formData.mobileNumber}</p>
+        <p><strong>Sales Number:</strong> {formData.salesNumber}</p>
         <p><strong>Email:</strong> {formData.emailId}</p>
+        {formData.mobileNumber && <p><strong>Mobile Number:</strong> {formData.mobileNumber}</p>}
+        {formData.whatsappNumber && <p><strong>WhatsApp Number:</strong> {formData.whatsappNumber}</p>}
+        {formData.alternativeNumber && <p><strong>Alternative Number:</strong> {formData.alternativeNumber}</p>}
       </div>
 
       <div className="info-box" style={{ marginTop: '20px', padding: '15px', background: '#f0fdf4', border: '1px solid #86efac', borderRadius: '8px' }}>

@@ -392,6 +392,9 @@
 .preview-section h4:first-child { margin-top:0; }
 .preview-section p { font-size:0.9rem; color:var(--text-secondary); margin-bottom:0.5rem; line-height:1.6; }
 .preview-section strong { color:var(--text-primary); font-weight:600; }
+.preview-section.preview-uppercase { text-transform: uppercase; }
+.preview-section.preview-uppercase p { text-transform: uppercase; }
+.preview-section.preview-uppercase h4 { text-transform: uppercase; }
 
 /* info box */
 .info-box { margin-top:1rem; padding:1rem; background:#f0f9ff; border:1px solid #bae6fd; border-radius:var(--radius-md); }
