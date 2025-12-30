@@ -217,7 +217,6 @@ export default function AddPropertyPopup({ onClose, editIndex = null, initialDat
   const [showLocationPicker, setShowLocationPicker] = useState(false);
   const [imageFiles, setImageFiles] = useState([]); // Store actual File objects
   const [imageValidationStatus, setImageValidationStatus] = useState([]); // Track validation status for each image
-  const [showEditNoticeModal, setShowEditNoticeModal] = useState(false);
   const [isCheckingImages, setIsCheckingImages] = useState(false);
   // separate refs for images, video, brochure
   const imagesRef = useRef();
@@ -2088,6 +2087,7 @@ export default function AddPropertyPopup({ onClose, editIndex = null, initialDat
           </div>
         </div>
       </div>
+      )}
 
       {/* Location Picker Modal */}
       {showLocationPicker && (
@@ -2106,7 +2106,6 @@ export default function AddPropertyPopup({ onClose, editIndex = null, initialDat
             onClose={() => setShowLocationPicker(false)}
           />
         </div>
-      )}
       )}
     </div>
   );

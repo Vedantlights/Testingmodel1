@@ -40,6 +40,7 @@
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
   padding: 2rem;
   height: fit-content;
+  border: 1px solid #e5e5e5;
 }
 
 .buyer-profile-avatar-section {
@@ -439,6 +440,7 @@
   border-radius: 12px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
   padding: 2rem;
+  border: 1px solid #e5e5e5;
 }
 
 .buyer-profile-form-card h3 {
@@ -476,10 +478,11 @@
   align-items: center;
   gap: 1.75rem;
   background: #ffffff;
-  border: 2px solid transparent;
+  border: 1px solid #e5e5e5;
   padding: 0.875rem 3rem;
   border-radius: 8px;
   transition: all 0.3s;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
 }
 
 .buyer-input-wrapper:focus-within {
@@ -512,12 +515,13 @@
 /* Keep disabled wrapper styling consistent with other fields */
 .buyer-input-wrapper.buyer-disabled-wrapper {
   background: #ffffff !important;
-  border-color: transparent !important;
+  border-color: #e5e5e5 !important;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
 }
 
 .buyer-input-wrapper.buyer-disabled-wrapper:focus-within {
   background: rgb(222, 220, 220) !important;
-  border-color: transparent !important;
+  border-color: #e5e5e5 !important;
 }
 
 .buyer-form-actions {
