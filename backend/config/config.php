@@ -181,7 +181,7 @@ define('PREMIUM_PLAN_PROPERTY_LIMIT', -1); // Unlimited
 $googleCredentialsPath = getenv('GOOGLE_APPLICATION_CREDENTIALS');
 if (empty($googleCredentialsPath)) {
     // Production path (Hostinger shared hosting)
-    $googleCredentialsPath = '/home/u123456789/domains/demo1.indiapropertys.com/secure/indiapropertys-8fab286d41e4.json';
+    $googleCredentialsPath = '/home/u449667423/domains/indiapropertys.com/Secure/indiapropertys-8fab286d41e4.json';
     
     // Fallback to local development path if production path doesn't exist
     if (!file_exists($googleCredentialsPath)) {
