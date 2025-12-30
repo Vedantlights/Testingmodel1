@@ -210,21 +210,9 @@ export default function AddUpcomingProjectPopup({ onClose }) {
   const toggleBank = (bank) => {
     setFormData(prev => ({
       ...prev,
-<<<<<<< Updated upstream
-<<<<<<< Updated upstream
-      approvedBanks: prev.approvedBanks.includes(bank)
-        ? prev.approvedBanks.filter(b => b !== bank)
-        : [...prev.approvedBanks, bank]
-=======
       approvedBanks: (prev.approvedBanks || []).includes(bank)
         ? (prev.approvedBanks || []).filter(b => b !== bank)
         : [...(prev.approvedBanks || []), bank]
->>>>>>> Stashed changes
-=======
-      approvedBanks: (prev.approvedBanks || []).includes(bank)
-        ? (prev.approvedBanks || []).filter(b => b !== bank)
-        : [...(prev.approvedBanks || []), bank]
->>>>>>> Stashed changes
     }));
   };
 

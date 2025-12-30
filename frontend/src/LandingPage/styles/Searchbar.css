@@ -39,14 +39,14 @@
   text-align: center;
   font-size: 2.5rem;
   font-weight: 700;
-  color: #1e3a8a;
+  color: #ffffff;
   margin: 0 0 0.5rem 0;
 }
 
 .search-subtitle {
   text-align: center;
   font-size: 1.1rem;
-  color: #38567f;
+  color: #ffffff;
   margin: 0 0 2.5rem 0;
 }
 
@@ -98,7 +98,7 @@
 .search-label {
   font-size: 0.875rem;
   font-weight: 600;
-  color: #334155;
+  color: #ffffff;
   display: flex;
   align-items: center;
   gap: 0.5rem;
