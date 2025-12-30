@@ -156,11 +156,29 @@ const ContactModal = ({ projectTitle, onClose }) => {
  */
 const ProjectCard = ({ project, onContactClick }) => {
     const { image, title, location, city, bhkType, priceRange, builder, builderLink } = project;
+    
+    // Default placeholder image
+    const placeholderImage = 'https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?w=500';
+    
+    // Ensure we have a valid image URL
+    const imageUrl = image && image.trim() !== '' ? image : placeholderImage;
+    
+    // Handle image load errors
+    const handleImageError = (e) => {
+        console.warn('Image failed to load:', imageUrl, 'for project:', title);
+        e.target.src = placeholderImage;
+        e.target.onerror = null; // Prevent infinite loop
+    };
 
     return (
         <div className="buyer-project-card">
             <div className="buyer-project-image-container">
-                <img src={image} alt={title} className="buyer-project-image" />
+                <img 
+                    src={imageUrl} 
+                    alt={title} 
+                    className="buyer-project-image"
+                    onError={handleImageError}
+                />
                 
                 <div className="buyer-overlay-info buyer-top-right">
                     <span className="buyer-bhk-type">{bhkType}</span>

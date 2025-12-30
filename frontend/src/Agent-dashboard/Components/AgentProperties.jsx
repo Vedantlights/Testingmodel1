@@ -4,6 +4,7 @@ import { useNavigate } from "react-router-dom";
 import { useProperty } from "./PropertyContext";
 import AddPropertyPopup from "./AddPropertyPopup";
 import DeletePropertyModal from "../../components/DeletePropertyModal/DeletePropertyModal";
+import { API_BASE_URL } from "../../config/api.config";
 import "../styles/AgentProperties.css";
 
 const MAX_PROPERTIES = 10;
@@ -265,7 +266,23 @@ const AgentProperties = () => {
               style={{ animationDelay: `${index * 0.05}s` }}
             >
               <div className="seller-props-image">
-                <img src={property.images?.[0]} alt={property.title} />
+                <img 
+                  src={(() => {
+                    const imageUrl = property.images?.[0] || property.cover_image;
+                    if (!imageUrl) return 'https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?w=500';
+                    if (imageUrl.startsWith('http://') || imageUrl.startsWith('https://')) {
+                      return imageUrl;
+                    }
+                    if (imageUrl.startsWith('/')) {
+                      return `${API_BASE_URL.replace('/api', '')}${imageUrl}`;
+                    }
+                    return `${API_BASE_URL.replace('/api', '')}/uploads/${imageUrl}`;
+                  })()} 
+                  alt={property.title} 
+                  onError={(e) => {
+                    e.target.src = 'https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?w=500';
+                  }}
+                />
                 <div className="seller-props-image-overlay">
                   <button className="seller-props-overlay-btn" onClick={() => openEdit(getPropertyIndex(property.id))}>
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none">

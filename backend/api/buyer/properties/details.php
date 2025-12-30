@@ -85,14 +85,26 @@ try {
                 return $img;
             }
             
-            // If it starts with /uploads, it's already a relative path from base
+            // If it starts with /uploads, use UPLOAD_BASE_URL (not BASE_URL)
             if (strpos($img, '/uploads/') === 0) {
-                return BASE_URL . $img;
+                if (defined('UPLOAD_BASE_URL')) {
+                    return UPLOAD_BASE_URL . substr($img, 9); // Remove '/uploads/' prefix
+                }
+                // Fallback
+                $host = $_SERVER['HTTP_HOST'] ?? 'demo1.indiapropertys.com';
+                $protocol = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? 'https' : 'http';
+                return $protocol . '://' . $host . $img;
             }
             
-            // If it starts with uploads/, prepend base URL
+            // If it starts with uploads/, use UPLOAD_BASE_URL
             if (strpos($img, 'uploads/') === 0) {
-                return BASE_URL . '/' . $img;
+                if (defined('UPLOAD_BASE_URL')) {
+                    return UPLOAD_BASE_URL . '/' . substr($img, 8); // Remove 'uploads/' prefix
+                }
+                // Fallback
+                $host = $_SERVER['HTTP_HOST'] ?? 'demo1.indiapropertys.com';
+                $protocol = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? 'https' : 'http';
+                return $protocol . '://' . $host . '/' . $img;
             }
             
             // Otherwise, prepend the upload base URL
@@ -105,15 +117,29 @@ try {
         $property['images'] = array_values($property['images']);
     }
     
-    // Normalize cover_image if it exists
+    // Normalize cover_image if it exists (use UPLOAD_BASE_URL, not BASE_URL)
     if (!empty($property['cover_image'])) {
         $coverImg = trim($property['cover_image']);
         if (strpos($coverImg, 'http://') === 0 || strpos($coverImg, 'https://') === 0) {
             $property['cover_image'] = $coverImg;
         } elseif (strpos($coverImg, '/uploads/') === 0) {
-            $property['cover_image'] = BASE_URL . $coverImg;
+            // Use UPLOAD_BASE_URL (not BASE_URL)
+            if (defined('UPLOAD_BASE_URL')) {
+                $property['cover_image'] = UPLOAD_BASE_URL . substr($coverImg, 9); // Remove '/uploads/' prefix
+            } else {
+                $host = $_SERVER['HTTP_HOST'] ?? 'demo1.indiapropertys.com';
+                $protocol = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? 'https' : 'http';
+                $property['cover_image'] = $protocol . '://' . $host . $coverImg;
+            }
         } elseif (strpos($coverImg, 'uploads/') === 0) {
-            $property['cover_image'] = BASE_URL . '/' . $coverImg;
+            // Use UPLOAD_BASE_URL (not BASE_URL)
+            if (defined('UPLOAD_BASE_URL')) {
+                $property['cover_image'] = UPLOAD_BASE_URL . '/' . substr($coverImg, 8); // Remove 'uploads/' prefix
+            } else {
+                $host = $_SERVER['HTTP_HOST'] ?? 'demo1.indiapropertys.com';
+                $protocol = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? 'https' : 'http';
+                $property['cover_image'] = $protocol . '://' . $host . '/' . $coverImg;
+            }
         } else {
             $property['cover_image'] = UPLOAD_BASE_URL . '/' . ltrim($coverImg, '/');
         }

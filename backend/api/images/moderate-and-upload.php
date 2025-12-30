@@ -682,7 +682,7 @@ try {
             'message' => 'Image approved',
             'data' => [
                 'image_id' => $imageId,
-                'image_url' => $imageUrl, // Full URL: https://demo1.indiapropertys.com/backend/uploads/properties/74/img.webp
+                'image_url' => $imageUrl, // Full URL: https://demo1.indiapropertys.com/uploads/properties/74/img.webp
                 'relative_path' => $relativePath, // For reference: properties/74/img.webp
                 'filename' => $uniqueFilename,
                 'moderation_status' => 'SAFE'

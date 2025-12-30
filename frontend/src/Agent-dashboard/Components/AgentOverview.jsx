@@ -3,6 +3,7 @@ import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useProperty } from "./PropertyContext";
 import { authAPI, sellerDashboardAPI } from "../../services/api.service";
+import { API_BASE_URL } from "../../config/api.config";
 import AddPropertyPopup from "./AddPropertyPopup";
 import AddUpcomingProjectPopup from "./AddUpcomingProjectPopup";
 import "../styles/AgentOverview.css";
@@ -183,11 +184,7 @@ const AgentOverview = ({ onNavigate }) => {
 
       {/* Stats Grid */}
       <div className="stats-grid">
-        <div 
-          className="stat-card primary clickable-stat" 
-          onClick={() => onNavigate && onNavigate('properties')}
-          style={{ cursor: 'pointer' }}
-        >
+        <div className="stat-card primary">
           <div className="stat-icon-wrapper">
             <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
               <path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z" stroke="currentColor" strokeWidth="2"/>
@@ -230,11 +227,7 @@ const AgentOverview = ({ onNavigate }) => {
           </div>
         </div>
 
-        <div 
-          className="stat-card clickable-stat"
-          onClick={() => onNavigate && onNavigate('inquiries')}
-          style={{ cursor: 'pointer' }}
-        >
+        <div className="stat-card">
           <div className="stat-icon-wrapper green">
             <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
               <path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z" stroke="currentColor" strokeWidth="2"/>
@@ -359,9 +352,25 @@ const AgentOverview = ({ onNavigate }) => {
                   onClick={() => window.open(`/agent-dashboard/details/${property.id}`, '_blank', 'noopener,noreferrer')}
                 >
                   <div className="property-thumbnail">
-                    <img src={property.images?.[0]} alt={property.title} />
-                    <span className={`property-badge ${property.project_type === 'upcoming' ? 'upcoming' : property.status}`}>
-                      {property.project_type === 'upcoming' ? 'Upcoming' : (property.status === 'sale' ? 'For Sale' : 'For Rent')}
+                    <img 
+                      src={(() => {
+                        const imageUrl = property.images?.[0] || property.cover_image;
+                        if (!imageUrl) return 'https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?w=500';
+                        if (imageUrl.startsWith('http://') || imageUrl.startsWith('https://')) {
+                          return imageUrl;
+                        }
+                        if (imageUrl.startsWith('/')) {
+                          return `${API_BASE_URL.replace('/api', '')}${imageUrl}`;
+                        }
+                        return `${API_BASE_URL.replace('/api', '')}/uploads/${imageUrl}`;
+                      })()} 
+                      alt={property.title} 
+                      onError={(e) => {
+                        e.target.src = 'https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?w=500';
+                      }}
+                    />
+                    <span className={`property-badge ${property.status}`}>
+                      {property.status === 'sale' ? 'For Sale' : 'For Rent'}
                     </span>
                   </div>
                   <div className="property-info">
