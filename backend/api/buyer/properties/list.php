@@ -217,18 +217,34 @@ try {
     }
     
     if ($bedrooms) {
-        // Handle BHK format like "1 BHK", "2 BHK", "5+ BHK"
-        $bedroomStr = $bedrooms;
-        if (preg_match('/(\d+)\s*\+?\s*BHK/i', $bedroomStr, $matches)) {
+        // Handle BHK format like "1 BHK", "2 BHK", "5+ BHK" or plain numbers like "1", "2", "5+"
+        $bedroomStr = trim($bedrooms);
+        $bedroomCount = null;
+        $isPlus = false;
+        
+        // Extract number from formats: "1", "2", "1 BHK", "2 BHK", "5+", "5+ BHK"
+        if (preg_match('/(\d+)\s*\+?/i', $bedroomStr, $matches)) {
             $bedroomCount = intval($matches[1]);
-            if (strpos($bedroomStr, '+') !== false) {
-                $query .= " AND CAST(p.bedrooms AS UNSIGNED) >= ?";
+            $isPlus = (strpos($bedroomStr, '+') !== false);
+        }
+        
+        if ($bedroomCount !== null) {
+            if ($isPlus) {
+                // For "5+" or "5+ BHK", find properties with >= 5 bedrooms
+                // Handle both numeric strings and "X BHK" format in database
+                $query .= " AND (CAST(p.bedrooms AS UNSIGNED) >= ? OR p.bedrooms LIKE ?)";
                 $params[] = $bedroomCount;
+                $params[] = $bedroomCount . '%';
             } else {
-                $query .= " AND p.bedrooms = ?";
-                $params[] = $bedrooms;
+                // For exact match like "1", "2", "1 BHK", "2 BHK"
+                // Match both the number and "X BHK" format
+                $query .= " AND (CAST(p.bedrooms AS UNSIGNED) = ? OR p.bedrooms = ? OR p.bedrooms LIKE ?)";
+                $params[] = $bedroomCount;
+                $params[] = $bedroomCount;
+                $params[] = $bedroomCount . ' BHK%';
             }
         } else {
+            // Fallback: direct string match
             $query .= " AND p.bedrooms = ?";
             $params[] = $bedrooms;
         }
@@ -354,18 +370,34 @@ try {
         $countParams[] = $maxPrice;
     }
     if ($bedrooms) {
-        // Handle BHK format
-        $bedroomStr = $bedrooms;
-        if (preg_match('/(\d+)\s*\+?\s*BHK/i', $bedroomStr, $matches)) {
+        // Handle BHK format like "1 BHK", "2 BHK", "5+ BHK" or plain numbers like "1", "2", "5+"
+        $bedroomStr = trim($bedrooms);
+        $bedroomCount = null;
+        $isPlus = false;
+        
+        // Extract number from formats: "1", "2", "1 BHK", "2 BHK", "5+", "5+ BHK"
+        if (preg_match('/(\d+)\s*\+?/i', $bedroomStr, $matches)) {
             $bedroomCount = intval($matches[1]);
-            if (strpos($bedroomStr, '+') !== false) {
-                $countQuery .= " AND CAST(p.bedrooms AS UNSIGNED) >= ?";
+            $isPlus = (strpos($bedroomStr, '+') !== false);
+        }
+        
+        if ($bedroomCount !== null) {
+            if ($isPlus) {
+                // For "5+" or "5+ BHK", find properties with >= 5 bedrooms
+                // Handle both numeric strings and "X BHK" format in database
+                $countQuery .= " AND (CAST(p.bedrooms AS UNSIGNED) >= ? OR p.bedrooms LIKE ?)";
                 $countParams[] = $bedroomCount;
+                $countParams[] = $bedroomCount . '%';
             } else {
-                $countQuery .= " AND p.bedrooms = ?";
-                $countParams[] = $bedrooms;
+                // For exact match like "1", "2", "1 BHK", "2 BHK"
+                // Match both the number and "X BHK" format
+                $countQuery .= " AND (CAST(p.bedrooms AS UNSIGNED) = ? OR p.bedrooms = ? OR p.bedrooms LIKE ?)";
+                $countParams[] = $bedroomCount;
+                $countParams[] = $bedroomCount;
+                $countParams[] = $bedroomCount . ' BHK%';
             }
         } else {
+            // Fallback: direct string match
             $countQuery .= " AND p.bedrooms = ?";
             $countParams[] = $bedrooms;
         }

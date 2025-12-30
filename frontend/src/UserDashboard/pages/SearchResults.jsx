@@ -261,19 +261,30 @@ const SearchResults = () => {
       });
     }
 
-    // Filter by bedrooms (handle BHK format like "1 BHK", "2 BHK")
+    // Filter by bedrooms (handle BHK format like "1 BHK", "2 BHK" or plain numbers like "1", "2", "5+")
     if (bedrooms) {
       const bedroomStr = bedrooms.toString();
-      const bedroomCount = bedroomStr.includes('+') ? 5 : parseInt(bedroomStr.replace(/\D/g, ''));
-      results = results.filter(property => {
-        const propBedrooms = typeof property.bedrooms === 'string' 
-          ? parseInt(property.bedrooms.replace(/\D/g, '')) 
-          : property.bedrooms;
-        if (bedroomStr.includes('+')) {
-          return propBedrooms >= bedroomCount;
-        }
-        return propBedrooms === bedroomCount;
-      });
+      // Extract number from formats: "1", "2", "1 BHK", "2 BHK", "5+", "5+ BHK"
+      const bedroomMatch = bedroomStr.match(/(\d+)/);
+      const bedroomCount = bedroomMatch ? parseInt(bedroomMatch[1]) : null;
+      const isPlus = bedroomStr.includes('+');
+      
+      if (bedroomCount !== null) {
+        results = results.filter(property => {
+          // Extract number from property bedrooms (handles "1", "2", "1 BHK", "2 BHK", etc.)
+          const propBedrooms = typeof property.bedrooms === 'string' 
+            ? (parseInt(property.bedrooms.replace(/\D/g, '')) || 0)
+            : (property.bedrooms || 0);
+          
+          if (isPlus) {
+            // For "5+" or "5+ BHK", return properties with >= 5 bedrooms
+            return propBedrooms >= bedroomCount;
+          } else {
+            // For exact match like "1", "2", "1 BHK", "2 BHK"
+            return propBedrooms === bedroomCount;
+          }
+        });
+      }
     }
 
     // Filter by area (if provided)
