@@ -1,6 +1,6 @@
 // Contact.jsx
 import React, { useState, useEffect, useRef, useCallback } from "react";
-import { MapPin, Mail, MessageSquare } from "lucide-react";
+import { MapPin, Mail, MessageSquare, ChevronDown } from "lucide-react";
 import "../styles/BuyerContactPage.css";
 
 export default function Contact() {
@@ -23,6 +23,7 @@ export default function Contact() {
 
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
+  const [openFaqIndex, setOpenFaqIndex] = useState(null);
 
   // Memoize handleChange to prevent unnecessary re-renders
   const handleChange = useCallback((e) => {
@@ -190,6 +191,53 @@ export default function Contact() {
             </form>
           </div>
 
+        </div>
+
+        {/* FAQ Section */}
+        <div className="buyer-faq-section">
+          <h2 className="buyer-faq-title">Frequently Asked Questions</h2>
+          <div className="buyer-faq-list">
+            {[
+              {
+                question: "How do I list a property?",
+                answer: "To list your property, log in to your seller dashboard and click on 'My Properties'. Then click the 'Add Property' button and fill in all the required details including property type, location, price, and images. Once submitted, your property will be reviewed and published."
+              },
+              {
+                question: "How can I contact the property owner?",
+                answer: "You can contact property owners directly through our chat feature. Simply click on the 'Chat' button on any property listing page, or use the ChatUs page in your dashboard. Property owners will receive your message and can respond to your inquiries."
+              },
+              {
+                question: "Is my data secure?",
+                answer: "Yes, we take data security seriously. All your personal information, including contact details and property data, is encrypted and stored securely. We follow industry-standard security practices and never share your information with third parties without your consent."
+              },
+              {
+                question: "How do I edit my profile?",
+                answer: "To edit your profile, go to your dashboard and click on 'Profile' in the navigation menu. From there, you can update your personal information, contact details, profile picture, and other settings. Remember to save your changes before leaving the page."
+              },
+              {
+                question: "How can I get support?",
+                answer: "You can get support by filling out the contact form on this page, or by emailing us directly at info@indiapropertys.com. Our support team typically responds within 24 hours. You can also call us at +91 98765 43210 during business hours."
+              }
+            ].map((faq, index) => (
+              <div key={index} className={`buyer-faq-item ${openFaqIndex === index ? 'open' : ''}`}>
+                <button
+                  className="buyer-faq-question"
+                  onClick={() => setOpenFaqIndex(openFaqIndex === index ? null : index)}
+                >
+                  <span>{faq.question}</span>
+                  <ChevronDown 
+                    size={20} 
+                    className={`buyer-faq-icon ${openFaqIndex === index ? 'open' : ''}`}
+                  />
+                </button>
+                {openFaqIndex === index && (
+                  <div className="buyer-faq-answer">
+                    <p>{faq.answer}</p>
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
         </div>
 
       </div>

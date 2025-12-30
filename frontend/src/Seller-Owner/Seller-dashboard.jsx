@@ -265,13 +265,6 @@ const SellerDashboardContent = () => {
         <path d="M6 15h4" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
         <path d="M14 15h4" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
       </svg>
-    )},
-    { id: 'support', label: 'Support', icon: (
-      <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
-        <path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-        <path d="M13 7H7" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
-        <path d="M17 11H7" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
-      </svg>
     )}
   ];
 
@@ -383,6 +376,17 @@ const SellerDashboardContent = () => {
                   </svg>
                   My Profile
                 </button>
+                <button onClick={() => {
+                  setShowUserMenu(false);
+                  handleTabChange('support');
+                }}>
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+                    <path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                    <path d="M13 7H7" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+                    <path d="M17 11H7" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+                  </svg>
+                  Support
+                </button>
                 <button onClick={handleLogout}>
                   <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
                     <path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4M16 17l5-5-5-5M21 12H9" 
@@ -459,6 +463,22 @@ const SellerDashboardContent = () => {
               )}
             </button>
           ))}
+          
+          <div className="mobile-nav-divider"></div>
+          
+          <button 
+            className="mobile-nav-btn" 
+            onClick={() => handleTabChange('support')}
+          >
+            <span className="mobile-nav-icon">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+                <path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                <path d="M13 7H7" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+                <path d="M17 11H7" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+              </svg>
+            </span>
+            <span className="mobile-nav-label">Support</span>
+          </button>
           
           <div className="mobile-nav-divider"></div>
           
