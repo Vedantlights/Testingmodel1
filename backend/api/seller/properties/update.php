@@ -182,59 +182,56 @@ try {
             
             error_log('Update property - Processing ' . count($input['images']) . ' images');
             
-            // Delete existing images
+            // Delete existing images from property_images table
             $stmt = $db->prepare("DELETE FROM property_images WHERE property_id = ?");
             $stmt->execute([$propertyId]);
             error_log('Update property - Deleted existing images');
             
-            // Insert new images (only if array is not empty)
+            // Insert new images into property_images table (only if array is not empty)
+            $linkedCount = 0;
             if (count($input['images']) > 0) {
-                $stmt = $db->prepare("INSERT INTO property_images (property_id, image_url, image_order, file_name, file_path, moderation_status, checked_at) VALUES (?, ?, ?, ?, ?, 'SAFE', NOW())");
-                $insertedCount = 0;
+                $insertStmt = $db->prepare("
+                    INSERT INTO property_images 
+                    (property_id, image_url, moderation_status, image_order, created_at) 
+                    VALUES (?, ?, 'SAFE', ?, NOW())
+                ");
+                
                 foreach ($input['images'] as $index => $imageUrl) {
                     if (!empty($imageUrl) && is_string($imageUrl)) {
-                        // Extract filename from URL
-                        $parsedUrl = parse_url($imageUrl);
-                        $path = $parsedUrl['path'] ?? $imageUrl;
-                        $filename = basename($path);
-                        
-                        // Calculate relative path
-                        // Remove BASE_URL and /uploads/ prefix if present
-                        $relativePath = $imageUrl;
-                        if (defined('BASE_URL')) {
-                            $baseUrlPattern = preg_quote(BASE_URL, '/');
-                            $relativePath = preg_replace('/^' . $baseUrlPattern . '\/uploads\//', '', $imageUrl);
+                        // Filter out blob: URLs (temporary preview URLs)
+                        if (strpos($imageUrl, 'blob:') === 0) {
+                            error_log("Update property - Skipping blob URL at index {$index}");
+                            continue;
                         }
-                        // Also handle if it starts with /uploads/
-                        if (strpos($relativePath, '/uploads/') === 0) {
-                            $relativePath = substr($relativePath, 9); // Remove '/uploads/' prefix
-                        }
-                        // Also handle if it starts with 'uploads/'
-                        if (strpos($relativePath, 'uploads/') === 0) {
-                            $relativePath = substr($relativePath, 8); // Remove 'uploads/' prefix
-                        }
-                        
-                        error_log("Update property - Image {$index}: URL={$imageUrl}, filename={$filename}, relative={$relativePath}");
                         
                         try {
-                            $stmt->execute([
+                            $insertStmt->execute([
                                 $propertyId, 
                                 $imageUrl, // Store full URL
-                                $index,
-                                $filename,
-                                $relativePath
+                                $index // image_order
                             ]);
-                            $insertedCount++;
+                            $linkedCount++;
+                            error_log("Update property - Linked image {$index}: {$imageUrl}");
                         } catch (PDOException $e) {
-                            error_log("Update property - Failed to insert image {$index}: " . $e->getMessage());
+                            error_log("Update property - Failed to link image {$index}: " . $e->getMessage());
                         }
                     } else {
                         error_log("Update property - Skipping invalid image at index {$index}: " . gettype($imageUrl));
                     }
                 }
-                error_log("Update property - Successfully inserted {$insertedCount} of " . count($input['images']) . " images");
+                error_log("Update property - Successfully linked {$linkedCount} of " . count($input['images']) . " images");
+                
+                // Update cover_image with first image (NOT main_image!)
+                if (!empty($input['images'][0]) && strpos($input['images'][0], 'blob:') !== 0) {
+                    $updateCoverStmt = $db->prepare("UPDATE properties SET cover_image = ? WHERE id = ?");
+                    $updateCoverStmt->execute([$input['images'][0], $propertyId]);
+                    error_log("Update property - Updated cover_image to: {$input['images'][0]}");
+                }
             } else {
                 error_log('Update property - Images array is empty, all images removed');
+                // Clear cover_image if no images
+                $updateCoverStmt = $db->prepare("UPDATE properties SET cover_image = NULL WHERE id = ?");
+                $updateCoverStmt->execute([$propertyId]);
             }
         } else {
             error_log('Update property - No images field in input, keeping existing images');

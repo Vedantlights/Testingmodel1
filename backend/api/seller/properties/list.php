@@ -40,17 +40,19 @@ try {
     // Build query based on available tables
     if ($hasImagesTable && $hasAmenitiesTable && $hasInquiriesTable) {
         $query = "
-            SELECT p.*,
-                   COUNT(DISTINCT pi.id) as image_count,
-                   COUNT(DISTINCT i.id) as inquiry_count,
-                   GROUP_CONCAT(DISTINCT pi.image_url ORDER BY pi.image_order) as images,
-                   GROUP_CONCAT(DISTINCT pa.amenity_id) as amenities,
-                   SUBSTRING_INDEX(GROUP_CONCAT(DISTINCT pi.image_url ORDER BY pi.image_order), ',', 1) as cover_image
+            SELECT 
+                p.*,
+                COUNT(DISTINCT pi.id) as image_count,
+                COUNT(DISTINCT i.id) as inquiry_count,
+                (SELECT image_url FROM property_images WHERE property_id = p.id ORDER BY image_order ASC LIMIT 1) as first_image,
+                (SELECT GROUP_CONCAT(image_url ORDER BY image_order) FROM property_images WHERE property_id = p.id) as all_images,
+                GROUP_CONCAT(DISTINCT pa.amenity_id) as amenities
             FROM properties p
             LEFT JOIN property_images pi ON p.id = pi.property_id
             LEFT JOIN property_amenities pa ON p.id = pa.property_id
             LEFT JOIN inquiries i ON p.id = i.property_id
             WHERE p.user_id = ?
+            GROUP BY p.id
         ";
     } else {
         // Simplified query without JOINs
@@ -58,9 +60,9 @@ try {
             SELECT p.*,
                    0 as image_count,
                    0 as inquiry_count,
-                   p.cover_image as images,
-                   '' as amenities,
-                   p.cover_image as cover_image
+                   p.cover_image as first_image,
+                   p.cover_image as all_images,
+                   '' as amenities
             FROM properties p
             WHERE p.user_id = ?
         ";
@@ -94,98 +96,77 @@ try {
     
     // Format properties
     foreach ($properties as &$property) {
-        // Handle images
-        if ($hasImagesTable && isset($property['images']) && !empty($property['images'])) {
-            $imageArray = explode(',', $property['images']);
-            // Ensure all image URLs are full URLs (not relative paths)
-            $property['images'] = array_map(function($img) {
-                $img = trim($img);
-                // If already a full URL, return as is
-                if (strpos($img, 'http://') === 0 || strpos($img, 'https://') === 0) {
-                    // Fix old URLs that have /backend/uploads/ to /uploads/
-                    return str_replace('/backend/uploads/', '/uploads/', $img);
-                }
-                // If relative path, make it full URL using UPLOAD_BASE_URL
-                if (defined('UPLOAD_BASE_URL')) {
-                    // Remove /uploads/ prefix if present
-                    if (strpos($img, '/uploads/') === 0) {
-                        return UPLOAD_BASE_URL . substr($img, 9); // Remove '/uploads/' prefix
-                    }
-                    if (strpos($img, 'uploads/') === 0) {
-                        return UPLOAD_BASE_URL . '/' . substr($img, 8); // Remove 'uploads/' prefix
-                    }
-                    // Assume it's relative to uploads
-                    return UPLOAD_BASE_URL . '/' . $img;
-                }
-                // Fallback to BASE_URL if UPLOAD_BASE_URL not defined
-                if (defined('BASE_URL')) {
-                    if (strpos($img, '/uploads/') === 0) {
-                        // Remove /backend from BASE_URL for uploads
-                        $host = $_SERVER['HTTP_HOST'] ?? 'demo1.indiapropertys.com';
-                        $protocol = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? 'https' : 'http';
-                        return $protocol . '://' . $host . $img;
-                    }
-                    return BASE_URL . '/uploads/' . $img;
-                }
-                return $img;
-            }, $imageArray);
-        } else {
-            // Use cover_image as single image
-            $property['images'] = !empty($property['cover_image']) ? [$property['cover_image']] : [];
-        }
+        // Handle images - prioritize first_image from property_images, fallback to cover_image
+        $displayImage = null;
+        $allImages = [];
         
-        // Ensure image URLs are full URLs (prepend base URL if relative)
-        // Filter out empty values and normalize URLs
-        if (!empty($property['images'])) {
-            $property['images'] = array_filter(array_map(function($img) {
-                // Remove whitespace and check if empty
-                $img = trim($img);
-                if (empty($img)) {
-                    return null;
-                }
-                
-                // If it's already a full URL (http/https), return as is
-                if (strpos($img, 'http://') === 0 || strpos($img, 'https://') === 0) {
-                    return $img;
-                }
-                
-                // If it starts with /uploads, it's already a relative path from base
-                if (strpos($img, '/uploads/') === 0) {
-                    return BASE_URL . $img;
-                }
-                
-                // If it starts with uploads/, prepend base URL
-                if (strpos($img, 'uploads/') === 0) {
-                    return BASE_URL . '/' . $img;
-                }
-                
-                // Otherwise, prepend the upload base URL
-                return UPLOAD_BASE_URL . '/' . ltrim($img, '/');
-            }, $property['images']), function($img) {
-                return $img !== null && $img !== '';
-            });
-            
-            // Re-index array after filtering
-            $property['images'] = array_values($property['images']);
-        }
-        
-        // Set cover_image if not set, use first image
-        if (empty($property['cover_image']) && !empty($property['images'][0])) {
-            $property['cover_image'] = $property['images'][0];
-        } elseif (!empty($property['cover_image'])) {
-            $coverImg = trim($property['cover_image']);
-            // Ensure cover_image is also a full URL
-            if (strpos($coverImg, 'http://') === 0 || strpos($coverImg, 'https://') === 0) {
-                $property['cover_image'] = $coverImg;
-            } elseif (strpos($coverImg, '/uploads/') === 0) {
-                $property['cover_image'] = BASE_URL . $coverImg;
-            } elseif (strpos($coverImg, 'uploads/') === 0) {
-                $property['cover_image'] = BASE_URL . '/' . $coverImg;
-            } else {
-                $property['cover_image'] = UPLOAD_BASE_URL . '/' . ltrim($coverImg, '/');
+        if ($hasImagesTable) {
+            // Use first_image from property_images table (first image by image_order)
+            if (!empty($property['first_image'])) {
+                $displayImage = $property['first_image'];
             }
+            
+            // Get all images from property_images table
+            if (!empty($property['all_images'])) {
+                $allImages = explode(',', $property['all_images']);
+            }
+        }
+        
+        // Fallback to cover_image if no images from property_images table
+        if (empty($displayImage) && !empty($property['cover_image'])) {
+            $displayImage = $property['cover_image'];
+            if (empty($allImages)) {
+                $allImages = [$property['cover_image']];
+            }
+        }
+        
+        // Normalize image URLs - ensure all are full URLs
+        $normalizeImageUrl = function($img) {
+            if (empty($img)) return null;
+            $img = trim($img);
+            
+            // If already a full URL, return as is (but fix old /backend/uploads/ paths)
+            if (strpos($img, 'http://') === 0 || strpos($img, 'https://') === 0) {
+                return str_replace('/backend/uploads/', '/uploads/', $img);
+            }
+            
+            // If relative path, make it full URL using UPLOAD_BASE_URL
+            if (defined('UPLOAD_BASE_URL')) {
+                if (strpos($img, '/uploads/') === 0) {
+                    return UPLOAD_BASE_URL . substr($img, 9); // Remove '/uploads/' prefix
+                }
+                if (strpos($img, 'uploads/') === 0) {
+                    return UPLOAD_BASE_URL . '/' . substr($img, 8); // Remove 'uploads/' prefix
+                }
+                return UPLOAD_BASE_URL . '/' . $img;
+            }
+            
+            // Fallback
+            $host = $_SERVER['HTTP_HOST'] ?? 'demo1.indiapropertys.com';
+            $protocol = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? 'https' : 'http';
+            if (strpos($img, '/uploads/') === 0) {
+                return $protocol . '://' . $host . $img;
+            }
+            return $protocol . '://' . $host . '/uploads/' . $img;
+        };
+        
+        // Normalize all images
+        $allImages = array_filter(array_map($normalizeImageUrl, $allImages), function($img) {
+            return $img !== null && $img !== '';
+        });
+        $allImages = array_values($allImages);
+        
+        // Set display_image (for property cards) - prioritize first_image, then first of all_images, then cover_image
+        $property['display_image'] = $displayImage ? $normalizeImageUrl($displayImage) : (!empty($allImages[0]) ? $allImages[0] : null);
+        
+        // Set images array
+        $property['images'] = $allImages;
+        
+        // Set cover_image (normalized)
+        if (!empty($property['cover_image'])) {
+            $property['cover_image'] = $normalizeImageUrl($property['cover_image']);
         } else {
-            $property['cover_image'] = null;
+            $property['cover_image'] = !empty($allImages[0]) ? $allImages[0] : null;
         }
         
         // Handle amenities
