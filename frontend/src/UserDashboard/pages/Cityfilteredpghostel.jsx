@@ -7,9 +7,6 @@ import '../styles/Filteredproperties.css';
 import '../styles/BuyerSearchBar.css';
 
 const CityFilteredPGHostel = () => {
-
-  window.scrollTo(0,0);
-
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const cityParam = searchParams.get('city');

@@ -8,9 +8,6 @@ import '../styles/BuyerSearchBar.css';
 import './BuyerHome'
 
 const CityFilteredBuy = () => {
-
-  window.scrollTo(0,0);
-
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const cityParam = searchParams.get('city');
@@ -161,7 +158,6 @@ const CityFilteredBuy = () => {
   ];
 
   const handleProjectsClick = (city) => {
-     window.scrollTo(0,0);
     navigate(`/projects?city=${city}`);
   };
 

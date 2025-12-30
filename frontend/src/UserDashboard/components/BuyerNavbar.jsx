@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { authAPI } from '../../services/api.service';
@@ -34,20 +34,35 @@ const Navbar = () => {
   }, []);
 
   // Handle scroll effect - Optimized with requestAnimationFrame throttling
+  // CRITICAL: Use useMemo to prevent unnecessary re-renders
   useEffect(() => {
     let ticking = false;
+    let lastScrollY = 0;
+    
     const handleScroll = () => {
       if (!ticking) {
         window.requestAnimationFrame(() => {
-          setScrolled(window.scrollY > 10);
+          const currentScrollY = window.scrollY;
+          // Only update state if scroll position actually changed significantly
+          // This prevents constant re-renders during smooth scrolling
+          if (Math.abs(currentScrollY - lastScrollY) > 5) {
+            setScrolled(currentScrollY > 10);
+            lastScrollY = currentScrollY;
+          }
           ticking = false;
         });
         ticking = true;
       }
     };
+    
     window.addEventListener('scroll', handleScroll, { passive: true });
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
+  
+  // Memoize scrolled state to prevent unnecessary className recalculations
+  const navbarClassName = useMemo(() => {
+    return `buyer-navbar ${scrolled ? 'buyer-navbar-scrolled' : ''}`;
+  }, [scrolled]);
 
   // Close mobile menu when route changes
   useEffect(() => {
@@ -60,7 +75,7 @@ const Navbar = () => {
   };
 
   return (
-    <nav className={`buyer-navbar ${scrolled ? 'buyer-navbar-scrolled' : ''}`}>
+    <nav className={navbarClassName}>
       <div className="buyer-navbar-container">
         <div className="buyer-navbar-content">
           {/* Logo */}

@@ -54,17 +54,41 @@ import Admin from './Admin/AdminLayout';
 // =====================
 function ScrollToTop() {
   const { pathname } = useLocation();
+  const prevPathnameRef = React.useRef(pathname);
 
   useEffect(() => {
-    // CRITICAL: Do NOT reset scroll for Seller Dashboard routes
-    // Seller Dashboard handles its own scroll management on tab changes
-    // Resetting scroll here causes scroll lock bug where scrolling down jumps back up
+    // CRITICAL: Only scroll to top on FULL page navigation (not dashboard tab switches)
+    // Do NOT reset scroll for:
+    // 1. Seller Dashboard routes (handles own scroll)
+    // 2. Agent Dashboard routes (handles own scroll)
+    // 3. Buyer Dashboard routes (sticky navbar + footer - preserve scroll position)
+    
     const isSellerDashboard = pathname.startsWith('/seller-dashboard');
     const isAgentDashboard = pathname.startsWith('/agent-dashboard') || pathname.startsWith('/Agent-dashboard');
+    const isBuyerDashboard = pathname.startsWith('/buy') || 
+                             pathname.startsWith('/rent') || 
+                             pathname.startsWith('/pghostel') || 
+                             pathname.startsWith('/projects') ||
+                             pathname.startsWith('/BuyerHome') ||
+                             pathname.startsWith('/BuyerProfile') ||
+                             pathname.startsWith('/BuyerContactPage') ||
+                             pathname.startsWith('/ChatUs') ||
+                             pathname.startsWith('/chatus') ||
+                             pathname.startsWith('/details/') ||
+                             pathname.startsWith('/searchresults') ||
+                             pathname.startsWith('/about') ||
+                             pathname.startsWith('/buyer-dashboard');
     
-    if (!isSellerDashboard && !isAgentDashboard) {
-      window.scrollTo(0, 0);
+    // Only scroll to top if:
+    // 1. Not a dashboard route (Seller/Agent/Buyer)
+    // 2. AND it's a full page change (pathname actually changed)
+    const isFullPageChange = prevPathnameRef.current !== pathname;
+    
+    if (!isSellerDashboard && !isAgentDashboard && !isBuyerDashboard && isFullPageChange) {
+      window.scrollTo({ top: 0, behavior: 'instant' });
     }
+    
+    prevPathnameRef.current = pathname;
   }, [pathname]);
 
   return null;

@@ -7,7 +7,6 @@ import { propertiesAPI } from "../../services/api.service";
 import "../styles/BuyerHome.css";
 
 const Home = () => {
-  window.scrollTo(0,0);
   const navigate = useNavigate();
   const [properties, setProperties] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -120,7 +119,6 @@ const Home = () => {
   ];
 
   const handleProjectsClick = (city) => {
-    window.scrollTo(0, 0);
     navigate(`/searchresults?location=${encodeURIComponent(city)}`);
   };
 

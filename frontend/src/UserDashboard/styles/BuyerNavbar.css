@@ -9,9 +9,10 @@
   z-index: 1000;
   background: #022b5f;
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
-  transition: box-shadow 0.3s ease;
-  backdrop-filter: blur(10px);
-  height: 7.5rem;
+  /* CRITICAL: Use will-change for GPU acceleration, remove transition to prevent reflows */
+  will-change: transform;
+  /* Removed backdrop-filter for better performance */
+  height: 90px; /* FIXED HEIGHT - must match buyer-navbar-content height */
   border-bottom-left-radius: 10px;
   border-bottom-right-radius: 10px;
   width: 100%;
@@ -20,7 +21,8 @@
 .buyer-navbar-scrolled {
   background: #022b5f;
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
-  /* Height stays the same - no size change */
+  /* CRITICAL: Height stays exactly the same - no size change to prevent layout shift */
+  height: 90px; /* Must match base height */
 }
 
 .buyer-navbar-container {

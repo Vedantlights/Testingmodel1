@@ -62,8 +62,9 @@ html {
 /* Only body should scroll, not html - prevents double scrollbar */
 
 /* Add padding to prevent content hiding behind fixed navbar */
+/* CRITICAL: Match navbar height exactly (90px) */
 body {
-  padding-top: 90px;  /* Same as navbar height */
+  padding-top: 90px;  /* Must match .buyer-navbar height exactly */
 }
 
 /* Root Container - Allow Sticky Navbar to Work */
