@@ -260,20 +260,57 @@ export const PropertyProvider = ({ children }) => {
         upcoming_project_data: property.upcoming_project_data || null
       };
 
+      console.log('PropertyContext: Sending property data:', propertyData);
       const response = await sellerPropertiesAPI.add(propertyData);
+      console.log('PropertyContext: API response:', response);
+      console.log('PropertyContext: Response success:', response.success);
+      console.log('PropertyContext: Response data:', response.data);
       
-      if (response.success) {
+      // Handle both success formats: {success: true} and direct data
+      if (response.success === true || (response.data && response.data.property)) {
         // Always refresh from backend after successful add to get latest data
         await fetchProperties(false);
-        return response.data?.property || null;
+        return response.data?.property || response.property || null;
       } else {
-        throw new Error(response.message || 'Failed to add property');
+        // Extract validation errors if available
+        let errorMessage = response.message || 'Failed to add property';
+        if (response.data?.errors) {
+          const validationErrors = response.data.errors;
+          const errorList = Object.values(validationErrors).join(', ');
+          errorMessage = `Validation failed: ${errorList}`;
+        }
+        console.error('PropertyContext: API returned error:', response);
+        throw new Error(errorMessage);
       }
     } catch (error) {
-      console.error('Error adding property:', error);
-      const errorMessage = error.message || 'Failed to save property to database. Please check your connection and try again.';
+      console.error('PropertyContext: Error adding property - Full error:', error);
+      console.error('PropertyContext: Error details:', {
+        message: error.message,
+        status: error.status,
+        errors: error.errors,
+        data: error.data,
+        response: error.response
+      });
+      
+      // Extract validation errors from error object
+      let errorMessage = 'Failed to save property to database. Please check your connection and try again.';
+      
+      // Check various error formats
+      if (error.message) {
+        errorMessage = error.message;
+      } else if (error.errors && typeof error.errors === 'object') {
+        const errorList = Object.values(error.errors).join(', ');
+        errorMessage = `Validation failed: ${errorList}`;
+      } else if (error.data?.errors && typeof error.data.errors === 'object') {
+        const errorList = Object.values(error.data.errors).join(', ');
+        errorMessage = `Validation failed: ${errorList}`;
+      } else if (error.data?.message) {
+        errorMessage = error.data.message;
+      }
+      
+      console.error('PropertyContext: Final error message:', errorMessage);
       setError(errorMessage);
-      throw error;
+      throw new Error(errorMessage);
     }
   };
 

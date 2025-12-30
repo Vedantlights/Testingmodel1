@@ -401,6 +401,11 @@ export default function AddUpcomingProjectPopup({ onClose }) {
         }
       }
       
+      // Validate required fields before submission
+      if (!priceValue || priceValue <= 0) {
+        throw new Error('Starting price is required and must be greater than 0');
+      }
+      
       const propertyData = {
         title: formData.projectName,
         property_type: formData.projectType,
@@ -412,7 +417,7 @@ export default function AddUpcomingProjectPopup({ onClose }) {
         additional_address: formData.fullAddress || null,
         description: formData.description,
         price: priceValue,
-        area: 0, // Required field, set default for upcoming projects
+        area: 1, // Required field, set minimum value for upcoming projects (1 sq ft as placeholder)
         project_type: "upcoming", // CRITICAL FLAG
         // Additional upcoming project fields stored as JSON
         upcoming_project_data: {
@@ -461,10 +466,42 @@ export default function AddUpcomingProjectPopup({ onClose }) {
       // Create property first to get ID
       let createdProperty;
       try {
+        console.log('Submitting property data:', propertyData);
         createdProperty = await addProperty(propertyData);
+        console.log('Property created successfully:', createdProperty);
       } catch (error) {
-        console.error('Property creation failed:', error);
-        throw new Error('Failed to create project. Please try again.');
+        console.error('Property creation failed - Full error:', error);
+        console.error('Error details:', {
+          message: error.message,
+          status: error.status,
+          errors: error.errors,
+          data: error.data,
+          response: error.response
+        });
+        
+        // Extract validation errors if available
+        let errorMessage = 'Failed to create project. Please try again.';
+        
+        // Check various error formats
+        if (error.message) {
+          errorMessage = error.message;
+        } else if (error.errors && typeof error.errors === 'object') {
+          const errorList = Object.values(error.errors).join(', ');
+          errorMessage = `Validation failed: ${errorList}`;
+        } else if (error.data?.errors && typeof error.data.errors === 'object') {
+          const errorList = Object.values(error.data.errors).join(', ');
+          errorMessage = `Validation failed: ${errorList}`;
+        } else if (error.data?.message) {
+          errorMessage = error.data.message;
+        } else if (error.response?.data?.errors) {
+          const errorList = Object.values(error.response.data.errors).join(', ');
+          errorMessage = `Validation failed: ${errorList}`;
+        } else if (error.response?.data?.message) {
+          errorMessage = error.response.data.message;
+        }
+        
+        console.error('Final error message:', errorMessage);
+        throw new Error(errorMessage);
       }
       
       if (!createdProperty || !createdProperty.id) {

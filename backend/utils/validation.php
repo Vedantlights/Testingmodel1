@@ -86,9 +86,24 @@ if (!function_exists('validateRequired')) {
 function validateRequired($data, $requiredFields) {
     $errors = [];
     
+    // Numeric fields that can be 0 (not considered empty)
+    $numericFields = ['area', 'price', 'bedrooms', 'bathrooms', 'total_floors', 'carpet_area', 'maintenance_charges', 'deposit_amount'];
+    
     foreach ($requiredFields as $field) {
-        if (!isset($data[$field]) || empty(trim($data[$field]))) {
+        if (!isset($data[$field])) {
             $errors[$field] = ucfirst(str_replace('_', ' ', $field)) . ' is required';
+        } elseif (in_array($field, $numericFields)) {
+            // For numeric fields, check if it's null, empty string, or not a valid number (but allow 0)
+            $value = $data[$field];
+            if ($value === null || $value === '' || (!is_numeric($value) && $value !== 0 && $value !== '0')) {
+                $errors[$field] = ucfirst(str_replace('_', ' ', $field)) . ' is required';
+            }
+        } else {
+            // For string fields, check if empty after trimming
+            $value = is_string($data[$field]) ? trim($data[$field]) : $data[$field];
+            if (empty($value) && $value !== '0' && $value !== 0) {
+                $errors[$field] = ucfirst(str_replace('_', ' ', $field)) . ' is required';
+            }
         }
     }
     
