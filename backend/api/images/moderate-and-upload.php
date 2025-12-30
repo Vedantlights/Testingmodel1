@@ -167,10 +167,10 @@ try {
         exit;
     }
     
-    // Step 4: File Type Validation (JPG, PNG, WebP only)
+    // Step 4: Get MIME type for later use (no validation, just for metadata)
     $extension = strtolower(pathinfo($file['name'], PATHINFO_EXTENSION));
     
-    // Get MIME type using multiple methods
+    // Get MIME type using multiple methods (for metadata only, not validation)
     $mimeType = null;
     if (function_exists('finfo_file')) {
         $finfo = finfo_open(FILEINFO_MIME_TYPE);
@@ -191,37 +191,12 @@ try {
         }
     }
     
-    // Check if extension is valid
-    $extensionValid = in_array($extension, ALLOWED_IMAGE_TYPES);
-    
-    // Check if MIME type is valid
-    $mimeValid = $mimeType && in_array($mimeType, ALLOWED_MIME_TYPES);
-    
-    // Pass if EITHER extension OR mime type is valid
-    if (!$extensionValid && !$mimeValid) {
-        http_response_code(400);
-        echo json_encode([
-            'status' => 'error',
-            'message' => getErrorMessage('invalid_type'),
-            'error_code' => 'invalid_type',
-            'details' => [
-                'extension' => $extension,
-                'mime_type' => $mimeType
-            ]
-        ]);
-        exit;
-    }
-    
-    // Step 4b: Validate file is not corrupted or unreadable
+    // Get image info for dimensions check (Step 6)
     $imageInfo = @getimagesize($file['tmp_name']);
     if ($imageInfo === false) {
-        http_response_code(400);
-        echo json_encode([
-            'status' => 'error',
-            'message' => 'File is not a valid or readable image',
-            'error_code' => 'invalid_image'
-        ]);
-        exit;
+        // If we can't read image info, we'll let Google Vision API handle it
+        // But we still need dimensions, so set defaults
+        $imageInfo = [0, 0]; // width, height
     }
     
     // Step 5: File Size Validation (Maximum 5MB)

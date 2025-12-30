@@ -2,6 +2,8 @@
 import React, { useState, useRef, useEffect } from "react";
 import { useProperty } from "./PropertyContext";
 import { sellerPropertiesAPI } from "../../services/api.service";
+import { API_BASE_URL, API_ENDPOINTS } from "../../config/api.config";
+import { validateImageFile } from "../../utils/validation";
 import LocationPicker from "../../components/Map/LocationPicker";
 import LocationAutoSuggest from "../../components/LocationAutoSuggest";
 import StateAutoSuggest from "../../components/StateAutoSuggest";
@@ -213,6 +215,8 @@ export default function AddPropertyPopup({ onClose, editIndex = null, initialDat
   const [errors, setErrors] = useState({});
   const [showLocationPicker, setShowLocationPicker] = useState(false);
   const [imageFiles, setImageFiles] = useState([]); // Store actual File objects
+  const [imageValidationStatus, setImageValidationStatus] = useState([]); // Track validation status for each image
+  const [isCheckingImages, setIsCheckingImages] = useState(false);
   // separate refs for images, video, brochure
   const imagesRef = useRef();
   const videoRef = useRef();
@@ -379,7 +383,7 @@ export default function AddPropertyPopup({ onClose, editIndex = null, initialDat
     setShowLocationPicker(false);
   };
 
-  const handleImageUpload = (e) => {
+  const handleImageUpload = async (e) => {
     const files = Array.from(e.target.files || []);
     
     // Check total image count
@@ -392,39 +396,245 @@ export default function AddPropertyPopup({ onClose, editIndex = null, initialDat
       return;
     }
     
-    // Store file objects for later upload
-    setImageFiles(prev => [...prev, ...files].slice(0, 10));
+    // Basic file validation first
+    const validFiles = [];
+    for (const file of files) {
+      const fileValidation = validateImageFile(file);
+      if (!fileValidation.valid) {
+        setErrors(prev => ({ 
+          ...prev, 
+          images: fileValidation.message 
+        }));
+        continue;
+      }
+      validFiles.push(file);
+    }
     
-    // Create blob URLs for preview (temporary)
-    const newImages = files.map(f => URL.createObjectURL(f));
+    if (validFiles.length === 0) {
+      return;
+    }
+    
+    // Create image objects with pending status
+    const newImageObjects = validFiles.map(file => ({
+      file: file,
+      preview: URL.createObjectURL(file),
+      status: 'pending', // pending, checking, approved, rejected
+      errorMessage: '',
+      imageId: null,
+      imageUrl: null
+    }));
+    
+    // Add to state immediately
+    setImageFiles(prev => [...prev, ...validFiles].slice(0, 10));
+    setImageValidationStatus(prev => [...prev, ...newImageObjects].slice(0, 10));
+    
+    // Create blob URLs for preview
+    const newImages = validFiles.map(f => URL.createObjectURL(f));
     setFormData(prev => ({
       ...prev,
       images: [...(prev.images || []), ...newImages].slice(0, 10)
     }));
     
+    // Clear any previous errors
     if (errors.images) {
       setErrors(prev => ({ ...prev, images: null }));
+    }
+    
+    // Immediately validate each image through moderation API (in parallel for speed)
+    setIsCheckingImages(true);
+    const startIndex = imageValidationStatus.length;
+    
+    // Validate all images in parallel for faster processing
+    const validationPromises = newImageObjects.map((imgObj, i) => 
+      validateImageThroughModeration(imgObj, startIndex + i)
+    );
+    
+    // Wait for all validations to complete
+    await Promise.all(validationPromises);
+    
+    setIsCheckingImages(false);
+  };
+  
+  // Validate single image through moderation API
+  const validateImageThroughModeration = async (imageObj, index) => {
+    // Update status to checking
+    setImageValidationStatus(prev => {
+      const updated = [...prev];
+      if (updated[index]) {
+        updated[index] = { 
+          ...updated[index], 
+          status: 'checking'
+        };
+      }
+      return updated;
+    });
+    
+    try {
+      // Get property ID - use 0 for new properties (validation-only mode)
+      const propertyId = editIndex !== null ? properties[editIndex]?.id : 0;
+      const validateOnly = propertyId <= 0; // Validation-only mode for new properties
+      
+      const formData = new FormData();
+      formData.append('image', imageObj.file);
+      formData.append('property_id', propertyId);
+      if (validateOnly) {
+        formData.append('validate_only', 'true');
+      }
+      
+      const token = localStorage.getItem('authToken');
+      console.log(`[Image ${index + 1}] Starting validation...`);
+      
+      const response = await fetch(`${API_BASE_URL}${API_ENDPOINTS.MODERATE_AND_UPLOAD}`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+        },
+        body: formData,
+      });
+      
+      console.log(`[Image ${index + 1}] Response status:`, response.status);
+      
+      // Check if response is OK
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error(`[Image ${index + 1}] HTTP Error ${response.status}:`, errorText);
+        let errorData;
+        try {
+          errorData = JSON.parse(errorText);
+        } catch (e) {
+          errorData = { message: errorText || `HTTP ${response.status} Error` };
+        }
+        
+        setImageValidationStatus(prev => {
+          const updated = [...prev];
+          if (updated[index]) {
+            updated[index] = { 
+              ...updated[index], 
+              status: 'rejected',
+              errorMessage: errorData.message || 'Validation failed',
+              fullErrorMessage: errorData.message || `HTTP ${response.status} Error`
+            };
+          }
+          return updated;
+        });
+        return;
+      }
+      
+      const result = await response.json();
+      console.log(`[Image ${index + 1}] API Response:`, result);
+      
+      // Update status based on result
+      setImageValidationStatus(prev => {
+        const updated = [...prev];
+        if (updated[index]) {
+          if (result.status === 'success') {
+            console.log(`[Image ${index + 1}] ✅ Approved`);
+            updated[index] = { 
+              ...updated[index], 
+              status: 'approved',
+              imageId: result.data?.image_id,
+              imageUrl: result.data?.image_url
+            };
+          } else if (result.status === 'pending_review') {
+            console.log(`[Image ${index + 1}] ⏳ Pending Review`);
+            updated[index] = { 
+              ...updated[index], 
+              status: 'pending',
+              errorMessage: result.message || 'Pending review'
+            };
+          } else {
+            // Extract specific error reason from message
+            let errorReason = result.message || 'Image was rejected';
+            console.log(`[Image ${index + 1}] ❌ Rejected:`, errorReason);
+            
+            // Make error message more concise for display
+            if (errorReason.includes('animal appearance')) {
+              const match = errorReason.match(/\(([^)]+)\)/);
+              errorReason = match ? `${match[1]} detected` : 'Animal detected';
+            } else if (errorReason.includes('human appearance')) {
+              errorReason = 'Human detected';
+            } else if (errorReason.includes('blurry')) {
+              errorReason = 'Image is too blurry';
+            } else if (errorReason.includes('low quality')) {
+              errorReason = 'Image quality too low';
+            }
+            
+            updated[index] = { 
+              ...updated[index], 
+              status: 'rejected',
+              errorMessage: errorReason, // Show EXACT error from API
+              fullErrorMessage: result.message || 'Image was rejected'
+            };
+          }
+        }
+        return updated;
+      });
+      
+      // Check if all images are approved and auto-proceed
+      setTimeout(() => {
+        checkAndAutoProceed();
+      }, 500);
+      
+    } catch (error) {
+      console.error(`[Image ${index + 1}] ❌ Validation error:`, error);
+      console.error(`[Image ${index + 1}] Error details:`, {
+        name: error.name,
+        message: error.message,
+        stack: error.stack
+      });
+      
+      setImageValidationStatus(prev => {
+        const updated = [...prev];
+        if (updated[index]) {
+          updated[index] = { 
+            ...updated[index], 
+            status: 'rejected',
+            errorMessage: error.message || 'Validation failed. Please check console for details.',
+            fullErrorMessage: error.message || 'Failed to validate image. Please try again.'
+          };
+        }
+        return updated;
+      });
+    }
+  };
+  
+  // Check if all images are approved and auto-proceed to next step
+  const checkAndAutoProceed = () => {
+    if (currentStep === 4 && imageValidationStatus.length > 0) {
+      const allApproved = imageValidationStatus.every(img => img.status === 'approved');
+      const noneChecking = !imageValidationStatus.some(img => img.status === 'checking');
+      const noneRejected = !imageValidationStatus.some(img => img.status === 'rejected');
+      
+      if (allApproved && noneChecking && noneRejected && imageValidationStatus.length > 0) {
+        // Auto-proceed after 1 second
+        setTimeout(() => {
+          handleNext();
+        }, 1000);
+      }
     }
   };
 
   const removeImage = (idx) => {
-    const imageToRemove = formData.images[idx];
-    
     // Revoke blob URL to free memory
-    if (imageToRemove && imageToRemove.startsWith('blob:')) {
-      URL.revokeObjectURL(imageToRemove);
-      
-      // Find and remove corresponding file from imageFiles
-      // Count blob URLs before this index to find the file index
-      const blobUrlsBefore = formData.images.slice(0, idx).filter(img => img.startsWith('blob:'));
-      const fileIndex = blobUrlsBefore.length;
-      setImageFiles(prev => prev.filter((_, i) => i !== fileIndex));
+    if (formData.images && formData.images[idx] && formData.images[idx].startsWith('blob:')) {
+      URL.revokeObjectURL(formData.images[idx]);
+    }
+    
+    // Also revoke preview URL from validation status
+    if (imageValidationStatus[idx]?.preview && imageValidationStatus[idx].preview.startsWith('blob:')) {
+      URL.revokeObjectURL(imageValidationStatus[idx].preview);
     }
     
     setFormData(prev => ({
       ...prev,
       images: prev.images.filter((_, i) => i !== idx)
     }));
+    
+    // Also remove from imageFiles array
+    setImageFiles(prev => prev.filter((_, i) => i !== idx));
+    
+    // Remove from validation status
+    setImageValidationStatus(prev => prev.filter((_, i) => i !== idx));
   };
 
   // ---------- NEW: Video Handlers ----------
@@ -541,6 +751,21 @@ export default function AddPropertyPopup({ onClose, editIndex = null, initialDat
         // require at least 1 image (existing behaviour)
         if (!formData.images || formData.images.length === 0) {
           newErrors.images = "Add at least 1 photo";
+        } else {
+          // Check if any images are still being validated
+          if (isCheckingImages) {
+            newErrors.images = "Please wait for all images to be validated";
+          }
+          // Check if any images were rejected
+          const rejectedCount = imageValidationStatus.filter(img => img.status === 'rejected').length;
+          if (rejectedCount > 0) {
+            newErrors.images = `Please remove ${rejectedCount} rejected image(s) before proceeding`;
+          }
+          // Check if at least one image is approved
+          const approvedCount = imageValidationStatus.filter(img => img.status === 'approved').length;
+          if (approvedCount === 0 && imageValidationStatus.length > 0 && !isCheckingImages) {
+            newErrors.images = "At least one image must be approved";
+          }
         }
         // optional: if you want to require brochure/video, uncomment below
         // if (!formData.video) newErrors.video = "Please upload a video";
@@ -613,99 +838,21 @@ export default function AddPropertyPopup({ onClose, editIndex = null, initialDat
         propertyId = properties[editIndex]?.id;
       }
       
-      // If editing, handle images first
-      if (editIndex !== null && imageFiles.length > 0) {
-        try {
-          // Upload each image file with property ID for moderation
-          const uploadPromises = imageFiles.map(async (file, index) => {
-            try {
-              const response = await sellerPropertiesAPI.uploadImage(file, propertyId);
-              
-              // Handle APPROVED images
-              if (response.success && response.data && response.data.url) {
-                const moderationStatus = response.data.moderation_status;
-                
-                if (moderationStatus === 'NEEDS_REVIEW' || response.pending) {
-                  // Image is under review
-                  console.log(`Image ${index + 1} is under review:`, response.data.moderation_reason || response.message);
-                  return { 
-                    success: true, 
-                    url: response.data.url, 
-                    index,
-                    moderationStatus: 'NEEDS_REVIEW',
-                    pending: true
-                  };
-                }
-                
-                // SAFE - Image approved
-                return { 
-                  success: true, 
-                  url: response.data.url, 
-                  index,
-                  moderationStatus: moderationStatus || 'SAFE'
-                };
-              } else {
-                return { success: false, index, error: response.message || 'Upload failed' };
-              }
-            } catch (error) {
-              // Handle REJECTED images - error contains specific rejection message
-              console.error(`Image ${index + 1} upload error:`, error);
-              
-              // Extract specific error message from API response
-              let errorMsg = 'Upload failed';
-              if (error.message) {
-                errorMsg = error.message; // This is the SPECIFIC error from moderation API
-              } else if (error.details && error.details.detected_issue) {
-                errorMsg = error.details.detected_issue;
-              }
-              
-              return { 
-                success: false, 
-                index, 
-                error: errorMsg,
-                error_code: error.error_code,
-                rejected: error.rejected || false
-              };
-            }
-          });
-          
-          const results = await Promise.all(uploadPromises);
-          const successful = results.filter(r => r.success);
-          const failed = results.filter(r => !r.success);
-          
-          if (failed.length > 0) {
-            const errorMessages = failed.map(f => f.error).filter(Boolean);
-            const uniqueErrors = [...new Set(errorMessages)];
-            const errorMessage = failed.length === imageFiles.length 
-              ? `Failed to upload all images. ${uniqueErrors[0] || 'Please check server permissions and try again.'}`
-              : `Failed to upload ${failed.length} of ${imageFiles.length} images. ${uniqueErrors.join('; ')}`;
-            alert(errorMessage);
-            setUploadingImages(false);
-            setIsSubmitting(false);
-            return;
-          }
-          
-          uploadedImageUrls = successful.map(r => r.url);
-          
-          // Filter out blob URLs and combine with uploaded URLs
-          const existingUrls = (formData.images || []).filter(img => 
-            typeof img === 'string' && !img.startsWith('blob:')
-          );
-          
-          // Update formData with combined URLs (existing + newly uploaded)
-          formData.images = [...existingUrls, ...uploadedImageUrls];
-        } catch (uploadError) {
-          console.error('Image upload error:', uploadError);
-          alert(`Failed to upload images: ${uploadError.message || 'Please check server permissions and try again.'}`);
-          setUploadingImages(false);
-          setIsSubmitting(false);
-          return;
-        }
-      } else if (editIndex !== null && formData.images && formData.images.length > 0) {
-        // If editing and no new images, filter out blob URLs
-        uploadedImageUrls = formData.images.filter(img => 
+      // Use validated images from imageValidationStatus
+      // For editing: Get approved image URLs (images already validated and uploaded on selection)
+      if (editIndex !== null) {
+        // Get approved image URLs from validation status
+        const approvedImageUrls = imageValidationStatus
+          .filter(img => img.status === 'approved' && img.imageUrl)
+          .map(img => img.imageUrl);
+        
+        // Also include existing URLs (not blob URLs)
+        const existingUrls = (formData.images || []).filter(img => 
           typeof img === 'string' && !img.startsWith('blob:')
         );
+        
+        // Combine approved new images with existing URLs
+        uploadedImageUrls = [...existingUrls, ...approvedImageUrls];
         formData.images = uploadedImageUrls;
       }
       
@@ -731,58 +878,33 @@ export default function AddPropertyPopup({ onClose, editIndex = null, initialDat
           throw new Error('Failed to get property ID after creation. Please refresh and try again.');
         }
         
-        // Now upload images with property ID for moderation
-        if (imageFiles.length > 0) {
+        // Images are already validated on selection (in validate_only mode)
+        // Now upload them again with property ID to save to database
+        const approvedImages = imageValidationStatus.filter(img => img.status === 'approved');
+        
+        if (approvedImages.length > 0) {
           setUploadingImages(true);
           try {
-            const uploadPromises = imageFiles.map(async (file, index) => {
+            // Upload each approved image with property ID
+            const uploadPromises = approvedImages.map(async (imgObj, index) => {
               try {
-                const response = await sellerPropertiesAPI.uploadImage(file, propertyId);
+                const response = await sellerPropertiesAPI.uploadImage(imgObj.file, propertyId);
                 
-                // Handle APPROVED images
                 if (response.success && response.data && response.data.url) {
-                  const moderationStatus = response.data.moderation_status;
-                  
-                  if (moderationStatus === 'NEEDS_REVIEW' || response.pending) {
-                    // Image is under review
-                    console.log(`Image ${index + 1} is under review:`, response.data.moderation_reason || response.message);
-                    return { 
-                      success: true, 
-                      url: response.data.url, 
-                      index,
-                      moderationStatus: 'NEEDS_REVIEW',
-                      pending: true
-                    };
-                  }
-                  
-                  // SAFE - Image approved
                   return { 
                     success: true, 
-                    url: response.data.url, 
-                    index,
-                    moderationStatus: moderationStatus || 'SAFE'
+                    url: response.data.url || response.data.image_url, 
+                    index
                   };
                 } else {
                   return { success: false, index, error: response.message || 'Upload failed' };
                 }
               } catch (error) {
-                // Handle REJECTED images - error contains specific rejection message
                 console.error(`Image ${index + 1} upload error:`, error);
-                
-                // Extract specific error message from API response
-                let errorMsg = 'Upload failed';
-                if (error.message) {
-                  errorMsg = error.message; // This is the SPECIFIC error from moderation API
-                } else if (error.details && error.details.detected_issue) {
-                  errorMsg = error.details.detected_issue;
-                }
-                
                 return { 
                   success: false, 
                   index, 
-                  error: errorMsg,
-                  error_code: error.error_code,
-                  rejected: error.rejected || false
+                  error: error.message || 'Upload failed'
                 };
               }
             });
@@ -794,10 +916,9 @@ export default function AddPropertyPopup({ onClose, editIndex = null, initialDat
             if (failed.length > 0) {
               const errorMessages = failed.map(f => f.error).filter(Boolean);
               const uniqueErrors = [...new Set(errorMessages)];
-              const errorMessage = failed.length === imageFiles.length 
+              const errorMessage = failed.length === approvedImages.length 
                 ? `Failed to upload all images. ${uniqueErrors[0] || 'Please check server permissions and try again.'}`
-                : `Failed to upload ${failed.length} of ${imageFiles.length} images. ${uniqueErrors.join('; ')}`;
-              alert(errorMessage);
+                : `Failed to upload ${failed.length} of ${approvedImages.length} images. ${uniqueErrors.join('; ')}`;
               
               // If some images failed but property was created, still update with successful images
               if (successful.length > 0) {
@@ -805,7 +926,6 @@ export default function AddPropertyPopup({ onClose, editIndex = null, initialDat
                 await sellerPropertiesAPI.update(propertyId, { images: uploadedImageUrls });
                 alert(`Property created but ${failed.length} image(s) failed to upload. ${errorMessage}`);
               } else {
-                // All images failed - keep property but show warning
                 alert(`Property created but no images were uploaded. ${errorMessage}`);
               }
               setUploadingImages(false);
@@ -822,24 +942,16 @@ export default function AddPropertyPopup({ onClose, editIndex = null, initialDat
                 await sellerPropertiesAPI.update(propertyId, { images: uploadedImageUrls });
               } catch (updateError) {
                 console.error('Failed to update property with images:', updateError);
-                // Property exists but images weren't linked - user can edit later
                 alert(`Property created successfully, but failed to link ${uploadedImageUrls.length} image(s). You can edit the property to add images.`);
                 setUploadingImages(false);
                 setIsSubmitting(false);
                 onClose();
                 return;
               }
-            } else {
-              // No images were uploaded successfully
-              alert('Property created successfully, but no images were uploaded. You can edit the property to add images.');
-              setUploadingImages(false);
-              setIsSubmitting(false);
-              onClose();
-              return;
             }
             
             setUploadingImages(false);
-            alert('Property published successfully! Images are being checked for quality and appropriateness.');
+            alert('Property published successfully!');
           } catch (uploadError) {
             console.error('Image upload error:', uploadError);
             alert(`Property created but failed to upload images: ${uploadError.message || 'Please try uploading images again later.'}`);
@@ -849,8 +961,12 @@ export default function AddPropertyPopup({ onClose, editIndex = null, initialDat
             return;
           }
         } else {
-          // No images to upload, property already created
-          alert('Property published successfully! You can edit your property within 24 hours of creation.');
+          // No approved images
+          alert('Property created successfully, but no approved images were found. You can edit the property to add images.');
+          setUploadingImages(false);
+          setIsSubmitting(false);
+          onClose();
+          return;
         }
       } else {
         // Editing existing property
@@ -1528,7 +1644,7 @@ export default function AddPropertyPopup({ onClose, editIndex = null, initialDat
         )}
       </div>
 
-      {/* Images preview grid (unchanged except placed after video/brochure previews) */}
+      {/* Images preview grid with validation status */}
       {errors.images && <span className="error-text center">{errors.images}</span>}
 
       {formData.images?.length > 0 && (
@@ -1540,28 +1656,127 @@ export default function AddPropertyPopup({ onClose, editIndex = null, initialDat
                 type="button" 
                 className="add-more-btn"
                 onClick={() => imagesRef.current?.click()}
+                disabled={isCheckingImages}
               >
                 + Add More
               </button>
             </div>
           </div>
           <div className="image-preview-grid">
-            {formData.images.map((src, idx) => (
-              <div key={idx} className="preview-item">
-                <img src={src} alt={`Preview ${idx + 1}`} />
-                {idx === 0 && <span className="cover-badge">Cover</span>}
-                <button
-                  type="button"
-                  className="remove-btn"
-                  onClick={() => removeImage(idx)}
-                >
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
-                    <path d="M18 6L6 18M6 6l12 12" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
-                  </svg>
-                </button>
-              </div>
-            ))}
+            {formData.images.map((src, idx) => {
+              const validationStatus = imageValidationStatus[idx] || { status: 'pending', errorMessage: '' };
+              
+              return (
+                <div key={idx} className={`preview-item image-validation-item ${validationStatus.status}`}>
+                  <img src={src} alt={`Preview ${idx + 1}`} />
+                  {idx === 0 && <span className="cover-badge">Cover</span>}
+                  
+                  {/* Validation Overlays */}
+                  {validationStatus.status === 'checking' && (
+                    <div className="validation-overlay checking-overlay">
+                      <div className="overlay-content">
+                        <div className="spinner"></div>
+                        <p className="status-message-text">Checking...</p>
+                      </div>
+                    </div>
+                  )}
+                  
+                  {validationStatus.status === 'approved' && (
+                    <div className="validation-overlay approved-overlay">
+                      <div className="overlay-content">
+                        <svg className="checkmark" width="32" height="32" viewBox="0 0 24 24" fill="none">
+                          <path d="M20 6L9 17L4 12" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"/>
+                        </svg>
+                        <p className="approved-text">Approved</p>
+                      </div>
+                    </div>
+                  )}
+                  
+                  {validationStatus.status === 'rejected' && (
+                    <div className="validation-overlay rejected-overlay">
+                      <div className="overlay-content">
+                        <svg className="x-icon" width="32" height="32" viewBox="0 0 24 24" fill="none">
+                          <path d="M18 6L6 18M6 6l12 12" stroke="currentColor" strokeWidth="3" strokeLinecap="round"/>
+                        </svg>
+                        <p className="rejected-title">REJECTED</p>
+                        <p className="rejected-message">{validationStatus.errorMessage || 'Image rejected'}</p>
+                        <button
+                          type="button"
+                          className="remove-rejected-btn"
+                          onClick={() => !isRestrictedEdit && removeImage(idx)}
+                          disabled={isRestrictedEdit}
+                        >
+                          Remove & Try Again
+                        </button>
+                      </div>
+                    </div>
+                  )}
+                  
+                  {/* Status Badge */}
+                  {validationStatus.status === 'approved' && (
+                    <div className="status-badge approved-badge">
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+                        <path d="M20 6L9 17L4 12" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                      </svg>
+                    </div>
+                  )}
+                  
+                  {validationStatus.status === 'rejected' && (
+                    <div className="status-badge rejected-badge">
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+                        <path d="M18 6L6 18M6 6l12 12" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+                      </svg>
+                    </div>
+                  )}
+                  
+                  {/* Remove Button - ALWAYS visible (except when checking) */}
+                  {validationStatus.status !== 'checking' && (
+                    <button
+                      type="button"
+                      className="remove-image-btn"
+                      onClick={() => !isRestrictedEdit && removeImage(idx)}
+                      disabled={isRestrictedEdit}
+                      title="Remove image"
+                    >
+                      ✕
+                    </button>
+                  )}
+                </div>
+              );
+            })}
           </div>
+          
+          {/* Warning if rejected images exist */}
+          {imageValidationStatus.some(img => img.status === 'rejected') && (
+            <div className="image-validation-warning">
+              <strong>⚠️ Remove rejected images to continue</strong>
+              <p style={{ margin: '4px 0 0 0', fontSize: '13px' }}>
+                {imageValidationStatus.filter(img => img.status === 'rejected').length} image(s) were rejected. 
+                Please remove them and upload valid property images only.
+              </p>
+            </div>
+          )}
+          
+          {/* Success message if all approved */}
+          {imageValidationStatus.length > 0 && 
+           imageValidationStatus.every(img => img.status === 'approved') && 
+           !isCheckingImages && (
+            <div className="image-validation-success" style={{
+              background: '#e8f5e9',
+              color: '#2e7d32',
+              padding: '12px',
+              borderRadius: '4px',
+              marginTop: '16px',
+              fontSize: '14px',
+              border: '1px solid #4CAF50',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '8px'
+            }}>
+              <span>✅</span>
+              <span>All images approved! Proceeding to next step...</span>
+            </div>
+          )}
         </div>
       )}
     </div>
