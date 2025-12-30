@@ -457,47 +457,15 @@ export default function AddPropertyPopup({ onClose, editIndex = null, initialDat
     setIsCheckingImages(false);
   };
   
-  // Validate single image through moderation API with progress animation
+  // Validate single image through moderation API
   const validateImageThroughModeration = async (imageObj, index) => {
-    const startTime = Date.now();
-    const stages = [
-      { progress: 0, message: 'Checking image quality...' },
-      { progress: 25, message: 'Scanning for content...' },
-      { progress: 50, message: 'Verifying property image...' },
-      { progress: 75, message: 'Almost done...' },
-      { progress: 100, message: 'Complete' }
-    ];
-    
-    let currentStage = 0;
-    
-    // Simulate progress updates
-    const progressInterval = setInterval(() => {
-      if (currentStage < stages.length - 1) {
-        currentStage++;
-        setImageValidationStatus(prev => {
-          const updated = [...prev];
-          if (updated[index]) {
-            updated[index] = { 
-              ...updated[index], 
-              status: 'checking',
-              progress: stages[currentStage].progress,
-              progressMessage: stages[currentStage].message
-            };
-          }
-          return updated;
-        });
-      }
-    }, 800); // Update every 800ms for smooth progress
-    
-    // Update status to checking with initial progress
+    // Update status to checking
     setImageValidationStatus(prev => {
       const updated = [...prev];
       if (updated[index]) {
         updated[index] = { 
           ...updated[index], 
-          status: 'checking',
-          progress: 0,
-          progressMessage: stages[0].message
+          status: 'checking'
         };
       }
       return updated;
@@ -526,63 +494,49 @@ export default function AddPropertyPopup({ onClose, editIndex = null, initialDat
       
       const result = await response.json();
       
-      // Clear progress interval
-      clearInterval(progressInterval);
-      
-      // Ensure we show 100% progress before showing result
-      const elapsed = Date.now() - startTime;
-      const minDuration = 3000; // Minimum 3 seconds for better UX
-      const remainingTime = Math.max(0, minDuration - elapsed);
-      
-      setTimeout(() => {
-        setImageValidationStatus(prev => {
-          const updated = [...prev];
-          if (updated[index]) {
-            if (result.status === 'success') {
-              updated[index] = { 
-                ...updated[index], 
-                status: 'approved',
-                progress: 100,
-                progressMessage: 'Approved!',
-                imageId: result.data?.image_id,
-                imageUrl: result.data?.image_url
-              };
-            } else {
-              // Extract specific error reason from message
-              let errorReason = result.message || 'Image was rejected';
-              // Make error message more concise for display
-              if (errorReason.includes('animal appearance')) {
-                const match = errorReason.match(/\(([^)]+)\)/);
-                errorReason = match ? `${match[1]} detected` : 'Animal detected';
-              } else if (errorReason.includes('human appearance')) {
-                errorReason = 'Human detected';
-              } else if (errorReason.includes('blurry')) {
-                errorReason = 'Image is too blurry';
-              } else if (errorReason.includes('low quality')) {
-                errorReason = 'Image quality too low';
-              }
-              
-              updated[index] = { 
-                ...updated[index], 
-                status: 'rejected',
-                progress: 100,
-                progressMessage: 'Rejected',
-                errorMessage: errorReason, // Show EXACT error from API
-                fullErrorMessage: result.message || 'Image was rejected'
-              };
+      // Update status based on result
+      setImageValidationStatus(prev => {
+        const updated = [...prev];
+        if (updated[index]) {
+          if (result.status === 'success') {
+            updated[index] = { 
+              ...updated[index], 
+              status: 'approved',
+              imageId: result.data?.image_id,
+              imageUrl: result.data?.image_url
+            };
+          } else {
+            // Extract specific error reason from message
+            let errorReason = result.message || 'Image was rejected';
+            // Make error message more concise for display
+            if (errorReason.includes('animal appearance')) {
+              const match = errorReason.match(/\(([^)]+)\)/);
+              errorReason = match ? `${match[1]} detected` : 'Animal detected';
+            } else if (errorReason.includes('human appearance')) {
+              errorReason = 'Human detected';
+            } else if (errorReason.includes('blurry')) {
+              errorReason = 'Image is too blurry';
+            } else if (errorReason.includes('low quality')) {
+              errorReason = 'Image quality too low';
             }
+            
+            updated[index] = { 
+              ...updated[index], 
+              status: 'rejected',
+              errorMessage: errorReason, // Show EXACT error from API
+              fullErrorMessage: result.message || 'Image was rejected'
+            };
           }
-          return updated;
-        });
-        
-        // Check if all images are approved and auto-proceed
-        setTimeout(() => {
-          checkAndAutoProceed();
-        }, 1000);
-      }, remainingTime);
+        }
+        return updated;
+      });
+      
+      // Check if all images are approved and auto-proceed
+      setTimeout(() => {
+        checkAndAutoProceed();
+      }, 500);
       
     } catch (error) {
-      clearInterval(progressInterval);
       console.error(`Image ${index + 1} validation error:`, error);
       
       setImageValidationStatus(prev => {
@@ -591,8 +545,6 @@ export default function AddPropertyPopup({ onClose, editIndex = null, initialDat
           updated[index] = { 
             ...updated[index], 
             status: 'rejected',
-            progress: 100,
-            progressMessage: 'Error',
             errorMessage: 'Validation failed',
             fullErrorMessage: error.message || 'Failed to validate image. Please try again.'
           };
@@ -1793,66 +1745,49 @@ newErrors.description = "Description is required";
           </div>
           <div className="image-preview-grid">
             {formData.images.map((src, idx) => {
-              const validationStatus = imageValidationStatus[idx] || { status: 'pending', errorMessage: '', progress: 0, progressMessage: '' };
+              const validationStatus = imageValidationStatus[idx] || { status: 'pending', errorMessage: '' };
               return (
                 <div key={idx} className={`preview-item image-validation-item ${validationStatus.status}`}>
                   <img src={src} alt={`Preview ${idx + 1}`} />
                   {idx === 0 && <span className="cover-badge">Cover</span>}
                   
-                  {/* Validation Overlay */}
+                  {/* Simple Status Overlay */}
                   {validationStatus.status === 'checking' && (
                     <div className="validation-overlay checking-overlay">
-                      <div className="scanning-line"></div>
                       <div className="overlay-content">
-                        <div className="ai-scan-icon">
-                          <svg width="32" height="32" viewBox="0 0 24 24" fill="none">
-                            <path d="M12 2L2 7L12 12L22 7L12 2Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                            <path d="M2 17L12 22L22 17" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                            <path d="M2 12L12 17L22 12" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                          </svg>
-                        </div>
-                        <div className="progress-container">
-                          <div className="progress-bar">
-                            <div 
-                              className="progress-fill" 
-                              style={{ width: `${validationStatus.progress || 0}%` }}
-                            ></div>
-                          </div>
-                          <span className="progress-text">{validationStatus.progress || 0}%</span>
-                        </div>
-                        <p className="status-message-text">{validationStatus.progressMessage || 'Checking image...'}</p>
+                        <p className="status-message-text">Checking...</p>
                       </div>
                     </div>
                   )}
                   
                   {validationStatus.status === 'approved' && (
                     <div className="validation-overlay approved-overlay">
-                      <div className="checkmark-animation">
-                        <svg className="checkmark" width="48" height="48" viewBox="0 0 24 24" fill="none">
+                      <div className="overlay-content">
+                        <svg className="checkmark" width="32" height="32" viewBox="0 0 24 24" fill="none">
                           <path d="M20 6L9 17L4 12" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"/>
                         </svg>
+                        <p className="approved-text">Approved</p>
                       </div>
-                      <p className="approved-text">Approved</p>
                     </div>
                   )}
                   
                   {validationStatus.status === 'rejected' && (
                     <div className="validation-overlay rejected-overlay">
-                      <div className="rejected-icon-animation">
-                        <svg className="x-icon" width="48" height="48" viewBox="0 0 24 24" fill="none">
+                      <div className="overlay-content">
+                        <svg className="x-icon" width="32" height="32" viewBox="0 0 24 24" fill="none">
                           <path d="M18 6L6 18M6 6l12 12" stroke="currentColor" strokeWidth="3" strokeLinecap="round"/>
                         </svg>
+                        <p className="rejected-title">REJECTED</p>
+                        <p className="rejected-message">{validationStatus.errorMessage || 'Image rejected'}</p>
+                        <button
+                          type="button"
+                          className="remove-rejected-btn"
+                          onClick={() => !isRestrictedEdit && removeImage(idx)}
+                          disabled={isRestrictedEdit}
+                        >
+                          Remove & Try Again
+                        </button>
                       </div>
-                      <p className="rejected-title">REJECTED</p>
-                      <p className="rejected-message">{validationStatus.errorMessage || 'Image rejected'}</p>
-                      <button
-                        type="button"
-                        className="remove-rejected-btn"
-                        onClick={() => !isRestrictedEdit && removeImage(idx)}
-                        disabled={isRestrictedEdit}
-                      >
-                        Remove & Try Again
-                      </button>
                     </div>
                   )}
                   
