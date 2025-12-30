@@ -484,6 +484,8 @@ export default function AddPropertyPopup({ onClose, editIndex = null, initialDat
       }
       
       const token = localStorage.getItem('authToken');
+      console.log(`[Image ${index + 1}] Starting validation...`);
+      
       const response = await fetch(`${API_BASE_URL}${API_ENDPOINTS.MODERATE_AND_UPLOAD}`, {
         method: 'POST',
         headers: {
@@ -492,22 +494,61 @@ export default function AddPropertyPopup({ onClose, editIndex = null, initialDat
         body: formData,
       });
       
+      console.log(`[Image ${index + 1}] Response status:`, response.status);
+      
+      // Check if response is OK
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error(`[Image ${index + 1}] HTTP Error ${response.status}:`, errorText);
+        let errorData;
+        try {
+          errorData = JSON.parse(errorText);
+        } catch (e) {
+          errorData = { message: errorText || `HTTP ${response.status} Error` };
+        }
+        
+        setImageValidationStatus(prev => {
+          const updated = [...prev];
+          if (updated[index]) {
+            updated[index] = { 
+              ...updated[index], 
+              status: 'rejected',
+              errorMessage: errorData.message || 'Validation failed',
+              fullErrorMessage: errorData.message || `HTTP ${response.status} Error`
+            };
+          }
+          return updated;
+        });
+        return;
+      }
+      
       const result = await response.json();
+      console.log(`[Image ${index + 1}] API Response:`, result);
       
       // Update status based on result
       setImageValidationStatus(prev => {
         const updated = [...prev];
         if (updated[index]) {
           if (result.status === 'success') {
+            console.log(`[Image ${index + 1}] ✅ Approved`);
             updated[index] = { 
               ...updated[index], 
               status: 'approved',
               imageId: result.data?.image_id,
               imageUrl: result.data?.image_url
             };
+          } else if (result.status === 'pending_review') {
+            console.log(`[Image ${index + 1}] ⏳ Pending Review`);
+            updated[index] = { 
+              ...updated[index], 
+              status: 'pending',
+              errorMessage: result.message || 'Pending review'
+            };
           } else {
             // Extract specific error reason from message
             let errorReason = result.message || 'Image was rejected';
+            console.log(`[Image ${index + 1}] ❌ Rejected:`, errorReason);
+            
             // Make error message more concise for display
             if (errorReason.includes('animal appearance')) {
               const match = errorReason.match(/\(([^)]+)\)/);
@@ -537,7 +578,12 @@ export default function AddPropertyPopup({ onClose, editIndex = null, initialDat
       }, 500);
       
     } catch (error) {
-      console.error(`Image ${index + 1} validation error:`, error);
+      console.error(`[Image ${index + 1}] ❌ Validation error:`, error);
+      console.error(`[Image ${index + 1}] Error details:`, {
+        name: error.name,
+        message: error.message,
+        stack: error.stack
+      });
       
       setImageValidationStatus(prev => {
         const updated = [...prev];
@@ -545,7 +591,7 @@ export default function AddPropertyPopup({ onClose, editIndex = null, initialDat
           updated[index] = { 
             ...updated[index], 
             status: 'rejected',
-            errorMessage: 'Validation failed',
+            errorMessage: error.message || 'Validation failed. Please check console for details.',
             fullErrorMessage: error.message || 'Failed to validate image. Please try again.'
           };
         }
