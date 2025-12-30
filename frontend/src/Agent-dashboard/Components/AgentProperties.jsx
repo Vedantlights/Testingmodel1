@@ -268,7 +268,10 @@ const AgentProperties = () => {
               <div className="seller-props-image">
                 <img 
                   src={(() => {
-                    const imageUrl = property.images?.[0] || property.cover_image;
+                    // Prioritize display_image, then first image, then cover_image
+                    const imageUrl = property.display_image 
+                      || property.images?.[0] 
+                      || property.cover_image;
                     if (!imageUrl) return 'https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?w=500';
                     if (imageUrl.startsWith('http://') || imageUrl.startsWith('https://')) {
                       return imageUrl;
@@ -280,6 +283,7 @@ const AgentProperties = () => {
                   })()} 
                   alt={property.title} 
                   onError={(e) => {
+                    console.error('Image load failed for property:', property.id, 'URL:', e.target.src);
                     e.target.src = 'https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?w=500';
                   }}
                 />
