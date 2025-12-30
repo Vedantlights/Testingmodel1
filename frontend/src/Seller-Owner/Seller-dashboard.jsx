@@ -28,6 +28,7 @@ const SellerDashboardContent = () => {
   const [showUserMenu, setShowUserMenu] = useState(false);
   const [imageError, setImageError] = useState(false);
   const userMenuRef = useRef(null);
+  const previousPathnameRef = useRef(location.pathname);
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -43,6 +44,13 @@ const SellerDashboardContent = () => {
 
   // Update active tab based on route
   useEffect(() => {
+    // Only update if pathname actually changed - prevents unnecessary re-renders during scroll
+    if (previousPathnameRef.current === location.pathname) {
+      return;
+    }
+    
+    previousPathnameRef.current = location.pathname;
+    
     const isDetailsPage = location.pathname.includes('/seller-pro-details/') || location.pathname.includes('/details/');
     
     // If we're on details page, don't change activeTab (keep current tab active)
@@ -50,19 +58,30 @@ const SellerDashboardContent = () => {
       return;
     }
     
-    // Otherwise, update activeTab based on pathname
+    // Determine the new tab based on pathname
+    let newTab = null;
+    
     if (location.pathname.includes('/properties') || location.pathname === '/seller-dashboard/properties') {
-      setActiveTab('properties');
+      newTab = 'properties';
     } else if (location.pathname.includes('/inquiries') || location.pathname === '/seller-dashboard/inquiries') {
-      setActiveTab('inquiries');
+      newTab = 'inquiries';
     } else if (location.pathname.includes('/profile') || location.pathname === '/seller-dashboard/profile') {
-      setActiveTab('profile');
+      newTab = 'profile';
     } else if (location.pathname.includes('/subscription') || location.pathname === '/seller-dashboard/subscription') {
-      setActiveTab('subscription');
+      newTab = 'subscription';
     } else if (location.pathname.includes('/support') || location.pathname === '/seller-dashboard/support') {
-      setActiveTab('support');
+      newTab = 'support';
     } else if (location.pathname === '/seller-dashboard' || location.pathname === '/seller-dashboard/') {
-      setActiveTab('overview');
+      newTab = 'overview';
+    }
+    
+    // Only update state if we have a valid new tab
+    // Use functional update to avoid dependency on activeTab
+    if (newTab) {
+      setActiveTab(prevTab => {
+        // Only update if tab actually changed - prevents unnecessary re-renders
+        return prevTab !== newTab ? newTab : prevTab;
+      });
     }
   }, [location.pathname]);
 
@@ -496,7 +515,7 @@ const SellerDashboardContent = () => {
 
       {/* Main Content */}
       <main className="seller-main">
-        <div className="main-content-wrapper" key={location.pathname}>
+        <div className="main-content-wrapper">
           {renderContent()}
         </div>
       </main>

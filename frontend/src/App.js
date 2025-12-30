@@ -56,7 +56,15 @@ function ScrollToTop() {
   const { pathname } = useLocation();
 
   useEffect(() => {
-    window.scrollTo(0, 0);
+    // CRITICAL: Do NOT reset scroll for Seller Dashboard routes
+    // Seller Dashboard handles its own scroll management on tab changes
+    // Resetting scroll here causes scroll lock bug where scrolling down jumps back up
+    const isSellerDashboard = pathname.startsWith('/seller-dashboard');
+    const isAgentDashboard = pathname.startsWith('/agent-dashboard') || pathname.startsWith('/Agent-dashboard');
+    
+    if (!isSellerDashboard && !isAgentDashboard) {
+      window.scrollTo(0, 0);
+    }
   }, [pathname]);
 
   return null;
