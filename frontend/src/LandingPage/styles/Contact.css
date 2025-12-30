@@ -4,14 +4,9 @@
   min-height: 100vh;
   background: linear-gradient(180deg, #f8f9fa 0%, #ffffff 50%, #f8f9fa 100%);
   position: relative;
-  overflow: visible !important;
-  overflow-x: visible !important;
-  overflow-y: visible !important;
-  scroll-padding-top: 100px;
-  transform: translateZ(0);
-  -webkit-transform: translateZ(0);
-  height: auto !important;
-  max-height: none !important;
+  overflow: visible; /* Don't create scroll context - let parent handle it */
+  width: 100%;
+  box-sizing: border-box;
 }
 
 /* Decorative Background Elements */
@@ -63,11 +58,9 @@
   padding-top: calc(8rem + 5rem); /* Account for fixed navbar (8rem) + original padding */
   position: relative;
   z-index: 1;
-  overflow: visible !important;
-  overflow-x: visible !important;
-  overflow-y: visible !important;
-  height: auto !important;
-  max-height: none !important;
+  overflow: visible; /* Don't create scroll context - let parent handle it */
+  width: 100%;
+  box-sizing: border-box;
 }
 
 /* Header Section */

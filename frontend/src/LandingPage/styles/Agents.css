@@ -33,23 +33,22 @@ h2 {
   width: 100%;
 }
 
-/* Hero Section */
+/* Hero Section - Background handled by LandingPage.jsx */
 .agent-hero-sections {
-  background-size: cover;
-  background-position: top;
-  background-repeat: no-repeat;
+  background: transparent; /* Let parent background show through */
   color: rgb(255, 251, 251);
   text-align: center;
-  padding: 100px 20px;
-  padding-top: calc(8rem + 100px); /* Account for fixed navbar (8rem) + original padding */
+  padding: 0 20px;
   position: relative;
-  min-height: calc(100vh - 8rem); /* Exactly viewport height minus navbar */
+  height: calc(100vh - 8rem); /* Exactly viewport height minus navbar */
   display: flex;
   flex-direction: column;
   justify-content: center;
   align-items: center;
   width: 100%;
-  overflow-x: hidden;
+  overflow: hidden;
+  box-sizing: border-box;
+  z-index: 2; /* Above background image */
 }
 
 .agent-hero-title {
@@ -525,8 +524,8 @@ h2 {
 /* Fully Responsive Design - Viewport height only */
 @media (min-width: 1024px) {
   .agent-hero-sections {
-    min-height: calc(100vh - 8rem);
-    padding-top: calc(8rem + 100px);
+    height: calc(100vh - 8rem);
+    padding: 0 20px;
   }
   
   section {
@@ -536,9 +535,8 @@ h2 {
 
 @media (max-width: 1099px) {
   .agent-hero-sections {
-    min-height: calc(100vh - 5rem);
-    padding-top: calc(5rem + 100px);
-    padding: 80px 20px;
+    height: calc(100vh - 5rem);
+    padding: 0 20px;
   }
   
   section {
@@ -548,9 +546,8 @@ h2 {
 
 @media (max-width: 768px) {
   .agent-hero-sections {
-    padding-top: calc(4.5rem + 80px); /* Mobile navbar height */
-    min-height: calc(500px + 4.5rem);
-    padding: 60px 16px;
+    height: calc(100vh - 4.5rem);
+    padding: 0 16px;
   }
 
   section {
@@ -621,9 +618,8 @@ h2 {
 
 @media (max-width: 480px) {
   .agent-hero-sections {
-    padding-top: calc(4rem + 70px); /* Small mobile navbar height */
-    min-height: calc(450px + 4rem);
-    padding: 50px 12px;
+    height: calc(100vh - 4rem);
+    padding: 0 12px;
   }
 
   section {
@@ -687,9 +683,8 @@ h2 {
 
 @media (max-width: 360px) {
   .agent-hero-sections {
-    padding-top: calc(3.75rem + 60px); /* Extra small navbar height */
-    min-height: calc(400px + 3.75rem);
-    padding: 40px 10px;
+    height: calc(100vh - 3.75rem);
+    padding: 0 10px;
   }
   
   section {

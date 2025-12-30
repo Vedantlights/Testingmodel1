@@ -35,6 +35,7 @@
   z-index: 1;
   width: 100%;
   overflow-x: hidden; /* Prevent horizontal scroll */
+  /* Don't set overflow-y - let body handle scrolling */
 }
 
 /* Responsive background sizing - Viewport height only */

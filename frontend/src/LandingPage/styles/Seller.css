@@ -33,11 +33,9 @@ h2 {
   width: 100%;
 }
 
-/* Hero Section */
+/* Hero Section - Background handled by LandingPage.jsx */
 .seller-hero-sections {
-  background-size: cover;
-  background-position: center;
-  background-repeat: no-repeat;
+  background: transparent; /* Let parent background show through */
   color: rgb(255, 251, 251);
   text-align: center;
   padding: 0 20px;
@@ -50,6 +48,7 @@ h2 {
   width: 100%;
   overflow: hidden; /* Prevent any overflow */
   box-sizing: border-box;
+  z-index: 2; /* Above background image */
 }
 
 .seller-hero-title {
