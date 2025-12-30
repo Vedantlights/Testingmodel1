@@ -99,7 +99,22 @@
   box-shadow: 0 10px 25px rgba(15, 23, 42, 0.15);
   max-height: 260px;
   overflow-y: auto;
-  z-index: 9999;
+  z-index: 10000; /* Higher than popup overlay (2000) */
+}
+
+/* Ensure dropdown appears above popup modals */
+.popup-overlay .location-autosuggest,
+.popup-container .location-autosuggest,
+.popup-body .location-autosuggest {
+  position: relative;
+  z-index: 2001 !important; /* Above popup overlay (2000) */
+}
+
+.popup-overlay .location-dropdown,
+.popup-container .location-dropdown,
+.popup-body .location-dropdown {
+  z-index: 10000 !important; /* Ensure dropdown is above everything */
+  position: absolute !important;
 }
 
 .location-option {

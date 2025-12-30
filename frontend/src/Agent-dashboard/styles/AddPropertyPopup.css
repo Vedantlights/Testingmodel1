@@ -163,7 +163,7 @@
 }
 
 /* body */
-.popup-body { flex:1; overflow-y:auto; padding:2rem; }
+.popup-body { flex:1; overflow-y:auto; padding:2rem; position: relative; }
 .step-content { animation:fadeInUp 0.3s ease; }
 @keyframes fadeInUp { from { opacity:0; transform:translateY(10px);} to { opacity:1; transform:translateY(0);} }
 .step-heading { font-size:1.35rem; font-weight:700; color:var(--text-primary); margin-bottom:0.5rem; }

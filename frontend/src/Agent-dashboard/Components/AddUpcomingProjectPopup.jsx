@@ -143,6 +143,7 @@ export default function AddUpcomingProjectPopup({ onClose }) {
     masterPlan: null,
     
     // Step 8: Contact & Sales
+    salesName: "",
     salesNumber: "",
     emailId: "",
     mobileNumber: "",
@@ -290,6 +291,7 @@ export default function AddUpcomingProjectPopup({ onClose }) {
         if (formData.projectImages.length === 0) newErrors.projectImages = "At least one project image is required";
         break;
       case 8:
+        if (!formData.salesName?.trim()) newErrors.salesName = "Sales name is required";
         if (!formData.salesNumber?.trim()) newErrors.salesNumber = "Sales number is required";
         if (!formData.emailId?.trim()) newErrors.emailId = "Email ID is required";
         break;
@@ -328,18 +330,41 @@ export default function AddUpcomingProjectPopup({ onClose }) {
     }
   }, [currentStep]);
 
-  // Format price in words (same as List Property)
+  // Format price in words (same as List Property) - handles ranges
   const formatPriceInWords = (price) => {
     if (!price) return '';
-    // Extract numeric value from string (e.g., "₹45 Lakhs onwards" -> 4500000)
+    
+    // Check if it's a range (contains "-" or "to" or " - ")
+    const isRange = /[-–—]|to/i.test(price);
+    
+    if (isRange) {
+      // Split by common range separators
+      const rangeParts = price.split(/[-–—]|to/i).map(p => p.trim()).filter(p => p);
+      if (rangeParts.length === 2) {
+        const startPrice = formatSinglePrice(rangeParts[0]);
+        const endPrice = formatSinglePrice(rangeParts[1]);
+        if (startPrice && endPrice) {
+          return `${startPrice} - ${endPrice}`;
+        }
+      }
+    }
+    
+    // Single price
+    return formatSinglePrice(price);
+  };
+  
+  // Helper function to format a single price value
+  const formatSinglePrice = (priceStr) => {
+    if (!priceStr) return '';
+    // Extract numeric value from string (e.g., "₹45 Lakhs" -> 4500000)
     let num = 0;
-    const priceStr = price.toString().replace(/[^\d.]/g, '');
-    num = parseFloat(priceStr) || 0;
+    const cleanStr = priceStr.toString().replace(/[^\d.]/g, '');
+    num = parseFloat(cleanStr) || 0;
     
     // If the string contains "lakh" or "lac", multiply by 100000
-    if (price.toString().toLowerCase().includes('lakh') || price.toString().toLowerCase().includes('lac')) {
+    if (priceStr.toString().toLowerCase().includes('lakh') || priceStr.toString().toLowerCase().includes('lac')) {
       num = num * 100000;
-    } else if (price.toString().toLowerCase().includes('crore') || price.toString().toLowerCase().includes('cr')) {
+    } else if (priceStr.toString().toLowerCase().includes('crore') || priceStr.toString().toLowerCase().includes('cr')) {
       num = num * 10000000;
     }
     
@@ -418,6 +443,7 @@ export default function AddUpcomingProjectPopup({ onClose }) {
             }
             return banksWithoutOther;
           })(),
+          salesName: formData.salesName || null,
           salesNumber: formData.salesNumber || null,
           emailId: formData.emailId || null,
           mobileNumber: formData.mobileNumber || null,
@@ -882,13 +908,13 @@ export default function AddUpcomingProjectPopup({ onClose }) {
             type="text"
             value={formData.startingPrice}
             onChange={(e) => handleChange('startingPrice', e.target.value)}
-            placeholder="e.g., 4500000 or 45 Lakhs"
+            placeholder="e.g., 4500000 or 45 Lakhs or 45-60 Lakhs"
             className={errors.startingPrice ? 'error' : ''}
           />
         </div>
         {formData.startingPrice && (
           <span className="price-words">
-            {formatPriceInWords(formData.startingPrice)}
+            Price: {formatPriceInWords(formData.startingPrice)}
           </span>
         )}
         {errors.startingPrice && <span className="error-text">{errors.startingPrice}</span>}
@@ -897,22 +923,38 @@ export default function AddUpcomingProjectPopup({ onClose }) {
       <div className="form-row">
         <div className="form-group">
           <label>Price per Sq.ft (Optional)</label>
-          <input
-            type="text"
-            value={formData.pricePerSqft}
-            onChange={(e) => handleChange('pricePerSqft', e.target.value)}
-            placeholder="e.g., ₹5000/sq.ft"
-          />
+          <div className="price-input-wrapper">
+            <span className="currency">₹</span>
+            <input
+              type="text"
+              value={formData.pricePerSqft}
+              onChange={(e) => handleChange('pricePerSqft', e.target.value)}
+              placeholder="e.g., 5000 or 5000-6000"
+            />
+          </div>
+          {formData.pricePerSqft && (
+            <span className="price-words">
+              Price: {formatPriceInWords(formData.pricePerSqft)}/sq.ft
+            </span>
+          )}
         </div>
 
         <div className="form-group">
-          <label>Booking Amount (Optional)</label>
-          <input
-            type="text"
-            value={formData.bookingAmount}
-            onChange={(e) => handleChange('bookingAmount', e.target.value)}
-            placeholder="e.g., ₹2 Lakhs"
-          />
+          <label>Booking Amount Price (Optional)</label>
+          <div className="price-input-wrapper">
+            <span className="currency">₹</span>
+            <input
+              type="text"
+              value={formData.bookingAmount}
+              onChange={(e) => handleChange('bookingAmount', e.target.value)}
+              placeholder="e.g., 2 Lakhs or 1.5-2.5 Lakhs"
+            />
+          </div>
+          {formData.bookingAmount && (
+            <span className="price-words">
+              Price: {formatPriceInWords(formData.bookingAmount)}
+            </span>
+          )}
         </div>
       </div>
 
@@ -1208,29 +1250,41 @@ export default function AddUpcomingProjectPopup({ onClose }) {
 
       <div className="form-row">
         <div className="form-group">
+          <label>Sales Name <span className="required">*</span></label>
+          <input
+            type="text"
+            value={formData.salesName}
+            onChange={(e) => handleChange('salesName', e.target.value)}
+            placeholder="Enter sales person name"
+            className={errors.salesName ? 'error' : ''}
+          />
+          {errors.salesName && <span className="error-text">{errors.salesName}</span>}
+        </div>
+
+        <div className="form-group">
           <label>Sales Number <span className="required">*</span></label>
           <input
             type="tel"
             value={formData.salesNumber}
             onChange={(e) => handleChange('salesNumber', e.target.value.replace(/\D/g, ''))}
-            placeholder="Enter sales number"
-            maxLength={15}
+            placeholder="10"
+            maxLength={10}
             className={errors.salesNumber ? 'error' : ''}
           />
           {errors.salesNumber && <span className="error-text">{errors.salesNumber}</span>}
         </div>
+      </div>
 
-        <div className="form-group">
-          <label>Email ID <span className="required">*</span></label>
-          <input
-            type="email"
-            value={formData.emailId}
-            onChange={(e) => handleChange('emailId', e.target.value)}
-            placeholder="Enter email address"
-            className={errors.emailId ? 'error' : ''}
-          />
-          {errors.emailId && <span className="error-text">{errors.emailId}</span>}
-        </div>
+      <div className="form-group">
+        <label>Email ID <span className="required">*</span></label>
+        <input
+          type="email"
+          value={formData.emailId}
+          onChange={(e) => handleChange('emailId', e.target.value)}
+          placeholder="Enter email address"
+          className={errors.emailId ? 'error' : ''}
+        />
+        {errors.emailId && <span className="error-text">{errors.emailId}</span>}
       </div>
 
       <div className="form-row">
@@ -1240,7 +1294,7 @@ export default function AddUpcomingProjectPopup({ onClose }) {
             type="tel"
             value={formData.mobileNumber}
             onChange={(e) => handleChange('mobileNumber', e.target.value.replace(/\D/g, ''))}
-            placeholder="Enter mobile number"
+            placeholder="10"
             maxLength={10}
           />
         </div>
@@ -1251,7 +1305,7 @@ export default function AddUpcomingProjectPopup({ onClose }) {
             type="tel"
             value={formData.whatsappNumber}
             onChange={(e) => handleChange('whatsappNumber', e.target.value.replace(/\D/g, ''))}
-            placeholder="Enter WhatsApp number"
+            placeholder="10"
             maxLength={10}
           />
         </div>
@@ -1263,8 +1317,8 @@ export default function AddUpcomingProjectPopup({ onClose }) {
           type="tel"
           value={formData.alternativeNumber}
           onChange={(e) => handleChange('alternativeNumber', e.target.value.replace(/\D/g, ''))}
-          placeholder="Enter alternative number"
-          maxLength={15}
+          placeholder="10"
+          maxLength={10}
         />
       </div>
     </div>
@@ -1329,6 +1383,7 @@ export default function AddUpcomingProjectPopup({ onClose }) {
         {formData.pricePerSqft && <p><strong>Price per Sq.ft:</strong> {formData.pricePerSqft}</p>}
 
         <h4>Contact</h4>
+        <p><strong>Sales Name:</strong> {formData.salesName || 'Not specified'}</p>
         <p><strong>Sales Number:</strong> {formData.salesNumber}</p>
         <p><strong>Email:</strong> {formData.emailId}</p>
         {formData.mobileNumber && <p><strong>Mobile Number:</strong> {formData.mobileNumber}</p>}
