@@ -13,19 +13,16 @@ const CompactSearchBar = () => {
     propertyType: searchParams.get('type') || searchParams.get('property_type') || '',
     budget: searchParams.get('budget') || '',
     bedrooms: searchParams.get('bedrooms') || '',
-    area: searchParams.get('area') || ''
+    area: searchParams.get('area') || '',
+    listingType: (() => {
+      const statusParam = searchParams.get('status');
+      if (statusParam === 'For Sale') return 'Buy';
+      if (statusParam === 'For Rent') return 'Rent';
+      return 'All';
+    })()
   });
 
   const [selectedLocation, setSelectedLocation] = useState(null);
-  
-  // Property status toggle for home page (sell/buy)
-  const [propertyStatus, setPropertyStatus] = useState(() => {
-    // Initialize from URL params if available, otherwise default to 'all'
-    const statusParam = searchParams.get('status');
-    if (statusParam === 'For Sale') return 'sell';
-    if (statusParam === 'For Rent') return 'rent';
-    return 'all'; // 'all', 'sell', or 'rent'
-  });
 
   // Determine search type based on current route
   const getSearchType = () => {
@@ -45,19 +42,17 @@ const CompactSearchBar = () => {
 
   const searchType = useMemo(() => getSearchType(), [location.pathname, searchParams]);
 
-  // Sync propertyStatus with URL params when they change
+  // Sync listingType with URL params when they change
   useEffect(() => {
-    if (searchType === 'home') {
-      const statusParam = searchParams.get('status');
-      if (statusParam === 'For Sale') {
-        setPropertyStatus('sell');
-      } else if (statusParam === 'For Rent') {
-        setPropertyStatus('rent');
-      } else {
-        setPropertyStatus('all');
-      }
+    const statusParam = searchParams.get('status');
+    if (statusParam === 'For Sale') {
+      setSearchData(prev => ({ ...prev, listingType: 'Buy' }));
+    } else if (statusParam === 'For Rent') {
+      setSearchData(prev => ({ ...prev, listingType: 'Rent' }));
+    } else if (!statusParam) {
+      setSearchData(prev => ({ ...prev, listingType: 'All' }));
     }
-  }, [searchParams, searchType]);
+  }, [searchParams]);
 
   // Budget range definitions
   const rentResidentialBudget = [
@@ -193,10 +188,14 @@ const CompactSearchBar = () => {
   const isBedroomBased = useMemo(() => bedroomBasedTypes.includes(searchData.propertyType), [searchData.propertyType]);
   const isAreaBased = useMemo(() => areaBasedTypes.includes(searchData.propertyType), [searchData.propertyType]);
 
-  // Get budget ranges based on search type and property type
+  // Get budget ranges based on search type, listing type, and property type
   const getBudgetRanges = () => {
-    // For Buy page - must match BuyerSearchBar.jsx exactly
-    if (searchType === 'buy') {
+    // Determine if we should use Buy or Rent budgets based on listingType or searchType
+    const useBuyBudgets = searchType === 'buy' || searchData.listingType === 'Buy';
+    const useRentBudgets = searchType === 'rent' || searchType === 'pg' || searchData.listingType === 'Rent';
+    
+    // For Buy page or Buy selected - must match BuyerSearchBar.jsx exactly
+    if (useBuyBudgets && searchData.listingType !== 'Rent') {
       if (!searchData.propertyType) {
         return saleResidentialBudget;
       }
@@ -217,26 +216,29 @@ const CompactSearchBar = () => {
       return propertyBudgetMap[searchData.propertyType] || saleResidentialBudget;
     }
 
-    // For Rent page
-    if (searchType === 'rent') {
+    // For Rent page or Rent selected
+    if (useRentBudgets && searchData.listingType !== 'Buy') {
       if (!searchData.propertyType) {
-        return rentResidentialBudgetRentPage;
+        return searchType === 'rent' ? rentResidentialBudgetRentPage : rentResidentialBudget;
       }
 
+      const rentBudget = searchType === 'rent' ? rentResidentialBudgetRentPage : rentResidentialBudget;
+      const commercialRentBudgetForPage = searchType === 'rent' ? commercialRentBudgetRentPage : commercialRentBudget;
+
       const propertyBudgetMap = {
-        'Apartment': rentResidentialBudgetRentPage,
-        'Studio Apartment': rentResidentialBudgetRentPage,
-        'Villa / Row House / Bungalow / Farm House': rentResidentialBudgetRentPage,
-        'Penthouse': rentResidentialBudgetRentPage,
-        'PG / Hostel': rentResidentialBudgetRentPage,
-        'Plot / Land / Industrial Property': commercialRentBudgetRentPage,
-        'Commercial Office': commercialRentBudgetRentPage,
-        'Commercial Shop': commercialRentBudgetRentPage,
-        'Co-working Space': commercialRentBudgetRentPage,
-        'Warehouse / Godown': commercialRentBudgetRentPage,
+        'Apartment': rentBudget,
+        'Studio Apartment': rentBudget,
+        'Villa / Row House / Bungalow / Farm House': rentBudget,
+        'Penthouse': rentBudget,
+        'PG / Hostel': rentBudget,
+        'Plot / Land / Industrial Property': commercialRentBudgetForPage,
+        'Commercial Office': commercialRentBudgetForPage,
+        'Commercial Shop': commercialRentBudgetForPage,
+        'Co-working Space': commercialRentBudgetForPage,
+        'Warehouse / Godown': commercialRentBudgetForPage,
       };
 
-      return propertyBudgetMap[searchData.propertyType] || rentResidentialBudgetRentPage;
+      return propertyBudgetMap[searchData.propertyType] || rentBudget;
     }
 
     // For PG/Hostel page
@@ -253,7 +255,7 @@ const CompactSearchBar = () => {
       return propertyBudgetMap[searchData.propertyType] || rentResidentialBudget;
     }
 
-    // For Home page (default)
+    // For Home page (default) - use Buy budgets as default
     if (!searchData.propertyType) {
       return saleResidentialBudget;
     }
@@ -274,7 +276,7 @@ const CompactSearchBar = () => {
     return propertyBudgetMap[searchData.propertyType] || saleResidentialBudget;
   };
 
-  const budgetRanges = useMemo(() => getBudgetRanges(), [searchData.propertyType, searchType]);
+  const budgetRanges = useMemo(() => getBudgetRanges(), [searchData.propertyType, searchData.listingType, searchType]);
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -290,6 +292,13 @@ const CompactSearchBar = () => {
         propertyType: value,
         bedrooms: '',
         area: '',
+        budget: ''
+      }));
+    } else if (name === 'listingType') {
+      // When listing type changes, reset budget since budget ranges differ for Buy vs Rent
+      setSearchData(prev => ({
+        ...prev,
+        listingType: value,
         budget: ''
       }));
     } else if (name === 'location') {
@@ -369,19 +378,19 @@ const CompactSearchBar = () => {
       queryParams.append('area', searchData.area);
     }
 
-    // Add status parameter based on search type
+    // Add status parameter based on search type and listingType
     if (searchType === 'buy') {
       queryParams.append('status', 'For Sale');
     } else if (searchType === 'rent' || searchType === 'pg') {
       queryParams.append('status', 'For Rent');
-    } else if (searchType === 'home') {
-      // Home page: add status filter only if user selected sell or rent
-      if (propertyStatus === 'sell') {
+    } else {
+      // For home page and search results: use listingType from searchData
+      if (searchData.listingType === 'Buy') {
         queryParams.append('status', 'For Sale');
-      } else if (propertyStatus === 'rent') {
+      } else if (searchData.listingType === 'Rent') {
         queryParams.append('status', 'For Rent');
       }
-      // If propertyStatus is 'all', don't add status filter (shows all)
+      // If listingType is 'All', don't add status filter (shows both Buy and Rent)
     }
 
     const queryString = queryParams.toString();
@@ -397,37 +406,27 @@ const CompactSearchBar = () => {
         onSubmit={handleSearch}
         noValidate
       >
-        {/* Property Status Toggle - Only show on home page */}
-        {searchType === 'home' && (
-          <div className="compact-search-status-toggle">
-            <label className="compact-search-label">Listing Type</label>
-            <div className="status-toggle-container">
-              <button
-                type="button"
-                className={`status-toggle-btn ${propertyStatus === 'all' ? 'active' : ''}`}
-                onClick={() => setPropertyStatus('all')}
-              >
-                All
-              </button>
-              <button
-                type="button"
-                className={`status-toggle-btn ${propertyStatus === 'sell' ? 'active' : ''}`}
-                onClick={() => setPropertyStatus('sell')}
-              >
-                Buy
-              </button>
-              <button
-                type="button"
-                className={`status-toggle-btn ${propertyStatus === 'rent' ? 'active' : ''}`}
-                onClick={() => setPropertyStatus('rent')}
-              >
-                Rent
-              </button>
-            </div>
-          </div>
-        )}
-        
         <div className="compact-search-filters">
+          {/* Listing Type - Buy / Rent / All */}
+          {(searchType === 'home' || location.pathname.includes('/searchresults')) && (
+            <div className="compact-search-field">
+              <label htmlFor="listingType" className="compact-search-label">
+                Listing Type
+              </label>
+              <select
+                id="listingType"
+                name="listingType"
+                value={searchData.listingType}
+                onChange={handleInputChange}
+                className="compact-search-select"
+              >
+                <option value="All">All</option>
+                <option value="Buy">Buy</option>
+                <option value="Rent">Rent</option>
+              </select>
+            </div>
+          )}
+
           {/* Location Input */}
           <div className="compact-search-field">
             <label htmlFor="location" className="compact-search-label">

@@ -10,7 +10,7 @@ import SellerProfile from './Components/SellerProfile';
 import Subscription from './Components/PlainTimerPage';
 // Use buyer's ViewDetailsPage for all property details (same layout for buyers and sellers)
 import ViewDetailsPage from '../UserDashboard/pages/ViewDetailsPage';
-import BuyerContactPage from '../UserDashboard/pages/BuyerContactPage';
+import SellerContactPage from './Components/SellerContactPage';
 
 import { PropertyProvider, useProperty } from './Components/PropertyContext';
 import { sellerDashboardAPI } from '../services/api.service';
@@ -243,7 +243,7 @@ const SellerDashboardContent = () => {
         return <Subscription />;
       case 'support':
         console.log('📞 Rendering Support/Contact');
-        return <BuyerContactPage />;
+        return <SellerContactPage />;
       default:
         console.log('📊 Rendering SellerOverview (default)');
         return <SellerOverview onNavigate={handleTabChange} />;
