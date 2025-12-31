@@ -71,7 +71,17 @@ const Navbar = () => {
 
   const isActive = (path) => {
     if (path === '/') return location.pathname === '/';
-    return location.pathname.startsWith(path);
+    
+    // Special case: /buyer-dashboard should match /BuyerHome
+    if (path === '/BuyerHome') {
+      return location.pathname === '/buyer-dashboard' || 
+             location.pathname === '/BuyerHome' ||
+             location.pathname.startsWith('/BuyerHome/');
+    }
+    
+    // For other paths, check exact match or path followed by '/'
+    return location.pathname === path || 
+           location.pathname.startsWith(path + '/');
   };
 
   return (

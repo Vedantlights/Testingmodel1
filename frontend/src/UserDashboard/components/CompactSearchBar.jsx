@@ -1,11 +1,12 @@
 import React, { useState, useMemo } from 'react';
-import { useNavigate, useSearchParams } from 'react-router-dom';
+import { useNavigate, useSearchParams, useLocation } from 'react-router-dom';
 import LocationAutoSuggest from '../../components/LocationAutoSuggest';
 import '../styles/CompactSearchBar.css';
 
 const CompactSearchBar = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
+  const location = useLocation();
 
   const [searchData, setSearchData] = useState({
     location: searchParams.get('location') || '',
@@ -17,50 +18,31 @@ const CompactSearchBar = () => {
 
   const [selectedLocation, setSelectedLocation] = useState(null);
 
-  const propertyTypes = [
-    'Apartment',
-    'Studio Apartment',
-    'Villa / Row House / Bungalow / Farm House',
-    'Row House',
-    'Penthouse',
-    'Plot / Land / Industrial Property',
-    'Commercial Office',
-    'Commercial Shop',
-    'Co-working Space',
-    'Warehouse / Godown',
-    'PG / Hostel'
-  ];
+  // Determine search type based on current route
+  const getSearchType = () => {
+    const path = location.pathname.toLowerCase();
+    if (path.includes('/buy')) return 'buy';
+    if (path.includes('/rent')) return 'rent';
+    if (path.includes('/pghostel')) return 'pg';
+    return 'home'; // Default to home
+  };
 
-  const bedroomBasedTypes = [
-    'Apartment',
-    'Studio Apartment',
-    'Villa / Row House / Bungalow / Farm House',
-    'Row House',
-    'Penthouse',
-    'PG / Hostel'
-  ];
+  const searchType = useMemo(() => getSearchType(), [location.pathname]);
 
-  const areaBasedTypes = [
-    'Plot / Land / Industrial Property',
-    'Commercial Office',
-    'Commercial Shop',
-    'Co-working Space',
-    'Warehouse / Godown'
-  ];
-
-  const bedroomOptions = ['1 BHK', '2 BHK', '3 BHK', '4 BHK', '5+ BHK'];
-
-  const areaRanges = [
-    '0-500 sq ft',
-    '500-1000 sq ft',
-    '1000-2000 sq ft',
-    '2000-5000 sq ft',
-    '5000-10000 sq ft',
-    '10000+ sq ft'
-  ];
-
+  // Budget range definitions
   const rentResidentialBudget = [
     '0K-5K',
+    '5K-10K',
+    '10K-20K',
+    '20K-30K',
+    '30K-50K',
+    '50K-75K',
+    '75K-1L',
+    '1L-2L',
+    '2L+'
+  ];
+
+  const rentResidentialBudgetRentPage = [
     '5K-10K',
     '10K-20K',
     '20K-30K',
@@ -101,10 +83,151 @@ const CompactSearchBar = () => {
     '5L+'
   ];
 
+  const commercialRentBudgetRentPage = [
+    '10K-25K',
+    '25K-50K',
+    '50K-1L',
+    '1L-2L',
+    '2L-5L',
+    '5L+'
+  ];
+
+  // Property type configurations based on search type
+  const getPropertyTypes = () => {
+    const allPropertyTypes = [
+      'Apartment',
+      'Studio Apartment',
+      'Villa / Row House / Bungalow / Farm House',
+      'Row House',
+      'Penthouse',
+      'Plot / Land / Industrial Property',
+      'Commercial Office',
+      'Commercial Shop',
+      'Co-working Space',
+      'Warehouse / Godown',
+      'PG / Hostel'
+    ];
+
+    // PG/Hostel page only allows Apartment and PG / Hostel
+    if (searchType === 'pg') {
+      return allPropertyTypes; // Show all but only enable specific ones
+    }
+
+    return allPropertyTypes;
+  };
+
+  const propertyTypes = useMemo(() => getPropertyTypes(), [searchType]);
+
+  // Check if a property type is enabled (for PG/Hostel page)
+  const isPropertyTypeEnabled = (type) => {
+    if (searchType === 'pg') {
+      return ['Apartment', 'PG / Hostel'].includes(type);
+    }
+    return true;
+  };
+
+  const bedroomBasedTypes = [
+    'Apartment',
+    'Studio Apartment',
+    'Villa / Row House / Bungalow / Farm House',
+    'Row House',
+    'Penthouse',
+    'PG / Hostel'
+  ];
+
+  const areaBasedTypes = [
+    'Plot / Land / Industrial Property',
+    'Commercial Office',
+    'Commercial Shop',
+    'Co-working Space',
+    'Warehouse / Godown'
+  ];
+
+  // Bedroom options - PG/Hostel page includes "1RK"
+  const getBedroomOptions = () => {
+    if (searchType === 'pg') {
+      return ['1RK', '1 BHK', '2 BHK', '3 BHK', '4 BHK', '5+ BHK'];
+    }
+    return ['1 BHK', '2 BHK', '3 BHK', '4 BHK', '5+ BHK'];
+  };
+
+  const bedroomOptions = useMemo(() => getBedroomOptions(), [searchType]);
+
+  const areaRanges = [
+    '0-500 sq ft',
+    '500-1000 sq ft',
+    '1000-2000 sq ft',
+    '2000-5000 sq ft',
+    '5000-10000 sq ft',
+    '10000+ sq ft'
+  ];
+
   const isBedroomBased = useMemo(() => bedroomBasedTypes.includes(searchData.propertyType), [searchData.propertyType]);
   const isAreaBased = useMemo(() => areaBasedTypes.includes(searchData.propertyType), [searchData.propertyType]);
 
+  // Get budget ranges based on search type and property type
   const getBudgetRanges = () => {
+    // For Buy page
+    if (searchType === 'buy') {
+      if (!searchData.propertyType) {
+        return saleResidentialBudget;
+      }
+
+      const propertyBudgetMap = {
+        'Apartment': saleResidentialBudget,
+        'Studio Apartment': saleResidentialBudget,
+        'Villa / Row House / Bungalow / Farm House': saleResidentialBudget,
+        'Row House': saleResidentialBudget,
+        'Penthouse': saleResidentialBudget,
+        'PG / Hostel': saleResidentialBudget, // Even PG can be bought
+        'Plot / Land / Industrial Property': commercialBudget,
+        'Commercial Office': commercialBudget,
+        'Commercial Shop': commercialBudget,
+        'Co-working Space': commercialBudget,
+        'Warehouse / Godown': commercialBudget,
+      };
+
+      return propertyBudgetMap[searchData.propertyType] || saleResidentialBudget;
+    }
+
+    // For Rent page
+    if (searchType === 'rent') {
+      if (!searchData.propertyType) {
+        return rentResidentialBudgetRentPage;
+      }
+
+      const propertyBudgetMap = {
+        'Apartment': rentResidentialBudgetRentPage,
+        'Studio Apartment': rentResidentialBudgetRentPage,
+        'Villa / Row House / Bungalow / Farm House': rentResidentialBudgetRentPage,
+        'Row House': rentResidentialBudgetRentPage,
+        'Penthouse': rentResidentialBudgetRentPage,
+        'PG / Hostel': rentResidentialBudgetRentPage,
+        'Plot / Land / Industrial Property': commercialRentBudgetRentPage,
+        'Commercial Office': commercialRentBudgetRentPage,
+        'Commercial Shop': commercialRentBudgetRentPage,
+        'Co-working Space': commercialRentBudgetRentPage,
+        'Warehouse / Godown': commercialRentBudgetRentPage,
+      };
+
+      return propertyBudgetMap[searchData.propertyType] || rentResidentialBudgetRentPage;
+    }
+
+    // For PG/Hostel page
+    if (searchType === 'pg') {
+      if (!searchData.propertyType) {
+        return rentResidentialBudget;
+      }
+
+      const propertyBudgetMap = {
+        'Apartment': rentResidentialBudget,
+        'PG / Hostel': rentResidentialBudget,
+      };
+
+      return propertyBudgetMap[searchData.propertyType] || rentResidentialBudget;
+    }
+
+    // For Home page (default)
     if (!searchData.propertyType) {
       return saleResidentialBudget;
     }
@@ -126,10 +249,15 @@ const CompactSearchBar = () => {
     return propertyBudgetMap[searchData.propertyType] || saleResidentialBudget;
   };
 
-  const budgetRanges = useMemo(getBudgetRanges, [searchData.propertyType]);
+  const budgetRanges = useMemo(() => getBudgetRanges(), [searchData.propertyType, searchType]);
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
+
+    // Prevent selecting disabled property types (for PG/Hostel page)
+    if (name === 'propertyType' && value && !isPropertyTypeEnabled(value)) {
+      return; // Don't update state if disabled type is selected
+    }
 
     if (name === 'propertyType') {
       setSearchData(prev => ({
@@ -158,6 +286,11 @@ const CompactSearchBar = () => {
       e.stopPropagation();
     }
 
+    // Prevent search if disabled property type is selected (for PG/Hostel page)
+    if (searchData.propertyType && !isPropertyTypeEnabled(searchData.propertyType)) {
+      return;
+    }
+
     const queryParams = new URLSearchParams();
     const loc = selectedLocation;
 
@@ -180,9 +313,20 @@ const CompactSearchBar = () => {
       queryParams.append('radius', '10');
     }
 
-    // Add property type
+    // Add property type (with special handling for PG/Hostel page)
     if (searchData.propertyType && searchData.propertyType.trim() !== '') {
-      queryParams.append('property_type', searchData.propertyType);
+      if (searchType === 'pg' && isPropertyTypeEnabled(searchData.propertyType)) {
+        queryParams.append('type', searchData.propertyType);
+      } else if (searchType === 'pg') {
+        // If no type selected or disabled type, filter for Apartment OR PG / Hostel
+        queryParams.append('type', 'Apartment / PG / Hostel');
+      } else {
+        // Use 'type' parameter to match page search bars
+        queryParams.append('type', searchData.propertyType);
+      }
+    } else if (searchType === 'pg') {
+      // For PG/Hostel page, if no type selected, default to Apartment / PG / Hostel
+      queryParams.append('type', 'Apartment / PG / Hostel');
     }
     
     // Add budget
@@ -196,6 +340,14 @@ const CompactSearchBar = () => {
     } else if (isAreaBased && searchData.area && searchData.area.trim() !== '') {
       queryParams.append('area', searchData.area);
     }
+
+    // Add status parameter based on search type
+    if (searchType === 'buy') {
+      queryParams.append('status', 'For Sale');
+    } else if (searchType === 'rent' || searchType === 'pg') {
+      queryParams.append('status', 'For Rent');
+    }
+    // Home page doesn't add status filter (shows all)
 
     const queryString = queryParams.toString();
     const searchUrl = queryString ? `/searchresults?${queryString}` : '/searchresults';
@@ -256,12 +408,33 @@ const CompactSearchBar = () => {
               value={searchData.propertyType}
               onChange={handleInputChange}
               className="compact-search-select"
+              title={searchData.propertyType && !isPropertyTypeEnabled(searchData.propertyType) ? 'Available only for Rent properties' : ''}
             >
               <option value="">All Types</option>
-              {propertyTypes.map(type => (
-                <option key={type} value={type}>{type}</option>
-              ))}
+              {propertyTypes.map(type => {
+                const isEnabled = isPropertyTypeEnabled(type);
+                return (
+                  <option 
+                    key={type} 
+                    value={type}
+                    disabled={!isEnabled}
+                    className={!isEnabled ? 'buyer-disabled-option' : ''}
+                  >
+                    {type}
+                  </option>
+                );
+              })}
             </select>
+            {searchType === 'pg' && (
+              <small style={{ 
+                fontSize: '0.75rem', 
+                color: '#94a3b8', 
+                marginTop: '0.25rem',
+                display: 'block'
+              }}>
+                Only Apartment and PG / Hostel are available. Other types are available on the Rent page.
+              </small>
+            )}
           </div>
 
           {/* Budget Range */}
@@ -288,7 +461,7 @@ const CompactSearchBar = () => {
             {isBedroomBased ? (
               <>
                 <label htmlFor="bedrooms" className="compact-search-label">
-                  Bedrooms
+                  {searchType === 'pg' ? 'Bedroom / Room Type' : 'Bedrooms'}
                 </label>
                 <select
                   id="bedrooms"
@@ -324,7 +497,7 @@ const CompactSearchBar = () => {
             ) : (
               <>
                 <label htmlFor="bedrooms" className="compact-search-label">
-                  Bedroom / Area
+                  {searchType === 'pg' ? 'Bedroom / Room Type' : 'Bedroom / Area'}
                 </label>
                 <select
                   id="bedrooms"
@@ -332,9 +505,12 @@ const CompactSearchBar = () => {
                   value={searchData.bedrooms}
                   onChange={handleInputChange}
                   className="compact-search-select"
-                  disabled
+                  disabled={!searchData.propertyType || !isBedroomBased}
                 >
                   <option value="">Select Property Type</option>
+                  {searchData.propertyType && isBedroomBased && bedroomOptions.map(option => (
+                    <option key={option} value={option}>{option}</option>
+                  ))}
                 </select>
               </>
             )}
