@@ -263,48 +263,81 @@ try {
     }
     
     // Step 9: Call Google Vision API
+    // IMPORTANT: If Vision API fails, we still allow upload but mark as PENDING
     $apiResponse = null;
+    $moderationStatus = 'PENDING';
+    $moderationReason = 'Auto-approved (moderation unavailable)';
+    $confidenceScores = null;
+    $apiResponseJson = null;
+    
     try {
+        error_log("Attempting to call Google Vision API...");
         $visionService = new GoogleVisionService();
         $apiResponse = $visionService->analyzeImage($tempPath);
         
-        if (!$apiResponse['success']) {
-            // API failed - delete temp file and return error
+        if ($apiResponse['success']) {
+            error_log("Google Vision API call successful");
+            $moderationStatus = 'SAFE';
+            $moderationReason = 'Image approved successfully';
+            
+            // Extract confidence scores if available
+            if (isset($apiResponse['safesearch_scores'])) {
+                $confidenceScores = $apiResponse['safesearch_scores'];
+            }
+            $apiResponseJson = json_encode($apiResponse);
+        } else {
+            // API failed but we continue - mark as PENDING
             $apiError = $apiResponse['error'] ?? 'Unknown error';
-            error_log("Google Vision API failed: " . $apiError);
-            FileHelper::deleteFile($tempPath);
-            http_response_code(500);
-            echo json_encode([
-                'status' => 'error',
-                'message' => 'Image verification failed. Please try again.',
-                'error_code' => 'api_error',
-                'details' => $apiError
-            ]);
-            exit;
+            error_log("Google Vision API failed (continuing anyway): " . $apiError);
+            error_log("Image will be marked as PENDING for manual review");
+            $moderationStatus = 'PENDING';
+            $moderationReason = 'Auto-approved (moderation unavailable: ' . substr($apiError, 0, 100) . ')';
         }
     } catch (Throwable $e) {
-        error_log("Google Vision API exception: " . $e->getMessage());
-        FileHelper::deleteFile($tempPath);
-        http_response_code(500);
-        echo json_encode([
-            'status' => 'error',
-            'message' => 'Image verification failed. Please try again.',
-            'error_code' => 'api_error'
-        ]);
-        exit;
+        // Vision API exception - continue anyway, mark as PENDING
+        error_log("Google Vision API exception (continuing anyway): " . $e->getMessage());
+        error_log("Exception type: " . get_class($e));
+        error_log("Exception file: " . $e->getFile() . " Line: " . $e->getLine());
+        if ($e->getPrevious()) {
+            error_log("Previous exception: " . $e->getPrevious()->getMessage());
+        }
+        error_log("Image will be marked as PENDING for manual review");
+        $moderationStatus = 'PENDING';
+        $moderationReason = 'Auto-approved (moderation unavailable: ' . substr($e->getMessage(), 0, 100) . ')';
     }
     
-    // Step 10: Check for HUMANS
+    // Continue with upload regardless of Vision API result
+    error_log("Proceeding with image upload. Moderation status: {$moderationStatus}");
+    
+    // Initialize variables for moderation checks (only if API succeeded)
+    $adult = 0.0;
+    $violence = 0.0;
+    $racy = 0.0;
+    $scores = [];
+    $faces = [];
+    $objects = [];
+    $labels = [];
+    
+    if ($apiResponse && $apiResponse['success']) {
+        $scores = $apiResponse['safesearch_scores'] ?? [];
+        $adult = $scores['adult'] ?? 0.0;
+        $violence = $scores['violence'] ?? 0.0;
+        $racy = $scores['racy'] ?? 0.0;
+        $faces = $apiResponse['faces'] ?? [];
+        $objects = $apiResponse['objects'] ?? [];
+        $labels = $apiResponse['labels'] ?? [];
+    }
+    
+    // Step 10: Check for HUMANS (only if API succeeded)
     // Reject image ONLY IF:
     // - Face detection confidence ≥ 0.7 (increased to reduce false positives)
     // OR
     // - Object localization detects "Person" or "People" with confidence ≥ 0.7 (increased to reduce false positives)
     // Labels alone must NOT cause rejection (they are supporting signals only)
     
-    $faces = $apiResponse['faces'] ?? [];
-    $objects = $apiResponse['objects'] ?? [];
-    
-    // Log all detections for debugging
+    // Only perform human detection if API succeeded
+    if ($apiResponse && $apiResponse['success']) {
+        // Log all detections for debugging
     error_log("Human detection check: faces_count=" . count($faces) . ", objects_count=" . count($objects));
     if (!empty($faces)) {
         foreach ($faces as $idx => $face) {
@@ -475,54 +508,56 @@ try {
         exit;
     }
     
-    // Step 12: Check SafeSearch (standardized thresholds: all 0.6)
+    // Step 12: Check SafeSearch (only if API succeeded)
     // SafeSearch checks must run AFTER image quality checks but BEFORE final approval
-    $scores = $apiResponse['safesearch_scores'] ?? [];
-    $adult = $scores['adult'] ?? 0.0;
-    $violence = $scores['violence'] ?? 0.0;
-    $racy = $scores['racy'] ?? 0.0;
-    
-    // Log SafeSearch scores for debugging
-    error_log("SafeSearch scores: adult={$adult}, violence={$violence}, racy={$racy}");
-    
-    if ($adult >= MODERATION_ADULT_THRESHOLD) {
-        error_log("REJECTED: Adult content detected - score={$adult} (threshold: " . MODERATION_ADULT_THRESHOLD . ")");
-        FileHelper::deleteFile($tempPath);
-        http_response_code(400);
-        echo json_encode([
-            'status' => 'error',
-            'message' => getErrorMessage('adult_content'),
-            'error_code' => 'adult_content'
-        ]);
-        exit;
+    if ($apiResponse && $apiResponse['success']) {
+        // Log SafeSearch scores for debugging
+        error_log("SafeSearch scores: adult={$adult}, violence={$violence}, racy={$racy}");
+        
+        if ($adult >= MODERATION_ADULT_THRESHOLD) {
+            error_log("REJECTED: Adult content detected - score={$adult} (threshold: " . MODERATION_ADULT_THRESHOLD . ")");
+            FileHelper::deleteFile($tempPath);
+            http_response_code(400);
+            echo json_encode([
+                'status' => 'error',
+                'message' => getErrorMessage('adult_content'),
+                'error_code' => 'adult_content'
+            ]);
+            exit;
+        }
+        
+        if ($violence >= MODERATION_VIOLENCE_THRESHOLD) {
+            error_log("REJECTED: Violence content detected - score={$violence} (threshold: " . MODERATION_VIOLENCE_THRESHOLD . ")");
+            FileHelper::deleteFile($tempPath);
+            http_response_code(400);
+            echo json_encode([
+                'status' => 'error',
+                'message' => getErrorMessage('violence_content'),
+                'error_code' => 'violence_content'
+            ]);
+            exit;
+        }
+        
+        if ($racy >= MODERATION_RACY_THRESHOLD) {
+            error_log("REJECTED: Racy content detected - score={$racy} (threshold: " . MODERATION_RACY_THRESHOLD . ")");
+            FileHelper::deleteFile($tempPath);
+            http_response_code(400);
+            echo json_encode([
+                'status' => 'error',
+                'message' => 'This image contains suggestive content and cannot be uploaded.',
+                'error_code' => 'racy_content'
+            ]);
+            exit;
+        }
+        
+        // Log that image passed all checks
+        error_log("Image passed all moderation checks - APPROVED");
+        $moderationStatus = 'SAFE';
+        $moderationReason = 'Image approved successfully';
+    } else {
+        // API failed - image will be marked as PENDING
+        error_log("Skipping SafeSearch checks - Vision API not available");
     }
-    
-    if ($violence >= MODERATION_VIOLENCE_THRESHOLD) {
-        error_log("REJECTED: Violence content detected - score={$violence} (threshold: " . MODERATION_VIOLENCE_THRESHOLD . ")");
-        FileHelper::deleteFile($tempPath);
-        http_response_code(400);
-        echo json_encode([
-            'status' => 'error',
-            'message' => getErrorMessage('violence_content'),
-            'error_code' => 'violence_content'
-        ]);
-        exit;
-    }
-    
-    if ($racy >= MODERATION_RACY_THRESHOLD) {
-        error_log("REJECTED: Racy content detected - score={$racy} (threshold: " . MODERATION_RACY_THRESHOLD . ")");
-        FileHelper::deleteFile($tempPath);
-        http_response_code(400);
-        echo json_encode([
-            'status' => 'error',
-            'message' => 'This image contains suggestive content and cannot be uploaded.',
-            'error_code' => 'racy_content'
-        ]);
-        exit;
-    }
-    
-    // Log that image passed all checks
-    error_log("Image passed all moderation checks - APPROVED");
     
     // Step 13: Image APPROVED - Handle based on mode
     
@@ -696,13 +731,17 @@ try {
     error_log("Relative path: {$relativePath}");
     error_log("BASE_URL: " . (defined('BASE_URL') ? BASE_URL : 'NOT DEFINED'));
     
-    $apisUsed = ['google_vision'];
-    $confidenceScores = [
-        'adult' => $adult,
-        'violence' => $violence,
-        'racy' => $scores['racy'] ?? 0.0
-    ];
-    $apiResponseJson = json_encode($apiResponse);
+    // Prepare data for database
+    $apisUsed = $apiResponse && $apiResponse['success'] ? ['google_vision'] : [];
+    $confidenceScores = null;
+    if ($apiResponse && $apiResponse['success'] && !empty($scores)) {
+        $confidenceScores = json_encode([
+            'adult' => $adult,
+            'violence' => $violence,
+            'racy' => $racy
+        ]);
+    }
+    $apiResponseJson = $apiResponse ? json_encode($apiResponse) : null;
     
     try {
         $db = getDB();
@@ -714,20 +753,20 @@ try {
             ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW())
         ");
         
-        $stmt->execute([
-            $propertyId,
-            $imageUrl,
-            $uniqueFilename,
-            $relativePath,
-            $originalFilename,
-            $fileSize,
-            $mimeType,
-            'SAFE',
-            'Image approved successfully.',
-            json_encode($apisUsed),
-            json_encode($confidenceScores),
-            $apiResponseJson
-        ]);
+            $stmt->execute([
+                $propertyId,
+                $imageUrl,
+                $uniqueFilename,
+                $relativePath,
+                $originalFilename,
+                $fileSize,
+                $mimeType,
+                $moderationStatus, // Use status from API call (SAFE or PENDING)
+                $moderationReason, // Use reason from API call
+                $apisUsed ? json_encode($apisUsed) : null,
+                $confidenceScores, // Already JSON encoded or null
+                $apiResponseJson
+            ]);
         
         $imageId = $db->lastInsertId();
         
