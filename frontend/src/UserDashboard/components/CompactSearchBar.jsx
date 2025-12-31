@@ -30,12 +30,14 @@ const CompactSearchBar = () => {
     if (path.includes('/buy')) return 'buy';
     if (path.includes('/rent')) return 'rent';
     if (path.includes('/pghostel')) return 'pg';
-    // Check if we're on search results page that came from home
+    // Check if we're on search results page
     if (path.includes('/searchresults')) {
-      // Check if there's a referrer or if we can determine it's from home
-      // For now, we'll check if status is not set (meaning it could be from home)
+      // Check if there's a status parameter - if yes, user came from Buy/Rent pages
       const statusParam = searchParams.get('status');
-      if (!statusParam) return 'home';
+      if (statusParam === 'For Sale') return 'buy';
+      if (statusParam === 'For Rent') return 'rent';
+      // If no status param, user came from home page
+      return 'home';
     }
     return 'home'; // Default to home
   };
@@ -407,8 +409,8 @@ const CompactSearchBar = () => {
         noValidate
       >
         <div className="compact-search-filters">
-          {/* Listing Type - Buy / Rent / All */}
-          {(searchType === 'home' || location.pathname.includes('/searchresults')) && (
+          {/* Listing Type - Buy / Rent / All - Only show when coming from home page, not from Buy/Rent pages */}
+          {searchType === 'home' && location.pathname.includes('/searchresults') && (
             <div className="compact-search-field">
               <label htmlFor="listingType" className="compact-search-label">
                 Listing Type

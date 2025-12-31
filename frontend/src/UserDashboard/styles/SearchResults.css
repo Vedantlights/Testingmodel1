@@ -647,19 +647,13 @@
 
 /* Color-coded filter tags for Status */
 .filter-tag-status.filter-tag-for-sale {
-  background: none;
-  color: white;
-  border: 1px solid #047857;
   font-weight: bold;
-  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.8);
+  box-shadow: 1px 1px 2px rgba(0, 0, 0, 0.8);
 }
 
 .filter-tag-status.filter-tag-for-rent {
-  background: none;
-  color: white;
-  border: 1px solid #b45309;
   font-weight: bold;
-  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.8);
+  box-shadow: 1px 1px 2px rgba(0, 0, 0, 0.8);
 }
 
 /* Remove background and add bold text with black shadow for all filter-tag-status.filter-tag-for-* classes */
