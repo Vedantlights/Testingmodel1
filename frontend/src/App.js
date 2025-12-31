@@ -24,7 +24,6 @@ import BuyerProfile from './UserDashboard/pages/BuyerProfile';
 import BuyerContactPage from './UserDashboard/pages/BuyerContactPage';
 import ViewDetailsPage from './UserDashboard/pages/ViewDetailsPage';
 import SearchResults from './UserDashboard/pages/SearchResults';
-import AboutUs from './LandingPage/pages/AboutUs';
 import CityFilteredBuy from './UserDashboard/pages/Cityfilteredbuy';
 import CityFilteredRent from './UserDashboard/pages/Cityfilteredrent';
 import CityFilteredPGHostel from './UserDashboard/pages/Cityfilteredpghostel';
@@ -129,21 +128,17 @@ function App() {
         <div className="App">
           <Routes>
 
-          {/* Legal Pages - Accessible from both Landing Page and Buyer Dashboard */}
-          <Route path="/privacy-policy" element={<PublicRoute><LandingPage /></PublicRoute>} />
-          <Route path="/terms-conditions" element={<PublicRoute><LandingPage /></PublicRoute>} />
-
-          {/* Main Landing Page - Public Route (redirects authenticated users) */}
+          {/* ==================== */}
+          {/* PUBLIC LANDING PAGES */}
+          {/* ==================== */}
+          {/* All landing page routes - Login/Register only accessible here */}
           <Route path="/*" element={<PublicRoute><LandingPage /></PublicRoute>} />
-
-          {/* Admin */}
-          <Route path="/admin/*" element={<Admin />} />
 
           {/* ==================== */}
           {/* BUYER DASHBOARD ROUTES */}
           {/* ==================== */}
+          {/* Strict isolation - Only dashboard routes */}
           <Route path="/buyer-dashboard" element={<BuyerDashboardLayout><BuyerHome /></BuyerDashboardLayout>} />
-
           <Route path="/buy" element={<BuyerDashboardLayout><CityFilteredBuy /></BuyerDashboardLayout>} />
           <Route path="/rent" element={<BuyerDashboardLayout><CityFilteredRent /></BuyerDashboardLayout>} />
           <Route path="/pghostel" element={<BuyerDashboardLayout><CityFilteredPGHostel /></BuyerDashboardLayout>} />
@@ -166,6 +161,11 @@ function App() {
           <Route path="/buyer-dashboard/BuyerContactPage" element={<BuyerDashboardLayout><BuyerContactPage /></BuyerDashboardLayout>} />
           <Route path="/buyer-dashboard/search" element={<BuyerDashboardLayout><SearchResults /></BuyerDashboardLayout>} />
           <Route path="/buyer-dashboard/details/:id" element={<BuyerDashboardLayout><ViewDetailsPage /></BuyerDashboardLayout>} />
+
+          {/* ==================== */}
+          {/* ADMIN & OTHER DASHBOARDS */}
+          {/* ==================== */}
+          <Route path="/admin/*" element={<Admin />} />
 
           {/* SELLER DASHBOARD - Protected Route */}
           <Route 

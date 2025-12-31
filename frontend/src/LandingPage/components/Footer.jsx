@@ -34,20 +34,20 @@ const Footer = () => {
             </h3>
             <ul className="footer-links">
               <li>
-                <a href="/about" onClick={(e) => handleLinkClick(e, '/about')}>
+                <Link to="/about">
                   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7"/>
                   </svg>
                   <span>About Us</span>
-                </a>
+                </Link>
               </li>
               <li>
-                <a href="/contact" onClick={(e) => handleLinkClick(e, '/contact')}>
+                <Link to="/contact">
                   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7"/>
                   </svg>
                   <span>Contact</span>
-                </a>
+                </Link>
               </li>
               <li>
                 <Link to="/privacy-policy">
@@ -66,12 +66,12 @@ const Footer = () => {
                 </Link>
               </li>
               <li>
-                <a href="/admin/login" onClick={(e) => handleLinkClick(e, '/admin/login')} className="admin-link">
+                <Link to="/admin/login" className="admin-link">
                   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7"/>
                   </svg>
                   <span>For Admin Only</span>
-                </a>
+                </Link>
               </li>
             </ul>
           </div>

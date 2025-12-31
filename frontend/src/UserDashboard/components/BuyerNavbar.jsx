@@ -16,8 +16,8 @@ const Navbar = () => {
   // Handle logout
   const handleLogout = () => {
     logout();
-    // Navigate to landing page home after logout
-    window.location.href = '/';
+    // Navigate to landing page home after logout using React Router
+    navigate('/', { replace: true });
   };
   
   // Listen for unread count changes from ChatUs component
@@ -89,7 +89,7 @@ const Navbar = () => {
       <div className="buyer-navbar-container">
         <div className="buyer-navbar-content">
           {/* Logo */}
-          <Link to="/BuyerHome" className="navbar-logo">
+          <Link to="/buyer-dashboard" className="navbar-logo">
             <div className="logo-container">
               <img src="/logo.png" alt="India Propertys" className="logo-image" />
             </div>
@@ -97,7 +97,7 @@ const Navbar = () => {
 
           {/* Desktop Navigation */}
           <div className="buyer-nav-links-desktop">
-            <Link to="/BuyerHome" className={`buyer-nav-link ${isActive('/BuyerHome') ? 'active' : ''}`}>
+            <Link to="/buyer-dashboard" className={`buyer-nav-link ${isActive('/buyer-dashboard') || isActive('/BuyerHome') ? 'active' : ''}`}>
               <span>Home</span>
             </Link>
             <Link to="/buy" className={`buyer-nav-link ${isActive('/buy') ? 'active' : ''}`}>
@@ -207,7 +207,7 @@ const Navbar = () => {
               </div>
             </div>
             
-            <Link to="/BuyerHome" className={`buyer-mobile-nav-link ${isActive('/BuyerHome') ? 'active' : ''}`}>
+            <Link to="/buyer-dashboard" className={`buyer-mobile-nav-link ${isActive('/buyer-dashboard') || isActive('/BuyerHome') ? 'active' : ''}`}>
               <span>Home</span>
             </Link>
             <Link to="/buy" className={`buyer-mobile-nav-link ${isActive('/buy') ? 'active' : ''}`}>
