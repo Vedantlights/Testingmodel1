@@ -160,9 +160,9 @@ export default function BuyerTenantLandingPage() {
         <div className="stats-grid">
           {stats.map((stat, index) => (
             <div key={index} className="stat-card">
+              <p>{stat.label}</p>
               <span className="stat-icon">{stat.icon}</span>
               <h3>{stat.number}</h3>
-              <p>{stat.label}</p>
             </div>
           ))}
         </div>

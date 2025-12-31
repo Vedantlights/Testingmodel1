@@ -1,16 +1,9 @@
 import React from 'react';
-import { useNavigate } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import '../styles/Footer.css';
 
 const Footer = () => {
-  const navigate = useNavigate();
   const currentYear = new Date().getFullYear();
-
-  // Handler for navigation - can be used for tracking or other logic
-  const handleLinkClick = (e, path) => {
-    e.preventDefault();
-    navigate(path);
-  };
 
   return (
     <footer className="footer">
@@ -27,7 +20,7 @@ const Footer = () => {
           {/* About Section with Logo */}
           <div className="footer-column footer-about">
             <div className="footer-logo">
-              <img src="/logo.jpeg" alt="India Propertys" className="footer-logo-image" />
+              <img src="/logo.png" alt="India Propertys" className="footer-logo-image" />
               <p className="footer-description">
               Indiapropertys is a trusted real estate platform dedicated to helping buyers, sellers, and renters connect seamlessly. We provide verified property listings, transparent pricing, and expert support to make real estate transactions simpler, safer, and faster. Whether you're searching for your dream home or the perfect commercial space, we are here to guide you every step of the way.
             </p>
@@ -57,20 +50,20 @@ const Footer = () => {
                 </a>
               </li>
               <li>
-                <a href="/privacy-policy" onClick={(e) => handleLinkClick(e, '/privacy-policy')}>
+                <Link to="/privacy-policy">
                   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7"/>
                   </svg>
                   <span>Privacy Policy</span>
-                </a>
+                </Link>
               </li>
               <li>
-                <a href="/terms-conditions" onClick={(e) => handleLinkClick(e, '/terms-conditions')}>
+                <Link to="/terms-conditions">
                   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7"/>
                   </svg>
                   <span>Terms & Conditions</span>
-                </a>
+                </Link>
               </li>
               <li>
                 <a href="/admin/login" onClick={(e) => handleLinkClick(e, '/admin/login')} className="admin-link">
