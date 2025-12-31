@@ -556,8 +556,137 @@
     line-height: 1.6;
 }
 
-/* --- Responsive Design --- */
-@media (max-width: 1024px) {
+/* ======================= */
+/* RESPONSIVE              */
+/* ======================= */
+
+/* Large Desktop (≥1440px) - Default styles apply */
+
+/* Laptop (1024px – 1439px) */
+@media (max-width: 1439px) {
+    .agent-details-container {
+        max-width: 1200px;
+        padding: 0 1.5rem;
+    }
+
+    .agent-property-header {
+        width: 100%;
+        padding: 2.25rem;
+    }
+
+    .agent-property-header h1 {
+        font-size: 2.6rem;
+    }
+
+    .agent-image-gallery {
+        height: 500px;
+    }
+
+    .agent-main-content-area {
+        gap: 2.25rem;
+    }
+
+    .agent-property-details-section {
+        padding: 2.25rem;
+    }
+
+    .agent-agent-sidebar {
+        flex: 1.8;
+    }
+}
+
+/* Tablet (768px – 1023px) */
+@media (max-width: 1023px) {
+    .agent-details-container {
+        padding: 0 1.25rem;
+    }
+
+    .agent-back-button {
+        margin-top: 1.5rem;
+        margin-bottom: 1.25rem;
+        padding: 7px 14px;
+        font-size: 0.95rem;
+    }
+
+    .agent-property-header {
+        width: 100%;
+        padding: 2rem;
+        border-radius: 14px;
+    }
+
+    .agent-property-header h1 {
+        font-size: 2.2rem;
+    }
+
+    .agent-property-location {
+        font-size: 1.1rem;
+    }
+
+    .agent-property-meta-info {
+        gap: 1.25rem;
+        padding: 1.1rem 1.35rem;
+    }
+
+    .agent-image-gallery {
+        grid-template-columns: 1fr;
+        height: auto;
+        border-radius: 12px;
+        box-shadow: 0 5px 20px rgba(0, 0, 0, 0.1);
+    }
+
+    .agent-main-image {
+        grid-column: 1 / -1;
+    }
+
+    .agent-main-image img {
+        border-radius: 12px 12px 0 0;
+        height: 400px;
+    }
+
+    .agent-thumbnail-gallery {
+        display: flex;
+        overflow-x: auto;
+        gap: 10px;
+        padding: 10px;
+        grid-column: 1 / -1;
+        background-color: #fff;
+        border-radius: 0 0 12px 12px;
+        scrollbar-width: thin;
+        -webkit-overflow-scrolling: touch;
+    }
+
+    .agent-thumbnail-gallery::-webkit-scrollbar {
+        height: 6px;
+    }
+
+    .agent-thumbnail-gallery::-webkit-scrollbar-track {
+        background: #f1f1f1;
+        border-radius: 3px;
+    }
+
+    .agent-thumbnail-gallery::-webkit-scrollbar-thumb {
+        background: #886ace;
+        border-radius: 3px;
+    }
+
+    .agent-thumbnail-gallery img {
+        min-width: 100px;
+        max-height: 100px;
+        object-fit: cover;
+        border-radius: 8px;
+        flex-shrink: 0;
+    }
+
+    .agent-view-more-overlay {
+        position: static;
+        width: 100px;
+        height: 100px;
+        border-radius: 8px;
+        flex-shrink: 0;
+        margin-left: 10px;
+        background-color: #886ace;
+    }
+
     .agent-main-content-area {
         flex-direction: column;
         gap: 2rem;
@@ -571,44 +700,12 @@
     .agent-agent-sidebar {
         position: static;
         width: 100%;
+        flex: 1;
     }
 
-    .agent-image-gallery {
-        grid-template-columns: 1fr;
-        height: auto;
-        border-radius: 12px;
-        box-shadow: 0 5px 20px rgba(0, 0, 0, 0.1);
-    }
-
-    .agent-main-image img {
-        border-radius: 12px 12px 0 0;
-    }
-    
-    .agent-thumbnail-gallery {
-        display: flex;
-        overflow-x: auto;
-        gap: 10px;
-        padding: 10px;
-        grid-column: 1 / -1;
-        background-color: #fff;
-        border-radius: 0 0 12px 12px;
-    }
-    
-    .agent-thumbnail-gallery img {
-        min-width: 100px;
-        max-height: 100px;
-        object-fit: cover;
-        border-radius: 8px;
-    }
-
-    .agent-view-more-overlay {
-        position: static;
-        width: 100px;
-        height: 100px;
-        border-radius: 8px;
-        flex-shrink: 0;
-        margin-left: 10px;
-        background-color: #886ace;
+    .agent-description-section h2,
+    .agent-amenities-section h2 {
+        font-size: 1.6rem;
     }
 
     .agent-features-grid {
@@ -619,53 +716,96 @@
     .agent-feature-item {
         flex-basis: calc(50% - 7.5px);
     }
-    
+
+    .agent-amenities-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
     .agent-map-card-container {
         margin-bottom: 20px;
+    }
+
+    .agent-map-embed-area {
+        height: 220px;
     }
 
     .agent-detail-contact-card {
         padding: 2rem;
     }
 
-    /* Responsive Property Header */
-    .agent-property-header {
-        padding: 2rem;
+    .agent-detail-contact-card h3 {
+        font-size: 1.35rem;
     }
 
-    .agent-property-header h1 {
-        font-size: 2.2rem;
+    .agent-image-slider-modal-content {
+        width: 95%;
+        height: 95%;
     }
 
-    .agent-property-meta-info {
-        gap: 1rem;
+    .agent-slider-close-btn {
+        top: 15px;
+        right: 15px;
+        font-size: 2.5rem;
+    }
+
+    .agent-slider-prev-btn,
+    .agent-slider-next-btn {
+        width: 44px;
+        height: 44px;
+        font-size: 1.75rem;
     }
 }
 
-@media (max-width: 600px) {
+/* Mobile (≤767px) */
+@media (max-width: 767px) {
+    .agent-view-details-page {
+        padding: 0 0 2rem 0;
+    }
+
+    .agent-details-container {
+        padding: 0 1rem;
+    }
+
+    .agent-divider {
+        margin: 1.5rem 0;
+    }
+
     .agent-back-button {
         margin-top: 1rem;
         margin-bottom: 1rem;
+        padding: 8px 14px;
+        font-size: 0.9rem;
+        width: fit-content;
+        min-height: 40px;
     }
 
-    /* Mobile Property Header */
+    .agent-back-button svg {
+        font-size: 1rem;
+    }
+
     .agent-property-header {
         padding: 1.5rem;
+        border-radius: 12px;
+        margin-bottom: 1.5rem;
     }
 
     .agent-property-header h1 {
         font-size: 1.8rem;
+        margin-bottom: 0.875rem;
     }
 
     .agent-property-location {
         font-size: 1rem;
+        margin-bottom: 1.25rem;
     }
 
     .agent-header-badges {
         gap: 0.5rem;
+        margin-bottom: 1.25rem;
     }
 
-    .agent-status-badge, .agent-premium-badge {
+    .agent-status-badge,
+    .agent-premium-badge {
         font-size: 0.85rem;
         padding: 8px 14px;
     }
@@ -674,6 +814,7 @@
         flex-direction: column;
         gap: 0.75rem;
         padding: 1rem;
+        align-self: stretch;
     }
 
     .agent-meta-divider {
@@ -683,6 +824,7 @@
     .agent-meta-item {
         padding-bottom: 0.75rem;
         border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+        width: 100%;
     }
 
     .agent-meta-item:last-child {
@@ -690,50 +832,438 @@
         padding-bottom: 0;
     }
 
+    .agent-meta-label {
+        font-size: 0.8rem;
+    }
+
+    .agent-meta-value {
+        font-size: 0.95rem;
+    }
+
+    .agent-image-gallery {
+        margin-bottom: 2rem;
+        border-radius: 10px;
+    }
+
+    .agent-main-image img {
+        border-radius: 10px 10px 0 0;
+        height: 300px;
+    }
+
+    .agent-thumbnail-gallery {
+        border-radius: 0 0 10px 10px;
+        padding: 8px;
+        gap: 8px;
+    }
+
+    .agent-thumbnail-gallery img {
+        min-width: 90px;
+        max-height: 90px;
+        border-radius: 6px;
+    }
+
+    .agent-view-more-overlay {
+        width: 90px;
+        height: 90px;
+        font-size: 1rem;
+        border-radius: 6px;
+    }
+
+    .agent-main-content-area {
+        gap: 1.5rem;
+    }
+
+    .agent-property-details-section {
+        padding: 1.25rem;
+        border-radius: 10px;
+    }
+
+    .agent-description-section h2,
+    .agent-amenities-section h2 {
+        font-size: 1.4rem;
+        margin-bottom: 1.25rem;
+        padding-left: 12px;
+        border-left-width: 4px;
+    }
+
     .agent-features-grid {
         gap: 10px;
+        justify-content: space-between;
     }
+
     .agent-feature-item {
         flex-basis: calc(50% - 5px);
+        padding: 16px 8px;
     }
+
+    .agent-feature-icon {
+        font-size: 1.9rem;
+    }
+
+    .agent-feature-value {
+        font-size: 1.1rem;
+    }
+
+    .agent-feature-label {
+        font-size: 1rem;
+    }
+
     .agent-amenities-grid {
         grid-template-columns: 1fr;
+        gap: 15px;
     }
+
+    .agent-amenity-item {
+        font-size: 0.95rem;
+        padding-bottom: 8px;
+    }
+
+    .agent-check-icon {
+        font-size: 1.1rem;
+        margin-right: 8px;
+    }
+
+    .agent-map-card-container {
+        margin-bottom: 18px;
+        padding: 16px;
+        border-radius: 10px;
+    }
+
+    .agent-map-card-container h3 {
+        font-size: 1.15rem;
+        margin-bottom: 12px;
+    }
+
+    .agent-map-embed-area {
+        height: 200px;
+        border-radius: 6px;
+    }
+
     .agent-detail-contact-card {
         padding: 1.5rem;
+        border-radius: 12px;
     }
+
+    .agent-detail-contact-card h3 {
+        font-size: 1.25rem;
+    }
+
+    .agent-contact-card-subtitle {
+        font-size: 0.9rem;
+        margin-bottom: 1.5rem;
+    }
+
     .agent-detail-contact-form {
         gap: 1.25rem;
     }
+
     .agent-contact-field-group label {
         font-size: 0.85rem;
     }
+
     .agent-contact-input-box {
         padding: 10px 12px;
         gap: 8px;
+        border-radius: 6px;
     }
+
     .agent-contact-field-icon {
         font-size: 0.95rem;
         min-width: 14px;
         width: 14px;
         height: 14px;
     }
+
     .agent-contact-input-box input,
     .agent-contact-input-box textarea {
         font-size: 0.95rem;
     }
+
+    .agent-contact-input-box textarea {
+        min-height: 70px;
+    }
+
     .agent-contact-send-button {
         padding: 12px;
         font-size: 1rem;
+        border-radius: 6px;
+        min-height: 44px;
     }
+
+    .agent-contact-success-message {
+        padding: 1.5rem 0.875rem;
+    }
+
     .agent-contact-success-icon {
         font-size: 3rem;
+        margin-bottom: 0.875rem;
     }
+
     .agent-contact-success-message h4 {
         font-size: 1.2rem;
+        margin-bottom: 0.65rem;
     }
+
     .agent-contact-success-message p {
         font-size: 0.95rem;
+    }
+
+    .agent-image-slider-modal-content {
+        width: 100%;
+        height: 100%;
+        max-width: 100%;
+        max-height: 100vh;
+    }
+
+    .agent-slider-close-btn {
+        top: 10px;
+        right: 10px;
+        font-size: 2rem;
+        padding: 8px;
+    }
+
+    .agent-slider-prev-btn,
+    .agent-slider-next-btn {
+        width: 40px;
+        height: 40px;
+        font-size: 1.5rem;
+        padding: 8px 12px;
+    }
+
+    .agent-slider-info {
+        font-size: 0.9rem;
+        padding: 4px 12px;
+    }
+}
+
+/* Small Mobile (≤480px) */
+@media (max-width: 480px) {
+    .agent-details-container {
+        padding: 0 0.875rem;
+    }
+
+    .agent-back-button {
+        padding: 7px 12px;
+        font-size: 0.85rem;
+        margin-top: 0.875rem;
+        margin-bottom: 0.875rem;
+    }
+
+    .agent-property-header {
+        padding: 1.25rem;
+        border-radius: 10px;
+        margin-bottom: 1.25rem;
+    }
+
+    .agent-property-header h1 {
+        font-size: 1.6rem;
+        line-height: 1.3;
+    }
+
+    .agent-property-location {
+        font-size: 0.95rem;
+        margin-bottom: 1rem;
+    }
+
+    .agent-header-badges {
+        gap: 0.4rem;
+        margin-bottom: 1rem;
+    }
+
+    .agent-status-badge,
+    .agent-premium-badge {
+        font-size: 0.8rem;
+        padding: 7px 12px;
+    }
+
+    .agent-property-meta-info {
+        padding: 0.875rem;
+        gap: 0.65rem;
+    }
+
+    .agent-meta-label {
+        font-size: 0.75rem;
+    }
+
+    .agent-meta-value {
+        font-size: 0.9rem;
+    }
+
+    .agent-main-image img {
+        height: 250px;
+    }
+
+    .agent-thumbnail-gallery img {
+        min-width: 80px;
+        max-height: 80px;
+    }
+
+    .agent-view-more-overlay {
+        width: 80px;
+        height: 80px;
+        font-size: 0.9rem;
+    }
+
+    .agent-property-details-section {
+        padding: 1rem;
+    }
+
+    .agent-description-section h2,
+    .agent-amenities-section h2 {
+        font-size: 1.25rem;
+        margin-bottom: 1rem;
+        padding-left: 10px;
+    }
+
+    .agent-features-grid {
+        gap: 8px;
+    }
+
+    .agent-feature-item {
+        flex-basis: calc(50% - 4px);
+        padding: 14px 6px;
+    }
+
+    .agent-feature-icon {
+        font-size: 1.7rem;
+        margin-bottom: 0.4rem;
+    }
+
+    .agent-feature-value {
+        font-size: 1rem;
+    }
+
+    .agent-feature-label {
+        font-size: 0.9rem;
+    }
+
+    .agent-amenities-grid {
+        gap: 12px;
+    }
+
+    .agent-amenity-item {
+        font-size: 0.9rem;
+    }
+
+    .agent-map-card-container {
+        padding: 14px;
+    }
+
+    .agent-map-card-container h3 {
+        font-size: 1.05rem;
+    }
+
+    .agent-map-embed-area {
+        height: 180px;
+    }
+
+    .agent-detail-contact-card {
+        padding: 1.25rem;
+    }
+
+    .agent-detail-contact-card h3 {
+        font-size: 1.15rem;
+    }
+
+    .agent-contact-card-subtitle {
+        font-size: 0.85rem;
+        margin-bottom: 1.25rem;
+    }
+
+    .agent-detail-contact-form {
+        gap: 1rem;
+    }
+
+    .agent-contact-field-group label {
+        font-size: 0.8rem;
+    }
+
+    .agent-contact-input-box {
+        padding: 9px 10px;
+    }
+
+    .agent-contact-input-box input,
+    .agent-contact-input-box textarea {
+        font-size: 0.9rem;
+    }
+
+    .agent-contact-send-button {
+        padding: 11px;
+        font-size: 0.95rem;
+    }
+
+    .agent-contact-success-icon {
+        font-size: 2.5rem;
+    }
+
+    .agent-contact-success-message h4 {
+        font-size: 1.1rem;
+    }
+
+    .agent-contact-success-message p {
+        font-size: 0.9rem;
+    }
+
+    .agent-slider-close-btn {
+        top: 8px;
+        right: 8px;
+        font-size: 1.75rem;
+    }
+
+    .agent-slider-prev-btn,
+    .agent-slider-next-btn {
+        width: 36px;
+        height: 36px;
+        font-size: 1.35rem;
+    }
+}
+
+/* Extra Small Mobile (≤360px) */
+@media (max-width: 360px) {
+    .agent-details-container {
+        padding: 0 0.75rem;
+    }
+
+    .agent-property-header h1 {
+        font-size: 1.45rem;
+    }
+
+    .agent-property-location {
+        font-size: 0.9rem;
+    }
+
+    .agent-status-badge,
+    .agent-premium-badge {
+        font-size: 0.75rem;
+        padding: 6px 10px;
+    }
+
+    .agent-main-image img {
+        height: 220px;
+    }
+
+    .agent-feature-item {
+        padding: 12px 4px;
+    }
+
+    .agent-feature-icon {
+        font-size: 1.5rem;
+    }
+
+    .agent-feature-value {
+        font-size: 0.95rem;
+    }
+
+    .agent-feature-label {
+        font-size: 0.85rem;
+    }
+
+    .agent-detail-contact-card {
+        padding: 1rem;
+    }
+
+    .agent-detail-contact-card h3 {
+        font-size: 1.05rem;
     }
 }
 

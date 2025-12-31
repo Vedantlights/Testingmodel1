@@ -679,92 +679,455 @@
 /* RESPONSIVE              */
 /* ======================= */
 
-@media (max-width: 1200px) {
-  .seller-profile-layout {
-    grid-template-columns: 300px 1fr;
-  }
-}
+/* Large Desktop (≥1440px) - Default styles apply */
 
-@media (max-width: 1024px) {
+/* Laptop (1024px – 1439px) */
+@media (max-width: 1439px) {
   .seller-profile-layout {
-    grid-template-columns: 1fr;
+    grid-template-columns: 320px 1fr;
+    gap: 1.25rem;
   }
 
   .seller-profile-card {
-    max-width: 400px;
-    margin: 0 auto 1.5rem;
+    border-radius: var(--radius-lg);
   }
 
-  .social-links-grid {
-    grid-template-columns: 1fr;
+  .seller-profile-settings-content {
+    border-radius: var(--radius-lg);
   }
 }
 
-@media (max-width: 768px) {
-  .seller-profile-form-grid {
-    grid-template-columns: 1fr;
+/* Tablet (768px – 1023px) */
+@media (max-width: 1023px) {
+  .seller-profile-header {
+    margin-bottom: 1.5rem;
   }
 
-  .seller-profile-form-group.seller-profile-full-width {
-    grid-column: span 1;
+  .seller-profile-header h1 {
+    font-size: 1.65rem;
+  }
+
+  .seller-profile-subtitle {
+    font-size: 0.9rem;
+  }
+
+  .seller-profile-layout {
+    grid-template-columns: 1fr;
+    gap: 1.5rem;
+  }
+
+  .seller-profile-card {
+    max-width: 450px;
+    margin: 0 auto 1.5rem;
+  }
+
+  .seller-profile-stats-grid {
+    margin-left: 0;
+    gap: 0.75rem;
+  }
+
+  .seller-profile-form-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1rem;
+  }
+
+  .social-links-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .seller-profile-settings-tabs {
+    padding: 0 0.75rem;
+  }
+
+  .seller-profile-tab-btn {
+    padding: 0.875rem 1.25rem;
+    font-size: 0.875rem;
+  }
+
+  .seller-profile-tab-content {
+    padding: 1.25rem;
+  }
+}
+
+/* Mobile (≤767px) */
+@media (max-width: 767px) {
+  .seller-profile-header {
+    margin-bottom: 1.25rem;
+  }
+
+  .seller-profile-header h1 {
+    font-size: 1.5rem;
+    margin-bottom: 0.3rem;
+  }
+
+  .seller-profile-subtitle {
+    font-size: 0.85rem;
+  }
+
+  .seller-profile-layout {
+    gap: 1.25rem;
+  }
+
+  .seller-profile-card {
+    max-width: 100%;
+    margin-bottom: 1.25rem;
+  }
+
+  .seller-profile-cover {
+    height: 80px;
+  }
+
+  .seller-seller-profile-avatar-img-section {
+    padding: 0 1.25rem 1.25rem;
+    margin-top: -45px;
+  }
+
+  .seller-seller-profile-avatar-img-wrapper {
+    width: 90px;
+    height: 90px;
+    margin-bottom: 0.875rem;
+  }
+
+  .seller-profile-avatar-img,
+  .seller-profile-avatar-initials {
+    border-width: 3px;
+    font-size: 1.75rem;
+  }
+
+  .seller-profile-avatar-seller-profile-edit-btn {
+    width: 28px;
+    height: 28px;
+    bottom: 3px;
+    right: 3px;
+  }
+
+  .seller-seller-profile-avatar-img-section h2 {
+    font-size: 1.15rem;
+  }
+
+  .seller-profile-role {
+    font-size: 0.85rem;
+  }
+
+  .seller-profile-stats-grid {
+    grid-template-columns: repeat(3, 1fr);
+    gap: 0.5rem;
+    padding: 1rem 1.25rem;
+  }
+
+  .seller-profile-stat-box .seller-profile-stat-value {
+    font-size: 1.25rem;
+  }
+
+  .seller-profile-stat-box .seller-profile-stat-label {
+    font-size: 0.75rem;
+  }
+
+  .seller-profile-member-since {
+    padding: 0.875rem 1.25rem;
+    font-size: 0.8rem;
   }
 
   .seller-profile-settings-tabs {
     padding: 0 0.5rem;
+    overflow-x: auto;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+  }
+
+  .seller-profile-settings-tabs::-webkit-scrollbar {
+    display: none;
   }
 
   .seller-profile-tab-btn {
     padding: 0.75rem 1rem;
     font-size: 0.85rem;
+    white-space: nowrap;
+    flex-shrink: 0;
   }
 
   .seller-profile-tab-btn span {
     display: none;
   }
 
+  .seller-profile-tab-content {
+    padding: 1rem;
+  }
+
+  .seller-profile-section-header {
+    margin-bottom: 1.25rem;
+  }
+
+  .seller-profile-section-header h3 {
+    font-size: 1.05rem;
+  }
+
+  .seller-profile-form-grid {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+
+  .seller-profile-form-group.seller-profile-full-width {
+    grid-column: span 1;
+  }
+
+  .seller-profile-form-group label {
+    font-size: 0.8rem;
+  }
+
+  .seller-profile-form-group input,
+  .seller-profile-form-group textarea {
+    padding: 0.65rem 0.875rem;
+    font-size: 0.9rem;
+  }
+
+  .seller-profile-input-with-icon input {
+    padding-left: 2.5rem;
+  }
+
+  .seller-profile-input-with-icon svg {
+    left: 0.875rem;
+  }
+
+  .social-links-grid {
+    grid-template-columns: 1fr;
+  }
+
   .seller-profile-form-actions {
     flex-direction: column;
+    gap: 0.65rem;
+    margin-top: 1.5rem;
+    padding-top: 1.25rem;
   }
 
   .seller-profile-cancel-btn,
   .seller-profile-save-btn {
     width: 100%;
     justify-content: center;
+    padding: 0.75rem 1.25rem;
+    font-size: 0.875rem;
+    min-height: 44px;
+  }
+
+  .seller-profile-notification-group {
+    margin-bottom: 1.5rem;
+  }
+
+  .seller-profile-toggle-item {
+    padding: 0.875rem;
+    margin-bottom: 0.65rem;
+  }
+
+  .seller-profile-toggle-label {
+    font-size: 0.9rem;
+  }
+
+  .seller-profile-toggle-desc {
+    font-size: 0.75rem;
   }
 
   .seller-profile-security-card {
     flex-direction: column;
     text-align: center;
+    padding: 1rem;
+    margin-bottom: 0.875rem;
+  }
+
+  .seller-profile-security-icon {
+    width: 44px;
+    height: 44px;
   }
 
   .seller-profile-security-info {
-    margin-bottom: 0.5rem;
+    margin-bottom: 0.75rem;
+  }
+
+  .seller-profile-security-info h4 {
+    font-size: 0.9rem;
+  }
+
+  .seller-profile-security-info p {
+    font-size: 0.8rem;
+  }
+
+  .seller-profile-security-btn {
+    padding: 0.55rem 1rem;
+    font-size: 0.8rem;
+    width: 100%;
+    min-height: 44px;
+  }
+
+  .seller-profile-success-toast {
+    top: 80px;
+    right: 1rem;
+    left: 1rem;
+    padding: 0.875rem 1.25rem;
+    font-size: 0.9rem;
+    min-width: auto;
+  }
+
+  .seller-image-upload-menu {
+    bottom: 45px;
+    min-width: 180px;
+  }
+
+  .seller-upload-menu-item {
+    padding: 0.65rem 0.875rem;
+    font-size: 0.85rem;
+  }
+
+  .seller-camera-modal {
+    width: 95%;
+    max-width: 95%;
+  }
+
+  .seller-camera-content {
+    min-height: calc(100vh - 100px);
   }
 }
 
+/* Small Mobile (≤480px) */
 @media (max-width: 480px) {
-  .seller-profile-success-toast {
-    right: 1rem;
-    left: 1rem;
-    justify-content: center;
+  .seller-profile-header h1 {
+    font-size: 1.35rem;
+  }
+
+  .seller-profile-card {
+    border-radius: var(--radius-md);
+  }
+
+  .seller-profile-cover {
+    height: 70px;
+  }
+
+  .seller-seller-profile-avatar-img-section {
+    padding: 0 1rem 1rem;
+    margin-top: -40px;
+  }
+
+  .seller-seller-profile-avatar-img-wrapper {
+    width: 80px;
+    height: 80px;
+  }
+
+  .seller-profile-avatar-img,
+  .seller-profile-avatar-initials {
+    font-size: 1.5rem;
+  }
+
+  .seller-profile-avatar-seller-profile-edit-btn {
+    width: 26px;
+    height: 26px;
+  }
+
+  .seller-seller-profile-avatar-img-section h2 {
+    font-size: 1.05rem;
   }
 
   .seller-profile-stats-grid {
-    gap: 0.25rem;
+    gap: 0.4rem;
+    padding: 0.875rem 1rem;
   }
 
   .seller-profile-stat-box .seller-profile-stat-value {
     font-size: 1.15rem;
   }
 
+  .seller-profile-stat-box .seller-profile-stat-label {
+    font-size: 0.7rem;
+  }
+
+  .seller-profile-tab-content {
+    padding: 0.875rem;
+  }
+
+  .seller-profile-form-group {
+    margin-bottom: 1.25rem;
+  }
+
   .seller-profile-toggle-item {
     flex-direction: column;
     align-items: flex-start;
     gap: 0.75rem;
+    padding: 0.75rem;
   }
 
   .seller-profile-toggle-switch {
     align-self: flex-end;
+    width: 44px;
+    height: 24px;
+  }
+
+  .seller-profile-toggle-thumb {
+    width: 18px;
+    height: 18px;
+    top: 3px;
+    left: 3px;
+  }
+
+  .seller-profile-toggle-switch.active .seller-profile-toggle-thumb {
+    transform: translateX(20px);
+  }
+
+  .seller-profile-success-toast {
+    top: 70px;
+    padding: 0.75rem 1rem;
+    font-size: 0.85rem;
+  }
+
+  .seller-image-upload-menu {
+    bottom: 40px;
+    min-width: 160px;
+    padding: 0.4rem;
+  }
+
+  .seller-upload-menu-item {
+    padding: 0.6rem 0.75rem;
+    font-size: 0.8rem;
+  }
+
+  .seller-camera-modal-header {
+    padding: 1rem;
+  }
+
+  .seller-camera-modal-header h3 {
+    font-size: 1.1rem;
+  }
+
+  .seller-camera-content {
+    min-height: calc(100vh - 80px);
+  }
+
+  .seller-camera-capture-btn {
+    width: 60px;
+    height: 60px;
+  }
+
+  .seller-camera-retake-btn,
+  .seller-camera-use-btn {
+    padding: 0.65rem 1.25rem;
+    font-size: 0.9rem;
+  }
+}
+
+/* Extra Small Mobile (≤360px) */
+@media (max-width: 360px) {
+  .seller-profile-header h1 {
+    font-size: 1.25rem;
+  }
+
+  .seller-seller-profile-avatar-img-wrapper {
+    width: 70px;
+    height: 70px;
+  }
+
+  .seller-profile-avatar-img,
+  .seller-profile-avatar-initials {
+    font-size: 1.35rem;
+  }
+
+  .seller-profile-stat-box .seller-profile-stat-value {
+    font-size: 1.05rem;
   }
 }
 

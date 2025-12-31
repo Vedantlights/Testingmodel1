@@ -752,7 +752,21 @@ html, body {
 /* RESPONSIVE              */
 /* ======================= */
 
-@media (max-width: 1200px) {
+/* Large Desktop (≥1440px) - Default styles apply */
+
+/* Laptop (1024px – 1439px) */
+@media (max-width: 1439px) {
+  .agent-header {
+    padding: 0 1.5rem;
+  }
+  
+  .agent-logo-image {
+    height: 60px;
+  }
+}
+
+/* Tablet (768px – 1023px) */
+@media (max-width: 1023px) {
   .nav-label {
     display: none;
   }
@@ -760,9 +774,7 @@ html, body {
   .nav-btn {
     padding: 0.65rem;
   }
-}
-
-@media (max-width: 1024px) {
+  
   .header-nav {
     display: none;
   }
@@ -770,72 +782,71 @@ html, body {
   .menu-toggle {
     display: flex;
   }
+  
+  .agent-main {
+    padding: 1.5rem;
+  }
+  
+  .free-trial-badge {
+    padding: 0.4rem 0.75rem;
+    font-size: 0.7rem;
+  }
+  
+  .trial-days {
+    font-size: 1rem;
+  }
+  
+  .trial-text {
+    font-size: 0.7rem;
+  }
 }
 
-@media (max-width: 768px) {
+/* Mobile (≤767px) */
+@media (max-width: 767px) {
   :root {
     --header-height: 5rem;
   }
   
   .agent-header {
     padding: 0 1rem;
+    height: 5rem;
   }
   
-  .logo-icon-wrapper {
-    width: 120px;
-    height: 120px;
+  .agent-header.scrolled {
+    height: 5rem;
   }
   
-  .user-info {
-    display: none;
+  .header-left {
+    gap: 1rem;
   }
   
-  .user-profile {
-    padding: 0.25rem;
-  }
-  
-  .agent-main {
-    padding: 1.25rem;
-  }
-
-  .subscription-timer {
-    padding: 0.4rem 0.75rem;
-    gap: 0.5rem;
-  }
-
-  .timer-label {
-    display: none;
-  }
-
-  .timer-value {
-    font-size: 0.8rem;
-  }
-
-  .timer-value small {
-    font-size: 0.6rem;
-  }
-
-  .timer-arrow {
-    display: none;
-  }
-}
-
-@media (max-width: 480px) {
-  :root {
-    --header-height: 4.5rem;
-  }
-  
-  .agent-header {
-    padding: 0 0.75rem;
-  }
-  
-  .logo-icon-wrapper {
-    width: 100px;
-    height: 100px;
+  .agent-logo-image {
+    height: 50px;
   }
   
   .logo-text {
-    display: none;
+    font-size: 1.1rem;
+  }
+  
+  .header-right {
+    gap: 0.5rem;
+    margin-left: 0.5rem;
+  }
+  
+  .free-trial-badge {
+    padding: 0.35rem 0.6rem;
+    gap: 0.25rem;
+    font-size: 0.65rem;
+  }
+  
+  .trial-days {
+    font-size: 0.9rem;
+  }
+  
+  .trial-text {
+    font-size: 0.65rem;
+    display: block;
+    line-height: 1.2;
   }
   
   .notification-btn {
@@ -843,48 +854,233 @@ html, body {
     height: 40px;
   }
   
+  .user-profile {
+    padding: 0.4rem 0.6rem;
+    margin-left: 0.25rem;
+    gap: 0.5rem;
+  }
+  
   .user-avatar {
     width: 36px;
     height: 36px;
+    font-size: 0.9rem;
+  }
+  
+  .user-info {
+    display: none;
+  }
+  
+  .user-profile svg {
+    width: 14px;
+    height: 14px;
   }
   
   .agent-main {
     padding: 1rem;
+    padding-top: calc(var(--header-height) + 1rem);
+  }
+  
+  .main-content-wrapper {
+    width: 100%;
+  }
+  
+  .mobile-sidebar {
+    width: 280px;
+    max-width: 85vw;
+  }
+  
+  .mobile-sidebar-header {
+    padding: 0.875rem 1rem;
+  }
+  
+  .mobile-sidebar-header .logo-icon-wrapper {
+    width: 32px;
+    height: 32px;
+  }
+  
+  .mobile-sidebar-header .logo-text {
+    font-size: 1rem;
+  }
+  
+  .close-sidebar {
+    width: 36px;
+    height: 36px;
+  }
+  
+  .mobile-user-section {
+    padding: 1rem;
+  }
+  
+  .mobile-user-avatar {
+    width: 44px;
+    height: 44px;
+    font-size: 1.1rem;
+  }
+  
+  .mobile-user-name {
+    font-size: 0.95rem;
+  }
+  
+  .mobile-user-role {
+    font-size: 0.8rem;
+  }
+  
+  .mobile-nav {
+    padding: 0.75rem;
+  }
+  
+  .mobile-nav-btn {
+    padding: 0.75rem 0.875rem;
+    font-size: 0.9rem;
+  }
+  
+  .mobile-nav-icon {
+    width: 20px;
+    height: 20px;
+  }
+}
+
+/* Small Mobile (≤480px) */
+@media (max-width: 480px) {
+  :root {
+    --header-height: 4.5rem;
+  }
+  
+  .agent-header {
+    padding: 0 0.75rem;
+    height: 4.5rem;
+  }
+  
+  .agent-header.scrolled {
+    height: 4.5rem;
   }
   
   .header-left {
     gap: 0.75rem;
   }
   
+  .agent-logo-image {
+    height: 45px;
+  }
+  
+  .logo-text {
+    display: none;
+  }
+  
+  .menu-toggle {
+    width: 40px;
+    height: 40px;
+    padding: 8px;
+    gap: 20px;
+  }
+  
+  .menu-toggle span {
+    width: 20px;
+    height: 2px;
+  }
+  
   .header-right {
-    gap: 0.5rem;
-  }
-
-  .subscription-timer {
-    padding: 0.35rem 0.5rem;
     gap: 0.35rem;
-    border-radius: var(--radius-sm);
   }
-
-  .timer-icon svg {
-    width: 14px;
-    height: 14px;
+  
+  .free-trial-badge {
+    padding: 0.3rem 0.5rem;
+    gap: 0.2rem;
+    font-size: 0.6rem;
   }
-
-  .timer-countdown {
-    gap: 1px;
+  
+  .trial-days {
+    font-size: 0.85rem;
   }
-
-  .timer-value {
-    font-size: 0.7rem;
+  
+  .trial-text {
+    font-size: 0.6rem;
   }
+  
+  .notification-btn {
+    width: 36px;
+    height: 36px;
+  }
+  
+  .user-profile {
+    padding: 0.35rem 0.5rem;
+    gap: 0.4rem;
+  }
+  
+  .user-avatar {
+    width: 32px;
+    height: 32px;
+    font-size: 0.85rem;
+  }
+  
+  .user-dropdown {
+    min-width: 180px;
+    right: -10px;
+  }
+  
+  .user-dropdown button {
+    padding: 0.65rem 0.875rem;
+    font-size: 0.85rem;
+  }
+  
+  .agent-main {
+    padding: 0.875rem;
+    padding-top: calc(var(--header-height) + 0.875rem);
+  }
+  
+  .mobile-sidebar {
+    width: 260px;
+    max-width: 90vw;
+  }
+  
+  .mobile-user-section {
+    padding: 0.875rem;
+  }
+  
+  .mobile-user-avatar {
+    width: 40px;
+    height: 40px;
+    font-size: 1rem;
+  }
+  
+  .mobile-nav-btn {
+    padding: 0.7rem 0.75rem;
+    font-size: 0.85rem;
+  }
+}
 
-  .timer-value small {
+/* Extra Small Mobile (≤360px) */
+@media (max-width: 360px) {
+  .agent-header {
+    padding: 0 0.5rem;
+  }
+  
+  .agent-logo-image {
+    height: 40px;
+  }
+  
+  .free-trial-badge {
+    padding: 0.25rem 0.4rem;
     font-size: 0.55rem;
   }
-
-  .timer-separator {
-    font-size: 0.7rem;
+  
+  .trial-days {
+    font-size: 0.75rem;
+  }
+  
+  .user-profile {
+    padding: 0.3rem 0.4rem;
+  }
+  
+  .user-avatar {
+    width: 28px;
+    height: 28px;
+    font-size: 0.75rem;
+  }
+  
+  .mobile-sidebar {
+    width: 240px;
+    max-width: 95vw;
   }
 }
 
@@ -922,11 +1118,12 @@ html, body {
   font-weight: 500;
 }
 
-@media (max-width: 768px) {
+@media (max-width: 767px) {
   .logout-btn {
     padding: 8px 12px;
     font-size: 12px;
   }
+  
   .logout-btn span {
     display: none;
   }

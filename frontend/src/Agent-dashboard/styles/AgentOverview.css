@@ -716,7 +716,10 @@
 /* RESPONSIVE              */
 /* ======================= */
 
-@media (max-width: 1200px) {
+/* Large Desktop (≥1440px) - Default styles apply */
+
+/* Laptop (1024px – 1439px) */
+@media (max-width: 1439px) {
   .stats-grid {
     grid-template-columns: repeat(2, 1fr);
   }
@@ -724,39 +727,195 @@
   .quick-actions-grid {
     grid-template-columns: repeat(2, 1fr);
   }
-}
-
-@media (max-width: 1024px) {
+  
   .overview-content-grid {
-    grid-template-columns: 1fr;
+    gap: 1.25rem;
   }
 }
 
-@media (max-width: 768px) {
+/* Tablet (768px – 1023px) */
+@media (max-width: 1023px) {
+  .overview-header {
+    margin-bottom: 1.5rem;
+  }
+
   .header-content {
     flex-direction: column;
     align-items: stretch;
+    gap: 1.25rem;
   }
 
   .add-property-header-btn {
     width: 100%;
     justify-content: center;
+    padding: 0.75rem 1.25rem;
+    font-size: 0.9rem;
+  }
+
+  .greeting-section h1 {
+    font-size: 1.65rem;
+  }
+
+  .greeting-section .subtitle {
+    font-size: 0.95rem;
+  }
+
+  .stats-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1rem;
+  }
+
+  .stat-card {
+    padding: 1.25rem;
+  }
+
+  .stat-icon-wrapper {
+    width: 48px;
+    height: 48px;
+  }
+
+  .stat-value {
+    font-size: 1.6rem;
+  }
+
+  .quick-actions-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 0.875rem;
+  }
+
+  .quick-action-card {
+    padding: 1.25rem;
+  }
+
+  .action-icon {
+    width: 48px;
+    height: 48px;
+  }
+
+  .overview-content-grid {
+    grid-template-columns: 1fr;
+    gap: 1.25rem;
+  }
+
+  .recent-properties-section,
+  .recent-inquiries-section {
+    padding: 1.25rem;
+  }
+}
+
+/* Mobile (≤767px) */
+@media (max-width: 767px) {
+  .overview-header {
+    margin-bottom: 1.5rem;
+  }
+
+  .header-content {
+    gap: 1rem;
   }
 
   .greeting-section h1 {
     font-size: 1.5rem;
+    margin-bottom: 0.4rem;
+  }
+
+  .greeting-section .subtitle {
+    font-size: 0.9rem;
+  }
+
+  .add-property-header-btn {
+    padding: 0.75rem 1.25rem;
+    font-size: 0.875rem;
+    min-height: 44px;
   }
 
   .stats-grid {
     grid-template-columns: 1fr;
+    gap: 0.875rem;
+    margin-bottom: 1.5rem;
+  }
+
+  .stat-card {
+    padding: 1.125rem;
+    gap: 0.875rem;
+  }
+
+  .stat-icon-wrapper {
+    width: 44px;
+    height: 44px;
+  }
+
+  .stat-value {
+    font-size: 1.5rem;
+  }
+
+  .stat-label {
+    font-size: 0.8rem;
+  }
+
+  .section-title {
+    font-size: 1.15rem;
+    margin-bottom: 0.875rem;
   }
 
   .quick-actions-grid {
     grid-template-columns: 1fr;
+    gap: 0.75rem;
+    margin-bottom: 1.5rem;
+  }
+
+  .quick-action-card {
+    padding: 1.125rem;
+    gap: 0.65rem;
+  }
+
+  .action-icon {
+    width: 44px;
+    height: 44px;
+  }
+
+  .action-title {
+    font-size: 0.9rem;
+  }
+
+  .action-desc {
+    font-size: 0.75rem;
+  }
+
+  .recent-properties-section,
+  .recent-inquiries-section {
+    padding: 1rem;
+    border-radius: var(--radius-md);
+  }
+
+  .properties-list {
+    gap: 0.875rem;
   }
 
   .property-list-item {
     flex-wrap: wrap;
+    padding: 0.875rem;
+    gap: 0.875rem;
+  }
+
+  .property-thumbnail {
+    width: 90px;
+    height: 70px;
+  }
+
+  .property-title {
+    font-size: 0.9rem;
+  }
+
+  .property-location {
+    font-size: 0.75rem;
+  }
+
+  .property-stats {
+    gap: 0.75rem;
+  }
+
+  .property-stats .stat-item {
+    font-size: 0.75rem;
   }
 
   .property-price {
@@ -766,20 +925,109 @@
     padding-top: 0.5rem;
     border-top: 1px solid var(--border-color);
   }
+
+  .property-price .price {
+    font-size: 1rem;
+  }
+
+  .inquiries-list {
+    gap: 0.65rem;
+  }
+
+  .inquiry-item {
+    padding: 0.875rem;
+    gap: 0.875rem;
+  }
+
+  .inquiry-avatar {
+    width: 40px;
+    height: 40px;
+    font-size: 0.95rem;
+  }
+
+  .inquiry-name {
+    font-size: 0.85rem;
+  }
+
+  .inquiry-property {
+    font-size: 0.75rem;
+  }
+
+  .inquiry-message {
+    font-size: 0.8rem;
+  }
 }
 
+/* Small Mobile (≤480px) */
 @media (max-width: 480px) {
+  .greeting-section h1 {
+    font-size: 1.35rem;
+  }
+
+  .greeting-section .subtitle {
+    font-size: 0.85rem;
+  }
+
+  .stat-card {
+    padding: 1rem;
+  }
+
+  .stat-icon-wrapper {
+    width: 40px;
+    height: 40px;
+  }
+
+  .stat-value {
+    font-size: 1.35rem;
+  }
+
+  .stat-label {
+    font-size: 0.75rem;
+  }
+
+  .section-title {
+    font-size: 1.05rem;
+  }
+
+  .quick-action-card {
+    padding: 1rem;
+  }
+
+  .action-icon {
+    width: 40px;
+    height: 40px;
+  }
+
+  .recent-properties-section,
+  .recent-inquiries-section {
+    padding: 0.875rem;
+  }
+
   .property-thumbnail {
     width: 80px;
     height: 60px;
   }
 
-  .stat-card {
-    padding: 1.25rem;
+  .inquiry-avatar {
+    width: 36px;
+    height: 36px;
+    font-size: 0.9rem;
+  }
+}
+
+/* Extra Small Mobile (≤360px) */
+@media (max-width: 360px) {
+  .greeting-section h1 {
+    font-size: 1.25rem;
   }
 
   .stat-value {
-    font-size: 1.5rem;
+    font-size: 1.25rem;
+  }
+
+  .property-thumbnail {
+    width: 70px;
+    height: 55px;
   }
 }
 

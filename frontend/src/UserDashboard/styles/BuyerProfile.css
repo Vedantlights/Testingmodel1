@@ -653,30 +653,98 @@
    RESPONSIVE DESIGN
    ============================================================================ */
 
-/* Tablet */
-@media (max-width: 1200px) {
+/* Large Desktop (≥1440px) */
+@media (min-width: 1440px) {
+  .buyer-seller-profile {
+    padding: 2.5rem;
+  }
+
+  .buyer-profile-header h1 {
+    font-size: 2.25rem;
+  }
+
+  .buyer-profile-content {
+    gap: 2rem;
+  }
+
+  .buyer-profile-card {
+    padding: 2.5rem;
+  }
+}
+
+/* Laptop (1024px - 1439px) */
+@media (min-width: 1024px) and (max-width: 1439px) {
+  .buyer-profile-content {
+    grid-template-columns: minmax(320px, 380px) 1fr;
+    gap: 1.75rem;
+  }
+}
+
+/* Tablet (768px - 1023px) */
+@media (min-width: 768px) and (max-width: 1023px) {
+  .buyer-seller-profile {
+    padding: 1.75rem;
+  }
+
+  .buyer-profile-header {
+    padding-top: 40px;
+    padding-left: 20px;
+  }
+
+  .buyer-profile-header h1 {
+    font-size: clamp(1.6rem, 3vw, 1.8rem);
+  }
+
   .buyer-profile-content {
     grid-template-columns: 1fr;
+    gap: 1.5rem;
   }
 
   .buyer-profile-card {
     max-width: 100%;
     margin: 0;
+    padding: 1.75rem;
+  }
+
+  .buyer-form-row {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1.25rem;
+  }
+
+  .buyer-avatar-container {
+    width: 130px;
+    height: 130px;
+  }
+
+  .buyer-avatar-upload-btn {
+    width: 38px;
+    height: 38px;
+    min-width: 38px;
+    min-height: 38px; /* Tap-friendly */
+  }
+
+  .buyer-cancel-btn,
+  .buyer-save-btn,
+  .buyer-section-btn {
+    min-height: 44px; /* Tap-friendly */
   }
 }
 
-/* Mobile Large */
-@media (max-width: 768px) {
+/* Mobile (≤767px) */
+@media (max-width: 767px) {
   .buyer-seller-profile {
-    margin: 10px;
+    padding: 1rem;
+    margin: 0;
   }
 
   .buyer-profile-header {
-    margin-bottom: 1 rem;
+    margin-bottom: 1.5rem;
+    padding-top: 30px;
+    padding-left: 0;
   }
 
   .buyer-profile-header h1 {
-    font-size: 1.5rem;
+    font-size: clamp(1.4rem, 5vw, 1.6rem);
   }
 
   .buyer-profile-content {
@@ -711,6 +779,8 @@
   .buyer-avatar-upload-btn {
     width: 36px;
     height: 36px;
+    min-width: 36px;
+    min-height: 36px; /* Tap-friendly */
   }
 
   .buyer-avatar-upload-btn svg {
@@ -738,6 +808,7 @@
 
   .buyer-input-wrapper {
     padding: 0.75rem 0.875rem;
+    min-height: 44px; /* Tap-friendly */
   }
 
   .buyer-input-wrapper input {
@@ -756,6 +827,7 @@
     width: 100%;
     justify-content: center;
     padding: 0.875rem 1.5rem;
+    min-height: 44px; /* Tap-friendly */
   }
 
   /* Section Toggle */
@@ -768,14 +840,15 @@
     width: 100%;
     justify-content: center;
     padding: 0.875rem 1.25rem;
+    min-height: 44px; /* Tap-friendly */
   }
 
   /* Favorites Grid */
   .buyer-favorites-grid {
     grid-template-columns: 1fr;
     gap: 1.25rem;
-    margin-left: 0.5rem;
-    margin-right: 0.5rem;
+    margin-left: 0;
+    margin-right: 0;
   }
 
   .buyer-empty-favorites {
@@ -783,26 +856,27 @@
   }
 
   .buyer-empty-favorites h3 {
-    font-size: 1.3rem;
+    font-size: clamp(1.2rem, 4vw, 1.3rem);
   }
 
   .buyer-empty-favorites p {
-    font-size: 0.95rem;
+    font-size: clamp(0.9rem, 2.5vw, 0.95rem);
   }
 }
 
-/* Mobile Small */
+/* Small Mobile (≤480px) */
 @media (max-width: 480px) {
   .buyer-seller-profile {
-    margin: 12px;
+    padding: 0.75rem;
   }
 
   .buyer-profile-header {
     margin-bottom: 1.25rem;
+    padding-top: 20px;
   }
 
   .buyer-profile-header h1 {
-    font-size: 1.35rem;
+    font-size: clamp(1.2rem, 5vw, 1.35rem);
   }
 
   .buyer-profile-content {
@@ -829,6 +903,8 @@
   .buyer-avatar-upload-btn {
     width: 32px;
     height: 32px;
+    min-width: 32px;
+    min-height: 32px; /* Tap-friendly */
     bottom: 2px;
     right: 2px;
   }
@@ -954,14 +1030,19 @@
   }
 }
 
-/* Mobile Extra Small */
+/* Extra Small Mobile (≤360px) */
 @media (max-width: 360px) {
   .buyer-seller-profile {
-    margin: 10px;
+    padding: 0.625rem;
+    margin: 0;
+  }
+
+  .buyer-profile-header {
+    padding-top: 15px;
   }
 
   .buyer-profile-header h1 {
-    font-size: 1.25rem;
+    font-size: clamp(1.1rem, 5vw, 1.25rem);
   }
 
   .buyer-profile-card,
@@ -974,12 +1055,25 @@
     height: 90px;
   }
 
+  .buyer-avatar-upload-btn {
+    width: 30px;
+    height: 30px;
+    min-width: 30px;
+    min-height: 30px; /* Tap-friendly */
+  }
+
   .buyer-profile-name-section h2 {
     font-size: 1.1rem;
   }
 
   .buyer-profile-role {
     font-size: 0.8rem;
+  }
+
+  .buyer-cancel-btn,
+  .buyer-save-btn,
+  .buyer-section-btn {
+    min-height: 44px; /* Tap-friendly */
   }
 
   .buyer-badge {

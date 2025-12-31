@@ -619,9 +619,42 @@
 /* RESPONSIVE              */
 /* ======================= */
 
-@media (max-width: 1024px) {
+/* Large Desktop (≥1440px) - Default styles apply */
+
+/* Laptop (1024px – 1439px) */
+@media (max-width: 1439px) {
+  .seller-props-container.grid {
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 1.25rem;
+  }
+  
+  .seller-props-header h1 {
+    font-size: 1.75rem;
+  }
+}
+
+/* Tablet (768px – 1023px) */
+@media (max-width: 1023px) {
+  .seller-props-header {
+    margin-bottom: 1.25rem;
+  }
+
+  .seller-props-header h1 {
+    font-size: 1.65rem;
+  }
+
+  .seller-props-subtitle {
+    font-size: 0.9rem;
+  }
+
+  .seller-props-add-btn {
+    padding: 0.75rem 1.25rem;
+    font-size: 0.9rem;
+  }
+
   .seller-props-container.grid {
     grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 1.125rem;
   }
 
   .seller-props-card.list {
@@ -632,65 +665,145 @@
     width: 100%;
     height: 200px;
   }
+
+  .seller-props-card.grid .seller-props-image {
+    height: 180px;
+  }
+
+  .seller-props-content {
+    padding: 1.125rem;
+  }
+
+  .seller-props-title {
+    font-size: 1rem;
+  }
+
+  .seller-props-price {
+    font-size: 1.15rem;
+  }
 }
 
-@media (max-width: 768px) {
+/* Mobile (≤767px) */
+@media (max-width: 767px) {
+  .seller-props-header {
+    margin-bottom: 1rem;
+  }
+
   .seller-props-header .seller-props-header-content {
     flex-direction: column;
     align-items: stretch;
+    gap: 1rem;
+  }
+
+  .seller-props-header h1 {
+    font-size: 1.5rem;
+    margin-bottom: 0.3rem;
+  }
+
+  .seller-props-subtitle {
+    font-size: 0.85rem;
   }
 
   .seller-props-add-btn {
     width: 100%;
     justify-content: center;
+    padding: 0.75rem 1.25rem;
+    font-size: 0.875rem;
+    min-height: 44px;
   }
 
   .seller-props-toolbar {
     flex-direction: column;
     align-items: stretch;
+    gap: 0.875rem;
+    margin-bottom: 1.25rem;
   }
 
   .seller-props-search-box {
     max-width: 100%;
+    padding: 0.65rem 0.875rem;
+  }
+
+  .seller-props-search-box input {
+    font-size: 0.9rem;
   }
 
   .seller-props-toolbar-actions {
     flex-direction: column;
     align-items: stretch;
+    gap: 0.75rem;
+    width: 100%;
   }
 
   .seller-props-filter-group {
     width: 100%;
+    gap: 0.5rem;
   }
 
   .seller-props-filter-group select {
     flex: 1;
+    padding: 0.65rem 2rem 0.65rem 0.875rem;
+    font-size: 0.85rem;
   }
 
   .seller-props-view-toggle {
     align-self: flex-end;
+    width: 100%;
+    justify-content: center;
+  }
+
+  .seller-props-view-toggle .seller-props-view-btn {
+    padding: 0.6rem 0.75rem;
+    font-size: 0.85rem;
+  }
+
+  .seller-props-container {
+    gap: 1rem;
   }
 
   .seller-props-container.grid {
     grid-template-columns: 1fr;
   }
 
-  .seller-props-action-btns {
-    width: 100%;
+  .seller-props-card {
+    border-radius: var(--radius-md);
   }
-  
-  .seller-props-view-details-btn,
-  .seller-props-edit-btn,
-  .seller-props-delete-btn {
-    flex: 1;
-    justify-content: center;
-    min-width: calc(33.333% - 0.35rem);
-  }
-}
 
-@media (max-width: 480px) {
+  .seller-props-card.grid .seller-props-image {
+    height: 220px;
+  }
+
+  .seller-props-content {
+    padding: 1rem;
+  }
+
+  .seller-props-title {
+    font-size: 0.95rem;
+    margin-bottom: 0.4rem;
+  }
+
+  .seller-props-location {
+    font-size: 0.8rem;
+    margin-bottom: 0.875rem;
+  }
+
   .seller-props-features {
     gap: 0.75rem;
+    padding: 0.65rem 0;
+    margin-bottom: 0.875rem;
+  }
+
+  .seller-props-feature {
+    font-size: 0.8rem;
+  }
+
+  .seller-props-stats {
+    gap: 1rem;
+    margin-bottom: 0.875rem;
+  }
+
+  .seller-props-stats .seller-props-stat-item {
+    font-size: 0.75rem;
   }
 
   .seller-props-footer {
@@ -699,17 +812,128 @@
     gap: 0.75rem;
   }
 
+  .seller-props-price-section {
+    width: 100%;
+  }
+
+  .seller-props-price {
+    font-size: 1.1rem;
+  }
+
   .seller-props-action-btns {
     width: 100%;
     flex-direction: column;
+    gap: 0.5rem;
   }
 
   .seller-props-view-details-btn,
   .seller-props-edit-btn,
   .seller-props-delete-btn {
     width: 100%;
-    text-align: center;
     justify-content: center;
+    padding: 0.65rem 1rem;
+    font-size: 0.85rem;
+    min-height: 44px;
+  }
+
+  .seller-props-empty-state {
+    padding: 3rem 1.5rem;
+  }
+
+  .seller-props-empty-icon {
+    width: 80px;
+    height: 80px;
+  }
+
+  .seller-props-empty-state h3 {
+    font-size: 1.2rem;
+  }
+
+  .seller-props-empty-state p {
+    font-size: 0.95rem;
+  }
+
+  .seller-props-empty-action-btn {
+    padding: 0.75rem 1.25rem;
+    font-size: 0.9rem;
+  }
+}
+
+/* Small Mobile (≤480px) */
+@media (max-width: 480px) {
+  .seller-props-header h1 {
+    font-size: 1.35rem;
+  }
+
+  .seller-props-card.grid .seller-props-image {
+    height: 200px;
+  }
+
+  .seller-props-content {
+    padding: 0.875rem;
+  }
+
+  .seller-props-title {
+    font-size: 0.9rem;
+  }
+
+  .seller-props-features {
+    gap: 0.65rem;
+  }
+
+  .seller-props-feature {
+    font-size: 0.75rem;
+  }
+
+  .seller-props-price {
+    font-size: 1rem;
+  }
+
+  .seller-props-per-month {
+    font-size: 0.75rem;
+  }
+
+  .seller-props-view-details-btn,
+  .seller-props-edit-btn,
+  .seller-props-delete-btn {
+    padding: 0.6rem 0.875rem;
+    font-size: 0.8rem;
+  }
+
+  .seller-props-empty-state {
+    padding: 2.5rem 1.25rem;
+  }
+
+  .seller-props-empty-icon {
+    width: 70px;
+    height: 70px;
+  }
+
+  .seller-props-empty-state h3 {
+    font-size: 1.1rem;
+  }
+
+  .seller-props-empty-state p {
+    font-size: 0.9rem;
+  }
+}
+
+/* Extra Small Mobile (≤360px) */
+@media (max-width: 360px) {
+  .seller-props-header h1 {
+    font-size: 1.25rem;
+  }
+
+  .seller-props-card.grid .seller-props-image {
+    height: 180px;
+  }
+
+  .seller-props-title {
+    font-size: 0.85rem;
+  }
+
+  .seller-props-price {
+    font-size: 0.95rem;
   }
 }
 

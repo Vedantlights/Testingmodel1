@@ -19,52 +19,162 @@
 }
 
 /* Fully Responsive Container Sizing - Full viewport height */
-@media (min-width: 1024px) {
+/* Large Desktop (≥1440px) */
+@media (min-width: 1440px) {
   .landing-search-bar-container {
     margin-top: 0;
     min-height: 100vh;
-    padding: 100px 20px;
-    padding-top: calc(90px + 100px);
+    padding: 120px 2.5rem;
+    padding-top: calc(90px + 120px);
   }
   
   .landing-search-bar-wrapper {
     max-width: 1400px;
   }
+
+  .search-title {
+    font-size: 3rem;
+  }
+
+  .search-subtitle {
+    font-size: 1.25rem;
+  }
 }
 
-@media (max-width: 1099px) {
+/* Laptop (1024px - 1439px) */
+@media (min-width: 1024px) and (max-width: 1439px) {
   .landing-search-bar-container {
     margin-top: 0;
     min-height: 100vh;
-    padding: 80px 20px;
+    padding: 100px 2rem;
+    padding-top: calc(90px + 100px);
+  }
+  
+  .landing-search-bar-wrapper {
+    max-width: 1200px;
+  }
+
+  .search-title {
+    font-size: 2.5rem;
+  }
+
+  .search-subtitle {
+    font-size: 1.1rem;
+  }
+}
+
+/* Tablet (768px - 1023px) */
+@media (min-width: 768px) and (max-width: 1023px) {
+  .landing-search-bar-container {
+    margin-top: 0;
+    min-height: 100vh;
+    padding: 80px 1.5rem;
     padding-top: calc(5rem + 80px);
   }
-}
 
-@media (max-width: 768px) {
-  .landing-search-bar-container {
-    margin-top: 0;
-    min-height: 100vh;
-    padding: 60px 16px;
-    padding-top: calc(4.5rem + 60px);
+  .search-title {
+    font-size: 2rem;
+  }
+
+  .search-subtitle {
+    font-size: 1rem;
+  }
+
+  .search-form {
+    padding: 1.75rem;
+  }
+
+  .search-inputs {
+    gap: 1.25rem;
   }
 }
 
+/* Mobile (≤767px) */
+@media (max-width: 767px) {
+  .landing-search-bar-container {
+    margin-top: 0;
+    min-height: 100vh;
+    padding: 60px 1rem;
+    padding-top: calc(4.5rem + 60px);
+  }
+
+  .search-title {
+    font-size: clamp(1.5rem, 5vw, 2rem);
+    padding: 0 1rem;
+  }
+
+  .search-subtitle {
+    font-size: clamp(0.9rem, 2.5vw, 1rem);
+    padding: 0 1rem;
+  }
+
+  .search-form {
+    padding: 1.5rem;
+  }
+
+  .search-inputs {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+
+  .search-button {
+    font-size: 1rem;
+    padding: 0.875rem 1.5rem;
+    min-height: 44px; /* Tap-friendly */
+  }
+}
+
+/* Small Mobile (≤480px) */
 @media (max-width: 480px) {
   .landing-search-bar-container {
     margin-top: 0;
     min-height: 100vh;
-    padding: 50px 12px;
+    padding: 50px 0.75rem;
     padding-top: calc(4rem + 50px);
+  }
+
+  .search-title {
+    font-size: clamp(1.3rem, 5vw, 1.75rem);
+    padding: 0 0.75rem;
+  }
+
+  .search-subtitle {
+    font-size: clamp(0.85rem, 2.5vw, 0.95rem);
+    padding: 0 0.75rem;
+  }
+
+  .search-form {
+    padding: 1.25rem;
+  }
+
+  .search-button {
+    font-size: clamp(0.9rem, 2.5vw, 1rem);
+    padding: 0.875rem 1.5rem;
+    min-height: 44px;
   }
 }
 
+/* Extra Small Mobile (≤360px) */
 @media (max-width: 360px) {
   .landing-search-bar-container {
     margin-top: 0;
     min-height: 100vh;
-    padding: 40px 10px;
+    padding: 40px 0.625rem;
     padding-top: calc(3.75rem + 40px);
+  }
+  
+  .search-title {
+    font-size: clamp(1.2rem, 5vw, 1.5rem);
+    padding: 0 0.625rem;
+  }
+  
+  .search-subtitle {
+    font-size: clamp(0.8rem, 2.5vw, 0.9rem);
+    padding: 0 0.625rem;
+  }
+  
+  .search-form {
+    padding: 1rem;
   }
 }
 
@@ -403,36 +513,33 @@
   }
 }
 
-/* Responsive Design */
-@media (max-width: 1200px) {
+/* Quick Search Responsive Design */
+/* Large Desktop (≥1440px) */
+@media (min-width: 1440px) {
   .quick-search-buttons {
-    max-width: 900px;
-    gap: 1.25rem;
+    max-width: 1200px;
+    gap: 1.75rem;
   }
   
   .quick-search-btn-image {
-    max-width: 160px;
+    max-width: 180px;
   }
 }
 
-@media (max-width: 1099px) {
-  .landing-search-bar-container {
-    padding-top: 0;
-    min-height: 100vh;
-    padding: 80px 20px;
-  }
-  
+/* Laptop (1024px - 1439px) */
+@media (min-width: 1024px) and (max-width: 1439px) {
   .quick-search-buttons {
-    max-width: 900px;
-    gap: 1.25rem;
+    max-width: 1000px;
+    gap: 1.5rem;
   }
   
   .quick-search-btn-image {
-    max-width: 160px;
+    max-width: 170px;
   }
 }
 
-@media (max-width: 1024px) {
+/* Tablet (768px - 1023px) */
+@media (min-width: 768px) and (max-width: 1023px) {
   .search-inputs {
     grid-template-columns: repeat(2, 1fr);
     gap: 1.25rem;
@@ -447,37 +554,19 @@
   .quick-search-btn-image {
     max-width: 150px;
   }
+
+  .city-name {
+    font-size: 0.85rem;
+    padding: 0.625rem;
+  }
 }
 
-@media (max-width: 768px) {
-  .landing-search-bar-container {
-    padding-top: 0;
-    min-height: 100vh;
-    padding: 60px 16px;
-  }
-
-  .search-title {
-    font-size: clamp(1.5rem, 5vw, 2rem);
-    padding: 0 16px;
-  }
-
-  .search-subtitle {
-    font-size: clamp(0.9rem, 2.5vw, 1rem);
-    padding: 0 16px;
-  }
-
-  .search-form {
-    padding: 1.5rem;
-  }
-
-  .search-inputs {
-    grid-template-columns: 1fr;
-    gap: 1rem;
-  }
-
+/* Mobile (≤767px) */
+@media (max-width: 767px) {
   .quick-search {
     margin-top: 2.5rem;
     gap: 1.25rem;
+    padding: 0 1rem;
   }
 
   .quick-search-label {
@@ -487,11 +576,13 @@
   .quick-search-buttons {
     grid-template-columns: repeat(3, 1fr);
     gap: 1rem;
-    max-width: 500px;
+    max-width: 100%;
+    width: 100%;
   }
 
   .quick-search-btn-image {
-    max-width: 140px;
+    max-width: 100%;
+    width: 100%;
   }
 
   .city-name {
@@ -500,44 +591,25 @@
   }
 }
 
+/* Small Mobile (≤480px) */
 @media (max-width: 480px) {
-  .landing-search-bar-container {
-    padding-top: 0;
-    min-height: 100vh;
-    padding: 50px 12px;
-  }
-
-  .search-title {
-    font-size: clamp(1.3rem, 5vw, 1.75rem);
-    padding: 0 12px;
-  }
-
-  .search-subtitle {
-    font-size: clamp(0.85rem, 2.5vw, 0.95rem);
-    padding: 0 12px;
-  }
-
-  .search-form {
-    padding: 1.25rem;
-  }
-
-  .search-button {
-    font-size: clamp(0.9rem, 2.5vw, 1rem);
-    padding: 0.875rem 1.5rem;
-  }
-
   .quick-search {
     margin-top: 2rem;
+    padding: 0 0.75rem;
+  }
+
+  .quick-search-label {
+    font-size: clamp(0.85rem, 2.5vw, 0.95rem);
   }
 
   .quick-search-buttons {
     grid-template-columns: repeat(2, 1fr);
     gap: 0.875rem;
-    max-width: 320px;
+    max-width: 100%;
   }
 
   .quick-search-btn-image {
-    max-width: 140px;
+    max-width: 100%;
   }
 
   .city-name {
@@ -550,33 +622,22 @@
   }
 }
 
+/* Extra Small Mobile (≤360px) */
 @media (max-width: 360px) {
-  .landing-search-bar-container {
-    padding-top: 0;
-    min-height: 100vh;
-    padding: 40px 10px;
+  .quick-search {
+    padding: 0 0.625rem;
   }
-  
-  .search-title {
-    font-size: clamp(1.2rem, 5vw, 1.5rem);
-    padding: 0 10px;
-  }
-  
-  .search-subtitle {
-    font-size: clamp(0.8rem, 2.5vw, 0.9rem);
-    padding: 0 10px;
-  }
-  
-  .search-form {
-    padding: 1rem;
-  }
-  
+
   .quick-search-buttons {
-    max-width: 280px;
     gap: 0.75rem;
   }
   
   .quick-search-btn-image {
-    max-width: 120px;
+    max-width: 100%;
+  }
+
+  .city-name {
+    font-size: clamp(0.7rem, 2vw, 0.75rem);
+    padding: 0.5rem;
   }
 }

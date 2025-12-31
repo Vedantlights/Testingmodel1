@@ -137,58 +137,184 @@
 }
 
 /* Responsive Design */
-@media (max-width: 1024px) {
-  .buyer-filtered-properties-grid {
-    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-  }
-  
+/* Large Desktop (≥1440px) */
+@media (min-width: 1440px) {
   .buyer-buy-search-bar-banner,
   .buyer-rent-search-bar-banner {
-    min-height: 500px;
+    padding: 3.5rem 2.5rem 4.5rem;
+    min-height: 600px;
   }
-}
 
-@media (max-width: 768px) {
-  .buyer-buy-search-bar-banner,
-  .buyer-rent-search-bar-banner {
-    padding: 2rem 1rem;
-    min-height: 450px;
+  .buyer-filtered-header {
+    max-width: 1400px;
+    padding: 0 2.5rem;
   }
 
   .buyer-filtered-header h1 {
-    font-size: 1.75rem;
+    font-size: 2.25rem;
+  }
+
+  .buyer-filtered-properties-grid {
+    max-width: 1400px;
+    padding: 2.5rem 2.5rem;
+    grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+    gap: 2rem;
+  }
+}
+
+/* Laptop (1024px - 1439px) */
+@media (min-width: 1024px) and (max-width: 1439px) {
+  .buyer-buy-search-bar-banner,
+  .buyer-rent-search-bar-banner {
+    padding: 3rem 2rem 4rem;
+    min-height: 550px;
+  }
+
+  .buyer-filtered-header {
+    max-width: 1200px;
+    padding: 0 2rem;
+  }
+
+  .buyer-filtered-header h1 {
+    font-size: 2rem;
+  }
+
+  .buyer-filtered-properties-grid {
+    max-width: 1200px;
+    padding: 2rem 2rem;
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+    gap: 1.75rem;
+  }
+}
+
+/* Tablet (768px - 1023px) */
+@media (min-width: 768px) and (max-width: 1023px) {
+  .buyer-buy-search-bar-banner,
+  .buyer-rent-search-bar-banner {
+    padding: 2.5rem 1.5rem 3.5rem;
+    min-height: 500px;
+  }
+
+  .buyer-filtered-header {
+    padding: 0 1.5rem;
+    margin: 1.75rem auto;
+  }
+
+  .buyer-filtered-header h1 {
+    font-size: clamp(1.7rem, 4vw, 1.85rem);
   }
 
   .buyer-filtered-count {
-    font-size: 1rem;
+    font-size: clamp(0.95rem, 2.5vw, 1rem);
+  }
+
+  .buyer-filtered-properties-grid {
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    padding: 1.75rem 1.5rem;
+    gap: 1.5rem;
+  }
+}
+
+/* Mobile (≤767px) */
+@media (max-width: 767px) {
+  .buyer-buy-search-bar-banner,
+  .buyer-rent-search-bar-banner {
+    padding: 2rem 1rem 3rem;
+    min-height: 450px;
+  }
+
+  .buyer-filtered-header {
+    padding: 0 1rem;
+    margin: 1.5rem auto;
+  }
+
+  .buyer-filtered-header h1 {
+    font-size: clamp(1.5rem, 5vw, 1.75rem);
+  }
+
+  .buyer-filtered-count {
+    font-size: clamp(0.95rem, 2.5vw, 1rem);
   }
 
   .buyer-filtered-properties-grid {
     grid-template-columns: 1fr;
     padding: 1.5rem 1rem;
+    gap: 1.25rem;
   }
 
   .buyer-no-properties {
     padding: 3rem 1.5rem;
-  }
-}
-
-@media (max-width: 480px) {
-  .buyer-buy-search-bar-banner,
-  .buyer-rent-search-bar-banner {
-    padding: 1.5rem 1rem;
-    min-height: 400px;
-  }
-
-  .buyer-filtered-header h1 {
-    font-size: 1.5rem;
+    margin: 2rem auto;
   }
 
   .buyer-no-properties h2 {
-    font-size: 1.5rem;
+    font-size: clamp(1.4rem, 4vw, 1.6rem);
   }
 
   .buyer-no-properties p {
-    font-size: 1rem;
+    font-size: clamp(0.95rem, 2.5vw, 1rem);
+  }
+}
+
+/* Small Mobile (≤480px) */
+@media (max-width: 480px) {
+  .buyer-buy-search-bar-banner,
+  .buyer-rent-search-bar-banner {
+    padding: 1.5rem 0.75rem 2.5rem;
+    min-height: 400px;
+  }
+
+  .buyer-filtered-header {
+    padding: 0 0.75rem;
+    margin: 1.25rem auto;
+  }
+
+  .buyer-filtered-header h1 {
+    font-size: clamp(1.3rem, 5vw, 1.5rem);
+  }
+
+  .buyer-filtered-count {
+    font-size: clamp(0.9rem, 2.5vw, 0.95rem);
+  }
+
+  .buyer-filtered-properties-grid {
+    padding: 1.25rem 0.75rem;
+    gap: 1rem;
+  }
+
+  .buyer-no-properties {
+    padding: 2.5rem 1.25rem;
+    margin: 1.75rem auto;
+  }
+
+  .buyer-no-properties h2 {
+    font-size: clamp(1.3rem, 4vw, 1.4rem);
+  }
+
+  .buyer-no-properties p {
+    font-size: clamp(0.9rem, 2.5vw, 0.95rem);
+  }
+}
+
+/* Extra Small Mobile (≤360px) */
+@media (max-width: 360px) {
+  .buyer-buy-search-bar-banner,
+  .buyer-rent-search-bar-banner {
+    padding: 1.25rem 0.625rem 2rem;
+    min-height: 380px;
+  }
+
+  .buyer-filtered-header {
+    padding: 0 0.625rem;
+    margin: 1rem auto;
+  }
+
+  .buyer-filtered-header h1 {
+    font-size: clamp(1.2rem, 5vw, 1.3rem);
+  }
+
+  .buyer-filtered-properties-grid {
+    padding: 1rem 0.625rem;
+    gap: 0.875rem;
   }
 }

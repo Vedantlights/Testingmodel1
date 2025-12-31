@@ -322,7 +322,13 @@
 }
 
 /* Desktop Styles */
-@media (min-width: 1100px) {
+/* Large Desktop (≥1440px) */
+@media (min-width: 1440px) {
+  .navbar-container {
+    max-width: 1400px;
+    padding: 0 2.5rem;
+  }
+
   .navbar-content {
     height: 90px;
   }
@@ -355,7 +361,114 @@
   }
 }
 
-/* Tablet and Mobile Optimization */
+/* Laptop (1024px - 1439px) */
+@media (min-width: 1024px) and (max-width: 1439px) {
+  .navbar-container {
+    max-width: 1200px;
+    padding: 0 2rem;
+  }
+
+  .navbar-content {
+    height: 90px;
+  }
+  
+  .nav-links-desktop,
+  .auth-buttons-desktop {
+    display: flex;
+  }
+
+  .mobile-menu-button {
+    display: none;
+  }
+
+  .mobile-menu {
+    display: none;
+  }
+  
+  .logo-image {
+    height: 65px;
+    max-height: 65px;
+  }
+  
+  .nav-link {
+    font-size: 0.95rem;
+  }
+  
+  .auth-button {
+    padding: 0.625rem 1.25rem;
+    font-size: 0.875rem;
+  }
+}
+
+/* Desktop (1100px - 1023px) - Transition point */
+@media (min-width: 1100px) and (max-width: 1023px) {
+  .navbar-content {
+    height: 90px;
+  }
+  
+  .nav-links-desktop,
+  .auth-buttons-desktop {
+    display: flex;
+  }
+
+  .mobile-menu-button {
+    display: none;
+  }
+
+  .mobile-menu {
+    display: none;
+  }
+  
+  .logo-image {
+    height: 65px;
+    max-height: 65px;
+  }
+  
+  .nav-link {
+    font-size: 0.95rem;
+  }
+  
+  .auth-button {
+    padding: 0.625rem 1.25rem;
+    font-size: 0.875rem;
+  }
+}
+
+/* Tablet (768px - 1023px) */
+@media (min-width: 768px) and (max-width: 1023px) {
+  .navbar-container {
+    padding: 0 1.5rem;
+  }
+  
+  .navbar {
+    height: 5rem;
+  }
+  
+  .navbar-scrolled {
+    height: 5rem;
+  }
+  
+  .navbar-content {
+    gap: 1rem;
+    height: 5rem;
+  }
+
+  .nav-links-desktop,
+  .auth-buttons-desktop {
+    display: none;
+  }
+
+  .mobile-menu-button {
+    display: flex;
+  }
+  
+  .logo-image {
+    height: 55px;
+    max-height: 55px;
+  }
+}
+
+/* Tablet and Mobile Optimization (≤1099px) */
 @media (max-width: 1099px) {
   .navbar-container {
     padding: 0 1.5rem;
@@ -389,8 +502,8 @@
   }
 }
 
-/* Mobile Optimization - Large Phones */
-@media (max-width: 768px) {
+/* Mobile (≤767px) */
+@media (max-width: 767px) {
   .navbar-container {
     padding: 0 1.25rem;
   }
@@ -432,10 +545,11 @@
   .auth-button {
     padding: 0.625rem 1.25rem;
     font-size: 0.9rem;
+    min-height: 44px; /* Tap-friendly size */
   }
 }
 
-/* Mobile Optimization - Small Phones */
+/* Small Mobile (≤480px) */
 @media (max-width: 480px) {
   .navbar-container {
     padding: 0 1rem;
@@ -460,9 +574,11 @@
   }
 
   .mobile-menu-button {
-    width: 36px;
-    height: 36px;
+    width: 40px; /* Tap-friendly size */
+    height: 40px;
     gap: 4px;
+    min-width: 44px; /* Ensure tap-friendly */
+    min-height: 44px;
   }
 
   .menu-icon-line {
@@ -488,9 +604,12 @@
   }
 
   .mobile-nav-link {
-    padding: 0.625rem 0.75rem;
+    padding: 0.75rem 0.875rem; /* Increased for tap-friendly */
     font-size: 0.95rem;
     border-radius: 6px;
+    min-height: 44px; /* Tap-friendly size */
+    display: flex;
+    align-items: center;
   }
 
   .mobile-nav-link::before {
@@ -504,13 +623,15 @@
   }
 
   .auth-button {
-    padding: 0.5rem 1rem;
+    padding: 0.75rem 1.25rem; /* Increased for tap-friendly */
     font-size: 0.875rem;
     border-radius: 6px;
+    min-height: 44px; /* Tap-friendly size */
+    width: 100%;
   }
 }
 
-/* Mobile Optimization - Extra Small Phones */
+/* Extra Small Mobile (≤360px) */
 @media (max-width: 360px) {
   .navbar-container {
     padding: 0 0.875rem;
@@ -534,8 +655,10 @@
   }
 
   .mobile-menu-button {
-    width: 34px;
-    height: 34px;
+    width: 40px; /* Maintain tap-friendly size */
+    height: 40px;
+    min-width: 44px;
+    min-height: 44px;
   }
 
   .menu-icon-line {
@@ -551,8 +674,9 @@
   }
 
   .mobile-nav-link {
-    padding: 0.5rem 0.625rem;
+    padding: 0.75rem 0.875rem; /* Maintain tap-friendly size */
     font-size: 0.9rem;
+    min-height: 44px;
   }
 
   .mobile-auth-buttons {
@@ -562,8 +686,10 @@
   }
 
   .auth-button {
-    padding: 0.5rem 0.875rem;
-    font-size: 0.8rem;
+    padding: 0.75rem 1rem; /* Maintain tap-friendly size */
+    font-size: 0.85rem;
+    min-height: 44px;
+    width: 100%;
   }
 }
 

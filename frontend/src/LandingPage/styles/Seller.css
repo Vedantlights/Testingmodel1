@@ -430,44 +430,122 @@ h2 {
 }
 
 /* Fully Responsive Design - Viewport height only */
-@media (min-width: 1024px) {
+/* Large Desktop (≥1440px) */
+@media (min-width: 1440px) {
   .seller-hero-sections {
     margin-top: 8rem;
     height: calc(100vh - 8rem);
-    padding: 0 20px;
+    padding: 0 2.5rem;
   }
   
   section {
-    padding: 80px 40px;
+    padding: 80px 2.5rem;
+    max-width: 1400px;
+  }
+
+  .seller-hero-title {
+    font-size: 2.8rem;
+  }
+
+  .seller-hero-subtitle {
+    font-size: 1.2rem;
   }
 }
 
-@media (max-width: 1099px) {
+/* Laptop (1024px - 1439px) */
+@media (min-width: 1024px) and (max-width: 1439px) {
+  .seller-hero-sections {
+    margin-top: 8rem;
+    height: calc(100vh - 8rem);
+    padding: 0 2rem;
+  }
+  
+  section {
+    padding: 70px 2rem;
+    max-width: 1200px;
+  }
+
+  .seller-hero-title {
+    font-size: 2.5rem;
+  }
+
+  .seller-hero-subtitle {
+    font-size: 1.15rem;
+  }
+}
+
+/* Tablet (768px - 1023px) */
+@media (min-width: 768px) and (max-width: 1023px) {
   .seller-hero-sections {
     margin-top: 5rem;
     height: calc(100vh - 5rem);
-    padding: 0 20px;
+    padding: 0 1.5rem;
   }
   
   section {
-    padding: 50px 20px;
+    padding: 50px 1.5rem;
+    max-width: 100%;
+  }
+
+  .seller-hero-title {
+    font-size: 2rem;
+  }
+
+  .seller-hero-subtitle {
+    font-size: 1.05rem;
+  }
+
+  .benefits-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 25px;
+  }
+
+  .steps-container {
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 25px;
+  }
+
+  .reviews-container {
+    grid-template-columns: 1fr;
+    gap: 25px;
+  }
+
+  .features-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 18px;
+  }
+
+  .seller-stats-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 25px;
   }
 }
 
-@media (max-width: 768px) {
+/* Mobile (≤767px) */
+@media (max-width: 767px) {
   .seller-hero-sections {
     margin-top: 4.5rem;
     height: calc(100vh - 4.5rem);
-    padding: 0 16px;
+    padding: 0 1rem;
   }
 
   section {
-    padding: 40px 16px;
+    padding: 40px 1rem;
   }
 
   h2 {
     font-size: clamp(1.5rem, 5vw, 1.8rem);
     margin-bottom: 30px;
+    padding: 0 1rem;
+  }
+
+  .seller-hero-title {
+    font-size: clamp(1.75rem, 5vw, 2.2rem);
+  }
+
+  .seller-hero-subtitle {
+    font-size: clamp(1rem, 2.5vw, 1.1rem);
   }
 
   .steps-container {
@@ -489,12 +567,14 @@ h2 {
   .seller-cta-buttons {
     flex-direction: column;
     width: 100%;
-    max-width: 300px;
+    max-width: 100%;
     margin: 0 auto;
   }
   
   .seller-btn {
     width: 100%;
+    min-height: 44px; /* Tap-friendly */
+    font-size: 1rem;
   }
   
   .features-grid {
@@ -506,21 +586,40 @@ h2 {
     grid-template-columns: repeat(2, 1fr);
     gap: 20px;
   }
+
+  .preview-card {
+    padding: 30px 20px;
+  }
+
+  .hover-message {
+    font-size: 1rem;
+    padding: 15px 20px;
+    white-space: normal;
+    text-align: center;
+    max-width: 90%;
+  }
 }
 
+/* Small Mobile (≤480px) */
 @media (max-width: 480px) {
   .seller-hero-sections {
     margin-top: 4rem;
     height: calc(100vh - 4rem);
-    padding: 0 12px;
+    padding: 0 0.75rem;
   }
 
   section {
-    padding: 30px 12px;
+    padding: 30px 0.75rem;
+  }
+
+  h2 {
+    font-size: clamp(1.3rem, 5vw, 1.6rem);
+    padding: 0 0.75rem;
   }
   
   .seller-stats-grid {
     grid-template-columns: 1fr;
+    gap: 16px;
   }
   
   .benefit-card,
@@ -528,16 +627,53 @@ h2 {
   .review-card {
     padding: 20px;
   }
+
+  .seller-stat-icon {
+    margin-left: 0;
+    text-align: center;
+  }
+
+  .seller-stat-card h3 {
+    font-size: 2rem;
+  }
+
+  .final-cta h2 {
+    font-size: clamp(1.5rem, 5vw, 1.8rem);
+  }
+
+  .final-cta p {
+    font-size: 1rem;
+  }
+
+  .seller-btn-large {
+    padding: 16px 35px;
+    font-size: 1.1rem;
+    min-height: 44px;
+  }
 }
 
+/* Extra Small Mobile (≤360px) */
 @media (max-width: 360px) {
   .seller-hero-sections {
     margin-top: 3.75rem;
     height: calc(100vh - 3.75rem);
-    padding: 0 10px;
+    padding: 0 0.625rem;
   }
   
   section {
-    padding: 25px 10px;
+    padding: 25px 0.625rem;
+  }
+
+  h2 {
+    font-size: clamp(1.2rem, 5vw, 1.5rem);
+    padding: 0 0.625rem;
+  }
+
+  .seller-hero-title {
+    font-size: clamp(1.5rem, 5vw, 2rem);
+  }
+
+  .seller-hero-subtitle {
+    font-size: clamp(0.9rem, 2.5vw, 1rem);
   }
 }

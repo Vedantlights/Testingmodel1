@@ -518,21 +518,153 @@
   width: 100%;
 }
 
-/* Responsive */
-@media (max-width: 480px) {
+/* Responsive Design */
+/* Large Desktop (≥1440px) */
+@media (min-width: 1440px) {
+  .login-container {
+    padding: 2rem;
+  }
+
   .login-card {
-    padding: 24px;
+    max-width: 520px;
+    padding: 40px;
+  }
+
+  .login-header h1 {
+    font-size: 30px;
+  }
+}
+
+/* Laptop (1024px - 1439px) */
+@media (min-width: 1024px) and (max-width: 1439px) {
+  .login-container {
+    padding: 1.5rem;
+  }
+
+  .login-card {
+    max-width: 500px;
+    padding: 36px;
+  }
+
+  .login-header h1 {
+    font-size: 28px;
+  }
+}
+
+/* Tablet (768px - 1023px) */
+@media (min-width: 768px) and (max-width: 1023px) {
+  .login-container {
+    padding: 1.25rem;
+  }
+
+  .login-card {
+    max-width: 480px;
+    padding: 32px;
+  }
+
+  .login-header h1 {
+    font-size: 26px;
+  }
+
+  .user-type-toggle button {
+    font-size: 12px;
+    padding: 10px 8px;
+  }
+}
+
+/* Mobile (≤767px) */
+@media (max-width: 767px) {
+  .login-container {
+    padding: 1rem;
+  }
+
+  .login-card {
+    padding: 28px;
+    max-width: 100%;
+  }
+
+  .login-header h1 {
+    font-size: clamp(22px, 5vw, 26px);
+  }
+
+  .login-header p {
+    font-size: clamp(13px, 2.5vw, 14px);
   }
 
   .user-type-toggle {
     flex-direction: column;
+    gap: 0.625rem;
+  }
+
+  .user-type-toggle button {
+    padding: 12px;
+    font-size: 12px;
+    min-height: 44px; /* Tap-friendly */
+  }
+
+  .login-form input {
+    padding: 12px;
+    font-size: 15px;
+    min-height: 44px; /* Tap-friendly */
+  }
+
+  .login-btn {
+    min-height: 44px; /* Tap-friendly */
+    font-size: 15px;
+  }
+
+  .password-toggle {
+    min-width: 44px;
+    min-height: 44px;
+  }
+}
+
+/* Small Mobile (≤480px) */
+@media (max-width: 480px) {
+  .login-container {
+    padding: 0.75rem;
+  }
+
+  .login-card {
+    padding: 24px;
+  }
+
+  .login-header h1 {
+    font-size: clamp(20px, 5vw, 24px);
   }
 
   .user-type-toggle button {
     padding: 14px;
+    min-height: 44px;
+  }
+
+  .login-form input {
+    padding: 12px;
+    min-height: 44px;
+  }
+
+  .login-btn {
+    padding: 14px;
+    min-height: 44px;
+  }
+}
+
+/* Extra Small Mobile (≤360px) */
+@media (max-width: 360px) {
+  .login-container {
+    padding: 0.625rem;
+  }
+
+  .login-card {
+    padding: 20px;
   }
 
   .login-header h1 {
-    font-size: 24px;
+    font-size: clamp(18px, 5vw, 22px);
+  }
+
+  .user-type-toggle button {
+    padding: 12px;
+    font-size: 11px;
   }
 }

@@ -594,59 +594,222 @@
 }
 
 /* Responsive Design */
-@media (max-width: 1024px) {
-  .buyer-contact-two-column {
-    grid-template-columns: 1fr;
-    gap: 2rem;
+/* Large Desktop (≥1440px) */
+@media (min-width: 1440px) {
+  .buyer-contact-container {
+    padding: 6rem 2.5rem;
+    max-width: 1400px;
   }
-  
-  .buyer-info-section { 
-    gap: 1.5rem; 
+
+  .buyer-contact-title {
+    font-size: 3.75rem;
+  }
+
+  .buyer-header-text {
+    font-size: 1.35rem;
+  }
+
+  .buyer-contact-two-column {
+    gap: 2.5rem;
   }
 }
 
-@media (max-width: 768px) {
-  .buyer-contact-container { padding: 3rem 1rem; }
-  .buyer-contact-header { margin-bottom: 3rem; }
+/* Laptop (1024px - 1439px) */
+@media (min-width: 1024px) and (max-width: 1439px) {
+  .buyer-contact-container {
+    padding: 5rem 2rem;
+    max-width: 1200px;
+  }
+
+  .buyer-contact-title {
+    font-size: 3rem;
+  }
+
+  .buyer-header-text {
+    font-size: 1.25rem;
+  }
+}
+
+/* Tablet (768px - 1023px) */
+@media (min-width: 768px) and (max-width: 1023px) {
+  .buyer-contact-container {
+    padding: 4rem 1.5rem;
+  }
+
+  .buyer-contact-header {
+    margin-bottom: 3rem;
+  }
+
+  .buyer-contact-title {
+    font-size: clamp(2rem, 4vw, 2.5rem);
+  }
+
+  .buyer-header-text {
+    font-size: clamp(1.1rem, 2.5vw, 1.2rem);
+  }
+
   .buyer-contact-two-column {
     grid-template-columns: 1fr;
     gap: 2rem;
   }
+
+  .buyer-info-section {
+    gap: 1.5rem;
+  }
+
   .buyer-contact-info-card {
     padding: 2rem;
   }
-  .buyer-info-section { flex-direction: column; gap: 1.5rem; }
-  .buyer-form-card { padding: 2rem; }
-  .buyer-form-inputs > div { 
-    grid-template-columns: 1fr; 
-    gap: 0.5rem; 
+
+  .buyer-form-card {
+    padding: 2rem;
+  }
+
+  .buyer-form-inputs > div {
+    grid-template-columns: 1fr;
+    gap: 0.75rem;
+  }
+
+  .buyer-form-inputs input,
+  .buyer-form-inputs textarea,
+  .buyer-form-inputs button {
+    min-height: 44px; /* Tap-friendly */
   }
 }
 
+/* Mobile (≤767px) */
+@media (max-width: 767px) {
+  .buyer-contact-container {
+    padding: 3rem 1rem;
+  }
+
+  .buyer-contact-header {
+    margin-bottom: 3rem;
+  }
+
+  .buyer-contact-title {
+    font-size: clamp(1.75rem, 5vw, 2rem);
+  }
+
+  .buyer-header-text {
+    font-size: clamp(1rem, 2.5vw, 1.1rem);
+  }
+
+  .buyer-contact-two-column {
+    grid-template-columns: 1fr;
+    gap: 2rem;
+  }
+
+  .buyer-contact-info-card {
+    padding: 1.75rem;
+  }
+
+  .buyer-contact-info-title,
+  .buyer-form-title {
+    font-size: clamp(1.2rem, 4vw, 1.35rem);
+  }
+
+  .buyer-info-section {
+    flex-direction: column;
+    gap: 1.5rem;
+  }
+
+  .buyer-form-card {
+    padding: 1.75rem;
+  }
+
+  .buyer-form-inputs > div {
+    grid-template-columns: 1fr;
+    gap: 0.75rem;
+  }
+
+  .buyer-form-inputs input,
+  .buyer-form-inputs textarea {
+    min-height: 44px; /* Tap-friendly */
+  }
+
+  .buyer-form-inputs button {
+    width: 100%;
+    min-height: 44px; /* Tap-friendly */
+  }
+
+  .buyer-faq-question {
+    min-height: 44px; /* Tap-friendly */
+    padding: 1rem 1.25rem;
+    font-size: clamp(0.9rem, 2.5vw, 0.95rem);
+  }
+
+  .buyer-faq-answer {
+    padding: 0 1.25rem 1.25rem 1.25rem;
+    font-size: clamp(0.85rem, 2.5vw, 0.9rem);
+  }
+}
+
+/* Small Mobile (≤480px) */
 @media (max-width: 480px) {
-  .buyer-contact-container { padding: 2rem 1rem; }
-  .buyer-contact-header { margin-bottom: 2rem; }
-  .buyer-header-text { font-size: 1rem; }
+  .buyer-contact-container {
+    padding: 2rem 0.75rem;
+  }
+
+  .buyer-contact-header {
+    margin-bottom: 2rem;
+  }
+
+  .buyer-contact-title {
+    font-size: clamp(1.5rem, 5vw, 1.75rem);
+  }
+
+  .buyer-header-text {
+    font-size: clamp(0.95rem, 2.5vw, 1rem);
+  }
+
   .buyer-contact-info-card {
     padding: 1.5rem;
   }
+
   .buyer-contact-info-title,
   .buyer-form-title {
-    font-size: 1.25rem;
+    font-size: clamp(1.15rem, 4vw, 1.25rem);
   }
-  .buyer-info-card { 
-    flex-direction: column; 
-    text-align: center; 
+
+  .buyer-info-card {
+    flex-direction: column;
+    text-align: center;
     padding: 1.5rem;
   }
-  .buyer-info-icon { 
-    width: 50px; 
-    height: 50px; 
-    min-width: 50px; 
+
+  .buyer-info-icon {
+    width: 50px;
+    height: 50px;
+    min-width: 50px;
+    min-height: 50px; /* Tap-friendly */
   }
-  .buyer-form-card { padding: 1.5rem; }
-  .buyer-form-inputs > div { grid-template-columns: 1fr; gap: 0.4rem; }
-  .buyer-form-inputs button { width: 100%; }
+
+  .buyer-form-card {
+    padding: 1.5rem;
+  }
+
+  .buyer-form-inputs > div {
+    grid-template-columns: 1fr;
+    gap: 0.625rem;
+  }
+
+  .buyer-form-inputs button {
+    width: 100%;
+    min-height: 44px; /* Tap-friendly */
+  }
+}
+
+/* Extra Small Mobile (≤360px) */
+@media (max-width: 360px) {
+  .buyer-contact-container {
+    padding: 1.75rem 0.625rem;
+  }
+
+  .buyer-contact-info-card,
+  .buyer-form-card {
+    padding: 1.25rem;
+  }
 }
 
 /* FAQ Section */

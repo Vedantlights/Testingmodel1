@@ -4,6 +4,7 @@
   position: relative;
   width: 100%;
   min-height: 100vh;
+  overflow-x: hidden; /* Prevent horizontal scrolling */
 }
 
 /* Separate Navbar Wrapper Div */
@@ -36,56 +37,83 @@
   position: relative;
   z-index: 1;
   width: 100%;
-  overflow: visible; /* Don't create scroll context - let body handle scrolling */
+  overflow-x: hidden; /* Prevent horizontal scrolling */
+  overflow-y: visible; /* Allow vertical scrolling */
   margin: 0;
   padding: 0;
 }
 
 /* Responsive background sizing - Full viewport height */
-@media (min-width: 1100px) {
+/* Large Desktop (≥1440px) */
+@media (min-width: 1440px) {
   .landing-background-image {
     top: 0;
     height: 100vh;
     background-size: cover;
+    background-position: center center;
   }
 }
 
-@media (max-width: 1099px) {
+/* Laptop (1024px - 1439px) */
+@media (min-width: 1024px) and (max-width: 1439px) {
   .landing-background-image {
     top: 0;
     height: 100vh;
     background-size: cover;
+    background-position: center center;
   }
 }
 
-@media (max-width: 768px) {
+/* Tablet (768px - 1023px) */
+@media (min-width: 768px) and (max-width: 1023px) {
   .landing-background-image {
     top: 0;
     height: 100vh;
     background-size: cover;
+    background-position: center center;
     background-attachment: scroll;
   }
   
   .main-content {
     width: 100%;
-    overflow: visible;
+    overflow-x: hidden;
   }
 }
 
+/* Mobile (≤767px) */
+@media (max-width: 767px) {
+  .landing-background-image {
+    top: 0;
+    height: 100vh;
+    background-size: cover;
+    background-position: center center;
+    background-attachment: scroll;
+  }
+  
+  .main-content {
+    width: 100%;
+    overflow-x: hidden;
+  }
+}
+
+/* Small Mobile (≤480px) */
 @media (max-width: 480px) {
   .landing-background-image {
     top: 0;
     height: 100vh;
     background-size: cover;
+    background-position: center center;
     background-attachment: scroll;
   }
 }
 
+/* Extra Small Mobile (≤360px) */
 @media (max-width: 360px) {
   .landing-background-image {
     top: 0;
     height: 100vh;
     background-size: cover;
+    background-position: center center;
   }
 }
 

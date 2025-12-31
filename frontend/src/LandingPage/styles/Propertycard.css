@@ -231,65 +231,64 @@
   background: #7c3aed;
 }
 
-/* Fully Responsive Design */
-@media (min-width: 1920px) {
+/* Responsive Design */
+/* Large Desktop (≥1440px) */
+@media (min-width: 1440px) {
   .featured-properties-section {
-    padding: 80px 40px;
+    padding: 80px 2.5rem;
   }
   
   .property-card {
     min-width: 350px;
     max-width: 350px;
   }
-}
 
-@media (max-width: 1919px) and (min-width: 1400px) {
-  .featured-properties-section {
-    padding: 70px 30px;
-  }
-  
-  .property-card {
-    min-width: 330px;
-    max-width: 330px;
+  .property-image-container {
+    height: 240px;
   }
 }
 
-@media (max-width: 1399px) and (min-width: 1200px) {
+/* Laptop (1024px - 1439px) */
+@media (min-width: 1024px) and (max-width: 1439px) {
   .featured-properties-section {
-    padding: 60px 25px;
+    padding: 70px 2rem;
   }
   
   .property-card {
     min-width: 320px;
     max-width: 320px;
   }
+
+  .property-image-container {
+    height: 220px;
+  }
 }
 
-@media (max-width: 1199px) and (min-width: 1024px) {
+/* Tablet (768px - 1023px) */
+@media (min-width: 768px) and (max-width: 1023px) {
   .featured-properties-section {
-    padding: 50px 20px;
+    padding: 50px 1.5rem;
   }
   
   .property-card {
     min-width: 300px;
     max-width: 300px;
   }
-}
 
-@media (max-width: 1023px) and (min-width: 769px) {
-  .featured-properties-section {
-    padding: 45px 18px;
+  .property-image-container {
+    height: 200px;
   }
-  
-  .property-card {
-    min-width: 290px;
-    max-width: 290px;
+
+  .property-cards-horizontal-container {
+    padding: 0 20px 16px 20px;
+    gap: 20px;
   }
 }
 
-@media (max-width: 768px) {
+/* Mobile (≤767px) */
+@media (max-width: 767px) {
   .featured-properties-section {
-    padding: 40px 16px;
+    padding: 40px 1rem;
   }
 
   .featured-properties-title {
@@ -323,6 +322,7 @@
   
   .view-details-btn {
     width: 100%;
+    min-height: 44px; /* Tap-friendly */
   }
 
   .property-image-container {
@@ -335,9 +335,10 @@
   }
 }
 
+/* Small Mobile (≤480px) */
 @media (max-width: 480px) {
   .featured-properties-section {
-    padding: 30px 12px;
+    padding: 30px 0.75rem;
   }
 
   .featured-properties-title {
@@ -370,11 +371,17 @@
     padding: 0 12px 12px 12px;
     gap: 16px;
   }
+
+  .view-details-btn {
+    min-height: 44px;
+    font-size: 14px;
+  }
 }
 
+/* Extra Small Mobile (≤360px) */
 @media (max-width: 360px) {
   .featured-properties-section {
-    padding: 25px 10px;
+    padding: 25px 0.625rem;
   }
   
   .property-card {

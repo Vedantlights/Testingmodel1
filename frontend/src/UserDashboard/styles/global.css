@@ -42,7 +42,29 @@ div {
   min-height: auto;
 }
 
-/* Mobile adjustments */
+/* Responsive padding adjustments */
+/* Large Desktop (≥1440px) */
+@media (min-width: 1440px) {
+  .buyer-main-content {
+    padding-top: 90px;
+  }
+}
+
+/* Laptop (1024px - 1439px) */
+@media (min-width: 1024px) and (max-width: 1439px) {
+  .buyer-main-content {
+    padding-top: 90px;
+  }
+}
+
+/* Tablet (768px - 1023px) */
+@media (min-width: 768px) and (max-width: 1023px) {
+  .buyer-main-content {
+    padding-top: 90px;
+  }
+}
+
+/* Mobile (≤767px) */
 @media (max-width: 767px) {
   .buyer-main-content {
     padding-top: 90px; /* Keep same padding on mobile since navbar height is same (90px) */

@@ -654,7 +654,10 @@
 /* RESPONSIVE              */
 /* ======================= */
 
-@media (max-width: 1200px) {
+/* Large Desktop (≥1440px) - Default styles apply */
+
+/* Laptop (1024px – 1439px) */
+@media (max-width: 1439px) {
   .seller-overview-stats-grid {
     grid-template-columns: repeat(2, 1fr);
   }
@@ -662,39 +665,191 @@
   .seller-overview-actions-grid {
     grid-template-columns: repeat(2, 1fr);
   }
-}
-
-@media (max-width: 1024px) {
+  
   .seller-overview-content-grid {
-    grid-template-columns: 1fr;
+    gap: 1.25rem;
   }
 }
 
-@media (max-width: 768px) {
+/* Tablet (768px – 1023px) */
+@media (max-width: 1023px) {
   .seller-overview-header-content {
     flex-direction: column;
     align-items: stretch;
+    gap: 1.25rem;
   }
 
   .seller-overview-add-btn {
     width: 100%;
     justify-content: center;
+    padding: 0.75rem 1.25rem;
+    font-size: 0.9rem;
+  }
+
+  .seller-overview-greeting h1 {
+    font-size: 1.65rem;
+  }
+
+  .seller-overview-subtitle {
+    font-size: 0.95rem;
+  }
+
+  .seller-overview-stats-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1rem;
+  }
+
+  .seller-overview-stat-card {
+    padding: 1.25rem;
+  }
+
+  .seller-overview-stat-icon-wrapper {
+    width: 48px;
+    height: 48px;
+  }
+
+  .seller-overview-stat-value {
+    font-size: 1.6rem;
+  }
+
+  .seller-overview-actions-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 0.875rem;
+  }
+
+  .seller-overview-action-card {
+    padding: 1.25rem;
+  }
+
+  .seller-overview-action-icon {
+    width: 48px;
+    height: 48px;
+  }
+
+  .seller-overview-content-grid {
+    grid-template-columns: 1fr;
+    gap: 1.25rem;
+  }
+
+  .seller-overview-properties-section,
+  .seller-overview-inquiries-section {
+    padding: 1.25rem;
+  }
+}
+
+/* Mobile (≤767px) */
+@media (max-width: 767px) {
+  .seller-overview-header {
+    margin-bottom: 1.5rem;
+  }
+
+  .seller-overview-header-content {
+    gap: 1rem;
   }
 
   .seller-overview-greeting h1 {
     font-size: 1.5rem;
+    margin-bottom: 0.4rem;
+  }
+
+  .seller-overview-subtitle {
+    font-size: 0.9rem;
+  }
+
+  .seller-overview-add-btn {
+    padding: 0.75rem 1.25rem;
+    font-size: 0.875rem;
+    min-height: 44px;
   }
 
   .seller-overview-stats-grid {
     grid-template-columns: 1fr;
+    gap: 0.875rem;
+    margin-bottom: 1.5rem;
+  }
+
+  .seller-overview-stat-card {
+    padding: 1.125rem;
+    gap: 0.875rem;
+  }
+
+  .seller-overview-stat-icon-wrapper {
+    width: 44px;
+    height: 44px;
+  }
+
+  .seller-overview-stat-value {
+    font-size: 1.5rem;
+  }
+
+  .seller-overview-stat-label {
+    font-size: 0.8rem;
+  }
+
+  .seller-overview-section-title {
+    font-size: 1.15rem;
+    margin-bottom: 0.875rem;
   }
 
   .seller-overview-actions-grid {
     grid-template-columns: 1fr;
+    gap: 0.75rem;
+    margin-bottom: 1.5rem;
+  }
+
+  .seller-overview-action-card {
+    padding: 1.125rem;
+    gap: 0.65rem;
+  }
+
+  .seller-overview-action-icon {
+    width: 44px;
+    height: 44px;
+  }
+
+  .seller-overview-action-title {
+    font-size: 0.9rem;
+  }
+
+  .seller-overview-action-desc {
+    font-size: 0.75rem;
+  }
+
+  .seller-overview-properties-section,
+  .seller-overview-inquiries-section {
+    padding: 1rem;
+    border-radius: var(--radius-md);
+  }
+
+  .seller-overview-properties-list {
+    gap: 0.875rem;
   }
 
   .seller-overview-property-item {
     flex-wrap: wrap;
+    padding: 0.875rem;
+    gap: 0.875rem;
+  }
+
+  .seller-overview-property-thumbnail {
+    width: 90px;
+    height: 70px;
+  }
+
+  .seller-overview-property-title {
+    font-size: 0.9rem;
+  }
+
+  .seller-overview-property-location {
+    font-size: 0.75rem;
+  }
+
+  .seller-overview-property-stats {
+    gap: 0.75rem;
+  }
+
+  .seller-overview-property-stat-item {
+    font-size: 0.75rem;
   }
 
   .seller-overview-property-price {
@@ -704,20 +859,113 @@
     padding-top: 0.5rem;
     border-top: 1px solid var(--border-color);
   }
+
+  .seller-overview-price {
+    font-size: 1rem;
+  }
+
+  .seller-overview-inquiries-list {
+    gap: 0.65rem;
+  }
+
+  .seller-overview-inquiry-item {
+    padding: 0.875rem;
+    gap: 0.875rem;
+  }
+
+  .seller-overview-inquiry-avatar {
+    width: 40px;
+    height: 40px;
+    font-size: 0.95rem;
+  }
+
+  .seller-overview-inquiry-name {
+    font-size: 0.85rem;
+  }
+
+  .seller-overview-inquiry-property {
+    font-size: 0.75rem;
+  }
+
+  .seller-overview-inquiry-message {
+    font-size: 0.8rem;
+  }
 }
 
+/* Small Mobile (≤480px) */
 @media (max-width: 480px) {
+  .seller-overview-greeting h1 {
+    font-size: 1.35rem;
+  }
+
+  .seller-overview-subtitle {
+    font-size: 0.85rem;
+  }
+
+  .seller-overview-stat-card {
+    padding: 1rem;
+  }
+
+  .seller-overview-stat-icon-wrapper {
+    width: 40px;
+    height: 40px;
+  }
+
+  .seller-overview-stat-value {
+    font-size: 1.35rem;
+  }
+
+  .seller-overview-stat-label {
+    font-size: 0.75rem;
+  }
+
+  .seller-overview-section-title {
+    font-size: 1.05rem;
+  }
+
+  .seller-overview-action-card {
+    padding: 1rem;
+  }
+
+  .seller-overview-action-icon {
+    width: 40px;
+    height: 40px;
+  }
+
+  .seller-overview-properties-section,
+  .seller-overview-inquiries-section {
+    padding: 0.875rem;
+  }
+
   .seller-overview-property-thumbnail {
     width: 80px;
     height: 60px;
   }
 
-  .seller-overview-stat-card {
-    padding: 1.25rem;
+  .seller-overview-property-title {
+    font-size: 0.85rem;
+  }
+
+  .seller-overview-inquiry-avatar {
+    width: 36px;
+    height: 36px;
+    font-size: 0.9rem;
+  }
+}
+
+/* Extra Small Mobile (≤360px) */
+@media (max-width: 360px) {
+  .seller-overview-greeting h1 {
+    font-size: 1.25rem;
   }
 
   .seller-overview-stat-value {
-    font-size: 1.5rem;
+    font-size: 1.25rem;
+  }
+
+  .seller-overview-property-thumbnail {
+    width: 70px;
+    height: 55px;
   }
 }
 

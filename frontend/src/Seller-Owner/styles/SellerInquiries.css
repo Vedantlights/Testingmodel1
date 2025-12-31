@@ -1072,47 +1072,216 @@
 /* RESPONSIVE              */
 /* ======================= */
 
-@media (max-width: 1024px) {
-  .seller-inquiry-stats {
-    grid-template-columns: repeat(2, 1fr);
-  }
-  
+/* Large Desktop (≥1440px) - Default styles apply */
+
+/* Laptop (1024px – 1439px) */
+@media (max-width: 1439px) {
   .seller-inquiries-container {
-    grid-template-columns: 1fr;
-    height: auto;
+    height: calc(100vh - 360px);
   }
   
-  .seller-inquiries-list {
-    max-height: 400px;
-  }
-  
-  .seller-inquiry-detail {
-    min-height: 500px;
+  .seller-inquiry-stats {
+    gap: 0.875rem;
   }
 }
 
-@media (max-width: 768px) {
-  .seller-inquiry-stats {
-    grid-template-columns: 1fr 1fr;
+/* Tablet (768px – 1023px) */
+@media (max-width: 1023px) {
+  .seller-inquiries-header {
+    margin-bottom: 1.5rem;
   }
-  
+
+  .seller-inquiries-header h1 {
+    font-size: 1.65rem;
+  }
+
+  .seller-subtitle {
+    font-size: 0.9rem;
+  }
+
+  .seller-inquiry-stats {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 0.875rem;
+    margin-bottom: 1.25rem;
+  }
+
+  .seller-stat-card {
+    padding: 1.125rem;
+  }
+
+  .seller-stat-icon {
+    width: 44px;
+    height: 44px;
+  }
+
+  .seller-stat-value {
+    font-size: 1.4rem;
+  }
+
+  .seller-stat-label {
+    font-size: 0.8rem;
+  }
+
+  .seller-filters-section {
+    gap: 0.875rem;
+    margin-bottom: 1.25rem;
+  }
+
+  .seller-search-box {
+    max-width: 100%;
+    padding: 0.65rem 0.875rem;
+  }
+
+  .seller-search-box input {
+    font-size: 0.9rem;
+  }
+
+  .seller-filter-group select {
+    padding: 0.65rem 2rem 0.65rem 0.875rem;
+    font-size: 0.85rem;
+  }
+
+  .seller-inquiries-container {
+    grid-template-columns: 1fr;
+    height: auto;
+    min-height: 500px;
+    gap: 1.25rem;
+  }
+
+  .seller-inquiries-list {
+    max-height: 400px;
+    min-height: 300px;
+  }
+
+  .seller-inquiry-detail {
+    min-height: 500px;
+  }
+
+  .seller-detail-header {
+    padding: 1rem 1.25rem;
+  }
+
+  .seller-detail-user-info h3 {
+    font-size: 1.05rem;
+  }
+
+  .seller-detail-tabs {
+    padding: 0.875rem 1.25rem 0;
+  }
+
+  .seller-tab-btn {
+    padding: 0.65rem 1rem;
+    font-size: 0.85rem;
+  }
+
+  .seller-chat-messages {
+    padding: 1.25rem;
+  }
+
+  .seller-message-bubble {
+    max-width: 75%;
+  }
+}
+
+/* Mobile (≤767px) */
+@media (max-width: 767px) {
+  .seller-inquiries-header {
+    margin-bottom: 1.25rem;
+  }
+
+  .seller-inquiries-header h1 {
+    font-size: 1.5rem;
+    margin-bottom: 0.4rem;
+  }
+
+  .seller-subtitle {
+    font-size: 0.85rem;
+  }
+
+  .seller-inquiry-stats {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 0.75rem;
+    margin-bottom: 1rem;
+  }
+
+  .seller-stat-card {
+    padding: 1rem;
+    gap: 0.875rem;
+  }
+
+  .seller-stat-icon {
+    width: 40px;
+    height: 40px;
+  }
+
+  .seller-stat-value {
+    font-size: 1.3rem;
+  }
+
+  .seller-stat-label {
+    font-size: 0.75rem;
+  }
+
   .seller-filters-section {
     flex-direction: column;
     align-items: stretch;
+    gap: 0.75rem;
+    margin-bottom: 1rem;
   }
-  
+
   .seller-search-box {
     max-width: 100%;
+    padding: 0.65rem 0.875rem;
   }
-  
+
+  .seller-search-box input {
+    font-size: 0.875rem;
+  }
+
   .seller-filter-group {
     width: 100%;
+    gap: 0.5rem;
   }
-  
+
   .seller-filter-group select {
     flex: 1;
+    padding: 0.65rem 1.75rem 0.65rem 0.875rem;
+    font-size: 0.85rem;
   }
-  
+
+  .seller-inquiries-container {
+    gap: 1rem;
+    min-height: 450px;
+  }
+
+  .seller-inquiries-list {
+    max-height: 350px;
+    padding: 0.4rem;
+  }
+
+  .seller-inquiry-card {
+    padding: 0.875rem;
+    gap: 0.875rem;
+  }
+
+  .seller-inquiry-avatar {
+    width: 44px;
+    height: 44px;
+    font-size: 1rem;
+  }
+
+  .seller-inquiry-name {
+    font-size: 0.9rem;
+  }
+
+  .seller-inquiry-property {
+    font-size: 0.75rem;
+  }
+
+  .seller-inquiry-preview {
+    font-size: 0.8rem;
+  }
+
   .seller-back-btn-mobile {
     display: flex;
     width: 40px;
@@ -1125,28 +1294,274 @@
     align-items: center;
     justify-content: center;
     margin-right: 0.5rem;
+    transition: all var(--transition-fast);
   }
-  
+
+  .seller-back-btn-mobile:hover {
+    background: var(--border-color);
+    color: var(--text-primary);
+  }
+
+  .seller-inquiry-detail {
+    min-height: 450px;
+  }
+
+  .seller-detail-header {
+    padding: 1rem;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+  }
+
+  .seller-detail-user {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .seller-detail-avatar {
+    width: 44px;
+    height: 44px;
+    font-size: 1.1rem;
+  }
+
+  .seller-detail-user-info h3 {
+    font-size: 1rem;
+  }
+
+  .seller-detail-actions {
+    gap: 0.4rem;
+  }
+
+  .seller-action-btn {
+    width: 36px;
+    height: 36px;
+  }
+
+  .seller-detail-tabs {
+    padding: 0.75rem 1rem 0;
+    overflow-x: auto;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+  }
+
+  .seller-detail-tabs::-webkit-scrollbar {
+    display: none;
+  }
+
+  .seller-tab-btn {
+    padding: 0.6rem 0.875rem;
+    font-size: 0.8rem;
+    white-space: nowrap;
+    flex-shrink: 0;
+  }
+
+  .seller-tab-btn svg {
+    width: 16px;
+    height: 16px;
+  }
+
+  .seller-details-content {
+    padding: 1.25rem;
+  }
+
+  .seller-chat-messages {
+    padding: 1rem;
+    gap: 0.875rem;
+  }
+
+  .seller-message-avatar {
+    width: 32px;
+    height: 32px;
+    font-size: 0.85rem;
+  }
+
+  .seller-message-bubble {
+    max-width: 80%;
+    padding: 0.75rem 1rem;
+  }
+
+  .seller-message-bubble p {
+    font-size: 0.85rem;
+  }
+
+  .seller-chat-input-wrapper {
+    padding: 0.875rem 1rem;
+  }
+
+  .seller-chat-input-container {
+    padding: 0.65rem 0.875rem;
+  }
+
+  .seller-chat-input {
+    font-size: 0.9rem;
+  }
+
+  .seller-attach-btn,
+  .seller-emoji-btn {
+    width: 32px;
+    height: 32px;
+  }
+
+  .seller-send-message-btn {
+    width: 36px;
+    height: 36px;
+  }
+
   .seller-detail-footer {
     flex-direction: column;
+    gap: 0.75rem;
+    padding: 1rem;
+  }
+
+  .seller-reply-btn,
+  .seller-call-btn {
+    padding: 0.75rem 1rem;
+    font-size: 0.9rem;
+    min-height: 44px;
+  }
+
+  .seller-modal-overlay {
+    padding: 1rem;
+  }
+
+  .seller-reply-modal {
+    max-width: 100%;
+  }
+
+  .seller-modal-header,
+  .seller-modal-body,
+  .seller-modal-footer {
+    padding: 1.25rem;
   }
 }
 
+/* Small Mobile (≤480px) */
 @media (max-width: 480px) {
+  .seller-inquiries-header h1 {
+    font-size: 1.35rem;
+  }
+
   .seller-inquiry-stats {
     grid-template-columns: 1fr;
+    gap: 0.65rem;
   }
-  
-  .seller-inquiry-stats .seller-stat-card {
-    padding: 1rem;
+
+  .seller-stat-card {
+    padding: 0.875rem;
   }
-  
+
   .seller-stat-icon {
+    width: 36px;
+    height: 36px;
+  }
+
+  .seller-stat-value {
+    font-size: 1.25rem;
+  }
+
+  .seller-stat-label {
+    font-size: 0.7rem;
+  }
+
+  .seller-inquiry-card {
+    padding: 0.75rem;
+  }
+
+  .seller-inquiry-avatar {
     width: 40px;
     height: 40px;
+    font-size: 0.95rem;
   }
-  
-  .seller-inquiry-stats .seller-stat-value {
+
+  .seller-inquiry-name {
+    font-size: 0.85rem;
+  }
+
+  .seller-detail-header {
+    padding: 0.875rem;
+  }
+
+  .seller-detail-avatar {
+    width: 40px;
+    height: 40px;
+    font-size: 1rem;
+  }
+
+  .seller-detail-user-info h3 {
+    font-size: 0.95rem;
+  }
+
+  .seller-tab-btn {
+    padding: 0.55rem 0.75rem;
+    font-size: 0.75rem;
+  }
+
+  .seller-tab-btn span {
+    display: none;
+  }
+
+  .seller-details-content {
+    padding: 1rem;
+  }
+
+  .seller-message-bubble {
+    max-width: 85%;
+    padding: 0.65rem 0.875rem;
+  }
+
+  .seller-message-bubble p {
+    font-size: 0.8rem;
+  }
+
+  .seller-chat-input-container {
+    padding: 0.6rem 0.75rem;
+  }
+
+  .seller-chat-input {
+    font-size: 0.85rem;
+  }
+
+  .seller-reply-btn,
+  .seller-call-btn {
+    padding: 0.65rem 0.875rem;
+    font-size: 0.85rem;
+  }
+
+  .seller-modal-overlay {
+    padding: 0.5rem;
+  }
+
+  .seller-modal-header,
+  .seller-modal-body,
+  .seller-modal-footer {
+    padding: 1rem;
+  }
+
+  .seller-modal-header h3 {
+    font-size: 1.05rem;
+  }
+
+  .seller-modal-body textarea {
+    padding: 0.875rem;
+    font-size: 0.9rem;
+  }
+}
+
+/* Extra Small Mobile (≤360px) */
+@media (max-width: 360px) {
+  .seller-inquiries-header h1 {
     font-size: 1.25rem;
+  }
+
+  .seller-stat-value {
+    font-size: 1.15rem;
+  }
+
+  .seller-inquiry-avatar {
+    width: 36px;
+    height: 36px;
+  }
+
+  .seller-message-bubble {
+    max-width: 90%;
   }
 }

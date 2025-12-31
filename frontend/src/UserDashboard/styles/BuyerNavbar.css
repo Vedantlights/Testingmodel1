@@ -12,7 +12,7 @@
   /* CRITICAL: Use will-change for GPU acceleration, remove transition to prevent reflows */
   will-change: transform;
   /* Removed backdrop-filter for better performance */
-; /* FIXED HEIGHT - must match buyer-navbar-content height */
+  height: 90px; /* FIXED HEIGHT - must match buyer-navbar-content height */
   border-bottom-left-radius: 10px;
   border-bottom-right-radius: 10px;
   width: 100%;
@@ -25,9 +25,9 @@
 
 .buyer-navbar-container {
   max-width: 1580px;
-  margin-top: 10px;
-  margin-right: 45px;
+  margin: 10px auto 0;
   padding: 0 1rem;
+  width: 100%;
 }
 
 .buyer-navbar-content {
@@ -39,6 +39,7 @@
 }
 
 /* Logo Styles */
+.navbar-logo,
 .buyer-navbar-logo {
   text-decoration: none;
   display: flex;
@@ -47,22 +48,27 @@
   z-index: 10;
 }
 
+.navbar-logo:hover,
 .buyer-navbar-logo:hover {
   transform: translateY(-2px);
 }
 
+.logo-container,
 .buyer-logo-container {
   display: flex;
   align-items: center;
 }
 
+.logo-image,
 .buyer-logo-image {
   height: 65px;
   width: auto;
+  max-width: 100%;
   object-fit: contain;
   transition: transform 0.3s ease;
 }
 
+.navbar-logo:hover .logo-image,
 .buyer-navbar-logo:hover .buyer-logo-image {
   transform: scale(1.05);
 }
@@ -255,10 +261,73 @@
   transform: scaleY(1);
 }
 
-/* Desktop Styles */
-@media (min-width: 768px) {
+/* Responsive Design */
+/* Large Desktop (≥1440px) */
+@media (min-width: 1440px) {
+  .buyer-navbar-container {
+    max-width: 1580px;
+    padding: 0 2.5rem;
+  }
+
+  .buyer-nav-links-desktop {
+    gap: 2.5rem;
+  }
+
+  .logo-image,
+  .buyer-logo-image {
+    height: 70px;
+  }
+}
+
+/* Laptop (1024px - 1439px) */
+@media (min-width: 1024px) and (max-width: 1439px) {
+  .buyer-navbar-container {
+    max-width: 1400px;
+    padding: 0 2rem;
+  }
+
+  .buyer-nav-links-desktop {
+    gap: 2rem;
+  }
+
+  .buyer-nav-link {
+    font-size: 0.95rem;
+  }
+
+  .logo-image,
+  .buyer-logo-image {
+    height: 65px;
+  }
+}
+
+/* Tablet (768px - 1023px) */
+@media (min-width: 768px) and (max-width: 1023px) {
+  .buyer-navbar-container {
+    padding: 0 1.5rem;
+  }
+
   .buyer-nav-links-desktop {
     display: flex;
+    gap: 1.5rem;
+  }
+
+  .buyer-nav-link {
+    font-size: 0.9rem;
+    padding: 0.5rem 0;
+  }
+
+  .buyer-user-header {
+    padding: 0.5rem 0.75rem;
+    gap: 0.5rem;
+    margin-left: 0.5rem;
+  }
+
+  .buyer-user-name {
+    font-size: 0.8rem;
+  }
+
+  .buyer-user-role {
+    font-size: 0.7rem;
   }
 
   .buyer-mobile-menu-button {
@@ -268,20 +337,125 @@
   .buyer-mobile-menu {
     display: none;
   }
+
+  .logo-image,
+  .buyer-logo-image {
+    height: 60px;
+  }
 }
 
-/* Mobile Styles */
+/* Mobile (≤767px) */
 @media (max-width: 767px) {
+  .buyer-navbar {
+    height: 90px;
+  }
+
+  .buyer-navbar-container {
+    margin: 10px 0 0;
+    padding: 0 1rem;
+  }
+
+  .buyer-navbar-content {
+    height: 90px;
+  }
+
   .buyer-nav-links-desktop {
     display: none;
   }
 
   .buyer-mobile-menu-button {
     display: flex;
+    min-width: 44px; /* Tap-friendly */
+    min-height: 44px;
   }
 
-  .buyer-navbar-content {
-    height: 90px;
+  .logo-image,
+  .buyer-logo-image {
+    height: 50px;
+  }
+
+  .buyer-mobile-menu-content {
+    padding: 1.25rem 0;
+  }
+
+  .buyer-mobile-nav-link {
+    padding: 0.875rem 1rem;
+    font-size: 1rem;
+    min-height: 44px; /* Tap-friendly */
+    display: flex;
+    align-items: center;
+  }
+
+  .buyer-mobile-logout-btn {
+    min-height: 44px; /* Tap-friendly */
+  }
+}
+
+/* Small Mobile (≤480px) */
+@media (max-width: 480px) {
+  .buyer-navbar-container {
+    padding: 0 0.75rem;
+  }
+
+  .logo-image,
+  .buyer-logo-image {
+    height: 45px;
+  }
+
+  .buyer-mobile-menu-button {
+    padding: 0.375rem;
+  }
+
+  .buyer-menu-icon-line {
+    width: 22px;
+  }
+
+  .buyer-mobile-menu-content {
+    padding: 1rem 0;
+  }
+
+  .buyer-mobile-user-info {
+    padding: 0.875rem;
+    gap: 0.875rem;
+  }
+
+  .buyer-mobile-user-avatar {
+    width: 45px;
+    height: 45px;
+    font-size: 1.1rem;
+  }
+
+  .buyer-mobile-user-name {
+    font-size: 0.95rem;
+  }
+
+  .buyer-mobile-user-email {
+    font-size: 0.8rem;
+  }
+
+  .buyer-mobile-nav-link {
+    padding: 0.75rem 0.875rem;
+    font-size: 0.95rem;
+  }
+}
+
+/* Extra Small Mobile (≤360px) */
+@media (max-width: 360px) {
+  .buyer-navbar-container {
+    padding: 0 0.625rem;
+  }
+
+  .logo-image,
+  .buyer-logo-image {
+    height: 40px;
+  }
+
+  .buyer-mobile-menu-button {
+    padding: 0.25rem;
+  }
+
+  .buyer-menu-icon-line {
+    width: 20px;
   }
 }
 
@@ -564,7 +738,7 @@
   border: 2px solid #022b5f;
 }
 
-/* Mobile User Header */
+/* Mobile User Header - Hidden on mobile */
 @media (max-width: 767px) {
   .buyer-user-header {
     display: none;
@@ -572,5 +746,13 @@
   
   .buyer-notification-btn {
     display: none;
+  }
+}
+
+/* Ensure user dropdown is responsive */
+@media (max-width: 1023px) {
+  .buyer-user-dropdown {
+    min-width: 180px;
+    right: -10px;
   }
 }

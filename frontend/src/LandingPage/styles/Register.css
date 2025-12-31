@@ -618,41 +618,188 @@
   /* Animation removed */
 }
 
-/* Responsive */
+/* Responsive Design */
+/* Large Desktop (≥1440px) */
+@media (min-width: 1440px) {
+  .container {
+    padding: 2rem;
+  }
+
+  .card {
+    max-width: 520px;
+    padding: 40px;
+  }
+
+  .title {
+    font-size: 30px;
+  }
+}
+
+/* Laptop (1024px - 1439px) */
+@media (min-width: 1024px) and (max-width: 1439px) {
+  .container {
+    padding: 1.5rem;
+  }
+
+  .card {
+    max-width: 500px;
+    padding: 36px;
+  }
+
+  .title {
+    font-size: 28px;
+  }
+}
+
+/* Tablet (768px - 1023px) */
+@media (min-width: 768px) and (max-width: 1023px) {
+  .container {
+    padding: 1.25rem;
+  }
+
+  .card {
+    max-width: 480px;
+    padding: 32px;
+  }
+
+  .title {
+    font-size: 26px;
+  }
+
+  .type-btn {
+    font-size: 12px;
+    padding: 10px 8px;
+  }
+
+  .input {
+    font-size: 14px;
+    padding: 12px 14px;
+  }
+}
+
+/* Mobile (≤767px) */
+@media (max-width: 767px) {
+  .container {
+    padding: 1rem;
+  }
+
+  .card {
+    padding: 28px;
+    max-width: 100%;
+    max-height: calc(100vh - 2rem);
+  }
+
+  .title {
+    font-size: clamp(22px, 5vw, 26px);
+  }
+
+  .subtitle {
+    font-size: clamp(12px, 2.5vw, 14px);
+  }
+
+  .user-type-toggle {
+    flex-direction: column;
+    gap: 0.625rem;
+  }
+
+  .type-btn {
+    padding: 12px;
+    font-size: 12px;
+    min-height: 44px; /* Tap-friendly */
+  }
+
+  .input {
+    padding: 12px 14px;
+    font-size: 15px;
+    min-height: 44px; /* Tap-friendly */
+  }
+
+  .inline-btn {
+    padding: 8px 14px;
+    font-size: 12px;
+    min-height: 36px;
+  }
+
+  .icon-btn {
+    padding: 8px 10px;
+    min-width: 36px;
+    min-height: 36px;
+  }
+
+  .register-btn {
+    padding: 14px;
+    font-size: 15px;
+    min-height: 44px; /* Tap-friendly */
+    margin-bottom: 12px;
+  }
+
+  .login-link {
+    margin-bottom: 12px;
+    font-size: 13px;
+  }
+}
+
+/* Small Mobile (≤480px) */
 @media (max-width: 480px) {
   .container {
-    padding: 16px;
+    padding: 0.75rem;
   }
 
   .card {
     padding: 24px;
-    max-height: calc(100vh - 32px);
-    min-height: 0;
+    max-height: calc(100vh - 1.5rem);
+  }
+
+  .title {
+    font-size: clamp(20px, 5vw, 24px);
   }
 
   .form {
     padding-bottom: 16px;
   }
 
+  .type-btn {
+    padding: 14px;
+    min-height: 44px;
+  }
+
+  .input {
+    padding: 12px;
+    min-height: 44px;
+  }
+
   .register-btn {
     padding: 14px;
     font-size: 15px;
-    margin-bottom: 12px;
+    min-height: 44px;
+  }
+}
+
+/* Extra Small Mobile (≤360px) */
+@media (max-width: 360px) {
+  .container {
+    padding: 0.625rem;
   }
 
-  .login-link {
-    margin-bottom: 12px;
-  }
-
-  .user-type-toggle {
-    flex-direction: column;
-  }
-
-  .type-btn {
-    padding: 14px;
+  .card {
+    padding: 20px;
+    max-height: calc(100vh - 1.25rem);
   }
 
   .title {
-    font-size: 24px;
+    font-size: clamp(18px, 5vw, 22px);
+  }
+
+  .type-btn {
+    padding: 12px;
+    font-size: 11px;
+  }
+
+  .input {
+    font-size: 14px;
+  }
+
+  .register-btn {
+    font-size: 14px;
   }
 }
