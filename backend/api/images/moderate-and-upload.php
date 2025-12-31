@@ -301,8 +301,14 @@ try {
     $fileSize = $file['size'];
     $mimeType = $mimeType ?: 'image/jpeg'; // Fallback
     
-    // Ensure temp directory exists (use constant from moderation.php)
-    $tempDir = defined('UPLOAD_TEMP_PATH') ? UPLOAD_TEMP_PATH : '/home/u449667423/domains/indiapropertys.com/public_html/demo1/backend/uploads/temp/';
+    // Ensure temp directory exists (use constant from moderation.php - NO hardcoded paths)
+    if (!defined('UPLOAD_TEMP_PATH')) {
+        error_log("ERROR: UPLOAD_TEMP_PATH not defined in moderation.php");
+        http_response_code(500);
+        echo json_encode(['status' => 'error', 'message' => 'Upload path configuration error']);
+        exit;
+    }
+    $tempDir = UPLOAD_TEMP_PATH;
     if (!is_dir($tempDir)) {
         if (!@mkdir($tempDir, 0755, true)) {
             error_log("Failed to create temp directory: {$tempDir}");
@@ -656,9 +662,15 @@ try {
     
     // Normal mode: Add Watermark and Save
     // Move to properties folder first
-    // Save to /backend/uploads/properties/{property_id}/
-    // USE ABSOLUTE PATH - EXACT SERVER PATH
-    $basePropertiesDir = defined('UPLOAD_PROPERTIES_PATH') ? UPLOAD_PROPERTIES_PATH : '/home/u449667423/domains/indiapropertys.com/public_html/demo1/backend/uploads/properties/';
+    // Save to /uploads/properties/{property_id}/ (NOT /backend/uploads/)
+    // Use constant from moderation.php - NO hardcoded paths
+    if (!defined('UPLOAD_PROPERTIES_PATH')) {
+        error_log("ERROR: UPLOAD_PROPERTIES_PATH not defined in moderation.php");
+        http_response_code(500);
+        echo json_encode(['status' => 'error', 'message' => 'Upload path configuration error']);
+        exit;
+    }
+    $basePropertiesDir = UPLOAD_PROPERTIES_PATH;
     $propertyFolder = $basePropertiesDir . $propertyId . '/';
     
     // Log directory creation attempt with detailed info
@@ -732,30 +744,40 @@ try {
     error_log("Destination folder exists: " . (is_dir($propertyFolder) ? 'YES' : 'NO'));
     error_log("Destination folder writable: " . (is_writable($propertyFolder) ? 'YES' : 'NO'));
     
-    // Move file using native PHP function for better error reporting
-    if (!@move_uploaded_file($tempPath, $finalPath)) {
-        $error = error_get_last();
-        error_log("FAILED to move file to property folder");
-        error_log("Error: " . ($error ? $error['message'] : 'Unknown error'));
-        error_log("Source exists: " . (file_exists($tempPath) ? 'YES' : 'NO'));
-        error_log("Source readable: " . (is_readable($tempPath) ? 'YES' : 'NO'));
-        error_log("Destination folder exists: " . (is_dir($propertyFolder) ? 'YES' : 'NO'));
-        error_log("Destination folder writable: " . (is_writable($propertyFolder) ? 'YES' : 'NO'));
-        FileHelper::deleteFile($tempPath);
-        http_response_code(500);
-        echo json_encode([
-            'status' => 'error', 
-            'message' => 'Failed to save image file',
-            'debug' => [
-                'source' => $tempPath,
-                'destination' => $finalPath,
-                'source_exists' => file_exists($tempPath),
-                'dest_folder_exists' => is_dir($propertyFolder),
-                'dest_folder_writable' => is_writable($propertyFolder),
-                'error' => $error ? $error['message'] : 'Unknown'
-            ]
-        ]);
-        exit;
+    // Move file from temp to final location
+    // NOTE: move_uploaded_file() only works for $_FILES['tmp_name']
+    // After first move, use rename() instead
+    if (!@rename($tempPath, $finalPath)) {
+        // Fallback: try copy + delete
+        if (@copy($tempPath, $finalPath)) {
+            @unlink($tempPath);
+            error_log("File moved using copy+delete fallback method");
+        } else {
+            $error = error_get_last();
+            error_log("FAILED to move file to property folder");
+            error_log("Error: " . ($error ? $error['message'] : 'Unknown error'));
+            error_log("Source exists: " . (file_exists($tempPath) ? 'YES' : 'NO'));
+            error_log("Source readable: " . (is_readable($tempPath) ? 'YES' : 'NO'));
+            error_log("Destination folder exists: " . (is_dir($propertyFolder) ? 'YES' : 'NO'));
+            error_log("Destination folder writable: " . (is_writable($propertyFolder) ? 'YES' : 'NO'));
+            FileHelper::deleteFile($tempPath);
+            http_response_code(500);
+            echo json_encode([
+                'status' => 'error', 
+                'message' => 'Failed to save image file',
+                'debug' => [
+                    'source' => $tempPath,
+                    'destination' => $finalPath,
+                    'source_exists' => file_exists($tempPath),
+                    'dest_folder_exists' => is_dir($propertyFolder),
+                    'dest_folder_writable' => is_writable($propertyFolder),
+                    'error' => $error ? $error['message'] : 'Unknown'
+                ]
+            ]);
+            exit;
+        }
+    } else {
+        error_log("File moved successfully using rename()");
     }
     
     // Verify file was saved
@@ -790,9 +812,9 @@ try {
     // Calculate relative path from uploads folder
     $relativePath = 'properties/' . $propertyId . '/' . $uniqueFilename;
     
-    // Build full URL - use UPLOAD_BASE_URL (which points to /backend/uploads)
-    // Files are saved to: /backend/uploads/properties/{id}/{filename}
-    // URLs should be: https://demo1.indiapropertys.com/backend/uploads/properties/{id}/{filename}
+    // Build full URL - use UPLOAD_BASE_URL (which points to /uploads NOT /backend/uploads)
+    // Files are saved to: /uploads/properties/{id}/{filename}
+    // URLs should be: https://demo1.indiapropertys.com/uploads/properties/{id}/{filename}
     $imageUrl = UPLOAD_BASE_URL . '/' . $relativePath;
     
     error_log("=== URL GENERATION ===");
