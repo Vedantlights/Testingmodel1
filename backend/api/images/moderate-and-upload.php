@@ -365,13 +365,11 @@ try {
     if ($file['size'] > $maxSizeBytes) {
         $fileSizeMB = round($file['size'] / (1024 * 1024), 2);
         $maxSizeMB = round($maxSizeBytes / (1024 * 1024), 2);
-        http_response_code(400);
-        echo json_encode([
+        sendJsonResponse([
             'status' => 'error',
             'message' => getErrorMessage('file_too_large'),
             'error_code' => 'file_too_large'
-        ]);
-        exit;
+        ], 400);
     }
     
     // Step 6: Image Dimensions Check (Minimum 400x300 pixels)
@@ -379,8 +377,7 @@ try {
     $height = $imageInfo[1];
     
     if ($width < MIN_IMAGE_WIDTH || $height < MIN_IMAGE_HEIGHT) {
-        http_response_code(400);
-        echo json_encode([
+        sendJsonResponse([
             'status' => 'error',
             'message' => getErrorMessage('low_quality', [
                 'width' => $width,
@@ -393,8 +390,7 @@ try {
                 'min_width' => MIN_IMAGE_WIDTH,
                 'min_height' => MIN_IMAGE_HEIGHT
             ]
-        ]);
-        exit;
+        ], 400);
     }
     
     // Step 7: Blur Detection - DISABLED
@@ -409,22 +405,19 @@ try {
     // Ensure temp directory exists (use constant from moderation.php - NO hardcoded paths)
     if (!defined('UPLOAD_TEMP_PATH')) {
         error_log("ERROR: UPLOAD_TEMP_PATH not defined in moderation.php");
-        http_response_code(500);
-        echo json_encode(['status' => 'error', 'message' => 'Upload path configuration error']);
-        exit;
+        sendJsonResponse(['status' => 'error', 'message' => 'Upload path configuration error'], 500);
     }
-    $tempDir = UPLOAD_TEMP_PATH;
+    // Bug #3 Fix: Ensure trailing slash in temp directory path
+    $tempDir = rtrim(UPLOAD_TEMP_PATH, '/') . '/';
     if (!is_dir($tempDir)) {
         if (!@mkdir($tempDir, 0755, true)) {
             error_log("Failed to create temp directory: {$tempDir}");
-            http_response_code(500);
-            echo json_encode([
+            sendJsonResponse([
                 'status' => 'error', 
                 'message' => 'Failed to create upload directory',
                 'error_code' => 'directory_error',
                 'path' => $tempDir
-            ]);
-            exit;
+            ], 500);
         }
     }
     
@@ -432,9 +425,7 @@ try {
     $tempPath = $tempDir . $uniqueFilename;
     if (!move_uploaded_file($file['tmp_name'], $tempPath)) {
         error_log("Failed to move uploaded file to temp: {$tempPath}");
-        http_response_code(500);
-        echo json_encode(['status' => 'error', 'message' => 'Failed to save uploaded file']);
-        exit;
+        sendJsonResponse(['status' => 'error', 'message' => 'Failed to save uploaded file'], 500);
     }
     
     // Step 9: Call Google Vision API
@@ -556,8 +547,7 @@ try {
             if ($faceConfidence >= MODERATION_FACE_THRESHOLD) {
                 error_log("REJECTED: Human face detected with confidence {$faceConfidence} (threshold: " . MODERATION_FACE_THRESHOLD . ")");
                 FileHelper::deleteFile($tempPath);
-                http_response_code(400);
-                echo json_encode([
+                sendJsonResponse([
                     'status' => 'error',
                     'message' => getErrorMessage('human_detected'),
                     'error_code' => 'human_detected',
@@ -565,8 +555,7 @@ try {
                         'detection_method' => 'face_detection',
                         'confidence' => round($faceConfidence * 100, 1)
                     ]
-                ]);
-                exit;
+                ], 400);
             }
         }
     }
@@ -582,8 +571,7 @@ try {
                 $objectScore >= MODERATION_HUMAN_OBJECT_THRESHOLD) {
                 error_log("REJECTED: Human object detected - name={$objectName}, score={$objectScore} (threshold: " . MODERATION_HUMAN_OBJECT_THRESHOLD . ")");
                 FileHelper::deleteFile($tempPath);
-                http_response_code(400);
-                echo json_encode([
+                sendJsonResponse([
                     'status' => 'error',
                     'message' => getErrorMessage('human_detected'),
                     'error_code' => 'human_detected',
@@ -592,11 +580,11 @@ try {
                         'detected' => ucfirst($object['name']),
                         'confidence' => round($objectScore * 100, 1)
                     ]
-                ]);
-                exit;
+                ], 400);
             }
         }
     }
+    } // Close if ($apiResponse && $apiResponse['success']) block for human detection
     
     // Labels are supporting signals only - do NOT reject based on labels alone
     
@@ -665,8 +653,7 @@ try {
         
         error_log("REJECTED: Animal object detected - name={$topAnimal['name']}, confidence={$topAnimal['confidence']}%");
         FileHelper::deleteFile($tempPath);
-        http_response_code(400);
-        echo json_encode([
+        sendJsonResponse([
             'status' => 'error',
             'message' => getErrorMessage('animal_detected', [
                 'animal_name' => $topAnimal['name']
@@ -677,8 +664,7 @@ try {
                 'confidence' => $topAnimal['confidence'],
                 'detection_method' => 'object_localization'
             ]
-        ]);
-        exit;
+        ], 400);
     }
     
     // Reject if label ≥ 0.7 AND object also detected
@@ -689,8 +675,7 @@ try {
         $topAnimalLabel = $detectedAnimalLabels[0];
         
         FileHelper::deleteFile($tempPath);
-        http_response_code(400);
-        echo json_encode([
+        sendJsonResponse([
             'status' => 'error',
             'message' => getErrorMessage('animal_detected', [
                 'animal_name' => $topAnimalLabel['name']
@@ -701,8 +686,7 @@ try {
                 'confidence' => $topAnimalLabel['confidence'],
                 'detection_method' => 'label_with_object'
             ]
-        ]);
-        exit;
+        ], 400);
     }
     
     // Step 12: Check SafeSearch (only if API succeeded)
@@ -714,37 +698,31 @@ try {
         if ($adult >= MODERATION_ADULT_THRESHOLD) {
             error_log("REJECTED: Adult content detected - score={$adult} (threshold: " . MODERATION_ADULT_THRESHOLD . ")");
             FileHelper::deleteFile($tempPath);
-            http_response_code(400);
-            echo json_encode([
+            sendJsonResponse([
                 'status' => 'error',
                 'message' => getErrorMessage('adult_content'),
                 'error_code' => 'adult_content'
-            ]);
-            exit;
+            ], 400);
         }
         
         if ($violence >= MODERATION_VIOLENCE_THRESHOLD) {
             error_log("REJECTED: Violence content detected - score={$violence} (threshold: " . MODERATION_VIOLENCE_THRESHOLD . ")");
             FileHelper::deleteFile($tempPath);
-            http_response_code(400);
-            echo json_encode([
+            sendJsonResponse([
                 'status' => 'error',
                 'message' => getErrorMessage('violence_content'),
                 'error_code' => 'violence_content'
-            ]);
-            exit;
+            ], 400);
         }
         
         if ($racy >= MODERATION_RACY_THRESHOLD) {
             error_log("REJECTED: Racy content detected - score={$racy} (threshold: " . MODERATION_RACY_THRESHOLD . ")");
             FileHelper::deleteFile($tempPath);
-            http_response_code(400);
-            echo json_encode([
+            sendJsonResponse([
                 'status' => 'error',
                 'message' => 'This image contains suggestive content and cannot be uploaded.',
                 'error_code' => 'racy_content'
-            ]);
-            exit;
+            ], 400);
         }
         
         // Log that image passed all checks
@@ -760,21 +738,19 @@ try {
     
     // If validate_only mode, return success without saving to database
     if ($validateOnly) {
+        // Bug #2 Fix: Return only filename, not full server path (security)
         // Keep temp file for now (will be uploaded when property is created)
         // Return validation result
-        http_response_code(200);
-        echo json_encode([
+        sendJsonResponse([
             'status' => 'success',
             'message' => 'Image approved',
             'data' => [
                 'validated' => true,
-                'temp_file' => $tempPath, // Keep temp file path
-                'filename' => $uniqueFilename,
+                'filename' => $uniqueFilename, // Return only filename, not full path
                 'moderation_status' => 'SAFE',
                 'validate_only' => true
             ]
-        ]);
-        exit;
+        ], 200);
     }
     
     // Normal mode: Add Watermark and Save
@@ -785,7 +761,8 @@ try {
         error_log("ERROR: UPLOAD_PROPERTIES_PATH not defined in moderation.php");
         sendJsonResponse(['status' => 'error', 'message' => 'Upload path configuration error'], 500);
     }
-    $basePropertiesDir = UPLOAD_PROPERTIES_PATH;
+    // Bug #3 Fix: Ensure trailing slash in property directory path
+    $basePropertiesDir = rtrim(UPLOAD_PROPERTIES_PATH, '/') . '/';
     $propertyFolder = $basePropertiesDir . $propertyId . '/';
     
     // Log directory creation attempt with detailed info
@@ -825,8 +802,7 @@ try {
             error_log("Base directory exists: " . (is_dir($basePropertiesDir) ? 'YES' : 'NO'));
             error_log("Base directory writable: " . (is_writable($basePropertiesDir) ? 'YES' : 'NO'));
             FileHelper::deleteFile($tempPath);
-            http_response_code(500);
-            echo json_encode([
+            sendJsonResponse([
                 'status' => 'error', 
                 'message' => 'Failed to create property folder',
                 'debug' => [
@@ -835,8 +811,7 @@ try {
                     'base_dir_writable' => is_writable($basePropertiesDir),
                     'error' => $error ? $error['message'] : 'Unknown'
                 ]
-            ]);
-            exit;
+            ], 500);
         } else {
             error_log("Property folder created successfully: {$propertyFolder}");
         }
@@ -876,8 +851,7 @@ try {
             error_log("Destination folder exists: " . (is_dir($propertyFolder) ? 'YES' : 'NO'));
             error_log("Destination folder writable: " . (is_writable($propertyFolder) ? 'YES' : 'NO'));
             FileHelper::deleteFile($tempPath);
-            http_response_code(500);
-            echo json_encode([
+            sendJsonResponse([
                 'status' => 'error', 
                 'message' => 'Failed to save image file',
                 'debug' => [
@@ -888,8 +862,7 @@ try {
                     'dest_folder_writable' => is_writable($propertyFolder),
                     'error' => $error ? $error['message'] : 'Unknown'
                 ]
-            ]);
-            exit;
+            ], 500);
         }
     } else {
         error_log("File moved successfully using rename()");
@@ -899,9 +872,7 @@ try {
     if (!file_exists($finalPath)) {
         error_log("CRITICAL: File move reported success but file not found at: {$finalPath}");
         FileHelper::deleteFile($tempPath);
-        http_response_code(500);
-        echo json_encode(['status' => 'error', 'message' => 'Image file was not saved correctly']);
-        exit;
+        sendJsonResponse(['status' => 'error', 'message' => 'Image file was not saved correctly'], 500);
     }
     
     error_log("Image successfully saved to: {$finalPath}");
