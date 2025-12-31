@@ -18,7 +18,7 @@
 /* Separate Background Image Div */
 .landing-background-image {
   position: absolute;
-  top: 0; /* Start from top, navbar will overlay */
+  top: 0; /* Start at top of main-content, directly below navbar */
   left: 0;
   right: 0;
   width: 100%;
