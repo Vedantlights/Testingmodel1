@@ -718,6 +718,16 @@ export default function AddPropertyPopup({ onClose, editIndex = null, initialDat
         if (fieldConfig.bathroomsRequired && !formData.bathrooms) {
           newErrors.bathrooms = "Bathrooms is required";
         }
+        
+        // State validation - required
+        if (!formData.state?.trim()) {
+          newErrors.state = "State is required";
+        }
+        
+        // Facing validation - required when shown
+        if (fieldConfig.showFacing && !formData.facing?.trim()) {
+          newErrors.facing = "Facing is required";
+        }
         break;
       case 3:
         // Description validation
@@ -1204,7 +1214,7 @@ export default function AddPropertyPopup({ onClose, editIndex = null, initialDat
         {/* State and Additional Address Fields */}
         <div className="form-row two-cols">
           <div className="form-group">
-            <label>State (Optional)</label>
+            <label>State <span className="required">*</span></label>
             <StateAutoSuggest
               placeholder="Enter state"
               value={formData.state || ''}
@@ -1217,6 +1227,7 @@ export default function AddPropertyPopup({ onClose, editIndex = null, initialDat
               error={errors.state}
               disabled={isRestrictedEdit}
             />
+            {errors.state && <span className="error-text">{errors.state}</span>}
           </div>
 
           <div className="form-group">
@@ -1375,16 +1386,18 @@ export default function AddPropertyPopup({ onClose, editIndex = null, initialDat
           <div className="form-row three-cols">
             {fieldConfig.showFacing && (
               <div className="form-group">
-                <label>Facing</label>
+                <label>Facing <span className="required">*</span></label>
                 <select
                   value={formData.facing}
                   onChange={(e) => handleChange('facing', e.target.value)}
+                  className={errors.facing ? 'error' : ''}
                 >
                   <option value="">Select</option>
                   {FACING_OPTIONS.map(opt => (
                     <option key={opt} value={opt}>{opt}</option>
                   ))}
                 </select>
+                {errors.facing && <span className="error-text">{errors.facing}</span>}
               </div>
             )}
 

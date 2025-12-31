@@ -43,7 +43,7 @@ const CityFilteredRent = () => {
     'Apartment',
     'Studio Apartment',
     'Villa / Row House / Bungalow / Farm House',
-    'Row House',
+    
     'Penthouse',
     'PG / Hostel'
   ];

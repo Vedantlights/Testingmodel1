@@ -1,9 +1,10 @@
 // src/components/PublicRoute.jsx
-import { Navigate } from "react-router-dom";
+import { Navigate, useLocation } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 
 const PublicRoute = ({ children }) => {
   const { user, loading, isAuthenticated } = useAuth();
+  const location = useLocation();
 
   // Show spinner while loading
   if (loading) {
@@ -35,8 +36,12 @@ const PublicRoute = ({ children }) => {
     );
   }
 
-  // If authenticated, redirect based on user_type
-  if (isAuthenticated && user) {
+  // Public routes that should be accessible to all users (authenticated and unauthenticated)
+  const publicRoutes = ['/about', '/contact', '/privacy-policy', '/terms-conditions'];
+  const isPublicRoute = publicRoutes.some(route => location.pathname === route || location.pathname.toLowerCase() === route);
+
+  // If authenticated and NOT on a public route, redirect based on user_type
+  if (isAuthenticated && user && !isPublicRoute) {
     const userType = user.user_type || user.role;
     
     switch (userType) {
@@ -49,7 +54,7 @@ const PublicRoute = ({ children }) => {
     }
   }
 
-  // Not authenticated, render children (public page)
+  // Not authenticated or on a public route, render children (public page)
   return children;
 };
 

@@ -36,18 +36,18 @@ const DeletePropertyModal = ({ isOpen, onClose, onConfirm }) => {
               onChange={(e) => setIsChecked(e.target.checked)}
               className="delete-property-checkbox"
             />
-            <span>I understand this cannot be undone</span>
+            <span>I agree to permanently delete this.</span>
           </label>
         </div>
         <div className="delete-property-modal-footer">
           <button
-            className="delete-property-cancel-btn"
+            className={`delete-property-cancel-btn ${!isChecked ? 'primary' : ''}`}
             onClick={handleClose}
           >
             Cancel
           </button>
           <button
-            className="delete-property-confirm-btn"
+            className={`delete-property-confirm-btn ${isChecked ? 'destructive' : ''}`}
             onClick={handleConfirm}
             disabled={!isChecked}
           >

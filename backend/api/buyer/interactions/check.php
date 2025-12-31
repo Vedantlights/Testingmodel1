@@ -7,7 +7,7 @@
  * 
  * NOTE: Rate limits are GLOBAL per buyer (across all properties)
  * - property_id is accepted for API compatibility but NOT used for limit calculation
- * - A buyer has 12 total attempts per action type across ALL properties
+ * - A buyer has 5 total attempts per action type across ALL properties
  */
 
 // Register shutdown function to catch fatal errors
@@ -71,7 +71,7 @@ try {
     }
     
     // Constants
-    $MAX_ATTEMPTS = 12;
+    $MAX_ATTEMPTS = 5;
     $WINDOW_HOURS = 12;
     
     // Calculate the cutoff time (12 hours ago)

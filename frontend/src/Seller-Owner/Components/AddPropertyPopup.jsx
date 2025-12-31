@@ -722,6 +722,16 @@ export default function AddPropertyPopup({ onClose, editIndex = null, initialDat
             newErrors.bathrooms = "Bathrooms must be between 1 and 10";
           }
         }
+        
+        // State validation - required
+        if (!formData.state?.trim()) {
+          newErrors.state = "State is required";
+        }
+        
+        // Facing validation - required when shown
+        if (fieldConfig.showFacing && !formData.facing?.trim()) {
+          newErrors.facing = "Facing is required";
+        }
         break;
         
       case 3:
@@ -1415,7 +1425,7 @@ newErrors.description = "Description is required";
       {/* State and Additional Address Fields */}
       <div className="form-row two-cols">
         <div className="seller-popup-form-group">
-          <label>State (Optional)</label>
+          <label>State <span className="required">*</span></label>
           <StateAutoSuggest
             placeholder="Enter state"
             value={formData.state || ''}
@@ -1428,6 +1438,7 @@ newErrors.description = "Description is required";
             error={errors.state}
             disabled={isRestrictedEdit}
           />
+          {errors.state && <span className="seller-popup-error-text">{errors.state}</span>}
         </div>
 
         <div className="seller-popup-form-group">
@@ -1596,17 +1607,19 @@ newErrors.description = "Description is required";
         <div className="form-row three-cols">
           {fieldConfig.showFacing && (
             <div className="seller-popup-form-group">
-              <label>Facing</label>
+              <label>Facing <span className="required">*</span></label>
               <select
                 value={formData.facing}
                 onChange={(e) => !isRestrictedEdit && handleChange('facing', e.target.value)}
                 disabled={isRestrictedEdit}
+                className={errors.facing ? 'error' : ''}
               >
                 <option value="">Select</option>
                 {FACING_OPTIONS.map(opt => (
                   <option key={opt} value={opt}>{opt}</option>
                 ))}
               </select>
+              {errors.facing && <span className="seller-popup-error-text">{errors.facing}</span>}
             </div>
           )}
 

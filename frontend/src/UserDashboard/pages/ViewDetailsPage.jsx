@@ -894,8 +894,8 @@ const ViewDetailsPage = () => {
             if (error.status === 429 && error.data) {
                 setOwnerDetailsLimit({
                     remaining: error.data.remaining_attempts || 0,
-                    max: error.data.max_attempts || 12,
-                    used: error.data.used_attempts || 12,
+                    max: error.data.max_attempts || 5,
+                    used: error.data.used_attempts || 5,
                     canPerform: false,
                     resetTime: error.data.reset_time,
                     resetTimeSeconds: error.data.reset_time_seconds
@@ -1003,8 +1003,8 @@ const ViewDetailsPage = () => {
             if (error.status === 429 && error.data) {
                 setChatLimit({
                     remaining: error.data.remaining_attempts || 0,
-                    max: error.data.max_attempts || 12,
-                    used: error.data.used_attempts || 12,
+                    max: error.data.max_attempts || 5,
+                    used: error.data.used_attempts || 5,
                     canPerform: false,
                     resetTime: error.data.reset_time,
                     resetTimeSeconds: error.data.reset_time_seconds

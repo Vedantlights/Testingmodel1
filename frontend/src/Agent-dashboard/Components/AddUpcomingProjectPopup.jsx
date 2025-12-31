@@ -186,6 +186,14 @@ export default function AddUpcomingProjectPopup({ onClose }) {
     }
   };
 
+  // Handle price input - only allow numbers, dashes, and decimal points
+  const handlePriceChange = (field, value) => {
+    // Allow only numbers (0-9), decimal points (.), and dashes (-) for ranges
+    // Remove any other characters including letters and spaces
+    const sanitized = value.replace(/[^\d.\-]/g, '');
+    handleChange(field, sanitized);
+  };
+
   // Handle carpet area range input - strip sq.ft if user types it, store numeric only
   const handleCarpetAreaChange = (value) => {
     // Remove "sq.ft" if user typed it
@@ -472,6 +480,10 @@ export default function AddUpcomingProjectPopup({ onClose }) {
       case 2:
         if (!formData.location?.trim() && !formData.area?.trim()) {
           newErrors.location = "Location is required";
+        }
+        // State validation - required
+        if (!formData.state?.trim()) {
+          newErrors.state = "State is required";
         }
         break;
       case 3:
@@ -1062,7 +1074,7 @@ export default function AddUpcomingProjectPopup({ onClose }) {
       {/* State and Additional Address Fields */}
       <div className="form-row two-cols">
         <div className="form-group">
-          <label>State (Optional)</label>
+          <label>State <span className="required">*</span></label>
           <StateAutoSuggest
             placeholder="Enter state"
             value={formData.state || ''}
@@ -1072,6 +1084,7 @@ export default function AddUpcomingProjectPopup({ onClose }) {
             className={`state-autosuggest-popup ${errors.state ? 'agent-state-error' : ''}`}
             error={errors.state}
           />
+          {errors.state && <span className="error-text">{errors.state}</span>}
         </div>
 
         <div className="form-group">
@@ -1186,8 +1199,8 @@ export default function AddUpcomingProjectPopup({ onClose }) {
           <input
             type="text"
             value={formData.startingPrice}
-            onChange={(e) => handleChange('startingPrice', e.target.value)}
-            placeholder="e.g., 4500000 or 45 Lakhs or 45-60 Lakhs"
+            onChange={(e) => handlePriceChange('startingPrice', e.target.value)}
+            placeholder="e.g., 4500000 or 45-60"
             className={errors.startingPrice ? 'error' : ''}
           />
         </div>
@@ -1207,7 +1220,7 @@ export default function AddUpcomingProjectPopup({ onClose }) {
             <input
               type="text"
               value={formData.pricePerSqft}
-              onChange={(e) => handleChange('pricePerSqft', e.target.value)}
+              onChange={(e) => handlePriceChange('pricePerSqft', e.target.value)}
               placeholder="e.g., 5000 or 5000-6000"
             />
           </div>
@@ -1225,8 +1238,8 @@ export default function AddUpcomingProjectPopup({ onClose }) {
             <input
               type="text"
               value={formData.bookingAmount}
-              onChange={(e) => handleChange('bookingAmount', e.target.value)}
-              placeholder="e.g., 2 Lakhs or 1.5-2.5 Lakhs"
+              onChange={(e) => handlePriceChange('bookingAmount', e.target.value)}
+              placeholder="e.g., 200000 or 1.5-2.5"
             />
           </div>
           {formData.bookingAmount && (
