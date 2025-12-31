@@ -80,18 +80,18 @@ if ($isLocalhost) {
 }
 
 define('API_BASE_URL', BASE_URL . '/api');
-// UPLOAD_BASE_URL should point to /uploads (not /backend/uploads) since files are saved to /uploads/
-// Files are physically at: /public_html/demo1/uploads/properties/
-// URLs should be: https://demo1.indiapropertys.com/uploads/properties/
+// UPLOAD_BASE_URL points to /backend/uploads (files are saved to /backend/uploads/)
+// Files are physically at: /public_html/demo1/backend/uploads/properties/
+// URLs should be: https://demo1.indiapropertys.com/backend/uploads/properties/
 $protocol = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? 'https' : 'http';
 $host = $_SERVER['HTTP_HOST'];
-define('UPLOAD_BASE_URL', $protocol . '://' . $host . '/uploads');
+define('UPLOAD_BASE_URL', $protocol . '://' . $host . '/backend/uploads');
 
-// File Upload Paths - USE ABSOLUTE PATHS (outside backend folder)
-// Files saved to: /home/u449667423/domains/indiapropertys.com/public_html/demo1/uploads/properties/
-// URLs: https://demo1.indiapropertys.com/uploads/properties/
-define('UPLOAD_DIR', '/home/u449667423/domains/indiapropertys.com/public_html/demo1/uploads/');
-define('UPLOAD_PROPERTIES_PATH', '/home/u449667423/domains/indiapropertys.com/public_html/demo1/uploads/properties/');
+// File Upload Paths - USE ABSOLUTE PATHS (inside backend folder)
+// Files saved to: /home/u449667423/domains/indiapropertys.com/public_html/demo1/backend/uploads/properties/
+// URLs: https://demo1.indiapropertys.com/backend/uploads/properties/
+define('UPLOAD_DIR', '/home/u449667423/domains/indiapropertys.com/public_html/demo1/backend/uploads/');
+define('UPLOAD_PROPERTIES_PATH', '/home/u449667423/domains/indiapropertys.com/public_html/demo1/backend/uploads/properties/');
 define('PROPERTY_IMAGES_DIR', UPLOAD_PROPERTIES_PATH . 'images/');
 define('PROPERTY_VIDEOS_DIR', UPLOAD_DIR . 'properties/videos/');
 define('PROPERTY_BROCHURES_DIR', UPLOAD_DIR . 'properties/brochures/');

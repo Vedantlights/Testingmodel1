@@ -547,57 +547,105 @@ try {
     
     // Normal mode: Add Watermark and Save
     // Move to properties folder first
-    // Save to /uploads/properties/{property_id}/ (NOT /uploads/properties/images/{property_id}/)
-    // USE ABSOLUTE PATH - this is the key fix!
-    $basePropertiesDir = defined('UPLOAD_PROPERTIES_PATH') ? UPLOAD_PROPERTIES_PATH : '/home/u449667423/domains/indiapropertys.com/public_html/demo1/uploads/properties/';
+    // Save to /backend/uploads/properties/{property_id}/
+    // USE ABSOLUTE PATH - EXACT SERVER PATH
+    $basePropertiesDir = defined('UPLOAD_PROPERTIES_PATH') ? UPLOAD_PROPERTIES_PATH : '/home/u449667423/domains/indiapropertys.com/public_html/demo1/backend/uploads/properties/';
     $propertyFolder = $basePropertiesDir . $propertyId . '/';
     
-    // Log directory creation attempt
-    error_log("Creating property folder: {$propertyFolder}");
-    error_log("Base properties directory: {$basePropertiesDir}");
+    // Log directory creation attempt with detailed info
+    error_log("=== IMAGE UPLOAD DEBUG ===");
     error_log("Property ID: {$propertyId}");
+    error_log("Base properties directory: {$basePropertiesDir}");
+    error_log("Property folder: {$propertyFolder}");
+    error_log("Base directory exists: " . (is_dir($basePropertiesDir) ? 'YES' : 'NO'));
+    error_log("Base directory writable: " . (is_writable($basePropertiesDir) ? 'YES' : 'NO'));
     
     // Ensure base properties directory exists first
     if (!is_dir($basePropertiesDir)) {
         error_log("Base properties directory does not exist, creating: " . $basePropertiesDir);
+        $parentDir = dirname($basePropertiesDir);
+        error_log("Parent directory: {$parentDir}");
+        error_log("Parent exists: " . (is_dir($parentDir) ? 'YES' : 'NO'));
+        error_log("Parent writable: " . (is_writable($parentDir) ? 'YES' : 'NO'));
+        
         if (!@mkdir($basePropertiesDir, 0755, true)) {
-            error_log("Failed to create base properties directory: " . $basePropertiesDir);
-            error_log("Parent directory exists: " . (is_dir(dirname($basePropertiesDir)) ? 'YES' : 'NO'));
-            error_log("Parent directory writable: " . (is_writable(dirname($basePropertiesDir)) ? 'YES' : 'NO'));
+            $error = error_get_last();
+            error_log("FAILED to create base properties directory: " . $basePropertiesDir);
+            error_log("Error: " . ($error ? $error['message'] : 'Unknown error'));
+            error_log("Parent directory exists: " . (is_dir($parentDir) ? 'YES' : 'NO'));
+            error_log("Parent directory writable: " . (is_writable($parentDir) ? 'YES' : 'NO'));
         } else {
             error_log("Base properties directory created successfully");
         }
     }
     
-    if (!FileHelper::createDirectory($propertyFolder)) {
-        error_log("Failed to create property folder: {$propertyFolder}");
-        error_log("Base directory exists: " . (is_dir($basePropertiesDir) ? 'YES' : 'NO'));
-        error_log("Base directory writable: " . (is_writable($basePropertiesDir) ? 'YES' : 'NO'));
-        FileHelper::deleteFile($tempPath);
-        http_response_code(500);
-        echo json_encode(['status' => 'error', 'message' => 'Failed to create property folder']);
-        exit;
+    // Create property-specific folder
+    if (!is_dir($propertyFolder)) {
+        error_log("Property folder does not exist, creating: {$propertyFolder}");
+        if (!@mkdir($propertyFolder, 0755, true)) {
+            $error = error_get_last();
+            error_log("FAILED to create property folder: {$propertyFolder}");
+            error_log("Error: " . ($error ? $error['message'] : 'Unknown error'));
+            error_log("Base directory exists: " . (is_dir($basePropertiesDir) ? 'YES' : 'NO'));
+            error_log("Base directory writable: " . (is_writable($basePropertiesDir) ? 'YES' : 'NO'));
+            FileHelper::deleteFile($tempPath);
+            http_response_code(500);
+            echo json_encode([
+                'status' => 'error', 
+                'message' => 'Failed to create property folder',
+                'debug' => [
+                    'property_folder' => $propertyFolder,
+                    'base_dir_exists' => is_dir($basePropertiesDir),
+                    'base_dir_writable' => is_writable($basePropertiesDir),
+                    'error' => $error ? $error['message'] : 'Unknown'
+                ]
+            ]);
+            exit;
+        } else {
+            error_log("Property folder created successfully: {$propertyFolder}");
+        }
+    } else {
+        error_log("Property folder already exists: {$propertyFolder}");
     }
     
-    error_log("Property folder created/verified: {$propertyFolder}");
+    error_log("Property folder verified: {$propertyFolder}");
+    error_log("Property folder writable: " . (is_writable($propertyFolder) ? 'YES' : 'NO'));
     
     $finalPath = $propertyFolder . $uniqueFilename;
     
     // Log the paths for debugging
-    error_log("Image save paths:");
-    error_log("  Property folder: {$propertyFolder}");
-    error_log("  Final path: {$finalPath}");
-    error_log("  Temp path: {$tempPath}");
-    error_log("  File exists (temp): " . (file_exists($tempPath) ? 'YES' : 'NO'));
+    error_log("=== FILE SAVE DEBUG ===");
+    error_log("Property folder: {$propertyFolder}");
+    error_log("Final path: {$finalPath}");
+    error_log("Temp path: {$tempPath}");
+    error_log("Temp file exists: " . (file_exists($tempPath) ? 'YES' : 'NO'));
+    error_log("Temp file size: " . (file_exists($tempPath) ? filesize($tempPath) : 0) . " bytes");
+    error_log("Destination folder exists: " . (is_dir($propertyFolder) ? 'YES' : 'NO'));
+    error_log("Destination folder writable: " . (is_writable($propertyFolder) ? 'YES' : 'NO'));
     
-    if (!FileHelper::moveFile($tempPath, $finalPath)) {
-        error_log("Failed to move file to property folder");
-        error_log("  Source exists: " . (file_exists($tempPath) ? 'YES' : 'NO'));
-        error_log("  Destination folder exists: " . (is_dir($propertyFolder) ? 'YES' : 'NO'));
-        error_log("  Destination folder writable: " . (is_writable($propertyFolder) ? 'YES' : 'NO'));
+    // Move file using native PHP function for better error reporting
+    if (!@move_uploaded_file($tempPath, $finalPath)) {
+        $error = error_get_last();
+        error_log("FAILED to move file to property folder");
+        error_log("Error: " . ($error ? $error['message'] : 'Unknown error'));
+        error_log("Source exists: " . (file_exists($tempPath) ? 'YES' : 'NO'));
+        error_log("Source readable: " . (is_readable($tempPath) ? 'YES' : 'NO'));
+        error_log("Destination folder exists: " . (is_dir($propertyFolder) ? 'YES' : 'NO'));
+        error_log("Destination folder writable: " . (is_writable($propertyFolder) ? 'YES' : 'NO'));
         FileHelper::deleteFile($tempPath);
         http_response_code(500);
-        echo json_encode(['status' => 'error', 'message' => 'Failed to save image']);
+        echo json_encode([
+            'status' => 'error', 
+            'message' => 'Failed to save image file',
+            'debug' => [
+                'source' => $tempPath,
+                'destination' => $finalPath,
+                'source_exists' => file_exists($tempPath),
+                'dest_folder_exists' => is_dir($propertyFolder),
+                'dest_folder_writable' => is_writable($propertyFolder),
+                'error' => $error ? $error['message'] : 'Unknown'
+            ]
+        ]);
         exit;
     }
     
@@ -612,6 +660,7 @@ try {
     
     error_log("Image successfully saved to: {$finalPath}");
     error_log("File size: " . filesize($finalPath) . " bytes");
+    error_log("File permissions: " . substr(sprintf('%o', fileperms($finalPath)), -4));
     
     // Add watermark
     try {
@@ -632,17 +681,15 @@ try {
     // Calculate relative path from uploads folder
     $relativePath = 'properties/' . $propertyId . '/' . $uniqueFilename;
     
-    // Build full URL - use UPLOAD_BASE_URL (which points to /uploads, not /backend/uploads)
-    // Files are saved to: /uploads/properties/{id}/{filename}
-    // URLs should be: https://demo1.indiapropertys.com/uploads/properties/{id}/{filename}
-    // NO /backend/ in the URL path!
+    // Build full URL - use UPLOAD_BASE_URL (which points to /backend/uploads)
+    // Files are saved to: /backend/uploads/properties/{id}/{filename}
+    // URLs should be: https://demo1.indiapropertys.com/backend/uploads/properties/{id}/{filename}
     $imageUrl = UPLOAD_BASE_URL . '/' . $relativePath;
     
-    // Verify the URL doesn't contain /backend/
-    if (strpos($imageUrl, '/backend/') !== false) {
-        error_log("WARNING: Image URL contains /backend/ - this is incorrect!");
-        $imageUrl = str_replace('/backend/uploads/', '/uploads/', $imageUrl);
-    }
+    error_log("=== URL GENERATION ===");
+    error_log("UPLOAD_BASE_URL: " . (defined('UPLOAD_BASE_URL') ? UPLOAD_BASE_URL : 'NOT DEFINED'));
+    error_log("Relative path: {$relativePath}");
+    error_log("Final image URL: {$imageUrl}");
     
     // Log the URL being returned
     error_log("Image URL being returned: {$imageUrl}");
