@@ -1706,8 +1706,8 @@
   }
 
   .map-embed-area {
-    height: 350px;
-    min-height: 350px;
+    height: 450px;
+    min-height: 450px;
     border-radius: 12px;
   }
 
@@ -1732,8 +1732,8 @@
   }
 
   .map-embed-area {
-    height: 300px;
-    min-height: 300px;
+    height: 400px;
+    min-height: 400px;
     border-radius: 10px;
   }
 
@@ -1756,8 +1756,8 @@
   }
 
   .map-embed-area {
-    height: 280px;
-    min-height: 280px;
+    height: 350px;
+    min-height: 350px;
   }
 
   .map-placeholder-text {
