@@ -117,7 +117,7 @@ const Footer = () => {
             {/* Social Media */}
             <div className="footer-social">
               <a 
-                href="https://www.facebook.com/profile.php?id=61585284702521" 
+                href="https://www.facebook.com/profile.php?id=61585843050352" 
                 target="_blank"
                 rel="noopener noreferrer"
                 className="social-link" 
@@ -150,7 +150,7 @@ const Footer = () => {
                 </svg>
               </a>
               <a 
-                href="https://www.linkedin.com/in/indiapropertys-social-43b6493a1/" 
+                href="https://www.linkedin.com/company/110655303/admin/dashboard/" 
                 target="_blank"
                 rel="noopener noreferrer"
                 className="social-link" 
