@@ -97,6 +97,80 @@ const PlainTimerPage = () => {
     };
   }, []);
 
+  const plans = [
+    {
+      name: "Basic",
+      description: "Perfect for getting started with property listings",
+      price: "999",
+      duration: "/month",
+      icon: "basic",
+      features: [
+        "Up to 5 Property Listings",
+        "Basic Analytics",
+        "Email Support",
+        "Standard Visibility",
+        "30 Days Listing Duration"
+      ],
+      popular: false
+    },
+    {
+      name: "Professional",
+      description: "Best for serious sellers with multiple properties",
+      price: "2,499",
+      duration: "/month",
+      icon: "pro",
+      features: [
+        "Up to 20 Property Listings",
+        "Advanced Analytics & Insights",
+        "Priority Support 24/7",
+        "Featured Listings",
+        "90 Days Listing Duration",
+        "Social Media Promotion"
+      ],
+      popular: true
+    },
+    {
+      name: "Enterprise",
+      description: "For agencies and high-volume sellers",
+      price: "4,999",
+      duration: "/month",
+      icon: "enterprise",
+      features: [
+        "Unlimited Property Listings",
+        "Premium Analytics Dashboard",
+        "Dedicated Account Manager",
+        "Top Search Placement",
+        "1 Year Listing Duration",
+        "Marketing Campaign Support"
+      ],
+      popular: false
+    }
+  ];
+
+  const PlanIcon = ({ type }) => {
+    if (type === "basic") {
+      return (
+        <svg width="28" height="28" viewBox="0 0 24 24" fill="none">
+          <path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+          <polyline points="9,22 9,12 15,12 15,22" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+        </svg>
+      );
+    }
+    if (type === "pro") {
+      return (
+        <svg width="28" height="28" viewBox="0 0 24 24" fill="none">
+          <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+        </svg>
+      );
+    }
+    return (
+      <svg width="28" height="28" viewBox="0 0 24 24" fill="none">
+        <rect x="2" y="7" width="20" height="14" rx="2" stroke="currentColor" strokeWidth="2"/>
+        <path d="M16 3v4M8 3v4M2 11h20" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+      </svg>
+    );
+  };
+
   if (loading) {
     return (
       <div className="timer-page">
@@ -150,7 +224,88 @@ const PlainTimerPage = () => {
           </div>
         </div>
 
-       
+        {/* Plans Section */}
+        <div className="timer-plans-section">
+          <div className="timer-plans-header">
+            <h2 className="timer-plans-title">Choose Your Plan</h2>
+            <p className="timer-plans-subtitle">Select a plan after your free trial ends</p>
+            <div className="timer-plans-lock-badge">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+                <rect x="3" y="11" width="18" height="11" rx="2" stroke="currentColor" strokeWidth="2"/>
+                <path d="M7 11V7a5 5 0 0110 0v4" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+              </svg>
+              <span>Plans unlock after trial ends</span>
+            </div>
+          </div>
+
+          <div className="timer-plans-container">
+            {plans.map((plan, index) => (
+              <div 
+                key={index} 
+                className={`timer-plan-card ${plan.popular ? 'popular' : ''}`}
+              >
+                {plan.popular && (
+                  <div className="timer-popular-badge">MOST POPULAR</div>
+                )}
+                
+                <div className={`timer-plan-icon ${plan.icon}`}>
+                  <PlanIcon type={plan.icon} />
+                </div>
+
+                <h3 className="timer-plan-name">{plan.name}</h3>
+                <p className="timer-plan-description">{plan.description}</p>
+
+                <div className="timer-plan-price-wrapper">
+                  <div className="timer-plan-price">
+                    <span className="timer-currency">₹</span>
+                    <span className="timer-price">{plan.price}</span>
+                    <span className="timer-duration">{plan.duration}</span>
+                  </div>
+                </div>
+
+                <ul className="timer-plan-features">
+                  {plan.features.map((feature, idx) => (
+                    <li key={idx}>
+                      <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+                        <path d="M20 6L9 17l-5-5" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/>
+                      </svg>
+                      <span>{feature}</span>
+                    </li>
+                  ))}
+                </ul>
+
+                <button className="timer-plan-btn" disabled>
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+                    <rect x="3" y="11" width="18" height="11" rx="2" stroke="currentColor" strokeWidth="2"/>
+                    <path d="M7 11V7a5 5 0 0110 0v4" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+                  </svg>
+                  Locked
+                </button>
+              </div>
+            ))}
+
+            {/* Blur Overlay */}
+            <div className="timer-plans-blur-overlay">
+              <div className="timer-blur-content">
+                <div className="timer-blur-icon">
+                  <svg width="44" height="44" viewBox="0 0 24 24" fill="none">
+                    <rect x="3" y="11" width="18" height="11" rx="2" stroke="currentColor" strokeWidth="2"/>
+                    <path d="M7 11V7a5 5 0 0110 0v4" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+                  </svg>
+                </div>
+                <h3>Plans Locked During Free Trial</h3>
+                <p>Enjoy your premium access for free! Plans will be available when your trial period ends.</p>
+                <div className="timer-blur-timer">
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+                    <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="2"/>
+                    <path d="M12 6v6l4 2" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+                  </svg>
+                  {timeLeft.days} days remaining
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   );

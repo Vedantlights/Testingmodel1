@@ -1,16 +1,16 @@
 /* -------------------- GLOBAL -------------------- */
 .timer-page {
   width: 100%;
-  min-height: 70vh;
+  min-height: 100vh;
   padding: 20px 20px;
   display: flex;
   justify-content: center;
-  align-items: center;
+  align-items: flex-start;
   font-family: 'Poppins', sans-serif;
 }
 
 .timer-content {
-  max-width: 700px;
+  max-width: 1200px;
   width: 100%;
   text-align: center;
   animation: fadeIn 0.7s ease;
@@ -50,11 +50,11 @@
 
 /* Timer Card */
 .timer-card {
-  width: 100%;
+  max-width: 700px;
+  margin: 0 auto 60px;
   padding: 48px 40px;
   border-radius: 20px;
   box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
-  margin-top: 0;
   animation: scaleIn 0.5s ease-out;
 }
 
@@ -125,23 +125,289 @@
   opacity: 0.3;
 }
 
-/* Action Button */
-.action-btn {
-  margin-top: 30px;
-  padding: 15px 40px;
-  color: #1a1a1a;
-  font-weight: 700;
-  font-size: 1rem;
-  border: none;
-  border-radius: 50px;
-  cursor: pointer;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);
-  transition: all 0.3s ease;
+/* -------------------- PLANS SECTION -------------------- */
+.timer-plans-section {
+  margin-top: 80px;
+  padding: 60px 40px;
+  border-radius: 20px;
+  margin-left: -20px;
+  margin-right: -20px;
+  margin-bottom: -50px;
+  box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.08);
 }
 
-.action-btn:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+@keyframes slideUp {
+  from { 
+    opacity: 0; 
+    transform: translateY(50px); 
+  }
+  to { 
+    opacity: 1; 
+    transform: translateY(0); 
+  }
+}
+
+.timer-plans-header {
+  margin-bottom: 50px;
+}
+
+.timer-plans-title {
+  font-size: 2.2rem;
+  font-weight: 800;
+  color: #1a1a1a;
+  margin-bottom: 12px;
+}
+
+.timer-plans-subtitle {
+  font-size: 1.1rem;
+  color: #666;
+  margin-bottom: 28px;
+}
+
+.timer-plans-lock-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  color: #1a1a1a;
+  padding: 12px 24px;
+  border-radius: 50px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.timer-plans-lock-badge svg {
+  color: #4a4a4a;
+}
+
+/* Plans Container */
+.timer-plans-container {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 32px;
+  position: relative;
+  max-width: 1100px;
+  margin: 0 auto;
+}
+
+/* Plan Card */
+.timer-plan-card {
+  border-radius: 20px;
+  padding: 40px 32px;
+  text-align: left;
+  position: relative;
+  transition: all 0.4s ease;
+  filter: blur(2px);
+  pointer-events: none;
+  user-select: none;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+}
+
+.timer-plan-card.popular {
+  transform: scale(1.02);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+}
+
+.timer-popular-badge {
+  position: absolute;
+  top: -14px;
+  left: 50%;
+  transform: translateX(-50%);
+  color: #1a1a1a;
+  padding: 8px 24px;
+  border-radius: 25px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+  white-space: nowrap;
+}
+
+.timer-plan-icon {
+  width: 60px;
+  height: 60px;
+  border-radius: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 24px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.timer-plan-icon.basic {
+  color: #1a1a1a;
+}
+
+.timer-plan-icon.pro {
+  color: #1a1a1a;
+}
+
+.timer-plan-icon.enterprise {
+  color: #1a1a1a;
+}
+
+.timer-plan-name {
+  font-size: 1.4rem;
+  font-weight: 700;
+  color: #1a1a1a;
+  margin-bottom: 8px;
+}
+
+.timer-plan-description {
+  font-size: 0.9rem;
+  color: #666;
+  margin-bottom: 20px;
+  line-height: 1.5;
+}
+
+.timer-plan-price-wrapper {
+  margin-bottom: 28px;
+  padding-bottom: 28px;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+}
+
+.timer-plan-price {
+  display: flex;
+  align-items: baseline;
+  gap: 4px;
+}
+
+.timer-currency {
+  font-size: 1.2rem;
+  font-weight: 700;
+  color: #1a1a1a;
+}
+
+.timer-price {
+  font-size: 2.8rem;
+  font-weight: 800;
+  color: #1a1a1a;
+  line-height: 1;
+}
+
+.timer-duration {
+  font-size: 1rem;
+  color: #888;
+  font-weight: 500;
+  margin-left: 4px;
+}
+
+/* Plan Features */
+.timer-plan-features {
+  list-style: none;
+  padding: 0;
+  margin: 0 0 30px 0;
+}
+
+.timer-plan-features li {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 12px 0;
+  font-size: 0.95rem;
+  color: #444;
+}
+
+.timer-plan-features li svg {
+  color: #10B981;
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+/* Plan Button */
+.timer-plan-btn {
+  width: 100%;
+  padding: 16px 24px;
+  border-radius: 12px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: not-allowed;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  transition: all 0.3s ease;
+  color: #666;
+  border: none;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+.timer-plan-card.popular .timer-plan-btn {
+  color: #1a1a1a;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
+}
+
+/* Blur Overlay */
+.timer-plans-blur-overlay {
+  position: absolute;
+  inset: -20px;
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border-radius: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10;
+}
+
+.timer-blur-content {
+  text-align: center;
+  padding: 50px;
+  max-width: 450px;
+  border-radius: 20px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15);
+}
+
+.timer-blur-icon {
+  width: 100px;
+  height: 100px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 25px;
+  color: #1a1a1a;
+  animation: pulse-lock 2s ease-in-out infinite;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+}
+
+@keyframes pulse-lock {
+  0%, 100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.05);
+  }
+}
+
+.timer-blur-content h3 {
+  font-size: 1.6rem;
+  font-weight: 700;
+  color: #1a1a1a;
+  margin-bottom: 15px;
+}
+
+.timer-blur-content p {
+  font-size: 1rem;
+  color: #666;
+  line-height: 1.7;
+  margin-bottom: 25px;
+}
+
+.timer-blur-timer {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  padding: 14px 30px;
+  border-radius: 50px;
+  font-weight: 700;
+  color: #1a1a1a;
+  font-size: 1.1rem;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
+}
+
+.timer-blur-timer svg {
+  animation: rotateClock 3s linear infinite;
 }
 
 /* Animations */
@@ -160,7 +426,38 @@
   100% { transform: rotate(360deg); }
 }
 
-/* Responsive */
+/* -------------------- RESPONSIVE -------------------- */
+@media (max-width: 1024px) {
+  .timer-plans-container {
+    grid-template-columns: repeat(3, 1fr);
+    gap: 20px;
+  }
+
+  .timer-plan-card {
+    padding: 30px 25px;
+  }
+
+  .timer-price {
+    font-size: 2.2rem;
+  }
+}
+
+@media (max-width: 900px) {
+  .timer-plans-container {
+    grid-template-columns: 1fr;
+    max-width: 420px;
+  }
+
+  .timer-plan-card.popular {
+    transform: scale(1);
+    order: -1;
+  }
+
+  .timer-plans-section {
+    padding: 50px 25px;
+  }
+}
+
 @media (max-width: 600px) {
   .time-box {
     width: 60px;
@@ -178,5 +475,61 @@
 
   .title-white {
     font-size: 1.5rem;
+  }
+
+  .timer-page {
+    padding: 30px 15px;
+  }
+
+  .timer-plans-section {
+    margin-top: 50px;
+    padding: 40px 20px;
+    border-radius: 20px 20px 0 0;
+    margin-left: -15px;
+    margin-right: -15px;
+  }
+
+  .timer-plans-title {
+    font-size: 1.7rem;
+  }
+
+  .timer-plans-subtitle {
+    font-size: 1rem;
+  }
+
+  .timer-plan-card {
+    padding: 25px 20px;
+  }
+
+  .timer-price {
+    font-size: 2rem;
+  }
+
+  .timer-blur-content {
+    padding: 35px 25px;
+    margin: 0 15px;
+  }
+
+  .timer-blur-icon {
+    width: 80px;
+    height: 80px;
+  }
+
+  .timer-blur-icon svg {
+    width: 36px;
+    height: 36px;
+  }
+
+  .timer-blur-content h3 {
+    font-size: 1.3rem;
+  }
+
+  .timer-blur-content p {
+    font-size: 0.9rem;
+  }
+
+  .timer-blur-timer {
+    font-size: 1rem;
+    padding: 12px 24px;
   }
 }
