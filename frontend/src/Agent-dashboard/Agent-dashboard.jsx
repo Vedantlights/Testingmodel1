@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef, useMemo } from 'react';
-import { useNavigate, useLocation } from 'react-router-dom';
+import { useNavigate, useLocation, Link } from 'react-router-dom';
 
 // Component imports
 import AgentOverview from './Components/AgentOverview';
@@ -319,11 +319,13 @@ const AgentDashboardContent = () => {
               <span></span><span></span><span></span>
             </button>
 
-            <div className="logo">
-              <div className="logo-icon-wrapper">
-                <img src="/Media/logo.png" alt="logo" />
+            <Link to="/agent-dashboard" className="agent-logo-link">
+              <div className="logo">
+                <div className="logo-icon-wrapper">
+                  <img src="/logo.png" alt="India Propertys" className="agent-logo-image" />
+                </div>
               </div>
-            </div>
+            </Link>
           </div>
 
           <nav className="header-nav">
@@ -437,11 +439,13 @@ const AgentDashboardContent = () => {
         {/* MOBILE SIDEBAR */}
         <div className={`mobile-sidebar ${isSidebarOpen ? 'open' : ''}`}>
           <div className="mobile-sidebar-header">
-            <div className="logo">
-              <div className="logo-icon-wrapper">
-                <img src="/Media/logo.png" alt="logo" />
+            <Link to="/agent-dashboard" className="agent-logo-link">
+              <div className="logo">
+                <div className="logo-icon-wrapper">
+                  <img src="/logo.png" alt="India Propertys" className="agent-logo-image" />
+                </div>
               </div>
-            </div>
+            </Link>
             <button 
               className="close-sidebar"
               onClick={() => setIsSidebarOpen(false)}

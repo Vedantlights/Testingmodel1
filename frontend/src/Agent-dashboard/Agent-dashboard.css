@@ -102,6 +102,18 @@ html, body {
 /* LOGO - FIXED SIZE       */
 /* ======================= */
 
+.agent-logo-link {
+  text-decoration: none;
+  display: flex;
+  align-items: center;
+  transition: transform 0.3s ease;
+  z-index: 10;
+}
+
+.agent-logo-link:hover {
+  transform: translateY(-2px);
+}
+
 .logo {
   display: flex;
   align-items: center;
@@ -109,14 +121,23 @@ html, body {
 }
 
 .logo-icon-wrapper {
-  width: 190px;
-  height: 190px;
-  border-radius: var(--radius-sm);
   display: flex;
   align-items: center;
   justify-content: center;
   overflow: hidden;
   flex-shrink: 0;
+}
+
+.agent-logo-image {
+  height: 65px;
+  width: auto;
+  object-fit: contain;
+  transition: transform 0.3s ease;
+  display: block;
+}
+
+.agent-logo-link:hover .agent-logo-image {
+  transform: scale(1.05);
 }
 
 .logo-icon-wrapper img {

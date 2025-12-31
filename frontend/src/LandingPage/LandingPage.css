@@ -11,6 +11,8 @@
   position: relative;
   width: 100%;
   z-index: 1000;
+  margin: 0;
+  padding: 0;
 }
 
 /* Separate Background Image Div */
@@ -35,6 +37,8 @@
   z-index: 1;
   width: 100%;
   overflow: visible; /* Don't create scroll context - let body handle scrolling */
+  margin: 0;
+  padding: 0;
 }
 
 /* Responsive background sizing - Viewport height only */
