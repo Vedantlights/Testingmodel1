@@ -952,6 +952,25 @@ try {
         
         $imageId = $db->lastInsertId();
         
+        // Update cover_image in properties table if it's NULL or empty
+        // This ensures the first uploaded image becomes the cover image
+        try {
+            $updateCoverStmt = $db->prepare("
+                UPDATE properties 
+                SET cover_image = ? 
+                WHERE id = ? 
+                AND (cover_image IS NULL OR cover_image = '')
+            ");
+            $updateCoverStmt->execute([$imageUrl, $propertyId]);
+            
+            if ($updateCoverStmt->rowCount() > 0) {
+                error_log("Updated cover_image for property {$propertyId}: {$imageUrl}");
+            }
+        } catch (PDOException $e) {
+            // Log error but don't fail the image upload
+            error_log("Failed to update cover_image for property {$propertyId}: " . $e->getMessage());
+        }
+        
         // Step 16: Return Success
         // Verify the URL is correct before returning
         error_log("Final image URL: {$imageUrl}");
