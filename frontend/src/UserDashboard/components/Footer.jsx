@@ -5,6 +5,11 @@ import '../styles/Footer.css';
 const Footer = () => {
   const currentYear = new Date().getFullYear();
 
+  // Scroll to top when footer link is clicked
+  const handleLinkClick = () => {
+    window.scrollTo({ top: 0, behavior: 'instant' });
+  };
+
   return (
     <footer className="buyer-footer">
       {/* Decorative Top Wave */}
@@ -34,7 +39,7 @@ const Footer = () => {
             </h3>
             <ul className="buyer-footer-links">
               <li>
-                <Link to="/buyer-about">
+                <Link to="/buyer-about" onClick={handleLinkClick}>
                   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7"/>
                   </svg>
@@ -42,7 +47,7 @@ const Footer = () => {
                 </Link>
               </li>
               <li>
-                <Link to="/BuyerContactPage">
+                <Link to="/BuyerContactPage" onClick={handleLinkClick}>
                   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7"/>
                   </svg>
@@ -50,7 +55,7 @@ const Footer = () => {
                 </Link>
               </li>
               <li>
-                <Link to="/buyer-privacy-policy">
+                <Link to="/buyer-privacy-policy" onClick={handleLinkClick}>
                   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7"/>
                   </svg>
@@ -58,7 +63,7 @@ const Footer = () => {
                 </Link>
               </li>
               <li>
-                <Link to="/buyer-terms-conditions">
+                <Link to="/buyer-terms-conditions" onClick={handleLinkClick}>
                   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7"/>
                   </svg>

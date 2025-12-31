@@ -5,6 +5,11 @@ import '../styles/Footer.css';
 const Footer = () => {
   const currentYear = new Date().getFullYear();
 
+  // Scroll to top when footer link is clicked
+  const handleLinkClick = () => {
+    window.scrollTo({ top: 0, behavior: 'instant' });
+  };
+
   return (
     <footer className="footer">
       {/* Decorative Top Wave */}
@@ -34,7 +39,7 @@ const Footer = () => {
             </h3>
             <ul className="footer-links">
               <li>
-                <Link to="/about">
+                <Link to="/about" onClick={handleLinkClick}>
                   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7"/>
                   </svg>
@@ -42,7 +47,7 @@ const Footer = () => {
                 </Link>
               </li>
               <li>
-                <Link to="/contact">
+                <Link to="/contact" onClick={handleLinkClick}>
                   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7"/>
                   </svg>
@@ -50,7 +55,7 @@ const Footer = () => {
                 </Link>
               </li>
               <li>
-                <Link to="/privacy-policy">
+                <Link to="/privacy-policy" onClick={handleLinkClick}>
                   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7"/>
                   </svg>
@@ -58,7 +63,7 @@ const Footer = () => {
                 </Link>
               </li>
               <li>
-                <Link to="/terms-conditions">
+                <Link to="/terms-conditions" onClick={handleLinkClick}>
                   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7"/>
                   </svg>
@@ -66,7 +71,7 @@ const Footer = () => {
                 </Link>
               </li>
               <li>
-                <Link to="/admin/login" className="admin-link">
+                <Link to="/admin/login" className="admin-link" onClick={handleLinkClick}>
                   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7"/>
                   </svg>
@@ -102,10 +107,9 @@ const Footer = () => {
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/>
                   </svg>
                 </div>
-                <div className="contact-text ">
-                  <a href='https://maps.app.goo.gl/zPxN9ZPZFixnezao9'>
-                  <span className="contact-label">Address: </span>
-                  <span className="contact-value">Pune, Maharashtra, India</span></a>
+                <div className="contact-text">
+                  <span className="contact-label">Address</span>
+                  <span className="contact-value">Pune , Maharashtra, India</span>
                 </div>
               </li>
             </ul>
