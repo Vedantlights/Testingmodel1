@@ -1,7 +1,11 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import '../../LandingPage/styles/PrivacyPolicy.css';
 
 const BuyerPrivacyPolicy = () => {
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, []);
+
   return (
     <div className="privacy-container">
       <div className="privacy-content">

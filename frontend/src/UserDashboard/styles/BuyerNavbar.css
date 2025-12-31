@@ -21,8 +21,6 @@
 .buyer-navbar-scrolled {
   background: #022b5f;
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
-  /* CRITICAL: Height stays exactly the same - no size change to prevent layout shift */
-  height: 8rem; /* Must match base height */
 }
 
 .buyer-navbar-container {
