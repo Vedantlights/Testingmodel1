@@ -18,11 +18,11 @@
 /* Separate Background Image Div */
 .landing-background-image {
   position: absolute;
-  top: 90px; /* Start below navbar (matches navbar height) */
+  top: 0; /* Start from top, navbar will overlay */
   left: 0;
   right: 0;
   width: 100%;
-  height: calc(100vh - 90px); /* Exactly viewport height minus navbar */
+  height: 100vh; /* Full viewport height */
   background-size: cover;
   background-position: center center;
   background-repeat: no-repeat;
@@ -41,27 +41,27 @@
   padding: 0;
 }
 
-/* Responsive background sizing - Viewport height only */
+/* Responsive background sizing - Full viewport height */
 @media (min-width: 1100px) {
   .landing-background-image {
-    top: 90px;
-    height: calc(100vh - 90px);
+    top: 0;
+    height: 100vh;
     background-size: cover;
   }
 }
 
 @media (max-width: 1099px) {
   .landing-background-image {
-    top: 5rem;
-    height: calc(100vh - 5rem);
+    top: 0;
+    height: 100vh;
     background-size: cover;
   }
 }
 
 @media (max-width: 768px) {
   .landing-background-image {
-    top: 4.5rem;
-    height: calc(100vh - 4.5rem);
+    top: 0;
+    height: 100vh;
     background-size: cover;
     background-attachment: scroll;
   }
@@ -74,8 +74,8 @@
 
 @media (max-width: 480px) {
   .landing-background-image {
-    top: 4rem;
-    height: calc(100vh - 4rem);
+    top: 0;
+    height: 100vh;
     background-size: cover;
     background-attachment: scroll;
   }
@@ -83,8 +83,8 @@
 
 @media (max-width: 360px) {
   .landing-background-image {
-    top: 3.75rem;
-    height: calc(100vh - 3.75rem);
+    top: 0;
+    height: 100vh;
     background-size: cover;
   }
 }
