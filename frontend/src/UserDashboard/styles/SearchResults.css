@@ -645,6 +645,92 @@
   border: 1px solid #e5e7eb;
 }
 
+/* Color-coded filter tags for Status */
+.filter-tag-status.filter-tag-for-sale {
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+  color: white;
+  border: 1px solid #047857;
+}
+
+.filter-tag-status.filter-tag-for-rent {
+  background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+  color: white;
+  border: 1px solid #b45309;
+}
+
+/* Color-coded filter tags for PG/Hostel */
+.filter-tag-type.filter-tag-pghostel {
+  background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%);
+  color: white;
+  border: 1px solid #6d28d9;
+}
+
+/* Color-coded filter tags for other property types */
+.filter-tag-type {
+  background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+  color: white;
+  border: 1px solid #1d4ed8;
+}
+
+/* Color-coded filter tags for City */
+.filter-tag-city {
+  background: linear-gradient(135deg, #ec4899 0%, #db2777 100%);
+  color: white;
+  border: 1px solid #be185d;
+}
+
+/* Color-coded filter tags for Location */
+.filter-tag-location {
+  background: linear-gradient(135deg, #06b6d4 0%, #0891b2 100%);
+  color: white;
+  border: 1px solid #0e7490;
+}
+
+/* Color-coded filter tags for Budget */
+.filter-tag-budget {
+  background: linear-gradient(135deg, #f97316 0%, #ea580c 100%);
+  color: white;
+  border: 1px solid #c2410c;
+}
+
+/* Color-coded filter tags for Bedrooms */
+.filter-tag-bedrooms {
+  background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%);
+  color: white;
+  border: 1px solid #4338ca;
+}
+
+/* Color-coded filter tags for Area */
+.filter-tag-area {
+  background: linear-gradient(135deg, #14b8a6 0%, #0d9488 100%);
+  color: white;
+  border: 1px solid #0f766e;
+}
+
+/* Update remove filter button colors for colored tags */
+.filter-tag-status.filter-tag-for-sale .remove-filter,
+.filter-tag-status.filter-tag-for-rent .remove-filter,
+.filter-tag-type .remove-filter,
+.filter-tag-city .remove-filter,
+.filter-tag-location .remove-filter,
+.filter-tag-budget .remove-filter,
+.filter-tag-bedrooms .remove-filter,
+.filter-tag-area .remove-filter {
+  color: rgba(255, 255, 255, 0.9);
+}
+
+.filter-tag-status.filter-tag-for-sale .remove-filter:hover,
+.filter-tag-status.filter-tag-for-rent .remove-filter:hover,
+.filter-tag-type .remove-filter:hover,
+.filter-tag-city .remove-filter:hover,
+.filter-tag-location .remove-filter:hover,
+.filter-tag-budget .remove-filter:hover,
+.filter-tag-bedrooms .remove-filter:hover,
+.filter-tag-area .remove-filter:hover {
+  background: rgba(255, 255, 255, 0.2);
+  color: white;
+}
+
 .remove-filter {
   background: transparent;
   border: none;

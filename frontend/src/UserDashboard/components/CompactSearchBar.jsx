@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { useNavigate, useSearchParams, useLocation } from 'react-router-dom';
 import LocationAutoSuggest from '../../components/LocationAutoSuggest';
 import '../styles/CompactSearchBar.css';
@@ -17,6 +17,15 @@ const CompactSearchBar = () => {
   });
 
   const [selectedLocation, setSelectedLocation] = useState(null);
+  
+  // Property status toggle for home page (sell/buy)
+  const [propertyStatus, setPropertyStatus] = useState(() => {
+    // Initialize from URL params if available, otherwise default to 'all'
+    const statusParam = searchParams.get('status');
+    if (statusParam === 'For Sale') return 'sell';
+    if (statusParam === 'For Rent') return 'rent';
+    return 'all'; // 'all', 'sell', or 'rent'
+  });
 
   // Determine search type based on current route
   const getSearchType = () => {
@@ -24,10 +33,31 @@ const CompactSearchBar = () => {
     if (path.includes('/buy')) return 'buy';
     if (path.includes('/rent')) return 'rent';
     if (path.includes('/pghostel')) return 'pg';
+    // Check if we're on search results page that came from home
+    if (path.includes('/searchresults')) {
+      // Check if there's a referrer or if we can determine it's from home
+      // For now, we'll check if status is not set (meaning it could be from home)
+      const statusParam = searchParams.get('status');
+      if (!statusParam) return 'home';
+    }
     return 'home'; // Default to home
   };
 
-  const searchType = useMemo(() => getSearchType(), [location.pathname]);
+  const searchType = useMemo(() => getSearchType(), [location.pathname, searchParams]);
+
+  // Sync propertyStatus with URL params when they change
+  useEffect(() => {
+    if (searchType === 'home') {
+      const statusParam = searchParams.get('status');
+      if (statusParam === 'For Sale') {
+        setPropertyStatus('sell');
+      } else if (statusParam === 'For Rent') {
+        setPropertyStatus('rent');
+      } else {
+        setPropertyStatus('all');
+      }
+    }
+  }, [searchParams, searchType]);
 
   // Budget range definitions
   const rentResidentialBudget = [
@@ -344,8 +374,15 @@ const CompactSearchBar = () => {
       queryParams.append('status', 'For Sale');
     } else if (searchType === 'rent' || searchType === 'pg') {
       queryParams.append('status', 'For Rent');
+    } else if (searchType === 'home') {
+      // Home page: add status filter only if user selected sell or rent
+      if (propertyStatus === 'sell') {
+        queryParams.append('status', 'For Sale');
+      } else if (propertyStatus === 'rent') {
+        queryParams.append('status', 'For Rent');
+      }
+      // If propertyStatus is 'all', don't add status filter (shows all)
     }
-    // Home page doesn't add status filter (shows all)
 
     const queryString = queryParams.toString();
     const searchUrl = queryString ? `/searchresults?${queryString}` : '/searchresults';
@@ -360,6 +397,36 @@ const CompactSearchBar = () => {
         onSubmit={handleSearch}
         noValidate
       >
+        {/* Property Status Toggle - Only show on home page */}
+        {searchType === 'home' && (
+          <div className="compact-search-status-toggle">
+            <label className="compact-search-label">Listing Type</label>
+            <div className="status-toggle-container">
+              <button
+                type="button"
+                className={`status-toggle-btn ${propertyStatus === 'all' ? 'active' : ''}`}
+                onClick={() => setPropertyStatus('all')}
+              >
+                All
+              </button>
+              <button
+                type="button"
+                className={`status-toggle-btn ${propertyStatus === 'sell' ? 'active' : ''}`}
+                onClick={() => setPropertyStatus('sell')}
+              >
+                Buy
+              </button>
+              <button
+                type="button"
+                className={`status-toggle-btn ${propertyStatus === 'rent' ? 'active' : ''}`}
+                onClick={() => setPropertyStatus('rent')}
+              >
+                Rent
+              </button>
+            </div>
+          </div>
+        )}
+        
         <div className="compact-search-filters">
           {/* Location Input */}
           <div className="compact-search-field">

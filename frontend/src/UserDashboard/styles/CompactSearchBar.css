@@ -11,6 +11,49 @@
   padding-top: 1rem;
 }
 
+/* Property Status Toggle - Only for home page */
+.compact-search-status-toggle {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 0 1rem;
+  margin-bottom: 0.75rem;
+}
+
+.status-toggle-container {
+  display: flex;
+  gap: 0.5rem;
+  background: #f3f4f6;
+  border-radius: 8px;
+  padding: 0.25rem;
+  width: fit-content;
+}
+
+.status-toggle-btn {
+  padding: 0.5rem 1.25rem;
+  border: none;
+  background: transparent;
+  color: #6b7280;
+  font-size: 0.875rem;
+  font-weight: 500;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+  font-family: inherit;
+}
+
+.status-toggle-btn:hover {
+  color: #374151;
+  background: rgba(255, 255, 255, 0.5);
+}
+
+.status-toggle-btn.active {
+  background: white;
+  color: #8b5cf6;
+  font-weight: 600;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
 .compact-search-form {
   width: 100%;
 }
@@ -159,6 +202,20 @@
 
 /* Responsive Design */
 @media (max-width: 1024px) {
+  .compact-search-status-toggle {
+    padding: 0 0.75rem;
+  }
+
+  .status-toggle-container {
+    width: 100%;
+    justify-content: stretch;
+  }
+
+  .status-toggle-btn {
+    flex: 1;
+    text-align: center;
+  }
+
   .compact-search-filters {
     flex-wrap: wrap;
   }
@@ -183,6 +240,20 @@
 @media (max-width: 768px) {
   .compact-search-bar {
     position: relative;
+  }
+
+  .compact-search-status-toggle {
+    padding: 0 1rem;
+    margin-bottom: 0.5rem;
+  }
+
+  .status-toggle-container {
+    width: 100%;
+  }
+
+  .status-toggle-btn {
+    padding: 0.625rem 1rem;
+    font-size: 0.8125rem;
   }
 
   .compact-search-filters {

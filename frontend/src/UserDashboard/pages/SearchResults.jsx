@@ -487,7 +487,7 @@ const SearchResults = () => {
                 <span className="filters-label">Active Filters:</span>
                 <div className="filter-tags">
                   {activeFilters.city && (
-                    <div className="filter-tag">
+                    <div className="filter-tag filter-tag-city">
                       <span>City: {activeFilters.city}</span>
                       <button onClick={() => removeFilter('city')} className="remove-filter">
                         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -498,7 +498,7 @@ const SearchResults = () => {
                     </div>
                   )}
                   {activeFilters.location && (
-                    <div className="filter-tag">
+                    <div className="filter-tag filter-tag-location">
                       <span>Location: {activeFilters.location}</span>
                       <button onClick={() => removeFilter('location')} className="remove-filter">
                         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -509,7 +509,7 @@ const SearchResults = () => {
                     </div>
                   )}
                   {activeFilters.type && (
-                    <div className="filter-tag">
+                    <div className={`filter-tag filter-tag-type ${activeFilters.type.toLowerCase().includes('pg') || activeFilters.type.toLowerCase().includes('hostel') ? 'filter-tag-pghostel' : ''}`}>
                       <span>Type: {activeFilters.type}</span>
                       <button onClick={() => removeFilter('type')} className="remove-filter">
                         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -520,7 +520,7 @@ const SearchResults = () => {
                     </div>
                   )}
                   {activeFilters.budget && (
-                    <div className="filter-tag">
+                    <div className="filter-tag filter-tag-budget">
                       <span>Budget: {activeFilters.budget}</span>
                       <button onClick={() => removeFilter('budget')} className="remove-filter">
                         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -531,7 +531,7 @@ const SearchResults = () => {
                     </div>
                   )}
                   {activeFilters.bedrooms && (
-                    <div className="filter-tag">
+                    <div className="filter-tag filter-tag-bedrooms">
                       <span>Bedrooms: {activeFilters.bedrooms}</span>
                       <button onClick={() => removeFilter('bedrooms')} className="remove-filter">
                         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -542,7 +542,7 @@ const SearchResults = () => {
                     </div>
                   )}
                   {activeFilters.area && (
-                    <div className="filter-tag">
+                    <div className="filter-tag filter-tag-area">
                       <span>Area: {activeFilters.area}</span>
                       <button onClick={() => removeFilter('area')} className="remove-filter">
                         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -553,7 +553,7 @@ const SearchResults = () => {
                     </div>
                   )}
                   {activeFilters.status && (
-                    <div className="filter-tag">
+                    <div className={`filter-tag filter-tag-status filter-tag-${activeFilters.status.toLowerCase().replace(/\s+/g, '-')}`}>
                       <span>Status: {activeFilters.status}</span>
                       <button onClick={() => removeFilter('status')} className="remove-filter">
                         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">

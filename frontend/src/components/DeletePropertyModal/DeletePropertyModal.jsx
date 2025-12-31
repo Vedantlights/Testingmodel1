@@ -36,7 +36,7 @@ const DeletePropertyModal = ({ isOpen, onClose, onConfirm }) => {
               onChange={(e) => setIsChecked(e.target.checked)}
               className="delete-property-checkbox"
             />
-            <span>I agree to permanently delete this.</span>
+            <span>I agree to permanently delete this property.</span>
           </label>
         </div>
         <div className="delete-property-modal-footer">
