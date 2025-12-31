@@ -80,20 +80,20 @@ if ($isLocalhost) {
 }
 
 define('API_BASE_URL', BASE_URL . '/api');
-// UPLOAD_BASE_URL points to /uploads (files are saved to /uploads/ NOT /backend/uploads/)
-// Files are physically at: /public_html/demo1/uploads/properties/
-// URLs should be: https://demo1.indiapropertys.com/uploads/properties/
+// UPLOAD_BASE_URL points to /backend/uploads (files are saved to /backend/uploads/)
+// Files are physically at: /public_html/demo1/backend/uploads/properties/
+// URLs should be: https://demo1.indiapropertys.com/backend/uploads/properties/
 $protocol = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? 'https' : 'http';
 $host = $_SERVER['HTTP_HOST'];
-define('UPLOAD_BASE_URL', $protocol . '://' . $host . '/uploads');
+define('UPLOAD_BASE_URL', $protocol . '://' . $host . '/backend/uploads');
 
-// File Upload Paths - USE ONLY /public_html/demo1/uploads/ (NOT /backend/uploads/)
-// Files saved to: /home/u449667423/domains/indiapropertys.com/public_html/demo1/uploads/properties/
-// URLs: https://demo1.indiapropertys.com/uploads/properties/
+// File Upload Paths - USE /backend/uploads/ (inside backend folder)
+// Files saved to: /home/u449667423/domains/indiapropertys.com/public_html/demo1/backend/uploads/properties/
+// URLs: https://demo1.indiapropertys.com/backend/uploads/properties/
 // Note: UPLOAD_PROPERTIES_PATH, UPLOAD_TEMP_PATH, etc. are defined in moderation.php
 // Use those constants instead of defining here
-// dirname(__DIR__, 2) goes up 2 levels from /backend/config/ to /demo1/
-$baseUploadDir = dirname(__DIR__, 2) . '/uploads/';
+// __DIR__ is /backend/config/, so go up one level to /backend/
+$baseUploadDir = dirname(__DIR__) . '/uploads/';
 define('UPLOAD_DIR', $baseUploadDir);
 
 // Verify the path is correct (for debugging)

@@ -19,18 +19,55 @@ ini_set('display_errors', 0); // Don't display errors (prevents HTML in JSON)
 ini_set('log_errors', 1);
 error_reporting(E_ALL);
 
+// Start output buffering FIRST
+ob_start();
+
+// Helper function to send clean JSON responses (defined early so error handlers can use it)
+function sendJsonResponse($data, $statusCode = 200) {
+    // Clean output buffer to remove any warnings/notices
+    while (ob_get_level() > 0) {
+        ob_end_clean();
+    }
+    
+    // Set headers (replace any existing)
+    header('Content-Type: application/json', true);
+    header('Access-Control-Allow-Origin: *', true);
+    header('Access-Control-Allow-Methods: POST, OPTIONS', true);
+    header('Access-Control-Allow-Headers: Content-Type, Authorization', true);
+    
+    // Send JSON
+    http_response_code($statusCode);
+    echo json_encode($data);
+    exit;
+}
+
 // Set error handler to catch PHP errors
 set_error_handler(function($errno, $errstr, $errfile, $errline) {
     error_log("PHP Error [$errno]: $errstr in $errfile on line $errline");
     if ($errno === E_ERROR || $errno === E_PARSE || $errno === E_CORE_ERROR || $errno === E_COMPILE_ERROR) {
-        http_response_code(500);
-        echo json_encode([
-            'status' => 'error',
-            'message' => 'Server error occurred',
-            'error_code' => 'php_error',
-            'details' => defined('ENVIRONMENT') && ENVIRONMENT === 'development' ? "$errstr in $errfile on line $errline" : 'Please try again'
-        ]);
-        exit;
+        // Use sendJsonResponse if available, otherwise fallback
+        if (function_exists('sendJsonResponse')) {
+            sendJsonResponse([
+                'status' => 'error',
+                'message' => 'Server error occurred',
+                'error_code' => 'php_error',
+                'details' => defined('ENVIRONMENT') && ENVIRONMENT === 'development' ? "$errstr in $errfile on line $errline" : 'Please try again'
+            ], 500);
+        } else {
+            // Fallback if function not available yet
+            while (ob_get_level() > 0) {
+                ob_end_clean();
+            }
+            header('Content-Type: application/json', true);
+            http_response_code(500);
+            echo json_encode([
+                'status' => 'error',
+                'message' => 'Server error occurred',
+                'error_code' => 'php_error',
+                'details' => defined('ENVIRONMENT') && ENVIRONMENT === 'development' ? "$errstr in $errfile on line $errline" : 'Please try again'
+            ]);
+            exit;
+        }
     }
     return false; // Let PHP handle other errors
 });
@@ -38,18 +75,30 @@ set_error_handler(function($errno, $errstr, $errfile, $errline) {
 // Set exception handler
 set_exception_handler(function($e) {
     error_log("Uncaught Exception: " . $e->getMessage() . " in " . $e->getFile() . " on line " . $e->getLine());
-    http_response_code(500);
-    echo json_encode([
-        'status' => 'error',
-        'message' => 'Server error occurred',
-        'error_code' => 'exception',
-        'details' => defined('ENVIRONMENT') && ENVIRONMENT === 'development' ? $e->getMessage() : 'Please try again'
-    ]);
-    exit;
+    // Use sendJsonResponse if available, otherwise fallback
+    if (function_exists('sendJsonResponse')) {
+        sendJsonResponse([
+            'status' => 'error',
+            'message' => 'Server error occurred',
+            'error_code' => 'exception',
+            'details' => defined('ENVIRONMENT') && ENVIRONMENT === 'development' ? $e->getMessage() : 'Please try again'
+        ], 500);
+    } else {
+        // Fallback if function not available yet
+        while (ob_get_level() > 0) {
+            ob_end_clean();
+        }
+        header('Content-Type: application/json', true);
+        http_response_code(500);
+        echo json_encode([
+            'status' => 'error',
+            'message' => 'Server error occurred',
+            'error_code' => 'exception',
+            'details' => defined('ENVIRONMENT') && ENVIRONMENT === 'development' ? $e->getMessage() : 'Please try again'
+        ]);
+        exit;
+    }
 });
-
-// Start output buffering
-ob_start();
 
 // Set headers
 header('Content-Type: application/json');
@@ -157,19 +206,16 @@ if (!defined('PROPERTY_CONTEXT_THRESHOLD')) {
 //ob_clean();
 
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
-    http_response_code(405);
-    echo json_encode(['status' => 'error', 'message' => 'Method not allowed']);
-    exit;
+    sendJsonResponse(['status' => 'error', 'message' => 'Method not allowed'], 405);
 }
 
 try {
     // Step 2: Check Authentication
-    session_start();
+    // Note: Using JWT token authentication, not sessions - session_start() not needed
+    // session_start(); // REMOVED - causes header issues and not needed for JWT auth
     $user = getCurrentUser();
     if (!$user) {
-        http_response_code(401);
-        echo json_encode(['status' => 'error', 'message' => 'Please login to upload images']);
-        exit;
+        sendJsonResponse(['status' => 'error', 'message' => 'Please login to upload images'], 401);
     }
     
     $userId = $user['id'];
@@ -182,9 +228,7 @@ try {
     
     // If validate_only mode, property_id can be 0
     if (!$validateOnly && $propertyId <= 0) {
-        http_response_code(400);
-        echo json_encode(['status' => 'error', 'message' => 'Valid property ID is required']);
-        exit;
+        sendJsonResponse(['status' => 'error', 'message' => 'Valid property ID is required'], 400);
     }
     
     // Verify property belongs to user (skip if validate_only)
@@ -195,15 +239,11 @@ try {
         $property = $stmt->fetch(PDO::FETCH_ASSOC);
         
         if (!$property) {
-            http_response_code(404);
-            echo json_encode(['status' => 'error', 'message' => 'Property not found']);
-            exit;
+            sendJsonResponse(['status' => 'error', 'message' => 'Property not found'], 404);
         }
         
         if ($property['user_id'] != $userId) {
-            http_response_code(403);
-            echo json_encode(['status' => 'error', 'message' => 'You do not have permission to upload images for this property']);
-            exit;
+            sendJsonResponse(['status' => 'error', 'message' => 'You do not have permission to upload images for this property'], 403);
         }
     }
     
@@ -236,9 +276,7 @@ try {
     }
     
     if (!$file || !isset($file['tmp_name']) || !is_uploaded_file($file['tmp_name'])) {
-        http_response_code(400);
-        echo json_encode(['status' => 'error', 'message' => 'No image file uploaded']);
-        exit;
+        sendJsonResponse(['status' => 'error', 'message' => 'No image file uploaded'], 400);
     }
     
     // Step 4: Get MIME type for later use (no validation, just for metadata)
@@ -692,13 +730,11 @@ try {
     
     // Normal mode: Add Watermark and Save
     // Move to properties folder first
-    // Save to /uploads/properties/{property_id}/ (NOT /backend/uploads/)
+    // Save to /backend/uploads/properties/{property_id}/
     // Use constant from moderation.php - NO hardcoded paths
     if (!defined('UPLOAD_PROPERTIES_PATH')) {
         error_log("ERROR: UPLOAD_PROPERTIES_PATH not defined in moderation.php");
-        http_response_code(500);
-        echo json_encode(['status' => 'error', 'message' => 'Upload path configuration error']);
-        exit;
+        sendJsonResponse(['status' => 'error', 'message' => 'Upload path configuration error'], 500);
     }
     $basePropertiesDir = UPLOAD_PROPERTIES_PATH;
     $propertyFolder = $basePropertiesDir . $propertyId . '/';
@@ -839,12 +875,12 @@ try {
     // Step 14: Move to Properties Folder (already done above)
     
     // Step 15: Save to Database
-    // Calculate relative path from uploads folder
+    // Calculate relative path from backend/uploads folder
     $relativePath = 'properties/' . $propertyId . '/' . $uniqueFilename;
     
-    // Build full URL - use UPLOAD_BASE_URL (which points to /uploads NOT /backend/uploads)
-    // Files are saved to: /uploads/properties/{id}/{filename}
-    // URLs should be: https://demo1.indiapropertys.com/uploads/properties/{id}/{filename}
+    // Build full URL - use UPLOAD_BASE_URL (which points to /backend/uploads)
+    // Files are saved to: /backend/uploads/properties/{id}/{filename}
+    // URLs should be: https://demo1.indiapropertys.com/backend/uploads/properties/{id}/{filename}
     $imageUrl = UPLOAD_BASE_URL . '/' . $relativePath;
     
     error_log("=== URL GENERATION ===");
@@ -902,8 +938,8 @@ try {
         error_log("Image ID: {$imageId}");
         error_log("Relative path: {$relativePath}");
         
-        http_response_code(200);
-        echo json_encode([
+        // Use helper function to send clean JSON response
+        sendJsonResponse([
             'status' => 'success',
             'message' => 'Image approved',
             'data' => [
@@ -913,15 +949,12 @@ try {
                 'filename' => $uniqueFilename,
                 'moderation_status' => $moderationStatus // Use actual status (SAFE, PENDING, etc.)
             ]
-        ]);
-        exit;
+        ], 200);
         
     } catch (PDOException $e) {
         error_log("Failed to save image record: " . $e->getMessage());
         FileHelper::deleteFile($finalPath);
-        http_response_code(500);
-        echo json_encode(['status' => 'error', 'message' => 'Failed to save image record']);
-        exit;
+        sendJsonResponse(['status' => 'error', 'message' => 'Failed to save image record'], 500);
     }
     
 } catch (Throwable $e) {
@@ -938,14 +971,12 @@ try {
         @unlink($finalPath);
     }
     
-    http_response_code(500);
-    echo json_encode([
+    sendJsonResponse([
         'status' => 'error', 
         'message' => 'An error occurred while processing the image',
         'error_code' => 'processing_error',
         'details' => defined('ENVIRONMENT') && ENVIRONMENT === 'development' ? $e->getMessage() : 'Please try again or contact support'
-    ]);
-    exit;
+    ], 500);
 } catch (Error $e) {
     error_log("Image moderation fatal error: " . $e->getMessage());
     error_log("Error type: " . get_class($e));
@@ -960,12 +991,10 @@ try {
         @unlink($finalPath);
     }
     
-    http_response_code(500);
-    echo json_encode([
+    sendJsonResponse([
         'status' => 'error', 
         'message' => 'A fatal error occurred while processing the image',
         'error_code' => 'fatal_error',
         'details' => defined('ENVIRONMENT') && ENVIRONMENT === 'development' ? $e->getMessage() : 'Please try again or contact support'
-    ]);
-    exit;
+    ], 500);
 }
