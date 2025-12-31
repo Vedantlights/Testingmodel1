@@ -1,42 +1,57 @@
 <?php
 ini_set('display_errors', 1);
 error_reporting(E_ALL);
+header('Content-Type: application/json');
 
-echo "<h2>Testing require_once files...</h2>";
+echo json_encode(['step' => 0, 'message' => 'Script started']) . "\n";
 
-$files = [
-    '../../vendor/autoload.php' => 'Composer Autoload',
-    '../../config/config.php' => 'Config',
-    '../../config/database.php' => 'Database Config',
-    '../../config/moderation.php' => 'Moderation Config',
-    '../../services/GoogleVisionService.php' => 'GoogleVisionService',
-    '../../services/ModerationDecisionService.php' => 'ModerationDecisionService',
-    '../../services/WatermarkService.php' => 'WatermarkService',
-    '../../helpers/FileHelper.php' => 'FileHelper',
-    '../../utils/auth.php' => 'Auth Utils'
-];
+try {
+    // Step 1: Load files
+    require_once __DIR__ . '/../../vendor/autoload.php';
+    require_once __DIR__ . '/../../config/config.php';
+    require_once __DIR__ . '/../../config/database.php';
+    require_once __DIR__ . '/../../config/moderation.php';
+    require_once __DIR__ . '/../../services/WatermarkService.php';
+    require_once __DIR__ . '/../../helpers/FileHelper.php';
+    require_once __DIR__ . '/../../utils/auth.php';
+    echo json_encode(['step' => 1, 'message' => 'All files loaded']) . "\n";
 
-foreach ($files as $path => $name) {
-    $fullPath = __DIR__ . '/' . $path;
-    echo "<strong>{$name}</strong>: ";
-    
-    if (!file_exists($fullPath)) {
-        echo "❌ FILE NOT FOUND at {$fullPath}<br>";
-        continue;
+    // Step 2: Session
+    session_start();
+    echo json_encode(['step' => 2, 'message' => 'Session started', 'session_id' => session_id()]) . "\n";
+
+    // Step 3: Auth check
+    $user = getCurrentUser();
+    echo json_encode(['step' => 3, 'message' => 'getCurrentUser called', 'user' => $user ? 'found (id: '.$user['id'].')' : 'null']) . "\n";
+
+    // Step 4: Database
+    $db = getDB();
+    echo json_encode(['step' => 4, 'message' => 'Database connected', 'db' => $db ? 'OK' : 'null']) . "\n";
+
+    // Step 5: Check getErrorMessage function
+    if (function_exists('getErrorMessage')) {
+        echo json_encode(['step' => 5, 'message' => 'getErrorMessage exists']) . "\n";
+    } else {
+        echo json_encode(['step' => 5, 'message' => 'getErrorMessage NOT FOUND - THIS IS THE PROBLEM']) . "\n";
     }
-    
-    echo "✓ exists... ";
-    
-    try {
-        require_once $fullPath;
-        echo "✅ loaded OK<br>";
-    } catch (Throwable $e) {
-        echo "❌ ERROR: " . $e->getMessage() . "<br>";
-    }
-}
 
-echo "<h2>Constants Check</h2>";
-$constants = ['UPLOAD_DIR', 'UPLOAD_TEMP_PATH', 'UPLOAD_PROPERTIES_PATH', 'UPLOAD_BASE_URL', 'MAX_IMAGE_SIZE_BYTES'];
-foreach ($constants as $const) {
-    echo "{$const}: " . (defined($const) ? constant($const) : '❌ NOT DEFINED') . "<br>";
+    // Step 6: Check FileHelper
+    $testFilename = FileHelper::generateUniqueFilename('test.jpg');
+    echo json_encode(['step' => 6, 'message' => 'FileHelper works', 'test_filename' => $testFilename]) . "\n";
+
+    // Step 7: Check $_FILES
+    echo json_encode(['step' => 7, 'message' => 'FILES check', 'files' => empty($_FILES) ? 'empty' : array_keys($_FILES)]) . "\n";
+
+    // Step 8: Check $_POST
+    echo json_encode(['step' => 8, 'message' => 'POST check', 'post_keys' => empty($_POST) ? 'empty' : array_keys($_POST)]) . "\n";
+
+    echo json_encode(['step' => 'DONE', 'message' => 'All checks passed!']) . "\n";
+
+} catch (Throwable $e) {
+    echo json_encode([
+        'step' => 'ERROR',
+        'error' => $e->getMessage(),
+        'file' => $e->getFile(),
+        'line' => $e->getLine()
+    ]);
 }
