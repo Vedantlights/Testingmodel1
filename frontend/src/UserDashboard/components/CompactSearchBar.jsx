@@ -98,7 +98,6 @@ const CompactSearchBar = () => {
       'Apartment',
       'Studio Apartment',
       'Villa / Row House / Bungalow / Farm House',
-      'Row House',
       'Penthouse',
       'Plot / Land / Industrial Property',
       'Commercial Office',
@@ -130,7 +129,6 @@ const CompactSearchBar = () => {
     'Apartment',
     'Studio Apartment',
     'Villa / Row House / Bungalow / Farm House',
-    'Row House',
     'Penthouse',
     'PG / Hostel'
   ];
@@ -177,7 +175,6 @@ const CompactSearchBar = () => {
         'Apartment': saleResidentialBudget,
         'Studio Apartment': saleResidentialBudget,
         'Villa / Row House / Bungalow / Farm House': saleResidentialBudget,
-        'Row House': saleResidentialBudget,
         'Penthouse': saleResidentialBudget,
         'PG / Hostel': saleResidentialBudget, // Even PG can be bought
         'Plot / Land / Industrial Property': commercialBudget,
@@ -200,7 +197,6 @@ const CompactSearchBar = () => {
         'Apartment': rentResidentialBudgetRentPage,
         'Studio Apartment': rentResidentialBudgetRentPage,
         'Villa / Row House / Bungalow / Farm House': rentResidentialBudgetRentPage,
-        'Row House': rentResidentialBudgetRentPage,
         'Penthouse': rentResidentialBudgetRentPage,
         'PG / Hostel': rentResidentialBudgetRentPage,
         'Plot / Land / Industrial Property': commercialRentBudgetRentPage,
@@ -236,7 +232,6 @@ const CompactSearchBar = () => {
       'Apartment': saleResidentialBudget,
       'Studio Apartment': saleResidentialBudget,
       'Villa / Row House / Bungalow / Farm House': saleResidentialBudget,
-      'Row House': saleResidentialBudget,
       'Penthouse': saleResidentialBudget,
       'PG / Hostel': rentResidentialBudget,
       'Plot / Land / Industrial Property': commercialBudget,
@@ -313,15 +308,18 @@ const CompactSearchBar = () => {
       queryParams.append('radius', '10');
     }
 
-    // Add property type (with special handling for PG/Hostel page)
+    // Add property type (with special handling for PG/Hostel page and Home page)
     if (searchData.propertyType && searchData.propertyType.trim() !== '') {
       if (searchType === 'pg' && isPropertyTypeEnabled(searchData.propertyType)) {
         queryParams.append('type', searchData.propertyType);
       } else if (searchType === 'pg') {
         // If no type selected or disabled type, filter for Apartment OR PG / Hostel
         queryParams.append('type', 'Apartment / PG / Hostel');
+      } else if (searchType === 'home') {
+        // Home page uses 'property_type' parameter (matching BuyerSearchBar.jsx)
+        queryParams.append('property_type', searchData.propertyType);
       } else {
-        // Use 'type' parameter to match page search bars
+        // Buy, Rent pages use 'type' parameter
         queryParams.append('type', searchData.propertyType);
       }
     } else if (searchType === 'pg') {

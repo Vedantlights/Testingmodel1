@@ -29,6 +29,9 @@ import CityFilteredRent from './UserDashboard/pages/Cityfilteredrent';
 import CityFilteredPGHostel from './UserDashboard/pages/Cityfilteredpghostel';
 import CityProjects from './UserDashboard/pages/Cityprojects';
 import ChatUs from './UserDashboard/pages/ChatUs';
+import BuyerAboutUs from './UserDashboard/pages/BuyerAboutUs';
+import BuyerPrivacyPolicy from './UserDashboard/pages/BuyerPrivacyPolicy';
+import BuyerTermsConditions from './UserDashboard/pages/BuyerTermsConditions';
 import './UserDashboard/styles/global.css';
 
 // =====================
@@ -75,7 +78,9 @@ function ScrollToTop() {
                              pathname.startsWith('/chatus') ||
                              pathname.startsWith('/details/') ||
                              pathname.startsWith('/searchresults') ||
-                             pathname.startsWith('/about') ||
+                             pathname.startsWith('/buyer-about') ||
+                             pathname.startsWith('/buyer-privacy-policy') ||
+                             pathname.startsWith('/buyer-terms-conditions') ||
                              pathname.startsWith('/buyer-dashboard');
     
     // Only scroll to top if:
@@ -147,6 +152,9 @@ function App() {
           <Route path="/ChatUs" element={<BuyerDashboardLayout><ChatUs /></BuyerDashboardLayout>} />
           <Route path="/chatus" element={<BuyerDashboardLayout><ChatUs /></BuyerDashboardLayout>} />
           <Route path="/BuyerContactPage" element={<BuyerDashboardLayout><BuyerContactPage /></BuyerDashboardLayout>} />
+          <Route path="/buyer-about" element={<BuyerDashboardLayout><BuyerAboutUs /></BuyerDashboardLayout>} />
+          <Route path="/buyer-privacy-policy" element={<BuyerDashboardLayout><BuyerPrivacyPolicy /></BuyerDashboardLayout>} />
+          <Route path="/buyer-terms-conditions" element={<BuyerDashboardLayout><BuyerTermsConditions /></BuyerDashboardLayout>} />
           <Route path="/details/:id" element={<BuyerDashboardLayout><ViewDetailsPage /></BuyerDashboardLayout>} />
           <Route path="/searchresults" element={<BuyerDashboardLayout><SearchResults /></BuyerDashboardLayout>} />
 
@@ -159,6 +167,9 @@ function App() {
           <Route path="/buyer-dashboard/profile" element={<BuyerDashboardLayout><BuyerProfile /></BuyerDashboardLayout>} />
           <Route path="/buyer-dashboard/chat" element={<BuyerDashboardLayout><ChatUs /></BuyerDashboardLayout>} />
           <Route path="/buyer-dashboard/BuyerContactPage" element={<BuyerDashboardLayout><BuyerContactPage /></BuyerDashboardLayout>} />
+          <Route path="/buyer-dashboard/about" element={<BuyerDashboardLayout><BuyerAboutUs /></BuyerDashboardLayout>} />
+          <Route path="/buyer-dashboard/privacy-policy" element={<BuyerDashboardLayout><BuyerPrivacyPolicy /></BuyerDashboardLayout>} />
+          <Route path="/buyer-dashboard/terms-conditions" element={<BuyerDashboardLayout><BuyerTermsConditions /></BuyerDashboardLayout>} />
           <Route path="/buyer-dashboard/search" element={<BuyerDashboardLayout><SearchResults /></BuyerDashboardLayout>} />
           <Route path="/buyer-dashboard/details/:id" element={<BuyerDashboardLayout><ViewDetailsPage /></BuyerDashboardLayout>} />
 
