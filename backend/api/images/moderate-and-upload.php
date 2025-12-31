@@ -81,8 +81,26 @@ require_once __DIR__ . '/../../config/moderation.php';
 
 // Step 4: Load services (only if Composer is available)
 if ($composerAvailable) {
-    require_once __DIR__ . '/../../services/GoogleVisionService.php';
-    require_once __DIR__ . '/../../services/ModerationDecisionService.php';
+    // Check if classes will be available before requiring
+    // Note: We can't check before require, but we'll catch errors
+    try {
+        require_once __DIR__ . '/../../services/GoogleVisionService.php';
+        // Verify class was loaded successfully
+        if (!class_exists('GoogleVisionService')) {
+            error_log("WARNING: GoogleVisionService class not found after require");
+            $composerAvailable = false; // Mark as unavailable
+        }
+    } catch (Throwable $e) {
+        error_log("ERROR: Failed to load GoogleVisionService: " . $e->getMessage());
+        error_log("This usually means Composer dependencies are not installed");
+        error_log("Exception type: " . get_class($e));
+        error_log("Exception file: " . $e->getFile() . " Line: " . $e->getLine());
+        $composerAvailable = false; // Mark as unavailable
+    }
+    
+    if ($composerAvailable && file_exists(__DIR__ . '/../../services/ModerationDecisionService.php')) {
+        require_once __DIR__ . '/../../services/ModerationDecisionService.php';
+    }
 }
 require_once __DIR__ . '/../../services/WatermarkService.php';
 
@@ -351,38 +369,49 @@ try {
     } else {
         try {
             error_log("Composer available - Attempting to call Google Vision API...");
+            
+            // Check if GoogleVisionService class exists before instantiating
+            if (!class_exists('GoogleVisionService')) {
+                throw new Exception("GoogleVisionService class not found. Composer dependencies may not be installed.");
+            }
+            
             $visionService = new GoogleVisionService();
             $apiResponse = $visionService->analyzeImage($tempPath);
-        
-        if ($apiResponse['success']) {
-            error_log("Google Vision API call successful");
-            $moderationStatus = 'SAFE';
-            $moderationReason = 'Image approved successfully';
             
-            // Extract confidence scores if available
-            if (isset($apiResponse['safesearch_scores'])) {
-                $confidenceScores = $apiResponse['safesearch_scores'];
+            // Validate $apiResponse is an array before accessing keys
+            if ($apiResponse && is_array($apiResponse) && isset($apiResponse['success']) && $apiResponse['success']) {
+                error_log("Google Vision API call successful");
+                $moderationStatus = 'SAFE';
+                $moderationReason = 'Image approved successfully';
+                
+                // Extract confidence scores if available
+                if (isset($apiResponse['safesearch_scores'])) {
+                    $confidenceScores = $apiResponse['safesearch_scores'];
+                }
+                $apiResponseJson = json_encode($apiResponse);
+            } else {
+                // API failed but we continue - mark as PENDING
+                $apiError = (is_array($apiResponse) && isset($apiResponse['error'])) ? $apiResponse['error'] : 'Unknown error';
+                error_log("Google Vision API failed (continuing anyway): " . $apiError);
+                error_log("API Response: " . (is_array($apiResponse) ? json_encode($apiResponse) : gettype($apiResponse)));
+                error_log("Image will be marked as PENDING for manual review");
+                $moderationStatus = 'PENDING';
+                $moderationReason = 'Auto-approved (moderation unavailable: ' . substr($apiError, 0, 100) . ')';
             }
-            $apiResponseJson = json_encode($apiResponse);
-        } else {
-            // API failed but we continue - mark as PENDING
-            $apiError = $apiResponse['error'] ?? 'Unknown error';
-            error_log("Google Vision API failed (continuing anyway): " . $apiError);
+        } catch (Throwable $e) {
+            // Vision API exception - continue anyway, mark as PENDING
+            error_log("Google Vision API exception (continuing anyway): " . $e->getMessage());
+            error_log("Exception type: " . get_class($e));
+            error_log("Exception file: " . $e->getFile() . " Line: " . $e->getLine());
+            if ($e->getPrevious()) {
+                error_log("Previous exception: " . $e->getPrevious()->getMessage());
+            }
             error_log("Image will be marked as PENDING for manual review");
+            
+            // Ensure $apiResponse is set to null in catch block
+            $apiResponse = null;
             $moderationStatus = 'PENDING';
-            $moderationReason = 'Auto-approved (moderation unavailable: ' . substr($apiError, 0, 100) . ')';
-        }
-    } catch (Throwable $e) {
-        // Vision API exception - continue anyway, mark as PENDING
-        error_log("Google Vision API exception (continuing anyway): " . $e->getMessage());
-        error_log("Exception type: " . get_class($e));
-        error_log("Exception file: " . $e->getFile() . " Line: " . $e->getLine());
-        if ($e->getPrevious()) {
-            error_log("Previous exception: " . $e->getPrevious()->getMessage());
-        }
-        error_log("Image will be marked as PENDING for manual review");
-        $moderationStatus = 'PENDING';
-        $moderationReason = 'Auto-approved (moderation unavailable: ' . substr($e->getMessage(), 0, 100) . ')';
+            $moderationReason = 'Auto-approved (moderation unavailable: ' . substr($e->getMessage(), 0, 100) . ')';
         }
     } // End of Composer availability check
     
@@ -491,7 +520,8 @@ try {
     // - Animal label confidence ≥ 0.7 AND animal object is also detected
     // Do NOT reject based on animal labels alone (avoid false positives from paintings, logos, toys, sculptures)
     
-    $labels = $apiResponse['labels'] ?? [];
+    // Note: $labels is already initialized on line 428 and set on line 437 if API succeeded
+    // No need to reassign here - it's already available in scope
     $animalLabels = defined('ANIMAL_LABELS') ? ANIMAL_LABELS : [];
     $detectedAnimalObjects = [];
     $detectedAnimalLabels = [];
@@ -881,7 +911,7 @@ try {
                 'image_url' => $imageUrl, // Full URL: https://demo1.indiapropertys.com/uploads/properties/74/img.webp
                 'relative_path' => $relativePath, // For reference: properties/74/img.webp
                 'filename' => $uniqueFilename,
-                'moderation_status' => 'SAFE'
+                'moderation_status' => $moderationStatus // Use actual status (SAFE, PENDING, etc.)
             ]
         ]);
         exit;

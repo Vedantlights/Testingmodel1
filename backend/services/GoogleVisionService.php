@@ -6,12 +6,21 @@
  */
 
 // Load Composer autoload if available
-if (file_exists(__DIR__ . '/../vendor/autoload.php')) {
-    require_once __DIR__ . '/../vendor/autoload.php';
+$autoloadPath = __DIR__ . '/../vendor/autoload.php';
+if (file_exists($autoloadPath)) {
+    require_once $autoloadPath;
+} else {
+    // If autoload doesn't exist, log warning but continue
+    // The constructor will check if classes are available
+    error_log("WARNING: Composer autoload not found at: {$autoloadPath}");
+    error_log("GoogleVisionService may not work without Composer dependencies");
 }
 
 require_once __DIR__ . '/../config/moderation.php';
 
+// Note: 'use' statements must be at file level (cannot be in if block)
+// If classes don't exist, PHP will throw fatal error when file is loaded
+// This is caught in moderate-and-upload.php when requiring this file
 use Google\Cloud\Vision\V1\Client\ImageAnnotatorClient;
 use Google\Cloud\Vision\V1\Feature;
 use Google\Cloud\Vision\V1\Feature\Type;
@@ -28,6 +37,11 @@ class GoogleVisionService {
      */
     public function __construct() {
         try {
+            // Check if required classes are available
+            if (!class_exists('Google\Cloud\Vision\V1\Client\ImageAnnotatorClient')) {
+                throw new Exception("Google Vision API classes not found. Please run 'composer install' to install dependencies.");
+            }
+            
             // Set credentials path from config
             $credentialsPath = GOOGLE_APPLICATION_CREDENTIALS;
             
@@ -44,7 +58,13 @@ class GoogleVisionService {
             ]);
         } catch (Exception $e) {
             error_log("GoogleVisionService::__construct - Error initializing client: " . $e->getMessage());
+            error_log("Exception type: " . get_class($e));
             throw new Exception("Failed to initialize Google Vision API client: " . $e->getMessage());
+        } catch (Error $e) {
+            // Catch fatal errors (like class not found)
+            error_log("GoogleVisionService::__construct - Fatal error: " . $e->getMessage());
+            error_log("Error type: " . get_class($e));
+            throw new Exception("Google Vision API classes not available. Please install Composer dependencies: composer install");
         }
     }
     
