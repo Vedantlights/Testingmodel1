@@ -165,7 +165,7 @@ const CompactSearchBar = () => {
 
   // Get budget ranges based on search type and property type
   const getBudgetRanges = () => {
-    // For Buy page
+    // For Buy page - must match BuyerSearchBar.jsx exactly
     if (searchType === 'buy') {
       if (!searchData.propertyType) {
         return saleResidentialBudget;
@@ -176,12 +176,12 @@ const CompactSearchBar = () => {
         'Studio Apartment': saleResidentialBudget,
         'Villa / Row House / Bungalow / Farm House': saleResidentialBudget,
         'Penthouse': saleResidentialBudget,
-        'PG / Hostel': saleResidentialBudget, // Even PG can be bought
+        'PG / Hostel': rentResidentialBudget, // Matches BuyerSearchBar.jsx line 114
         'Plot / Land / Industrial Property': commercialBudget,
         'Commercial Office': commercialBudget,
         'Commercial Shop': commercialBudget,
-        'Co-working Space': commercialBudget,
-        'Warehouse / Godown': commercialBudget,
+        'Co-working Space': commercialRentBudget, // Matches BuyerSearchBar.jsx line 118
+        'Warehouse / Godown': commercialRentBudget, // Matches BuyerSearchBar.jsx line 119
       };
 
       return propertyBudgetMap[searchData.propertyType] || saleResidentialBudget;
