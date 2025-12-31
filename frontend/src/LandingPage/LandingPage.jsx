@@ -25,8 +25,6 @@ function LandingPage() {
 
   // Pages where Navbar and Footer should be hidden
   const hideNavbarFooter =
-    path === '/privacy-policy' ||
-    path === '/terms-conditions'||
     path === '/login'||
     path === '/register';
 

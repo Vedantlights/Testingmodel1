@@ -129,6 +129,10 @@ function App() {
         <div className="App">
           <Routes>
 
+          {/* Legal Pages - Accessible from both Landing Page and Buyer Dashboard */}
+          <Route path="/privacy-policy" element={<PublicRoute><LandingPage /></PublicRoute>} />
+          <Route path="/terms-conditions" element={<PublicRoute><LandingPage /></PublicRoute>} />
+
           {/* Main Landing Page - Public Route (redirects authenticated users) */}
           <Route path="/*" element={<PublicRoute><LandingPage /></PublicRoute>} />
 
