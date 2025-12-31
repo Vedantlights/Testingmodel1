@@ -192,12 +192,33 @@ try {
             if (count($input['images']) > 0) {
                 $insertStmt = $db->prepare("
                     INSERT INTO property_images 
-                    (property_id, image_url, moderation_status, image_order, created_at) 
-                    VALUES (?, ?, 'SAFE', ?, NOW())
+                    (property_id, image_url, file_name, file_path, original_filename, file_size, mime_type, moderation_status, moderation_reason, image_order, created_at) 
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW())
                 ");
                 
-                foreach ($input['images'] as $index => $imageUrl) {
-                    if (!empty($imageUrl) && is_string($imageUrl)) {
+                foreach ($input['images'] as $index => $image) {
+                    // Handle both string URLs and object format
+                    if (is_string($image)) {
+                        $imageUrl = $image;
+                        $fileName = basename(parse_url($imageUrl, PHP_URL_PATH));
+                        $filePath = null;
+                        $originalName = null;
+                        $fileSize = null;
+                        $mimeType = null;
+                        $modStatus = 'SAFE';
+                        $modReason = 'Image approved';
+                    } else {
+                        $imageUrl = $image['image_url'] ?? $image['url'] ?? '';
+                        $fileName = $image['file_name'] ?? basename(parse_url($imageUrl, PHP_URL_PATH));
+                        $filePath = $image['file_path'] ?? null;
+                        $originalName = $image['original_filename'] ?? null;
+                        $fileSize = $image['file_size'] ?? null;
+                        $mimeType = $image['mime_type'] ?? null;
+                        $modStatus = $image['moderation_status'] ?? 'SAFE';
+                        $modReason = $image['moderation_reason'] ?? 'Image approved';
+                    }
+                    
+                    if (!empty($imageUrl)) {
                         // Filter out blob: URLs (temporary preview URLs)
                         if (strpos($imageUrl, 'blob:') === 0) {
                             error_log("Update property - Skipping blob URL at index {$index}");
@@ -206,8 +227,15 @@ try {
                         
                         try {
                             $insertStmt->execute([
-                                $propertyId, 
-                                $imageUrl, // Store full URL
+                                $propertyId,
+                                $imageUrl, // Full URL
+                                $fileName,
+                                $filePath,
+                                $originalName,
+                                $fileSize,
+                                $mimeType,
+                                $modStatus,
+                                $modReason,
                                 $index // image_order
                             ]);
                             $linkedCount++;
@@ -216,16 +244,17 @@ try {
                             error_log("Update property - Failed to link image {$index}: " . $e->getMessage());
                         }
                     } else {
-                        error_log("Update property - Skipping invalid image at index {$index}: " . gettype($imageUrl));
+                        error_log("Update property - Skipping invalid image at index {$index}: " . gettype($image));
                     }
                 }
                 error_log("Update property - Successfully linked {$linkedCount} of " . count($input['images']) . " images");
                 
                 // Update cover_image with first image (NOT main_image!)
-                if (!empty($input['images'][0]) && strpos($input['images'][0], 'blob:') !== 0) {
+                $firstImage = is_string($input['images'][0]) ? $input['images'][0] : ($input['images'][0]['image_url'] ?? $input['images'][0]['url'] ?? '');
+                if (!empty($firstImage) && strpos($firstImage, 'blob:') !== 0) {
                     $updateCoverStmt = $db->prepare("UPDATE properties SET cover_image = ? WHERE id = ?");
-                    $updateCoverStmt->execute([$input['images'][0], $propertyId]);
-                    error_log("Update property - Updated cover_image to: {$input['images'][0]}");
+                    $updateCoverStmt->execute([$firstImage, $propertyId]);
+                    error_log("Update property - Updated cover_image to: {$firstImage}");
                 }
             } else {
                 error_log('Update property - Images array is empty, all images removed');

@@ -547,25 +547,27 @@ try {
     
     // Normal mode: Add Watermark and Save
     // Move to properties folder first
-    $propertyFolder = UPLOAD_PROPERTIES_PATH . $propertyId . '/';
+    // Save to /uploads/properties/{property_id}/ (NOT /uploads/properties/images/{property_id}/)
+    $propertyFolder = UPLOAD_DIR . 'properties/' . $propertyId . '/';
     
     // Log directory creation attempt
     error_log("Creating property folder: {$propertyFolder}");
-    error_log("UPLOAD_PROPERTIES_PATH: " . UPLOAD_PROPERTIES_PATH);
+    error_log("UPLOAD_DIR: " . UPLOAD_DIR);
     error_log("Property ID: {$propertyId}");
     
     // Ensure base properties directory exists first
-    if (!is_dir(UPLOAD_PROPERTIES_PATH)) {
-        error_log("Base properties directory does not exist, creating: " . UPLOAD_PROPERTIES_PATH);
-        if (!@mkdir(UPLOAD_PROPERTIES_PATH, 0755, true)) {
-            error_log("Failed to create base properties directory: " . UPLOAD_PROPERTIES_PATH);
+    $basePropertiesDir = UPLOAD_DIR . 'properties/';
+    if (!is_dir($basePropertiesDir)) {
+        error_log("Base properties directory does not exist, creating: " . $basePropertiesDir);
+        if (!@mkdir($basePropertiesDir, 0755, true)) {
+            error_log("Failed to create base properties directory: " . $basePropertiesDir);
         }
     }
     
     if (!FileHelper::createDirectory($propertyFolder)) {
         error_log("Failed to create property folder: {$propertyFolder}");
-        error_log("Base directory exists: " . (is_dir(UPLOAD_PROPERTIES_PATH) ? 'YES' : 'NO'));
-        error_log("Base directory writable: " . (is_writable(UPLOAD_PROPERTIES_PATH) ? 'YES' : 'NO'));
+        error_log("Base directory exists: " . (is_dir($basePropertiesDir) ? 'YES' : 'NO'));
+        error_log("Base directory writable: " . (is_writable($basePropertiesDir) ? 'YES' : 'NO'));
         FileHelper::deleteFile($tempPath);
         http_response_code(500);
         echo json_encode(['status' => 'error', 'message' => 'Failed to create property folder']);
