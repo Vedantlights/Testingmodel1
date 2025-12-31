@@ -3,12 +3,14 @@
 /* ========== BUY SEARCH BAR BANNER STYLING ========== */
 .buyer-buy-search-bar-banner {
   background-size: cover;
-  background-position: center;
+  background-position: center center;
   background-repeat: no-repeat;
+  background-attachment: scroll;
   padding: 3rem 1rem 4rem;
   position: relative;
   width: 100%;
   min-height: 550px;
+  overflow-x: hidden;
 }
 
 /* Ensure content appears above overlay */
@@ -22,12 +24,14 @@
 /* ========== RENT SEARCH BAR BANNER STYLING ========== */
 .buyer-rent-search-bar-banner {
   background-size: cover;
-  background-position: center;
+  background-position: center center;
   background-repeat: no-repeat;
+  background-attachment: scroll;
   padding: 3rem 1rem 4rem;
   position: relative;
   width: 100%;
   min-height: 550px;
+  overflow-x: hidden;
 }
 
 /* Optional: Add overlay for better text readability */
@@ -143,6 +147,8 @@
   .buyer-rent-search-bar-banner {
     padding: 3.5rem 2.5rem 4.5rem;
     min-height: 600px;
+    background-size: cover;
+    background-position: center center;
   }
 
   .buyer-filtered-header {
@@ -168,6 +174,8 @@
   .buyer-rent-search-bar-banner {
     padding: 3rem 2rem 4rem;
     min-height: 550px;
+    background-size: cover;
+    background-position: center center;
   }
 
   .buyer-filtered-header {
@@ -193,6 +201,9 @@
   .buyer-rent-search-bar-banner {
     padding: 2.5rem 1.5rem 3.5rem;
     min-height: 500px;
+    background-size: cover;
+    background-position: center center;
+    background-attachment: scroll;
   }
 
   .buyer-filtered-header {
@@ -221,6 +232,9 @@
   .buyer-rent-search-bar-banner {
     padding: 2rem 1rem 3rem;
     min-height: 450px;
+    background-size: cover;
+    background-position: center center;
+    background-attachment: scroll;
   }
 
   .buyer-filtered-header {
@@ -262,6 +276,9 @@
   .buyer-rent-search-bar-banner {
     padding: 1.5rem 0.75rem 2.5rem;
     min-height: 400px;
+    background-size: cover;
+    background-position: center center;
+    background-attachment: scroll;
   }
 
   .buyer-filtered-header {
@@ -302,6 +319,9 @@
   .buyer-rent-search-bar-banner {
     padding: 1.25rem 0.625rem 2rem;
     min-height: 380px;
+    background-size: cover;
+    background-position: center center;
+    background-attachment: scroll;
   }
 
   .buyer-filtered-header {

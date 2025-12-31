@@ -73,7 +73,7 @@
   }
 
   .search-title {
-    font-size: 2rem;
+    font-size: clamp(2rem, 4vw, 2.25rem);
   }
 
   .search-subtitle {
@@ -85,7 +85,19 @@
   }
 
   .search-inputs {
+    grid-template-columns: repeat(2, 1fr);
     gap: 1.25rem;
+  }
+
+  .search-input,
+  .search-select {
+    padding: 0.875rem 0.875rem;
+    font-size: 0.9rem;
+    min-height: 44px; /* Tap-friendly */
+  }
+
+  .search-button {
+    min-height: 44px; /* Tap-friendly */
   }
 }
 
@@ -99,13 +111,11 @@
   }
 
   .search-title {
-    font-size: clamp(1.5rem, 5vw, 2rem);
-    padding: 0 1rem;
+    font-size: clamp(1.75rem, 5vw, 2rem);
   }
 
   .search-subtitle {
-    font-size: clamp(0.9rem, 2.5vw, 1rem);
-    padding: 0 1rem;
+    font-size: clamp(0.95rem, 2.5vw, 1rem);
   }
 
   .search-form {
@@ -115,6 +125,13 @@
   .search-inputs {
     grid-template-columns: 1fr;
     gap: 1rem;
+  }
+
+  .search-input,
+  .search-select {
+    padding: 0.875rem 1rem;
+    font-size: 0.95rem;
+    min-height: 44px; /* Tap-friendly */
   }
 
   .search-button {
@@ -134,23 +151,30 @@
   }
 
   .search-title {
-    font-size: clamp(1.3rem, 5vw, 1.75rem);
-    padding: 0 0.75rem;
+    font-size: clamp(1.5rem, 5vw, 1.75rem);
   }
 
   .search-subtitle {
-    font-size: clamp(0.85rem, 2.5vw, 0.95rem);
-    padding: 0 0.75rem;
+    font-size: clamp(0.9rem, 2.5vw, 0.95rem);
   }
 
   .search-form {
     padding: 1.25rem;
   }
 
+  .search-inputs {
+    gap: 0.875rem;
+  }
+
+  .search-input,
+  .search-select {
+    padding: 0.75rem 0.875rem;
+    font-size: 0.9rem;
+  }
+
   .search-button {
-    font-size: clamp(0.9rem, 2.5vw, 1rem);
-    padding: 0.875rem 1.5rem;
-    min-height: 44px;
+    font-size: 0.95rem;
+    padding: 0.75rem 1.25rem;
   }
 }
 
@@ -165,16 +189,19 @@
   
   .search-title {
     font-size: clamp(1.2rem, 5vw, 1.5rem);
-    padding: 0 0.625rem;
   }
   
   .search-subtitle {
     font-size: clamp(0.8rem, 2.5vw, 0.9rem);
-    padding: 0 0.625rem;
   }
   
   .search-form {
     padding: 1rem;
+  }
+
+  .search-input,
+  .search-select {
+    font-size: 0.875rem;
   }
 }
 
