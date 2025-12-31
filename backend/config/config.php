@@ -80,27 +80,31 @@ if ($isLocalhost) {
 }
 
 define('API_BASE_URL', BASE_URL . '/api');
-// UPLOAD_BASE_URL points to /backend/uploads (files are saved to /backend/uploads/)
-// Files are physically at: /public_html/demo1/backend/uploads/properties/
-// URLs should be: https://demo1.indiapropertys.com/backend/uploads/properties/
+// UPLOAD_BASE_URL points to /uploads (files are saved to /uploads/ NOT /backend/uploads/)
+// Files are physically at: /public_html/demo1/uploads/properties/
+// URLs should be: https://demo1.indiapropertys.com/uploads/properties/
 $protocol = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? 'https' : 'http';
 $host = $_SERVER['HTTP_HOST'];
-define('UPLOAD_BASE_URL', $protocol . '://' . $host . '/backend/uploads');
+define('UPLOAD_BASE_URL', $protocol . '://' . $host . '/uploads');
 
-// File Upload Paths - USE ABSOLUTE PATHS (inside backend folder)
-// Files saved to: /home/u449667423/domains/indiapropertys.com/public_html/demo1/backend/uploads/properties/
-// URLs: https://demo1.indiapropertys.com/backend/uploads/properties/
-define('UPLOAD_DIR', '/home/u449667423/domains/indiapropertys.com/public_html/demo1/backend/uploads/');
-define('UPLOAD_PROPERTIES_PATH', '/home/u449667423/domains/indiapropertys.com/public_html/demo1/backend/uploads/properties/');
-define('PROPERTY_IMAGES_DIR', UPLOAD_PROPERTIES_PATH . 'images/');
+// File Upload Paths - USE ONLY /public_html/demo1/uploads/ (NOT /backend/uploads/)
+// Files saved to: /home/u449667423/domains/indiapropertys.com/public_html/demo1/uploads/properties/
+// URLs: https://demo1.indiapropertys.com/uploads/properties/
+// Note: UPLOAD_PROPERTIES_PATH, UPLOAD_TEMP_PATH, etc. are defined in moderation.php
+// Use those constants instead of defining here
+// dirname(__DIR__, 2) goes up 2 levels from /backend/config/ to /demo1/
+$baseUploadDir = dirname(__DIR__, 2) . '/uploads/';
+define('UPLOAD_DIR', $baseUploadDir);
+// Note: UPLOAD_PROPERTIES_PATH is defined in moderation.php - don't redefine here
+
 define('PROPERTY_VIDEOS_DIR', UPLOAD_DIR . 'properties/videos/');
 define('PROPERTY_BROCHURES_DIR', UPLOAD_DIR . 'properties/brochures/');
 define('USER_PROFILES_DIR', UPLOAD_DIR . 'users/profiles/');
 
 // Create upload directories if they don't exist
+// Note: UPLOAD_PROPERTIES_PATH, UPLOAD_TEMP_PATH, etc. are created in moderation.php
 $dirs = [
     UPLOAD_DIR,
-    UPLOAD_PROPERTIES_PATH, // Main properties directory (without /images/ subfolder)
     PROPERTY_VIDEOS_DIR,
     PROPERTY_BROCHURES_DIR,
     USER_PROFILES_DIR

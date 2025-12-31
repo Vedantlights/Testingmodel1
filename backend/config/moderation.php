@@ -42,12 +42,13 @@ define('MAX_IMAGE_SIZE_BYTES', MAX_IMAGE_SIZE_MB * 1024 * 1024);
 define('ALLOWED_IMAGE_TYPES', ['jpg', 'jpeg', 'png', 'webp']);
 define('ALLOWED_MIME_TYPES', ['image/jpeg', 'image/png', 'image/webp']);
 
-// Upload Paths - USE ABSOLUTE PATHS (inside backend folder)
-// Standardize to: /home/u449667423/domains/indiapropertys.com/public_html/demo1/backend/uploads/
-define('UPLOAD_TEMP_PATH', '/home/u449667423/domains/indiapropertys.com/public_html/demo1/backend/uploads/temp/');
-define('UPLOAD_PROPERTIES_PATH', '/home/u449667423/domains/indiapropertys.com/public_html/demo1/backend/uploads/properties/');
-define('UPLOAD_REVIEW_PATH', '/home/u449667423/domains/indiapropertys.com/public_html/demo1/backend/uploads/review/');
-define('UPLOAD_REJECTED_PATH', '/home/u449667423/domains/indiapropertys.com/public_html/demo1/backend/uploads/rejected/');
+// Upload Paths - USE ONLY /public_html/demo1/uploads/ (NOT /backend/uploads/)
+// dirname(__DIR__, 2) goes up 2 levels from /backend/config/ to /demo1/
+$baseUploadDir = dirname(__DIR__, 2) . '/uploads/';
+define('UPLOAD_TEMP_PATH', $baseUploadDir . 'temp/');
+define('UPLOAD_PROPERTIES_PATH', $baseUploadDir . 'properties/');
+define('UPLOAD_REVIEW_PATH', $baseUploadDir . 'review/');
+define('UPLOAD_REJECTED_PATH', $baseUploadDir . 'rejected/');
 
 // Create upload directories if they don't exist
 $uploadDirs = [
