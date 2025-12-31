@@ -45,6 +45,13 @@ define('ALLOWED_MIME_TYPES', ['image/jpeg', 'image/png', 'image/webp']);
 // Upload Paths - USE ONLY /public_html/demo1/uploads/ (NOT /backend/uploads/)
 // dirname(__DIR__, 2) goes up 2 levels from /backend/config/ to /demo1/
 $baseUploadDir = dirname(__DIR__, 2) . '/uploads/';
+
+// Verify the path is correct (for debugging)
+error_log("=== UPLOAD PATH CONFIGURATION ===");
+error_log("Base upload directory: {$baseUploadDir}");
+error_log("Directory exists: " . (is_dir($baseUploadDir) ? 'YES' : 'NO'));
+error_log("Directory writable: " . (is_writable($baseUploadDir) ? 'YES' : 'NO'));
+
 define('UPLOAD_TEMP_PATH', $baseUploadDir . 'temp/');
 define('UPLOAD_PROPERTIES_PATH', $baseUploadDir . 'properties/');
 define('UPLOAD_REVIEW_PATH', $baseUploadDir . 'review/');
@@ -60,10 +67,18 @@ $uploadDirs = [
 
 foreach ($uploadDirs as $dir) {
     if (!file_exists($dir)) {
-        @mkdir($dir, 0755, true);
-        if (file_exists($dir)) {
+        $created = @mkdir($dir, 0755, true);
+        if ($created && file_exists($dir)) {
             error_log("Created upload directory: {$dir}");
+        } else {
+            error_log("Failed to create upload directory: {$dir}");
+            $error = error_get_last();
+            if ($error) {
+                error_log("Error: " . $error['message']);
+            }
         }
+    } else {
+        error_log("Upload directory already exists: {$dir}");
     }
 }
 

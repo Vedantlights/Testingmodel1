@@ -744,30 +744,40 @@ try {
     error_log("Destination folder exists: " . (is_dir($propertyFolder) ? 'YES' : 'NO'));
     error_log("Destination folder writable: " . (is_writable($propertyFolder) ? 'YES' : 'NO'));
     
-    // Move file using native PHP function for better error reporting
-    if (!@move_uploaded_file($tempPath, $finalPath)) {
-        $error = error_get_last();
-        error_log("FAILED to move file to property folder");
-        error_log("Error: " . ($error ? $error['message'] : 'Unknown error'));
-        error_log("Source exists: " . (file_exists($tempPath) ? 'YES' : 'NO'));
-        error_log("Source readable: " . (is_readable($tempPath) ? 'YES' : 'NO'));
-        error_log("Destination folder exists: " . (is_dir($propertyFolder) ? 'YES' : 'NO'));
-        error_log("Destination folder writable: " . (is_writable($propertyFolder) ? 'YES' : 'NO'));
-        FileHelper::deleteFile($tempPath);
-        http_response_code(500);
-        echo json_encode([
-            'status' => 'error', 
-            'message' => 'Failed to save image file',
-            'debug' => [
-                'source' => $tempPath,
-                'destination' => $finalPath,
-                'source_exists' => file_exists($tempPath),
-                'dest_folder_exists' => is_dir($propertyFolder),
-                'dest_folder_writable' => is_writable($propertyFolder),
-                'error' => $error ? $error['message'] : 'Unknown'
-            ]
-        ]);
-        exit;
+    // Move file from temp to final location
+    // NOTE: move_uploaded_file() only works for $_FILES['tmp_name']
+    // After first move, use rename() instead
+    if (!@rename($tempPath, $finalPath)) {
+        // Fallback: try copy + delete
+        if (@copy($tempPath, $finalPath)) {
+            @unlink($tempPath);
+            error_log("File moved using copy+delete fallback method");
+        } else {
+            $error = error_get_last();
+            error_log("FAILED to move file to property folder");
+            error_log("Error: " . ($error ? $error['message'] : 'Unknown error'));
+            error_log("Source exists: " . (file_exists($tempPath) ? 'YES' : 'NO'));
+            error_log("Source readable: " . (is_readable($tempPath) ? 'YES' : 'NO'));
+            error_log("Destination folder exists: " . (is_dir($propertyFolder) ? 'YES' : 'NO'));
+            error_log("Destination folder writable: " . (is_writable($propertyFolder) ? 'YES' : 'NO'));
+            FileHelper::deleteFile($tempPath);
+            http_response_code(500);
+            echo json_encode([
+                'status' => 'error', 
+                'message' => 'Failed to save image file',
+                'debug' => [
+                    'source' => $tempPath,
+                    'destination' => $finalPath,
+                    'source_exists' => file_exists($tempPath),
+                    'dest_folder_exists' => is_dir($propertyFolder),
+                    'dest_folder_writable' => is_writable($propertyFolder),
+                    'error' => $error ? $error['message'] : 'Unknown'
+                ]
+            ]);
+            exit;
+        }
+    } else {
+        error_log("File moved successfully using rename()");
     }
     
     // Verify file was saved

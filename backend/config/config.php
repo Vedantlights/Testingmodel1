@@ -95,6 +95,12 @@ define('UPLOAD_BASE_URL', $protocol . '://' . $host . '/uploads');
 // dirname(__DIR__, 2) goes up 2 levels from /backend/config/ to /demo1/
 $baseUploadDir = dirname(__DIR__, 2) . '/uploads/';
 define('UPLOAD_DIR', $baseUploadDir);
+
+// Verify the path is correct (for debugging)
+error_log("UPLOAD_DIR: " . UPLOAD_DIR);
+error_log("UPLOAD_DIR exists: " . (is_dir(UPLOAD_DIR) ? 'YES' : 'NO'));
+error_log("UPLOAD_DIR writable: " . (is_writable(UPLOAD_DIR) ? 'YES' : 'NO'));
+
 // Note: UPLOAD_PROPERTIES_PATH is defined in moderation.php - don't redefine here
 
 define('PROPERTY_VIDEOS_DIR', UPLOAD_DIR . 'properties/videos/');
