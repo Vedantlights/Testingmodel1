@@ -2,7 +2,7 @@
 .seller-timer-page {
   width: 100%;
   min-height: 100vh;
-  padding: 50px 20px;
+  padding: 20px 20px;
   display: flex;
   justify-content: center;
   align-items: flex-start;
@@ -14,7 +14,6 @@
   width: 100%;
   text-align: center;
   animation: fadeIn 0.7s ease;
-  padding: 40px 20px 20px;
 }
 
 /* Badge */
@@ -61,10 +60,7 @@
 
 /* Timer Header */
 .seller-timer-header {
-  display: flex;
-  justify-content: center;
   align-items: center;
-  gap: 12px;
   margin-bottom: 32px;
 }
 
@@ -135,7 +131,6 @@
   margin-left: -20px;
   margin-right: -20px;
   margin-bottom: -50px;
-  animation: slideUp 0.8s ease 0.3s both;
   box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.08);
 }
 
@@ -359,6 +354,7 @@
   max-width: 450px;
   border-radius: 20px;
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15);
+  background-color: whitesmoke;
 }
 
 .seller-timer-blur-icon {
@@ -371,7 +367,7 @@
   margin: 0 auto 25px;
   color: #1a1a1a;
   animation: pulse-lock 2s ease-in-out infinite;
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+  box-shadow: 0 4px 16px #667eea;
 }
 
 @keyframes pulse-lock {
