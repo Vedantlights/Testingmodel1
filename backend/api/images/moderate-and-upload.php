@@ -51,6 +51,25 @@ set_exception_handler(function($e) {
 // Start output buffering
 ob_start();
 
+// Helper function to send clean JSON responses
+function sendJsonResponse($data, $statusCode = 200) {
+    // Clean output buffer to remove any warnings/notices
+    while (ob_get_level() > 0) {
+        ob_end_clean();
+    }
+    
+    // Set headers (replace any existing)
+    header('Content-Type: application/json', true);
+    header('Access-Control-Allow-Origin: *', true);
+    header('Access-Control-Allow-Methods: POST, OPTIONS', true);
+    header('Access-Control-Allow-Headers: Content-Type, Authorization', true);
+    
+    // Send JSON
+    http_response_code($statusCode);
+    echo json_encode($data);
+    exit;
+}
+
 // Set headers
 header('Content-Type: application/json');
 header('Access-Control-Allow-Origin: *');
@@ -164,7 +183,8 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
 
 try {
     // Step 2: Check Authentication
-    session_start();
+    // Note: Using JWT token authentication, not sessions - session_start() not needed
+    // session_start(); // REMOVED - causes header issues and not needed for JWT auth
     $user = getCurrentUser();
     if (!$user) {
         http_response_code(401);
@@ -902,8 +922,8 @@ try {
         error_log("Image ID: {$imageId}");
         error_log("Relative path: {$relativePath}");
         
-        http_response_code(200);
-        echo json_encode([
+        // Use helper function to send clean JSON response
+        sendJsonResponse([
             'status' => 'success',
             'message' => 'Image approved',
             'data' => [
@@ -913,15 +933,12 @@ try {
                 'filename' => $uniqueFilename,
                 'moderation_status' => $moderationStatus // Use actual status (SAFE, PENDING, etc.)
             ]
-        ]);
-        exit;
+        ], 200);
         
     } catch (PDOException $e) {
         error_log("Failed to save image record: " . $e->getMessage());
         FileHelper::deleteFile($finalPath);
-        http_response_code(500);
-        echo json_encode(['status' => 'error', 'message' => 'Failed to save image record']);
-        exit;
+        sendJsonResponse(['status' => 'error', 'message' => 'Failed to save image record'], 500);
     }
     
 } catch (Throwable $e) {
@@ -938,14 +955,12 @@ try {
         @unlink($finalPath);
     }
     
-    http_response_code(500);
-    echo json_encode([
+    sendJsonResponse([
         'status' => 'error', 
         'message' => 'An error occurred while processing the image',
         'error_code' => 'processing_error',
         'details' => defined('ENVIRONMENT') && ENVIRONMENT === 'development' ? $e->getMessage() : 'Please try again or contact support'
-    ]);
-    exit;
+    ], 500);
 } catch (Error $e) {
     error_log("Image moderation fatal error: " . $e->getMessage());
     error_log("Error type: " . get_class($e));
@@ -960,12 +975,10 @@ try {
         @unlink($finalPath);
     }
     
-    http_response_code(500);
-    echo json_encode([
+    sendJsonResponse([
         'status' => 'error', 
         'message' => 'A fatal error occurred while processing the image',
         'error_code' => 'fatal_error',
         'details' => defined('ENVIRONMENT') && ENVIRONMENT === 'development' ? $e->getMessage() : 'Please try again or contact support'
-    ]);
-    exit;
+    ], 500);
 }
