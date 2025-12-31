@@ -301,10 +301,9 @@ try {
                 $imageArray = explode(',', $property['images']);
                 $property['images'] = array_map(function($img) {
                     $img = trim($img);
-                    // If already a full URL, return as is (but fix old /backend/uploads/ paths)
+                    // If already a full URL, return as is
                     if (strpos($img, 'http://') === 0 || strpos($img, 'https://') === 0) {
-                        // Fix old URLs that have /backend/uploads/ to /uploads/
-                        return str_replace('/backend/uploads/', '/uploads/', $img);
+                        return $img;
                     }
                     // If relative path, make it full URL using UPLOAD_BASE_URL
                     if (defined('UPLOAD_BASE_URL')) {
