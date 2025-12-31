@@ -7,12 +7,38 @@
     <link rel="apple-touch-icon" href="%PUBLIC_URL%/browserlogo.jpg" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="theme-color" content="#8B5CF6" />
+    
+    <!-- Primary Meta Tags -->
     <meta
       name="description"
       content="IndiaPropertys - Find your dream property. Buy, Rent, or Sell properties across India. Real estate listings with verified sellers and agents."
     />
-    <meta name="keywords" content="real estate, property, buy property, rent property, sell property, India, real estate India" />
+    <meta name="keywords" content="real estate, property, buy property, rent property, sell property, India, real estate India, property listings, verified properties" />
     <meta name="author" content="IndiaPropertys" />
+    <meta name="robots" content="index, follow" />
+    <meta name="language" content="English" />
+    <meta name="revisit-after" content="7 days" />
+    
+    <!-- Open Graph / Facebook -->
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="https://indiapropertys.com/" />
+    <meta property="og:title" content="IndiaPropertys - Buy, Rent & Sell Properties in India" />
+    <meta property="og:description" content="IndiaPropertys - Find your dream property. Buy, Rent, or Sell properties across India. Real estate listings with verified sellers and agents." />
+    <meta property="og:image" content="%PUBLIC_URL%/logo.png" />
+    <meta property="og:site_name" content="IndiaPropertys" />
+    
+    <!-- Twitter -->
+    <meta property="twitter:card" content="summary_large_image" />
+    <meta property="twitter:url" content="https://indiapropertys.com/" />
+    <meta property="twitter:title" content="IndiaPropertys - Buy, Rent & Sell Properties in India" />
+    <meta property="twitter:description" content="IndiaPropertys - Find your dream property. Buy, Rent, or Sell properties across India. Real estate listings with verified sellers and agents." />
+    <meta property="twitter:image" content="%PUBLIC_URL%/logo.png" />
+    
+    <!-- Additional SEO -->
+    <meta name="application-name" content="IndiaPropertys" />
+    <meta name="apple-mobile-web-app-title" content="IndiaPropertys" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="default" />
     <!--
       manifest.json provides metadata used when your web app is installed on a
       user's mobile device or desktop. See https://developers.google.com/web/fundamentals/web-app-manifest/
@@ -28,6 +54,22 @@
       Learn how to configure a non-root public URL by running `npm run build`.
     -->
     <title>IndiaPropertys - Buy, Rent & Sell Properties in India</title>
+    
+    <!-- Ensure title is set immediately (before React loads) -->
+    <script>
+      // Set title immediately to prevent "React App" from showing
+      if (document.title === 'React App' || !document.title || document.title.trim() === '') {
+        document.title = 'IndiaPropertys - Buy, Rent & Sell Properties in India';
+      }
+      
+      // Also set it on DOMContentLoaded as a fallback
+      document.addEventListener('DOMContentLoaded', function() {
+        if (document.title === 'React App' || !document.title || document.title.trim() === '') {
+          document.title = 'IndiaPropertys - Buy, Rent & Sell Properties in India';
+        }
+      });
+    </script>
+    
     <!-- MSG91 OTP Widget -->
     <script type="text/javascript" src="https://verify.msg91.com/otp-provider.js"></script>
   </head>

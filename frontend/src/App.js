@@ -52,6 +52,50 @@ import AgentDashboard from './Agent-dashboard/Agent-dashboard';
 import Admin from './Admin/AdminLayout';
 
 // =====================
+// SEO TITLE MANAGEMENT
+// =====================
+function SEOHead() {
+  const { pathname } = useLocation();
+
+  useEffect(() => {
+    // Ensure title is always set to IndiaPropertys
+    const baseTitle = 'IndiaPropertys - Buy, Rent & Sell Properties in India';
+    
+    // Set document title
+    document.title = baseTitle;
+    
+    // Update meta description if needed
+    let metaDescription = document.querySelector('meta[name="description"]');
+    if (!metaDescription) {
+      metaDescription = document.createElement('meta');
+      metaDescription.setAttribute('name', 'description');
+      document.head.appendChild(metaDescription);
+    }
+    metaDescription.setAttribute('content', 'IndiaPropertys - Find your dream property. Buy, Rent, or Sell properties across India. Real estate listings with verified sellers and agents.');
+    
+    // Update Open Graph title
+    let ogTitle = document.querySelector('meta[property="og:title"]');
+    if (!ogTitle) {
+      ogTitle = document.createElement('meta');
+      ogTitle.setAttribute('property', 'og:title');
+      document.head.appendChild(ogTitle);
+    }
+    ogTitle.setAttribute('content', baseTitle);
+    
+    // Update Twitter title
+    let twitterTitle = document.querySelector('meta[property="twitter:title"]');
+    if (!twitterTitle) {
+      twitterTitle = document.createElement('meta');
+      twitterTitle.setAttribute('property', 'twitter:title');
+      document.head.appendChild(twitterTitle);
+    }
+    twitterTitle.setAttribute('content', baseTitle);
+  }, [pathname]);
+
+  return null;
+}
+
+// =====================
 // SCROLL TO TOP (GLOBAL)
 // =====================
 function ScrollToTop() {
@@ -129,6 +173,7 @@ function App() {
   return (
     <AuthProvider>
       <Router>
+        <SEOHead /> {/* Manages title and meta tags for SEO */}
         <ScrollToTop /> {/* <-- ADDED HERE (Works for all pages) */}
         <div className="App">
           <Routes>
