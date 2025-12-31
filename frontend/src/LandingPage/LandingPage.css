@@ -38,7 +38,7 @@
   z-index: 1;
   width: 100%;
   overflow-x: hidden; /* Prevent horizontal scrolling */
-  overflow-y: visible; /* Allow vertical scrolling */
+  overflow-y: hidden !important; /* Allow vertical scrolling */
   margin: 0;
   padding: 0;
 }
