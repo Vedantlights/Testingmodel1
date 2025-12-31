@@ -42,9 +42,9 @@ define('MAX_IMAGE_SIZE_BYTES', MAX_IMAGE_SIZE_MB * 1024 * 1024);
 define('ALLOWED_IMAGE_TYPES', ['jpg', 'jpeg', 'png', 'webp']);
 define('ALLOWED_MIME_TYPES', ['image/jpeg', 'image/png', 'image/webp']);
 
-// Upload Paths - USE ONLY /public_html/demo1/uploads/ (NOT /backend/uploads/)
-// dirname(__DIR__, 2) goes up 2 levels from /backend/config/ to /demo1/
-$baseUploadDir = dirname(__DIR__, 2) . '/uploads/';
+// Upload Paths - USE /backend/uploads/ (inside backend folder)
+// __DIR__ is /backend/config/, so go up one level to /backend/
+$baseUploadDir = dirname(__DIR__) . '/uploads/';
 
 // Verify the path is correct (for debugging)
 error_log("=== UPLOAD PATH CONFIGURATION ===");
