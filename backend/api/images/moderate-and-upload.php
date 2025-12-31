@@ -76,8 +76,14 @@ if (!defined('PROPERTY_CONTEXT_THRESHOLD')) {
 }
 
 // Load Composer autoload if available
-if (file_exists(__DIR__ . '/../../vendor/autoload.php')) {
-    require_once __DIR__ . '/../../vendor/autoload.php';
+$vendorAutoloadPath = __DIR__ . '/../../vendor/autoload.php';
+$composerAvailable = file_exists($vendorAutoloadPath);
+if ($composerAvailable) {
+    require_once $vendorAutoloadPath;
+    error_log("Composer autoload loaded successfully");
+} else {
+    error_log("WARNING: Composer autoload not found at: {$vendorAutoloadPath}");
+    error_log("Google Vision moderation will be skipped. Image will be marked as PENDING.");
 }
 
 //ob_clean();
@@ -263,17 +269,26 @@ try {
     }
     
     // Step 9: Call Google Vision API
-    // IMPORTANT: If Vision API fails, we still allow upload but mark as PENDING
+    // IMPORTANT: If Vision API fails or Composer is missing, we still allow upload but mark as PENDING
     $apiResponse = null;
     $moderationStatus = 'PENDING';
     $moderationReason = 'Auto-approved (moderation unavailable)';
     $confidenceScores = null;
     $apiResponseJson = null;
     
-    try {
-        error_log("Attempting to call Google Vision API...");
-        $visionService = new GoogleVisionService();
-        $apiResponse = $visionService->analyzeImage($tempPath);
+    // Only attempt Google Vision API if Composer is available
+    if (!$composerAvailable) {
+        error_log("WARNING: Composer autoload not available at: {$vendorAutoloadPath}");
+        error_log("Skipping Google Vision moderation - Composer dependencies not installed");
+        error_log("Image will be uploaded with moderation_status = 'PENDING'");
+        error_log("To enable moderation, run: cd /home/u449667423/domains/indiapropertys.com/public_html/demo1/backend && composer install");
+        $moderationStatus = 'PENDING';
+        $moderationReason = 'Auto-approved (Composer dependencies not installed - moderation unavailable)';
+    } else {
+        try {
+            error_log("Composer available - Attempting to call Google Vision API...");
+            $visionService = new GoogleVisionService();
+            $apiResponse = $visionService->analyzeImage($tempPath);
         
         if ($apiResponse['success']) {
             error_log("Google Vision API call successful");
@@ -304,7 +319,8 @@ try {
         error_log("Image will be marked as PENDING for manual review");
         $moderationStatus = 'PENDING';
         $moderationReason = 'Auto-approved (moderation unavailable: ' . substr($e->getMessage(), 0, 100) . ')';
-    }
+        }
+    } // End of Composer availability check
     
     // Continue with upload regardless of Vision API result
     error_log("Proceeding with image upload. Moderation status: {$moderationStatus}");

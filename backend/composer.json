@@ -1,14 +1,22 @@
 {
+    "name": "indiapropertys/backend",
+    "description": "India Propertys Backend API",
+    "type": "project",
     "require": {
-        "phpmailer/phpmailer": "^7.0",
-        "pragmarx/google2fa": "^9.0",
-        "bacon/bacon-qr-code": "^3.0",
-        "google/cloud-vision": "^1.7"
+        "php": ">=7.4",
+        "google/cloud-vision": "^1.5"
     },
     "autoload": {
         "psr-4": {
             "App\\Services\\": "services/",
             "App\\Utils\\": "utils/"
         }
-    }
+    },
+    "config": {
+        "optimize-autoloader": true,
+        "preferred-install": "dist",
+        "sort-packages": true
+    },
+    "minimum-stability": "stable",
+    "prefer-stable": true
 }
