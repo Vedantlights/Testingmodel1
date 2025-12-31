@@ -14,8 +14,44 @@
  * 8. Final decision (approve / reject / manual review)
  */
 
-// Step 1: Setup and Headers
+// Step 1: Setup Error Handling and Headers
+ini_set('display_errors', 0); // Don't display errors (prevents HTML in JSON)
+ini_set('log_errors', 1);
+error_reporting(E_ALL);
+
+// Set error handler to catch PHP errors
+set_error_handler(function($errno, $errstr, $errfile, $errline) {
+    error_log("PHP Error [$errno]: $errstr in $errfile on line $errline");
+    if ($errno === E_ERROR || $errno === E_PARSE || $errno === E_CORE_ERROR || $errno === E_COMPILE_ERROR) {
+        http_response_code(500);
+        echo json_encode([
+            'status' => 'error',
+            'message' => 'Server error occurred',
+            'error_code' => 'php_error',
+            'details' => defined('ENVIRONMENT') && ENVIRONMENT === 'development' ? "$errstr in $errfile on line $errline" : 'Please try again'
+        ]);
+        exit;
+    }
+    return false; // Let PHP handle other errors
+});
+
+// Set exception handler
+set_exception_handler(function($e) {
+    error_log("Uncaught Exception: " . $e->getMessage() . " in " . $e->getFile() . " on line " . $e->getLine());
+    http_response_code(500);
+    echo json_encode([
+        'status' => 'error',
+        'message' => 'Server error occurred',
+        'error_code' => 'exception',
+        'details' => defined('ENVIRONMENT') && ENVIRONMENT === 'development' ? $e->getMessage() : 'Please try again'
+    ]);
+    exit;
+});
+
+// Start output buffering
 ob_start();
+
+// Set headers
 header('Content-Type: application/json');
 header('Access-Control-Allow-Origin: *');
 header('Access-Control-Allow-Methods: POST, OPTIONS');
@@ -27,15 +63,40 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
     exit;
 }
 
+// Step 2: Load Composer autoload FIRST (before other requires)
+$vendorAutoloadPath = __DIR__ . '/../../vendor/autoload.php';
+$composerAvailable = file_exists($vendorAutoloadPath);
+if ($composerAvailable) {
+    require_once $vendorAutoloadPath;
+    error_log("Composer autoload loaded successfully from: {$vendorAutoloadPath}");
+} else {
+    error_log("WARNING: Composer autoload not found at: {$vendorAutoloadPath}");
+    error_log("Google Vision moderation will be skipped. Image will be marked as PENDING.");
+}
+
+// Step 3: Load config files
 require_once __DIR__ . '/../../config/config.php';
 require_once __DIR__ . '/../../config/database.php';
 require_once __DIR__ . '/../../config/moderation.php';
-require_once __DIR__ . '/../../utils/auth.php';
-require_once __DIR__ . '/../../services/GoogleVisionService.php';
+
+// Step 4: Load services (only if Composer is available)
+if ($composerAvailable) {
+    require_once __DIR__ . '/../../services/GoogleVisionService.php';
+    require_once __DIR__ . '/../../services/ModerationDecisionService.php';
+}
 require_once __DIR__ . '/../../services/WatermarkService.php';
+
+// Step 5: Load helpers
 require_once __DIR__ . '/../../helpers/FileHelper.php';
+if (file_exists(__DIR__ . '/../../helpers/BlurDetector.php')) {
+    require_once __DIR__ . '/../../helpers/BlurDetector.php';
+}
+
+// Step 6: Load utilities
+require_once __DIR__ . '/../../utils/auth.php';
 
 // Ensure moderation thresholds are defined (with fallback defaults)
+// These are already defined in moderation.php, but provide fallbacks just in case
 if (!defined('MODERATION_ADULT_THRESHOLD')) {
     define('MODERATION_ADULT_THRESHOLD', 0.6);
 }
@@ -73,17 +134,6 @@ if (!defined('MODERATION_BLUR_THRESHOLD')) {
 }
 if (!defined('PROPERTY_CONTEXT_THRESHOLD')) {
     define('PROPERTY_CONTEXT_THRESHOLD', 0.3);
-}
-
-// Load Composer autoload if available
-$vendorAutoloadPath = __DIR__ . '/../../vendor/autoload.php';
-$composerAvailable = file_exists($vendorAutoloadPath);
-if ($composerAvailable) {
-    require_once $vendorAutoloadPath;
-    error_log("Composer autoload loaded successfully");
-} else {
-    error_log("WARNING: Composer autoload not found at: {$vendorAutoloadPath}");
-    error_log("Google Vision moderation will be skipped. Image will be marked as PENDING.");
 }
 
 //ob_clean();
@@ -251,16 +301,24 @@ try {
     $fileSize = $file['size'];
     $mimeType = $mimeType ?: 'image/jpeg'; // Fallback
     
-    // Ensure temp directory exists
-    if (!FileHelper::createDirectory(UPLOAD_TEMP_PATH)) {
-        error_log("Failed to create temp directory: " . UPLOAD_TEMP_PATH);
-        http_response_code(500);
-        echo json_encode(['status' => 'error', 'message' => 'Failed to create upload directory']);
-        exit;
+    // Ensure temp directory exists (use constant from moderation.php)
+    $tempDir = defined('UPLOAD_TEMP_PATH') ? UPLOAD_TEMP_PATH : '/home/u449667423/domains/indiapropertys.com/public_html/demo1/backend/uploads/temp/';
+    if (!is_dir($tempDir)) {
+        if (!@mkdir($tempDir, 0755, true)) {
+            error_log("Failed to create temp directory: {$tempDir}");
+            http_response_code(500);
+            echo json_encode([
+                'status' => 'error', 
+                'message' => 'Failed to create upload directory',
+                'error_code' => 'directory_error',
+                'path' => $tempDir
+            ]);
+            exit;
+        }
     }
     
     // Save to temp directory
-    $tempPath = UPLOAD_TEMP_PATH . $uniqueFilename;
+    $tempPath = $tempDir . $uniqueFilename;
     if (!move_uploaded_file($file['tmp_name'], $tempPath)) {
         error_log("Failed to move uploaded file to temp: {$tempPath}");
         http_response_code(500);

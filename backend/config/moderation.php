@@ -42,11 +42,29 @@ define('MAX_IMAGE_SIZE_BYTES', MAX_IMAGE_SIZE_MB * 1024 * 1024);
 define('ALLOWED_IMAGE_TYPES', ['jpg', 'jpeg', 'png', 'webp']);
 define('ALLOWED_MIME_TYPES', ['image/jpeg', 'image/png', 'image/webp']);
 
-// Upload Paths
-define('UPLOAD_TEMP_PATH', $_SERVER['DOCUMENT_ROOT'] . '/uploads/temp/');
-define('UPLOAD_PROPERTIES_PATH', $_SERVER['DOCUMENT_ROOT'] . '/uploads/properties/');
-define('UPLOAD_REVIEW_PATH', $_SERVER['DOCUMENT_ROOT'] . '/uploads/review/');
-define('UPLOAD_REJECTED_PATH', $_SERVER['DOCUMENT_ROOT'] . '/uploads/rejected/');
+// Upload Paths - USE ABSOLUTE PATHS (inside backend folder)
+// Standardize to: /home/u449667423/domains/indiapropertys.com/public_html/demo1/backend/uploads/
+define('UPLOAD_TEMP_PATH', '/home/u449667423/domains/indiapropertys.com/public_html/demo1/backend/uploads/temp/');
+define('UPLOAD_PROPERTIES_PATH', '/home/u449667423/domains/indiapropertys.com/public_html/demo1/backend/uploads/properties/');
+define('UPLOAD_REVIEW_PATH', '/home/u449667423/domains/indiapropertys.com/public_html/demo1/backend/uploads/review/');
+define('UPLOAD_REJECTED_PATH', '/home/u449667423/domains/indiapropertys.com/public_html/demo1/backend/uploads/rejected/');
+
+// Create upload directories if they don't exist
+$uploadDirs = [
+    UPLOAD_TEMP_PATH,
+    UPLOAD_PROPERTIES_PATH,
+    UPLOAD_REVIEW_PATH,
+    UPLOAD_REJECTED_PATH
+];
+
+foreach ($uploadDirs as $dir) {
+    if (!file_exists($dir)) {
+        @mkdir($dir, 0755, true);
+        if (file_exists($dir)) {
+            error_log("Created upload directory: {$dir}");
+        }
+    }
+}
 
 // Watermark Settings
 define('WATERMARK_TEXT', 'indiapropertys');
