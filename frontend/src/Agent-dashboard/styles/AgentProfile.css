@@ -177,16 +177,6 @@
   color: var(--success-color);
 }
 
-.badge.pending {
-  background: rgba(251, 191, 36, 0.1);
-  color: #f59e0b;
-}
-
-.badge.pro {
-  background: rgba(124, 58, 237, 0.1);
-  color: var(--accent-color);
-}
-
 .profile-stats-grid {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
