@@ -51,21 +51,25 @@
 /* About Section */
 .footer-about {
   padding-right: 1rem;
-  
 }
 
+.footer-logo {
+  margin-bottom: 0.5rem;
+}
 
 .footer-logo-image {
-  height: 120px;
+  height: 50px;
   width: auto;
   object-fit: contain;
-  filter: drop-shadow(0 4px 8px rgba(136, 106, 206, 0.3));
+  /* Removed filter for better performance - use box-shadow instead */
+  /* filter: drop-shadow(0 4px 8px rgba(139, 95, 191, 0.3)); */
 }
 
 .footer-description {
   color: rgba(255, 255, 255, 0.8);
   font-size: 0.95rem;
   line-height: 1.7;
+  margin: 0;
 }
 
 

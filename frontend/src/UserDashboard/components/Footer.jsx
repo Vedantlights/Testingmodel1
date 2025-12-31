@@ -34,7 +34,7 @@ const Footer = () => {
             </h3>
             <ul className="buyer-footer-links">
               <li>
-                <Link to="/about">
+                <Link to="/buyer-about">
                   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7"/>
                   </svg>
@@ -50,7 +50,7 @@ const Footer = () => {
                 </Link>
               </li>
               <li>
-                <Link to="/privacy-policy">
+                <Link to="/buyer-privacy-policy">
                   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7"/>
                   </svg>
@@ -58,7 +58,7 @@ const Footer = () => {
                 </Link>
               </li>
               <li>
-                <Link to="/terms-conditions">
+                <Link to="/buyer-terms-conditions">
                   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7"/>
                   </svg>
