@@ -27,9 +27,6 @@ const AgentProfile = () => {
     gstNumber: '',
     reraNumber: '',
     website: '',
-    facebook: '',
-    instagram: '',
-    linkedin: '',
     profileImage: ""
   });
 
@@ -55,16 +52,6 @@ const AgentProfile = () => {
           const firstName = nameParts[0] || '';
           const lastName = nameParts.slice(1).join(' ') || '';
           
-          // Parse social_links
-          let socialLinks = profile.social_links || {};
-          if (typeof socialLinks === 'string') {
-            try {
-              socialLinks = JSON.parse(socialLinks);
-            } catch (e) {
-              socialLinks = {};
-            }
-          }
-          
           // Get location from address or set empty
           const location = profile.address ? profile.address.split(',')[0] + (profile.address.split(',')[1] ? ', ' + profile.address.split(',')[1] : '') : '';
           
@@ -80,9 +67,6 @@ const AgentProfile = () => {
             gstNumber: '', // Not in backend yet
             reraNumber: profile.license_number || '',
             website: profile.website || '',
-            facebook: socialLinks.facebook || '',
-            instagram: socialLinks.instagram || '',
-            linkedin: socialLinks.linkedin || '',
             profileImage: profile.profile_image || ""
           });
           
@@ -169,11 +153,6 @@ const AgentProfile = () => {
       
       // Prepare data for backend
       const fullName = `${formData.firstName} ${formData.lastName}`.trim();
-      const socialLinks = {
-        facebook: formData.facebook || '',
-        instagram: formData.instagram || '',
-        linkedin: formData.linkedin || ''
-      };
       
       // Exclude email and phone from update - they cannot be changed after login
       // Send empty strings instead of null to allow clearing fields
@@ -182,8 +161,7 @@ const AgentProfile = () => {
         address: (formData.agencyAddress || '').trim(),
         company_name: (formData.agencyName || '').trim(),
         license_number: (formData.reraNumber || '').trim(),
-        website: (formData.website || '').trim(),
-        social_links: socialLinks
+        website: (formData.website || '').trim()
       };
       
       const response = await sellerProfileAPI.update(updateData);
@@ -358,13 +336,6 @@ const AgentProfile = () => {
 
             <h2>{formData.firstName} {formData.lastName}</h2>
             <p className="profile-role">{formData.agencyName}</p>
-
-            <div className="profile-badges">
-              <span className={`badge ${agentVerified ? 'verified' : 'pending'}`}>
-                {agentVerified ? '✔ Verified' : '⏳ Pending'}
-              </span>
-              <span className="badge pro">Pro Agent</span>
-            </div>
           </div>
 
           <div className="profile-stats-grid">
@@ -589,42 +560,6 @@ const AgentProfile = () => {
                       value={formData.reraNumber}
                       onChange={handleChange}
                       placeholder="Enter RERA number"
-                    />
-                  </div>
-                </div>
-
-                <div className="section-divider"></div>
-
-                <h4 className="subsection-title">Social Links</h4>
-                <div className="social-links-grid">
-                  <div className="form-group">
-                    <label>Facebook</label>
-                    <input
-                      type="text"
-                      name="facebook"
-                      value={formData.facebook}
-                      onChange={handleChange}
-                      placeholder="facebook.com/username"
-                    />
-                  </div>
-                  <div className="form-group">
-                    <label>Instagram</label>
-                    <input
-                      type="text"
-                      name="instagram"
-                      value={formData.instagram}
-                      onChange={handleChange}
-                      placeholder="instagram.com/username"
-                    />
-                  </div>
-                  <div className="form-group">
-                    <label>LinkedIn</label>
-                    <input
-                      type="text"
-                      name="linkedin"
-                      value={formData.linkedin}
-                      onChange={handleChange}
-                      placeholder="linkedin.com/in/username"
                     />
                   </div>
                 </div>
