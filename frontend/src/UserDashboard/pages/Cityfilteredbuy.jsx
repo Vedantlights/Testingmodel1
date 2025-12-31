@@ -31,7 +31,6 @@ const CityFilteredBuy = () => {
     'Apartment',
     'Studio Apartment',
     'Villa / Row House / Bungalow / Farm House',
-    'Row House',
     'Penthouse',
     'Plot / Land / Industrial Property',
     'Commercial Office',
@@ -46,7 +45,6 @@ const CityFilteredBuy = () => {
     'Apartment',
     'Studio Apartment',
     'Villa / Row House / Bungalow / Farm House',
-    'Row House',
     'Penthouse',
     'PG / Hostel'
   ];
@@ -115,7 +113,6 @@ const CityFilteredBuy = () => {
       'Apartment': saleResidentialBudget,
       'Studio Apartment': saleResidentialBudget,
       'Villa / Row House / Bungalow / Farm House': saleResidentialBudget,
-      'Row House': saleResidentialBudget,
       'Penthouse': saleResidentialBudget,
       'PG / Hostel': saleResidentialBudget, // Even PG can be bought
       

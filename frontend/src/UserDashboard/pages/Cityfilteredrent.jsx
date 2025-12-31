@@ -28,7 +28,6 @@ const CityFilteredRent = () => {
     'Apartment',
     'Studio Apartment',
     'Villa / Row House / Bungalow / Farm House',
-    'Row House',
     'Penthouse',
     'Plot / Land / Industrial Property',
     'Commercial Office',
@@ -112,7 +111,6 @@ const CityFilteredRent = () => {
       'Apartment': rentResidentialBudget,
       'Studio Apartment': rentResidentialBudget,
       'Villa / Row House / Bungalow / Farm House': rentResidentialBudget,
-      'Row House': rentResidentialBudget,
       'Penthouse': rentResidentialBudget,
       'PG / Hostel': rentResidentialBudget, // Lower end of rent ranges
       

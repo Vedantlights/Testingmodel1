@@ -29,7 +29,6 @@ const CityFilteredPGHostel = () => {
     'Apartment',
     'Studio Apartment',
     'Villa / Row House / Bungalow / Farm House',
-    'Row House',
     'Penthouse',
     'Plot / Land / Industrial Property',
     'Commercial Office',
