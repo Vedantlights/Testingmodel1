@@ -548,19 +548,24 @@ try {
     // Normal mode: Add Watermark and Save
     // Move to properties folder first
     // Save to /uploads/properties/{property_id}/ (NOT /uploads/properties/images/{property_id}/)
-    $propertyFolder = UPLOAD_DIR . 'properties/' . $propertyId . '/';
+    // USE ABSOLUTE PATH - this is the key fix!
+    $basePropertiesDir = defined('UPLOAD_PROPERTIES_PATH') ? UPLOAD_PROPERTIES_PATH : '/home/u449667423/domains/indiapropertys.com/public_html/demo1/uploads/properties/';
+    $propertyFolder = $basePropertiesDir . $propertyId . '/';
     
     // Log directory creation attempt
     error_log("Creating property folder: {$propertyFolder}");
-    error_log("UPLOAD_DIR: " . UPLOAD_DIR);
+    error_log("Base properties directory: {$basePropertiesDir}");
     error_log("Property ID: {$propertyId}");
     
     // Ensure base properties directory exists first
-    $basePropertiesDir = UPLOAD_DIR . 'properties/';
     if (!is_dir($basePropertiesDir)) {
         error_log("Base properties directory does not exist, creating: " . $basePropertiesDir);
         if (!@mkdir($basePropertiesDir, 0755, true)) {
             error_log("Failed to create base properties directory: " . $basePropertiesDir);
+            error_log("Parent directory exists: " . (is_dir(dirname($basePropertiesDir)) ? 'YES' : 'NO'));
+            error_log("Parent directory writable: " . (is_writable(dirname($basePropertiesDir)) ? 'YES' : 'NO'));
+        } else {
+            error_log("Base properties directory created successfully");
         }
     }
     
@@ -630,7 +635,14 @@ try {
     // Build full URL - use UPLOAD_BASE_URL (which points to /uploads, not /backend/uploads)
     // Files are saved to: /uploads/properties/{id}/{filename}
     // URLs should be: https://demo1.indiapropertys.com/uploads/properties/{id}/{filename}
+    // NO /backend/ in the URL path!
     $imageUrl = UPLOAD_BASE_URL . '/' . $relativePath;
+    
+    // Verify the URL doesn't contain /backend/
+    if (strpos($imageUrl, '/backend/') !== false) {
+        error_log("WARNING: Image URL contains /backend/ - this is incorrect!");
+        $imageUrl = str_replace('/backend/uploads/', '/uploads/', $imageUrl);
+    }
     
     // Log the URL being returned
     error_log("Image URL being returned: {$imageUrl}");

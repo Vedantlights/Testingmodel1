@@ -87,9 +87,12 @@ $protocol = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? 'https'
 $host = $_SERVER['HTTP_HOST'];
 define('UPLOAD_BASE_URL', $protocol . '://' . $host . '/uploads');
 
-// File Upload Paths
-define('UPLOAD_DIR', __DIR__ . '/../uploads/');
-define('PROPERTY_IMAGES_DIR', UPLOAD_DIR . 'properties/images/');
+// File Upload Paths - USE ABSOLUTE PATHS (outside backend folder)
+// Files saved to: /home/u449667423/domains/indiapropertys.com/public_html/demo1/uploads/properties/
+// URLs: https://demo1.indiapropertys.com/uploads/properties/
+define('UPLOAD_DIR', '/home/u449667423/domains/indiapropertys.com/public_html/demo1/uploads/');
+define('UPLOAD_PROPERTIES_PATH', '/home/u449667423/domains/indiapropertys.com/public_html/demo1/uploads/properties/');
+define('PROPERTY_IMAGES_DIR', UPLOAD_PROPERTIES_PATH . 'images/');
 define('PROPERTY_VIDEOS_DIR', UPLOAD_DIR . 'properties/videos/');
 define('PROPERTY_BROCHURES_DIR', UPLOAD_DIR . 'properties/brochures/');
 define('USER_PROFILES_DIR', UPLOAD_DIR . 'users/profiles/');
@@ -97,7 +100,7 @@ define('USER_PROFILES_DIR', UPLOAD_DIR . 'users/profiles/');
 // Create upload directories if they don't exist
 $dirs = [
     UPLOAD_DIR,
-    PROPERTY_IMAGES_DIR,
+    UPLOAD_PROPERTIES_PATH, // Main properties directory (without /images/ subfolder)
     PROPERTY_VIDEOS_DIR,
     PROPERTY_BROCHURES_DIR,
     USER_PROFILES_DIR
@@ -105,7 +108,10 @@ $dirs = [
 
 foreach ($dirs as $dir) {
     if (!file_exists($dir)) {
-        mkdir($dir, 0755, true);
+        @mkdir($dir, 0755, true);
+        if (file_exists($dir)) {
+            error_log("Created upload directory: {$dir}");
+        }
     }
 }
 
