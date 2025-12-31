@@ -16,11 +16,11 @@
 /* Separate Background Image Div */
 .landing-background-image {
   position: absolute;
-  top: 8rem; /* Start below navbar */
+  top: 90px; /* Start below navbar (matches navbar height) */
   left: 0;
   right: 0;
   width: 100%;
-  height: calc(100vh - 8rem); /* Exactly viewport height minus navbar */
+  height: calc(100vh - 90px); /* Exactly viewport height minus navbar */
   background-size: cover;
   background-position: center center;
   background-repeat: no-repeat;
@@ -34,15 +34,14 @@
   position: relative;
   z-index: 1;
   width: 100%;
-  overflow-x: hidden; /* Prevent horizontal scroll */
-  overflow-y: visible; /* Let body handle vertical scrolling - no scrollbar on main-content */
+  overflow: visible; /* Don't create scroll context - let body handle scrolling */
 }
 
 /* Responsive background sizing - Viewport height only */
-@media (min-width: 1024px) {
+@media (min-width: 1100px) {
   .landing-background-image {
-    top: 8rem;
-    height: calc(100vh - 8rem);
+    top: 90px;
+    height: calc(100vh - 90px);
     background-size: cover;
   }
 }
@@ -65,7 +64,7 @@
   
   .main-content {
     width: 100%;
-    overflow-x: hidden;
+    overflow: visible;
   }
 }
 
