@@ -816,8 +816,46 @@ try {
     
 } catch (Throwable $e) {
     error_log("Image moderation error: " . $e->getMessage());
+    error_log("Exception type: " . get_class($e));
+    error_log("File: " . $e->getFile() . " Line: " . $e->getLine());
     error_log("Stack trace: " . $e->getTraceAsString());
+    
+    // Clean up any temp files if they exist
+    if (isset($tempPath) && file_exists($tempPath)) {
+        @unlink($tempPath);
+    }
+    if (isset($finalPath) && file_exists($finalPath)) {
+        @unlink($finalPath);
+    }
+    
     http_response_code(500);
-    echo json_encode(['status' => 'error', 'message' => 'An error occurred while processing the image']);
+    echo json_encode([
+        'status' => 'error', 
+        'message' => 'An error occurred while processing the image',
+        'error_code' => 'processing_error',
+        'details' => defined('ENVIRONMENT') && ENVIRONMENT === 'development' ? $e->getMessage() : 'Please try again or contact support'
+    ]);
+    exit;
+} catch (Error $e) {
+    error_log("Image moderation fatal error: " . $e->getMessage());
+    error_log("Error type: " . get_class($e));
+    error_log("File: " . $e->getFile() . " Line: " . $e->getLine());
+    error_log("Stack trace: " . $e->getTraceAsString());
+    
+    // Clean up any temp files if they exist
+    if (isset($tempPath) && file_exists($tempPath)) {
+        @unlink($tempPath);
+    }
+    if (isset($finalPath) && file_exists($finalPath)) {
+        @unlink($finalPath);
+    }
+    
+    http_response_code(500);
+    echo json_encode([
+        'status' => 'error', 
+        'message' => 'A fatal error occurred while processing the image',
+        'error_code' => 'fatal_error',
+        'details' => defined('ENVIRONMENT') && ENVIRONMENT === 'development' ? $e->getMessage() : 'Please try again or contact support'
+    ]);
     exit;
 }

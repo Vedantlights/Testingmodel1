@@ -120,11 +120,11 @@ class GoogleVisionService {
             // Extract SafeSearch results with null checks
             $safeSearchAnnotation = $response->getSafeSearchAnnotation();
             $safesearchScores = [
-                'adult' => $safeSearchAnnotation ? $this->likelihoodToScore($safeSearchAnnotation->getAdult()) : 0,
-                'racy' => $safeSearchAnnotation ? $this->likelihoodToScore($safeSearchAnnotation->getRacy()) : 0,
-                'violence' => $safeSearchAnnotation ? $this->likelihoodToScore($safeSearchAnnotation->getViolence()) : 0,
-                'medical' => $safeSearchAnnotation ? $this->likelihoodToScore($safeSearchAnnotation->getMedical()) : 0,
-                'spoof' => $safeSearchAnnotation ? $this->likelihoodToScore($safeSearchAnnotation->getSpoof()) : 0
+                'adult' => ($safeSearchAnnotation && method_exists($safeSearchAnnotation, 'getAdult')) ? $this->likelihoodToScore($safeSearchAnnotation->getAdult() ?? 5) : 0,
+                'racy' => ($safeSearchAnnotation && method_exists($safeSearchAnnotation, 'getRacy')) ? $this->likelihoodToScore($safeSearchAnnotation->getRacy() ?? 5) : 0,
+                'violence' => ($safeSearchAnnotation && method_exists($safeSearchAnnotation, 'getViolence')) ? $this->likelihoodToScore($safeSearchAnnotation->getViolence() ?? 5) : 0,
+                'medical' => ($safeSearchAnnotation && method_exists($safeSearchAnnotation, 'getMedical')) ? $this->likelihoodToScore($safeSearchAnnotation->getMedical() ?? 5) : 0,
+                'spoof' => ($safeSearchAnnotation && method_exists($safeSearchAnnotation, 'getSpoof')) ? $this->likelihoodToScore($safeSearchAnnotation->getSpoof() ?? 5) : 0
             ];
             
             // Extract labels with null checks
@@ -142,28 +142,32 @@ class GoogleVisionService {
             // Extract faces (CRITICAL for human detection) with null checks
             $faces = [];
             $faceAnnotations = $response->getFaceAnnotations();
-            if ($faceAnnotations) {
+            if ($faceAnnotations && is_iterable($faceAnnotations)) {
                 foreach ($faceAnnotations as $face) {
-                    $faces[] = [
-                        'detection_confidence' => $face->getDetectionConfidence(),
-                        'landmarking_confidence' => $face->getLandmarkingConfidence(),
-                        'joy_likelihood' => $this->likelihoodToScore($face->getJoyLikelihood()),
-                        'sorrow_likelihood' => $this->likelihoodToScore($face->getSorrowLikelihood()),
-                        'anger_likelihood' => $this->likelihoodToScore($face->getAngerLikelihood()),
-                        'surprise_likelihood' => $this->likelihoodToScore($face->getSurpriseLikelihood())
-                    ];
+                    if ($face) {
+                        $faces[] = [
+                            'detection_confidence' => $face->getDetectionConfidence() ?? 0.0,
+                            'landmarking_confidence' => $face->getLandmarkingConfidence() ?? 0.0,
+                            'joy_likelihood' => $this->likelihoodToScore($face->getJoyLikelihood() ?? 5),
+                            'sorrow_likelihood' => $this->likelihoodToScore($face->getSorrowLikelihood() ?? 5),
+                            'anger_likelihood' => $this->likelihoodToScore($face->getAngerLikelihood() ?? 5),
+                            'surprise_likelihood' => $this->likelihoodToScore($face->getSurpriseLikelihood() ?? 5)
+                        ];
+                    }
                 }
             }
             
             // Extract objects (CRITICAL for detecting "Person", "Dog", "Cat", etc.) with null checks
             $objects = [];
             $objectAnnotations = $response->getLocalizedObjectAnnotations();
-            if ($objectAnnotations) {
+            if ($objectAnnotations && is_iterable($objectAnnotations)) {
                 foreach ($objectAnnotations as $object) {
-                    $objects[] = [
-                        'name' => strtolower($object->getName()),
-                        'score' => $object->getScore()
-                    ];
+                    if ($object) {
+                        $objects[] = [
+                            'name' => strtolower($object->getName() ?? ''),
+                            'score' => $object->getScore() ?? 0.0
+                        ];
+                    }
                 }
             }
             
@@ -194,11 +198,11 @@ class GoogleVisionService {
             // Get raw response as JSON (with null checks)
             $rawResponse = json_encode([
                 'safesearch' => $safeSearchAnnotation ? [
-                    'adult' => $safeSearchAnnotation->getAdult(),
-                    'racy' => $safeSearchAnnotation->getRacy(),
-                    'violence' => $safeSearchAnnotation->getViolence(),
-                    'medical' => $safeSearchAnnotation->getMedical(),
-                    'spoof' => $safeSearchAnnotation->getSpoof()
+                    'adult' => $safeSearchAnnotation ? $safeSearchAnnotation->getAdult() : null,
+                    'racy' => $safeSearchAnnotation ? $safeSearchAnnotation->getRacy() : null,
+                    'violence' => $safeSearchAnnotation ? $safeSearchAnnotation->getViolence() : null,
+                    'medical' => $safeSearchAnnotation ? $safeSearchAnnotation->getMedical() : null,
+                    'spoof' => $safeSearchAnnotation ? $safeSearchAnnotation->getSpoof() : null
                 ] : null,
                 'labels' => $labels,
                 'faces' => $faces,
