@@ -123,10 +123,21 @@ if ($composerAvailable) {
     error_log("Google Vision moderation will be skipped. Image will be marked as PENDING.");
 }
 
-// Step 3: Load config files
-require_once __DIR__ . '/../../config/config.php';
-require_once __DIR__ . '/../../config/database.php';
-require_once __DIR__ . '/../../config/moderation.php';
+// Step 3: Load config files (wrap in try-catch to catch fatal errors)
+try {
+    require_once __DIR__ . '/../../config/config.php';
+    require_once __DIR__ . '/../../config/database.php';
+    require_once __DIR__ . '/../../config/moderation.php';
+} catch (Throwable $e) {
+    error_log("FATAL: Failed to load config files: " . $e->getMessage());
+    error_log("File: " . $e->getFile() . " Line: " . $e->getLine());
+    sendJsonResponse([
+        'status' => 'error',
+        'message' => 'Configuration error',
+        'error_code' => 'config_error',
+        'details' => defined('ENVIRONMENT') && ENVIRONMENT === 'development' ? $e->getMessage() : 'Please contact support'
+    ], 500);
+}
 
 // Step 4: Load services (only if Composer is available)
 if ($composerAvailable) {
@@ -151,16 +162,54 @@ if ($composerAvailable) {
         require_once __DIR__ . '/../../services/ModerationDecisionService.php';
     }
 }
-require_once __DIR__ . '/../../services/WatermarkService.php';
 
-// Step 5: Load helpers
-require_once __DIR__ . '/../../helpers/FileHelper.php';
-if (file_exists(__DIR__ . '/../../helpers/BlurDetector.php')) {
-    require_once __DIR__ . '/../../helpers/BlurDetector.php';
+// Load WatermarkService (wrap in try-catch)
+try {
+    require_once __DIR__ . '/../../services/WatermarkService.php';
+    if (!class_exists('WatermarkService')) {
+        error_log("WARNING: WatermarkService class not found");
+    }
+} catch (Throwable $e) {
+    error_log("WARNING: Failed to load WatermarkService: " . $e->getMessage());
+    // Continue anyway - watermark is optional
 }
 
-// Step 6: Load utilities
-require_once __DIR__ . '/../../utils/auth.php';
+// Step 5: Load helpers (wrap in try-catch)
+try {
+    require_once __DIR__ . '/../../helpers/FileHelper.php';
+    if (file_exists(__DIR__ . '/../../helpers/BlurDetector.php')) {
+        require_once __DIR__ . '/../../helpers/BlurDetector.php';
+    }
+} catch (Throwable $e) {
+    error_log("FATAL: Failed to load helpers: " . $e->getMessage());
+    sendJsonResponse([
+        'status' => 'error',
+        'message' => 'Helper files error',
+        'error_code' => 'helper_error'
+    ], 500);
+}
+
+// Step 6: Load utilities (wrap in try-catch)
+try {
+    require_once __DIR__ . '/../../utils/auth.php';
+    
+    // Verify getCurrentUser function exists
+    if (!function_exists('getCurrentUser')) {
+        error_log("FATAL: getCurrentUser function not found in auth.php");
+        sendJsonResponse([
+            'status' => 'error',
+            'message' => 'Authentication system error',
+            'error_code' => 'auth_function_missing'
+        ], 500);
+    }
+} catch (Throwable $e) {
+    error_log("FATAL: Failed to load auth utilities: " . $e->getMessage());
+    sendJsonResponse([
+        'status' => 'error',
+        'message' => 'Authentication system error',
+        'error_code' => 'auth_error'
+    ], 500);
+}
 
 // Ensure moderation thresholds are defined (with fallback defaults)
 // These are already defined in moderation.php, but provide fallbacks just in case
@@ -956,10 +1005,15 @@ try {
         FileHelper::deleteFile($finalPath);
         sendJsonResponse(['status' => 'error', 'message' => 'Failed to save image record'], 500);
     }
+    // End of database try-catch block
     
 } catch (Throwable $e) {
-    error_log("Image moderation error: " . $e->getMessage());
-    error_log("Exception type: " . get_class($e));
+    // Catch all exceptions and errors (Error extends Throwable)
+    $isFatalError = ($e instanceof Error);
+    $errorType = get_class($e);
+    
+    error_log("Image moderation " . ($isFatalError ? "fatal error" : "error") . ": " . $e->getMessage());
+    error_log("Error type: " . $errorType);
     error_log("File: " . $e->getFile() . " Line: " . $e->getLine());
     error_log("Stack trace: " . $e->getTraceAsString());
     
@@ -973,28 +1027,8 @@ try {
     
     sendJsonResponse([
         'status' => 'error', 
-        'message' => 'An error occurred while processing the image',
-        'error_code' => 'processing_error',
-        'details' => defined('ENVIRONMENT') && ENVIRONMENT === 'development' ? $e->getMessage() : 'Please try again or contact support'
-    ], 500);
-} catch (Error $e) {
-    error_log("Image moderation fatal error: " . $e->getMessage());
-    error_log("Error type: " . get_class($e));
-    error_log("File: " . $e->getFile() . " Line: " . $e->getLine());
-    error_log("Stack trace: " . $e->getTraceAsString());
-    
-    // Clean up any temp files if they exist
-    if (isset($tempPath) && file_exists($tempPath)) {
-        @unlink($tempPath);
-    }
-    if (isset($finalPath) && file_exists($finalPath)) {
-        @unlink($finalPath);
-    }
-    
-    sendJsonResponse([
-        'status' => 'error', 
-        'message' => 'A fatal error occurred while processing the image',
-        'error_code' => 'fatal_error',
+        'message' => $isFatalError ? 'A fatal error occurred while processing the image' : 'An error occurred while processing the image',
+        'error_code' => $isFatalError ? 'fatal_error' : 'processing_error',
         'details' => defined('ENVIRONMENT') && ENVIRONMENT === 'development' ? $e->getMessage() : 'Please try again or contact support'
     ], 500);
 }
