@@ -201,6 +201,8 @@
 .state-dropdown {
   z-index: 10000 !important; /* Maximum z-index to ensure dropdowns appear above everything */
   position: absolute !important; /* Ensure absolute positioning */
+  background-color: #ffffff !important; /* Ensure white background */
+  background: #ffffff !important; /* Fallback for background-color */
 }
 
 /* form elements */
