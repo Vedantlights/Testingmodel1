@@ -8,7 +8,8 @@
  * 
  * NOTE: Rate limits are GLOBAL per buyer (across all properties)
  * - property_id is stored in database for logging/reference but NOT used for limit calculation
- * - A buyer has 5 total attempts per action type across ALL properties
+ * - action_type is stored in database for logging/reference but NOT used for limit calculation
+ * - A buyer has 5 total combined interactions (view_owner + chat_owner) per 12 hours across ALL properties
  */
 
 // Register shutdown function to catch fatal errors
@@ -82,17 +83,18 @@ try {
     // Calculate the cutoff time (12 hours ago)
     $cutoffTime = date('Y-m-d H:i:s', strtotime("-{$WINDOW_HOURS} hours"));
     
-    // Count attempts in the last 12 hours (GLOBAL - across all properties)
-    // NOTE: property_id is NOT included in WHERE clause - limits are global per buyer
+    // Count ALL interaction attempts in the last 12 hours (GLOBAL - across all properties and action types)
+    // NOTE: Both property_id and action_type are NOT included in WHERE clause - limits are global per buyer
+    // Both view_owner and chat_owner count towards the same combined limit
     $stmt = $db->prepare("
         SELECT COUNT(*) as attempt_count,
                MIN(timestamp) as first_attempt_time
         FROM buyer_interaction_limits
         WHERE buyer_id = ? 
-          AND action_type = ?
+          AND action_type IN ('view_owner', 'chat_owner')
           AND timestamp >= ?
     ");
-    $stmt->execute([$buyerId, $actionType, $cutoffTime]);
+    $stmt->execute([$buyerId, $cutoffTime]);
     $result = $stmt->fetch();
     
     // Safety check: COUNT(*) should always return a row, but handle edge case
@@ -114,7 +116,7 @@ try {
             'used_attempts' => $attemptCount,
             'reset_time' => $resetTime,
             'reset_time_seconds' => $resetTimeSeconds,
-            'message' => "You have reached the maximum limit of {$MAX_ATTEMPTS} attempts for this action. Please try again after the reset time."
+            'message' => "Daily interaction limit reached. Try again after 12 hours."
         ], 429);
     }
     
@@ -125,17 +127,18 @@ try {
     ");
     $stmt->execute([$buyerId, $propertyId, $actionType]);
     
-    // Get updated count (GLOBAL - across all properties)
-    // NOTE: property_id is NOT included in WHERE clause - limits are global per buyer
+    // Get updated count (GLOBAL - across all properties and action types)
+    // NOTE: Both property_id and action_type are NOT included in WHERE clause - limits are global per buyer
+    // Both view_owner and chat_owner count towards the same combined limit
     $stmt = $db->prepare("
         SELECT COUNT(*) as attempt_count,
                MIN(timestamp) as first_attempt_time
         FROM buyer_interaction_limits
         WHERE buyer_id = ? 
-          AND action_type = ?
+          AND action_type IN ('view_owner', 'chat_owner')
           AND timestamp >= ?
     ");
-    $stmt->execute([$buyerId, $actionType, $cutoffTime]);
+    $stmt->execute([$buyerId, $cutoffTime]);
     $updatedResult = $stmt->fetch();
     
     // Safety check: COUNT(*) should always return a row, but handle edge case
@@ -170,7 +173,7 @@ try {
         'used_attempts' => $updatedAttemptCount,
         'reset_time' => $resetTime,
         'reset_time_seconds' => $resetTimeSeconds,
-        'action_type' => $actionType,
+        'action_type' => $actionType, // Included for reference, but limits are combined
         'property_id' => $propertyId // Included for reference, but limits are global
     ]);
     
