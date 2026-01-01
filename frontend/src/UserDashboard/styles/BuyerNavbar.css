@@ -9,10 +9,8 @@
   z-index: 1000;
   background: #022b5f;
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
-  /* CRITICAL: Use will-change for GPU acceleration, remove transition to prevent reflows */
   will-change: transform;
-  /* Removed backdrop-filter for better performance */
-  height: 90px; /* FIXED HEIGHT - must match buyer-navbar-content height */
+  height: 90px; 
   width: 100%;
 }
 
