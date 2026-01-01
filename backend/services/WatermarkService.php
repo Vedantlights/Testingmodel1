@@ -121,6 +121,7 @@ class WatermarkService {
     
     /**
      * Add diagonal repeating watermark pattern
+     * Limited to maximum 7 diagonal watermarks (plus 1 corner = 8 total)
      * 
      * @param resource $image Image resource
      * @param int $width Image width
@@ -131,8 +132,7 @@ class WatermarkService {
     private static function addDiagonalWatermark($image, $width, $height, $color, $fontSize) {
         $text = WATERMARK_TEXT;
         $angle = WATERMARK_ANGLE;
-        $spacingX = WATERMARK_SPACING_X;
-        $spacingY = WATERMARK_SPACING_Y;
+        $maxDiagonalWatermarks = 7; // Maximum 7 diagonal watermarks (plus 1 corner = 8 total)
         
         // Use built-in font (1-5) or try to use TrueType font
         $font = 5; // Built-in font
@@ -141,31 +141,47 @@ class WatermarkService {
         $textWidth = imagefontwidth($font) * strlen($text);
         $textHeight = imagefontheight($font);
         
-        // Calculate diagonal spacing
-        $diagonalSpacing = sqrt($spacingX * $spacingX + $spacingY * $spacingY);
+        // Calculate positions for 7 watermarks distributed across the image
+        // Use a pattern that spreads them evenly while maintaining diagonal orientation
+        $marginX = $width * 0.12; // 12% margin from edges
+        $marginY = $height * 0.12;
+        $usableWidth = $width - (2 * $marginX);
+        $usableHeight = $height - (2 * $marginY);
         
-        // Add watermark in repeating diagonal pattern
-        // Start from top-left and go diagonally
-        $startX = -$width;
-        $startY = -$height;
+        // Distribute 7 watermarks in a pattern (2 rows: 3 + 4, or similar distribution)
+        // Position coordinates as percentages of usable area
+        $positions = [
+            // Top row (3 positions)
+            [0.15, 0.25], [0.50, 0.25], [0.85, 0.25],
+            // Bottom row (4 positions)
+            [0.10, 0.75], [0.35, 0.75], [0.65, 0.75], [0.90, 0.75]
+        ];
         
-        for ($x = $startX; $x < $width * 2; $x += $spacingX) {
-            for ($y = $startY; $y < $height * 2; $y += $spacingY) {
-                // Calculate rotated position
-                $rad = deg2rad($angle);
-                $rotX = $x * cos($rad) - $y * sin($rad);
-                $rotY = $x * sin($rad) + $y * cos($rad);
-                
-                // Adjust to center of image
-                $posX = $rotX + ($width / 2);
-                $posY = $rotY + ($height / 2);
-                
-                // Only draw if within image bounds
-                if ($posX >= -$textWidth && $posX <= $width + $textWidth &&
-                    $posY >= -$textHeight && $posY <= $height + $textHeight) {
-                    imagestring($image, $font, (int)$posX, (int)$posY, $text, $color);
-                }
-            }
+        for ($i = 0; $i < $maxDiagonalWatermarks && $i < count($positions); $i++) {
+            list($xRatio, $yRatio) = $positions[$i];
+            
+            // Calculate base position
+            $baseX = $marginX + ($xRatio * $usableWidth);
+            $baseY = $marginY + ($yRatio * $usableHeight);
+            
+            // Apply rotation for diagonal watermark text (-45 degrees)
+            $rad = deg2rad($angle);
+            $centerX = $width / 2;
+            $centerY = $height / 2;
+            
+            // Translate to center, rotate, translate back
+            $dx = $baseX - $centerX;
+            $dy = $baseY - $centerY;
+            
+            $posX = $centerX + ($dx * cos($rad) - $dy * sin($rad)) - ($textWidth / 2);
+            $posY = $centerY + ($dx * sin($rad) + $dy * cos($rad)) - ($textHeight / 2);
+            
+            // Ensure position is within image bounds
+            $posX = max(0, min($posX, $width - $textWidth));
+            $posY = max(0, min($posY, $height - $textHeight));
+            
+            // Draw watermark
+            imagestring($image, $font, (int)$posX, (int)$posY, $text, $color);
         }
     }
     
