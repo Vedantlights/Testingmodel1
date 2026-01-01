@@ -183,6 +183,18 @@
 /* Note: Location and State dropdown styles are handled by LocationAutoSuggest.css and StateAutoSuggest.css */
 /* These styles ensure proper z-index handling for popup containers */
 
+/* Ensure location dropdown overlays form-group-location-map in agent dashboard */
+.popup-container .form-group-location-map,
+.popup-body .form-group-location-map {
+  position: relative;
+  z-index: 1;
+}
+
+.popup-container .location-dropdown,
+.popup-body .location-dropdown {
+  z-index: 100000 !important; /* Above form-group-location-map */
+}
+
 /* form elements */
 .form-group { margin-bottom:1.25rem; }
 .form-group label { display:block; font-size:0.9rem; font-weight:600; color:var(--text-primary); margin-bottom:0.5rem; }
