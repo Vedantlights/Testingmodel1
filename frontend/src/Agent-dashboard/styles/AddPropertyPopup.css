@@ -170,7 +170,7 @@
   overflow-y:auto; 
   padding:2rem; 
   position: relative; 
-  z-index: auto; /* Allow location dropdown to escape stacking context */
+  z-index: 0; /* Explicitly set to 0 so dropdowns (z-index: 100000) appear above */
 }
 .step-content { animation:fadeInUp 0.3s ease; }
 @keyframes fadeInUp { from { opacity:0; transform:translateY(10px);} to { opacity:1; transform:translateY(0);} }
@@ -191,7 +191,9 @@
 }
 
 .popup-container .location-dropdown,
-.popup-body .location-dropdown {
+.popup-body .location-dropdown,
+.popup-container .state-dropdown,
+.popup-body .state-dropdown {
   z-index: 100000 !important; /* Above form-group-location-map */
 }
 

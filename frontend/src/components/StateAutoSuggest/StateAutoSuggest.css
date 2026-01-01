@@ -5,19 +5,19 @@
   --z-modal-dropdown: 2100;
 }
 
-.location-autosuggest {
+.state-autosuggest {
   position: relative;
   width: 100%;
   z-index: 1;
 }
 
-.location-input-wrapper {
+.state-input-wrapper {
   position: relative;
   display: flex;
   align-items: center;
 }
 
-.location-input {
+.state-input {
   width: 100%;
   padding: 0.65rem 2.25rem 0.65rem 0.75rem;
   border-radius: 0.5rem;
@@ -29,30 +29,30 @@
   transition: border-color 0.15s ease, box-shadow 0.15s ease, background-color 0.15s ease;
 }
 
-.location-input:focus {
+.state-input:focus {
   border-color: #8b5cf6;
   background-color: #ffffff;
   box-shadow: 0 0 0 2px rgba(139, 92, 246, 0.25);
 }
 
-.location-input-error {
+.state-input-error {
   border-color: #dc2626;
 }
 
-.location-input:disabled {
+.state-input:disabled {
   background-color: #f3f4f6;
   color: #6b7280;
   cursor: not-allowed;
   opacity: 0.6;
 }
 
-.location-input:disabled:focus {
+.state-input:disabled:focus {
   border-color: #d1d5db;
   background-color: #f3f4f6;
   box-shadow: none;
 }
 
-.location-clear-btn {
+.state-clear-btn {
   position: absolute;
   right: 0.5rem;
   background: transparent;
@@ -64,11 +64,11 @@
   z-index: 1;
 }
 
-.location-clear-btn:hover {
+.state-clear-btn:hover {
   color: #4b5563;
 }
 
-.location-spinner {
+.state-spinner {
   position: absolute;
   right: 0.75rem;
   width: 16px;
@@ -76,22 +76,22 @@
   border-radius: 999px;
   border: 2px solid rgba(148, 163, 184, 0.4);
   border-top-color: #8b5cf6;
-  animation: location-spin 0.6s linear infinite;
+  animation: state-spin 0.6s linear infinite;
 }
 
-@keyframes location-spin {
+@keyframes state-spin {
   to {
     transform: rotate(360deg);
   }
 }
 
-.location-error-text {
+.state-error-text {
   margin-top: 4px;
   font-size: 0.75rem;
   color: #dc2626;
 }
 
-.location-dropdown {
+.state-dropdown {
   position: absolute;
   top: 100%;
   left: 0;
@@ -106,15 +106,15 @@
   z-index: var(--z-dropdown);
 }
 
-/* Dropdown inside modals/popups - cleaner approach */
-.popup-overlay .location-dropdown,
-.popup-container .location-dropdown,
-.seller-popup-overlay .location-dropdown,
-.seller-popup-container .location-dropdown {
+/* Dropdown inside modals/popups */
+.popup-overlay .state-dropdown,
+.popup-container .state-dropdown,
+.seller-popup-overlay .state-dropdown,
+.seller-popup-container .state-dropdown {
   z-index: var(--z-modal-dropdown);
 }
 
-.location-option {
+.state-option {
   padding: 0.55rem 0.9rem;
   cursor: pointer;
   display: flex;
@@ -122,34 +122,34 @@
   gap: 2px;
 }
 
-.location-option-primary {
+.state-option-primary {
   font-size: 0.9rem;
   font-weight: 600;
   color: #111827;
 }
 
-.location-option-secondary {
+.state-option-secondary {
   font-size: 0.8rem;
   color: #6b7280;
 }
 
-.location-option:hover,
-.location-option.active {
+.state-option:hover,
+.state-option.active {
   background: linear-gradient(135deg, #f3e8ff 0%, #e0e7ff 100%);
 }
 
 /* Mobile tweaks */
 @media (max-width: 640px) {
-  .location-input {
+  .state-input {
     font-size: 0.9rem;
     padding: 0.55rem 2rem 0.55rem 0.7rem;
   }
 
-  .location-option-primary {
+  .state-option-primary {
     font-size: 0.85rem;
   }
 
-  .location-option-secondary {
+  .state-option-secondary {
     font-size: 0.75rem;
   }
 }
