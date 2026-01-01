@@ -2186,8 +2186,22 @@ newErrors.description = "Description is required";
       {/* 24-Hour Edit Notice Modal */}
       {showEditNoticeModal && (
         <div className="seller-popup-limit-warning-overlay">
-          <div className="seller-popup-limit-warning-modal">
-            <div className="seller-popup-limit-warning-icon" style={{ color: '#10b981' }}>
+          <div className="seller-popup-limit-warning-modal" style={{ 
+            background: 'white',
+            border: '2px solid #10b981',
+            boxShadow: '0 25px 50px -12px rgba(16, 185, 129, 0.25), 0 0 0 1px rgba(16, 185, 129, 0.1)'
+          }}>
+            <div style={{ 
+              width: '80px',
+              height: '80px',
+              margin: '0 auto 1.5rem',
+              borderRadius: '50%',
+              background: 'linear-gradient(135deg, #D1FAE5 0%, #A7F3D0 100%)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              color: '#10b981'
+            }}>
               <svg width="48" height="48" viewBox="0 0 24 24" fill="none">
                 <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="2"/>
                 <path d="M20 6L9 17l-5-5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
@@ -2195,23 +2209,44 @@ newErrors.description = "Description is required";
             </div>
             
             <div className="seller-popup-limit-warning-content">
-              <h3 style={{ color: '#10b981' }}>Property Uploaded Successfully!</h3>
-              <p style={{ fontSize: '1rem', lineHeight: '1.6', marginTop: '1rem' }}>
-                You can edit this property only within <strong style={{ color: '#10b981' }}>24 hours</strong> of uploading.
+              <h3 style={{ color: '#10b981', fontSize: '1.5rem', fontWeight: '700', marginBottom: '0.75rem' }}>
+                Property Uploaded Successfully!
+              </h3>
+              <p style={{ fontSize: '1rem', lineHeight: '1.6', marginTop: '1rem', color: '#374151' }}>
+                You can edit this property only within <strong style={{ color: '#10b981', fontWeight: '700' }}>24 hours</strong> of uploading.
               </p>
-              <p style={{ fontSize: '0.9rem', color: '#666', marginTop: '0.5rem' }}>
+              <p style={{ fontSize: '0.9rem', color: '#6b7280', marginTop: '0.5rem' }}>
                 After 24 hours, you will be able to edit property name and price only.
               </p>
             </div>
 
             <div className="seller-popup-limit-warning-actions">
               <button 
-                className="seller-popup-limit-btn-primary" 
                 onClick={() => {
                   setShowEditNoticeModal(false);
                   onClose();
                 }}
-                style={{ width: '100%' }}
+                style={{ 
+                  width: '100%',
+                  padding: '1rem 1.5rem',
+                  borderRadius: '8px',
+                  fontSize: '0.95rem',
+                  fontWeight: '600',
+                  cursor: 'pointer',
+                  background: 'linear-gradient(135deg, #10B981 0%, #059669 100%)',
+                  border: 'none',
+                  color: 'white',
+                  boxShadow: '0 4px 15px rgba(16, 185, 129, 0.4)',
+                  transition: 'all 0.3s ease'
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.transform = 'translateY(-2px)';
+                  e.currentTarget.style.boxShadow = '0 6px 20px rgba(16, 185, 129, 0.5)';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.transform = 'translateY(0)';
+                  e.currentTarget.style.boxShadow = '0 4px 15px rgba(16, 185, 129, 0.4)';
+                }}
               >
                 Got it
               </button>
