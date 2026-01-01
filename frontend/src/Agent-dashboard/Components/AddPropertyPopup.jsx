@@ -925,23 +925,15 @@ export default function AddPropertyPopup({ onClose, editIndex = null, initialDat
             const failed = results.filter(r => !r.success);
             
             if (failed.length > 0) {
-              const errorMessages = failed.map(f => f.error).filter(Boolean);
-              const uniqueErrors = [...new Set(errorMessages)];
-              const errorMessage = failed.length === approvedImages.length 
-                ? `Failed to upload all images. ${uniqueErrors[0] || 'Please check server permissions and try again.'}`
-                : `Failed to upload ${failed.length} of ${approvedImages.length} images. ${uniqueErrors.join('; ')}`;
-              
               // If some images failed but property was created, still update with successful images
               if (successful.length > 0) {
                 uploadedImageUrls = successful.map(r => r.url);
                 await sellerPropertiesAPI.update(propertyId, { images: uploadedImageUrls });
-                alert(`Property created but ${failed.length} image(s) failed to upload. ${errorMessage}`);
-              } else {
-                alert(`Property created but no images were uploaded. ${errorMessage}`);
               }
+              // Property was created successfully, show success modal regardless of image failures
               setUploadingImages(false);
               setIsSubmitting(false);
-              onClose();
+              setShowEditNoticeModal(true);
               return;
             }
             
@@ -953,23 +945,20 @@ export default function AddPropertyPopup({ onClose, editIndex = null, initialDat
                 await sellerPropertiesAPI.update(propertyId, { images: uploadedImageUrls });
               } catch (updateError) {
                 console.error('Failed to update property with images:', updateError);
-                alert(`Property created successfully, but failed to link ${uploadedImageUrls.length} image(s). You can edit the property to add images.`);
-                setUploadingImages(false);
-                setIsSubmitting(false);
-                onClose();
-                return;
+                // Property exists but images weren't linked - still show success
               }
             }
             
+            // Property was created successfully, show success modal
             setUploadingImages(false);
+            setIsSubmitting(false);
             setShowEditNoticeModal(true);
           } catch (uploadError) {
             console.error('Image upload error:', uploadError);
-            alert(`Property created but failed to upload images: ${uploadError.message || 'Please try uploading images again later.'}`);
+            // Property was created successfully, show success modal even if images failed
             setUploadingImages(false);
             setIsSubmitting(false);
-            onClose();
-            return;
+            setShowEditNoticeModal(true);
           }
         } else {
           // No approved images
@@ -1978,7 +1967,7 @@ export default function AddPropertyPopup({ onClose, editIndex = null, initialDat
                 width: '64px', 
                 height: '64px', 
                 borderRadius: '50%', 
-                background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                background: '#10b981',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
@@ -1986,18 +1975,18 @@ export default function AddPropertyPopup({ onClose, editIndex = null, initialDat
               }}>
                 <svg width="32" height="32" viewBox="0 0 24 24" fill="none" style={{ color: 'white' }}>
                   <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="2"/>
-                  <path d="M12 16v-4M12 8h.01" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+                  <path d="M20 6L9 17l-5-5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
                 </svg>
               </div>
               
-              <h2 style={{ fontSize: '1.5rem', fontWeight: '600', marginBottom: '1rem', color: '#1a1a1a' }}>
-                Property Published Successfully!
+              <h2 style={{ fontSize: '1.5rem', fontWeight: '600', marginBottom: '1rem', color: '#10b981' }}>
+                Property Uploaded Successfully!
               </h2>
               <p style={{ fontSize: '1rem', lineHeight: '1.6', marginBottom: '0.5rem', color: '#333' }}>
-                You can edit this property only within <strong style={{ color: '#667eea' }}>24 hours</strong> of creation.
+                You can edit this property only within <strong style={{ color: '#10b981' }}>24 hours</strong> of uploading.
               </p>
               <p style={{ fontSize: '0.9rem', color: '#666', marginTop: '0.5rem' }}>
-                After 24 hours, you'll only be able to edit the title and price.
+                After 24 hours, you will be able to edit property name and price only.
               </p>
             </div>
 

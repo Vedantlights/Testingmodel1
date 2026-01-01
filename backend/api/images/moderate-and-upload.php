@@ -5,13 +5,12 @@
  * 
  * Processing Flow (ENFORCED ORDER):
  * 1. File validation (type, size, corruption check)
- * 2. Dimension check (400x300 minimum)
- * 3. Google Vision API call
- * 4. SafeSearch evaluation
- * 5. Human detection (face OR object localization only, NOT labels alone)
- * 6. Animal detection (object localization OR label+object, NOT labels alone)
- * 7. Property context scoring
- * 8. Final decision (approve / reject / manual review)
+ * 2. Google Vision API call
+ * 3. SafeSearch evaluation
+ * 4. Human detection (face OR object localization only, NOT labels alone)
+ * 5. Animal detection (object localization OR label+object, NOT labels alone)
+ * 6. Property context scoring
+ * 7. Final decision (approve / reject / manual review)
  */
 
 // Step 1: Setup Error Handling and Headers
@@ -372,26 +371,8 @@ try {
         ], 400);
     }
     
-    // Step 6: Image Dimensions Check (Minimum 400x300 pixels)
-    $width = $imageInfo[0];
-    $height = $imageInfo[1];
-    
-    if ($width < MIN_IMAGE_WIDTH || $height < MIN_IMAGE_HEIGHT) {
-        sendJsonResponse([
-            'status' => 'error',
-            'message' => getErrorMessage('low_quality', [
-                'width' => $width,
-                'height' => $height
-            ]),
-            'error_code' => 'low_quality',
-            'details' => [
-                'width' => $width,
-                'height' => $height,
-                'min_width' => MIN_IMAGE_WIDTH,
-                'min_height' => MIN_IMAGE_HEIGHT
-            ]
-        ], 400);
-    }
+    // Step 6: Image Dimensions Check - DISABLED
+    // Dimension validation has been removed from the moderation system
     
     // Step 7: Blur Detection - DISABLED
     // Blur detection has been removed from the moderation system

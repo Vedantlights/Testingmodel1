@@ -6,8 +6,7 @@ import {
   validateURL,
   validateTextLength,
   sanitizeInput,
-  validateImageFile,
-  validateImageDimensions
+  validateImageFile
 } from '../../utils/validation';
 import { sellerProfileAPI } from '../../services/api.service';
 import { useProperty } from './PropertyContext';
@@ -388,18 +387,6 @@ const SellerProfile = () => {
     const validation = validateImageFile(file);
     if (!validation.valid) {
       alert(validation.message);
-      return;
-    }
-
-    // Validate dimensions
-    try {
-      const dimensionValidation = await validateImageDimensions(file, 200, 200);
-      if (!dimensionValidation.valid) {
-        alert(dimensionValidation.message);
-        return;
-      }
-    } catch (error) {
-      alert('Error validating image dimensions');
       return;
     }
 

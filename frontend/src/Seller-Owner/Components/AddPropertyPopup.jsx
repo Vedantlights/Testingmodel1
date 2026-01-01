@@ -13,8 +13,7 @@ import {
   validateCarpetArea,
   validateDeposit,
   validateFloors,
-  validateImageFile,
-  validateImageDimensions
+  validateImageFile
 } from "../../utils/validation";
 import LocationPicker from "../../components/Map/LocationPicker";
 import LocationAutoSuggest from "../../components/LocationAutoSuggest";
@@ -1048,34 +1047,15 @@ newErrors.description = "Description is required";
             const failed = results.filter(r => !r.success);
             
             if (failed.length > 0) {
-              // Show specific error messages for each rejected image
-              const errorMessages = failed.map(f => f.error).filter(Boolean);
-              const uniqueErrors = [...new Set(errorMessages)];
-              
-              // Build detailed error message showing what was wrong
-              let errorMessage = '';
-              if (failed.length === imageFiles.length) {
-                // All images failed
-                errorMessage = `All images were rejected:\n\n${uniqueErrors.join('\n\n')}`;
-              } else {
-                // Some images failed
-                errorMessage = `${failed.length} of ${imageFiles.length} images were rejected:\n\n${uniqueErrors.join('\n\n')}`;
-              }
-              
-              alert(errorMessage);
-              
               // If some images failed but property was created, still update with successful images
               if (successful.length > 0) {
                 uploadedImageUrls = successful.map(r => r.url);
                 await sellerPropertiesAPI.update(propertyId, { images: uploadedImageUrls });
-                alert(`Property created but ${failed.length} image(s) were rejected. ${uniqueErrors[0]}`);
-              } else {
-                // All images failed - keep property but show warning
-                alert(`Property created but no images were uploaded. ${uniqueErrors[0]}`);
               }
+              // Property was created successfully, show success modal regardless of image failures
               setUploadingImages(false);
               setIsSubmitting(false);
-              onClose();
+              setShowEditNoticeModal(true);
               return;
             }
             
@@ -1087,31 +1067,20 @@ newErrors.description = "Description is required";
                 await sellerPropertiesAPI.update(propertyId, { images: uploadedImageUrls });
               } catch (updateError) {
                 console.error('Failed to update property with images:', updateError);
-                // Property exists but images weren't linked - user can edit later
-                alert(`Property created successfully, but failed to link ${uploadedImageUrls.length} image(s). You can edit the property to add images.`);
-                setUploadingImages(false);
-                setIsSubmitting(false);
-                onClose();
-                return;
+                // Property exists but images weren't linked - still show success
               }
-            } else {
-              // No images were uploaded successfully
-              alert('Property created successfully, but no images were uploaded. You can edit the property to add images.');
-              setUploadingImages(false);
-              setIsSubmitting(false);
-              onClose();
-              return;
             }
             
+            // Property was created successfully, show success modal
             setUploadingImages(false);
+            setIsSubmitting(false);
             setShowEditNoticeModal(true);
           } catch (uploadError) {
             console.error('Image upload error:', uploadError);
-            alert(`Property created but failed to upload images: ${uploadError.message || 'Please try uploading images again later.'}`);
+            // Property was created successfully, show success modal even if images failed
             setUploadingImages(false);
             setIsSubmitting(false);
-            onClose();
-            return;
+            setShowEditNoticeModal(true);
           }
         } else {
           // No images to upload, property already created
@@ -2218,20 +2187,20 @@ newErrors.description = "Description is required";
       {showEditNoticeModal && (
         <div className="seller-popup-limit-warning-overlay">
           <div className="seller-popup-limit-warning-modal">
-            <div className="seller-popup-limit-warning-icon" style={{ color: '#667eea' }}>
+            <div className="seller-popup-limit-warning-icon" style={{ color: '#10b981' }}>
               <svg width="48" height="48" viewBox="0 0 24 24" fill="none">
                 <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="2"/>
-                <path d="M12 16v-4M12 8h.01" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+                <path d="M20 6L9 17l-5-5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
               </svg>
             </div>
             
             <div className="seller-popup-limit-warning-content">
-              <h3>Property Published Successfully!</h3>
+              <h3 style={{ color: '#10b981' }}>Property Uploaded Successfully!</h3>
               <p style={{ fontSize: '1rem', lineHeight: '1.6', marginTop: '1rem' }}>
-                You can edit this property only within <strong style={{ color: '#667eea' }}>24 hours</strong> of creation.
+                You can edit this property only within <strong style={{ color: '#10b981' }}>24 hours</strong> of uploading.
               </p>
               <p style={{ fontSize: '0.9rem', color: '#666', marginTop: '0.5rem' }}>
-                After 24 hours, you'll only be able to edit the title and price.
+                After 24 hours, you will be able to edit property name and price only.
               </p>
             </div>
 
