@@ -32,7 +32,7 @@
   align-items: flex-start;
   justify-content: center;
   padding: 2rem;
-  z-index: 2000;
+  z-index: 1;
   overflow-y: auto;
   animation: fadeIn 0.2s ease;
 }
@@ -50,7 +50,7 @@
   max-height: calc(100vh - 4rem);
   animation: slideUp 0.3s ease;
   position: relative;
-  z-index: 2001; /* Above overlay */
+  z-index: 1; /* Above overlay */
 }
 
 @keyframes slideUp { from { opacity: 0; transform: translateY(20px);} to { opacity: 1; transform: translateY(0);} }
@@ -192,7 +192,7 @@
   border-bottom: 1px solid var(--border-color);
   position: relative; /* Establish positioning context */
   overflow: visible; /* Allow dropdown to extend beyond container */
-  z-index: auto; /* Don't create unnecessary stacking context */
+   /* Don't create unnecessary stacking context */
 }
 .form-group-location-input label { 
   display: block; 
@@ -201,7 +201,7 @@
   color: var(--text-primary); 
   margin-bottom: 0.5rem; 
   position: relative; /* Ensure label is in normal flow */
-  z-index: 1; /* Lower than dropdown */
+ /* Lower than dropdown */
 }
 
 /* Location Map Form Group - Second location field (Map picker) */

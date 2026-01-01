@@ -103,13 +103,13 @@
   box-shadow: 0 10px 25px rgba(15, 23, 42, 0.15);
   max-height: 260px;
   overflow-y: auto;
-  z-index: var(--z-dropdown);
+  z-index: 1000 !important;
 }
 
 /* Ensure dropdown appears above popup modals - proper z-index handling */
 .popup-overlay .state-autosuggest,
 .popup-container .state-autosuggest,
-.popup-body .state-autosuggest,
+ .state-autosuggest,
 .seller-popup-overlay .state-autosuggest,
 .seller-popup-container .state-autosuggest,
 .seller-popup-body .state-autosuggest {
@@ -119,7 +119,7 @@
 
 .popup-overlay .state-dropdown,
 .popup-container .state-dropdown,
-.popup-body .state-dropdown,
+ .state-dropdown,
 .seller-popup-overlay .state-dropdown,
 .seller-popup-container .state-dropdown,
 .seller-popup-body .state-dropdown {
