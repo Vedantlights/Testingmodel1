@@ -13,8 +13,6 @@
   will-change: transform;
   /* Removed backdrop-filter for better performance */
   height: 90px; /* FIXED HEIGHT - must match buyer-navbar-content height */
-  border-bottom-left-radius: 10px;
-  border-bottom-right-radius: 10px;
   width: 100%;
 }
 
@@ -25,7 +23,6 @@
 
 .buyer-navbar-container {
   max-width: 1580px;
-  margin: 10px auto 0;
   padding: 0 1rem;
   width: 100%;
 }
