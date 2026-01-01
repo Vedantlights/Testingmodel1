@@ -82,8 +82,8 @@
   }
 }
 
-/* Tablet (768px - 1023px) */
-@media (min-width: 768px) and (max-width: 1023px) {
+/* Tablet (736px - 1023px) */
+@media (min-width: 736px) and (max-width: 1023px) {
   .landing-search-bar-container {
     margin-top: 0;
     min-height: 550px;
@@ -126,8 +126,8 @@
   }
 }
 
-/* Mobile (≤767px) */
-@media (max-width: 767px) {
+/* Mobile (≤735px) */
+@media (max-width: 735px) {
   .landing-search-bar-container {
     margin-top: 0;
     min-height: 500px;
@@ -288,7 +288,7 @@
 }
 
 /* Landscape orientation on mobile devices */
-@media (max-width: 767px) and (orientation: landscape) {
+@media (max-width: 735px) and (orientation: landscape) {
   .landing-search-bar-container {
     min-height: 400px;
     padding-top: calc(3.5rem + 1.5rem);
@@ -682,8 +682,8 @@
   }
 }
 
-/* Tablet (768px - 1023px) */
-@media (min-width: 768px) and (max-width: 1023px) {
+/* Tablet (736px - 1023px) */
+@media (min-width: 736px) and (max-width: 1023px) {
   .search-inputs {
     grid-template-columns: repeat(2, 1fr);
     gap: 1.25rem;
@@ -705,8 +705,8 @@
   }
 }
 
-/* Mobile (≤767px) */
-@media (max-width: 767px) {
+/* Mobile (≤735px) */
+@media (max-width: 735px) {
   .quick-search {
     margin-top: 2.5rem;
     gap: 1.25rem;
