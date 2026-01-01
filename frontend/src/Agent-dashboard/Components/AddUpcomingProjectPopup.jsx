@@ -5,8 +5,6 @@ import { sellerPropertiesAPI, authAPI } from "../../services/api.service";
 import { API_BASE_URL, API_ENDPOINTS } from "../../config/api.config";
 import { validateImageFile } from "../../utils/validation";
 import LocationPicker from "../../components/Map/LocationPicker";
-import LocationAutoSuggest from "../../components/LocationAutoSuggest";
-import StateAutoSuggest from "../../components/StateAutoSuggest";
 import "../styles/AddPropertyPopup.css";
 
 const STEPS = [
@@ -941,32 +939,14 @@ export default function AddUpcomingProjectPopup({ onClose }) {
 
       <div className="form-group">
         <label>Location <span className="required">*</span></label>
-        <LocationAutoSuggest
+        <input
+          type="text"
           placeholder="Enter locality, area or landmark"
           value={formData.location || formData.area || ''}
-          onChange={(locationData) => {
-            if (!locationData) {
-              setFormData(prev => ({ 
-                ...prev, 
-                location: "", 
-                area: "",
-                city: "",
-                latitude: "", 
-                longitude: "" 
-              }));
-              return;
-            }
-            setFormData(prev => ({
-              ...prev,
-              location: locationData.fullAddress || locationData.placeName || "",
-              area: locationData.placeName || prev.area || "",
-              city: locationData.city || prev.city || "",
-              latitude: locationData.coordinates?.lat ?? "",
-              longitude: locationData.coordinates?.lng ?? ""
-            }));
+          onChange={(e) => {
+            handleChange('location', e.target.value);
           }}
-          className={`location-autosuggest-popup ${errors.location || errors.area ? 'agent-location-error' : ''}`}
-          error={errors.location || errors.area}
+          className={errors.location || errors.area ? 'error' : ''}
         />
         {(errors.location || errors.area) && (
           <span className="error-text">{errors.location || errors.area}</span>
@@ -1098,19 +1078,20 @@ export default function AddUpcomingProjectPopup({ onClose }) {
             )}
           </label>
           <div style={{ position: 'relative' }}>
-            <StateAutoSuggest
+            <input
+              type="text"
               placeholder="Enter state"
               value={formData.state || ''}
-              onChange={(stateName) => {
-                handleChange('state', stateName);
+              onChange={(e) => {
+                handleChange('state', e.target.value);
                 // If user manually changes state, clear auto-fill flag
-                if (stateAutoFilled && stateName !== formData.state) {
+                if (stateAutoFilled && e.target.value !== formData.state) {
                   setStateAutoFilled(false);
                 }
               }}
-              className={`state-autosuggest-popup ${errors.state ? 'agent-state-error' : ''}`}
-              error={errors.state}
+              className={errors.state ? 'error' : ''}
               readOnly={stateAutoFilled}
+              disabled={stateAutoFilled}
             />
             {stateAutoFilled && (
               <button
