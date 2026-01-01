@@ -893,7 +893,7 @@ const SellerProfile = () => {
                         disabled
                         style={{ backgroundColor: '#f3f4f6', cursor: 'not-allowed' }}
                         className={errors.phone ? 'error' : ''}
-                        placeholder="+91 98765 43210"
+                        placeholder="+918433517958"
                       />
                     </div>
                     <small style={{ color: '#6b7280', fontSize: '0.75rem', marginTop: '0.25rem', display: 'block' }}>
@@ -913,7 +913,7 @@ const SellerProfile = () => {
                         value={formData.whatsappNumber}
                         onChange={handleChange}
                         disabled={!isEditing}
-                        placeholder="+91 98765 43210"
+                        placeholder="+918433517958"
                         className={errors.whatsappNumber ? 'error' : ''}
                       />
                     </div>
@@ -932,7 +932,7 @@ const SellerProfile = () => {
                         value={formData.alternateMobile}
                         onChange={handleChange}
                         disabled={!isEditing}
-                        placeholder="+91 98765 43210"
+                        placeholder="+918433517958"
                         className={errors.alternateMobile ? 'error' : ''}
                       />
                     </div>

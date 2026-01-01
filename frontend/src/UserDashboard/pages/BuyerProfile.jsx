@@ -681,7 +681,7 @@ const BuyerProfile = () => {
                     name="whatsappNumber"
                     value={formData.whatsappNumber}
                     onChange={handleChange}
-                    placeholder="+91 98765 43210"
+                    placeholder="+918433517958"
                   />
                 </div>
               </div>
@@ -697,7 +697,7 @@ const BuyerProfile = () => {
                     name="alternateMobile"
                     value={formData.alternateMobile}
                     onChange={handleChange}
-                    placeholder="+91 98765 43210"
+                    placeholder="+918433517958"
                   />
                 </div>
               </div>
