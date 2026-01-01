@@ -184,6 +184,19 @@ if ($msg91WidgetToken === '481618TcNAx989nvQ69410832P1' && defined('ENVIRONMENT'
 }
 define('MSG91_WIDGET_AUTH_TOKEN', $msg91WidgetToken);
 
+// Background Worker Configuration (for async email sending)
+// PHP executable path - can be overridden via environment variable
+// On shared hosting, you may need to specify full path like: /usr/bin/php or /usr/local/bin/php
+$phpExecutablePath = getenv('PHP_EXECUTABLE_PATH');
+if (empty($phpExecutablePath)) {
+    // Use PHP_BINARY if available (PHP 5.4+), otherwise fallback to 'php'
+    $phpExecutablePath = defined('PHP_BINARY') && PHP_BINARY ? PHP_BINARY : 'php';
+}
+define('PHP_EXECUTABLE_PATH', $phpExecutablePath);
+
+// Worker script paths (absolute paths for better reliability)
+define('WORKER_WELCOME_EMAIL_SCRIPT', dirname(__DIR__) . '/workers/send_welcome_email.php');
+
 // Pagination
 define('DEFAULT_PAGE_SIZE', 20);
 define('MAX_PAGE_SIZE', 100);
