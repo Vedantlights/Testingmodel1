@@ -168,9 +168,14 @@
 .popup-body { 
   flex:1; 
   overflow-y:auto; 
+  overflow-x: visible; /* Allow dropdowns to overflow horizontally */
   padding:2rem; 
 }
-.step-content { animation:fadeInUp 0.3s ease; }
+.step-content { 
+  animation:fadeInUp 0.3s ease; 
+  overflow: visible; /* Allow dropdowns to overflow */
+  position: relative; /* Establish positioning context for dropdowns */
+}
 @keyframes fadeInUp { from { opacity:0; transform:translateY(10px);} to { opacity:1; transform:translateY(0);} }
 .step-heading { font-size:1.35rem; font-weight:700; color:var(--text-primary); margin-bottom:0.5rem; }
 .step-subheading { font-size:0.95rem; color:var(--text-secondary); margin-bottom:1.25rem; }
@@ -181,8 +186,25 @@
 /* Note: Location and State dropdown styles are handled by LocationAutoSuggest.css and StateAutoSuggest.css */
 /* These styles ensure proper z-index handling for popup containers */
 
+/* Ensure dropdowns appear above all form elements */
+.location-autosuggest,
+.state-autosuggest {
+  position: relative;
+  z-index: 100; /* Higher than form groups */
+}
+
+.location-dropdown,
+.state-dropdown {
+  z-index: 1000 !important; /* Ensure dropdowns appear above everything */
+}
+
 /* form elements */
-.form-group { margin-bottom:1.25rem; }
+.form-group { 
+  margin-bottom:1.25rem; 
+  position: relative; /* Establish positioning context for dropdowns */
+  overflow: visible; /* Allow dropdowns to overflow */
+  z-index: 1; /* Lower than dropdowns */
+}
 .form-group label { display:block; font-size:0.9rem; font-weight:600; color:var(--text-primary); margin-bottom:0.5rem; }
 
 /* Location Input Form Group - First location field */
@@ -213,6 +235,9 @@
   padding-left: 1rem;
   padding-right: 1rem;
   padding-bottom: 1rem;
+  position: relative; /* Establish positioning context */
+  z-index: 1; /* Lower than dropdowns */
+  overflow: visible; /* Allow dropdowns to overflow */
 }
 .form-group-location-map label { 
   display: block; 
@@ -235,7 +260,13 @@
 .char-count { display:block; font-size:0.8rem; color:var(--text-muted); margin-top:0.35rem; text-align:right; }
 
 /* rows */
-.form-row { display:grid; gap:1rem; }
+.form-row { 
+  display:grid; 
+  gap:1rem; 
+  position: relative; /* Establish positioning context */
+  z-index: 1; /* Lower than dropdowns */
+  overflow: visible; /* Allow dropdowns to overflow */
+}
 .form-row.two-cols { grid-template-columns:repeat(2,1fr); }
 .form-row.three-cols { grid-template-columns:repeat(3,1fr); }
 
