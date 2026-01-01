@@ -232,15 +232,51 @@ try {
     }
     
     $userId = intval($argv[1]);
-    $name = $argv[2];
-    $email = $argv[3];
+    $nameFromArg = $argv[2];
+    $emailFromArg = $argv[3];
     
-    logMessage("Starting welcome email worker for user ID: $userId, Email: $email");
+    logMessage("Starting welcome email worker for user ID: $userId");
     
     // Validate user ID
     if ($userId <= 0) {
         logMessage("ERROR: Invalid user ID: $userId");
         exit(1);
+    }
+    
+    // Fetch user data from database to ensure we use the exact saved values
+    try {
+        $db = getDB();
+        $stmt = $db->prepare("SELECT id, full_name, email FROM users WHERE id = ?");
+        $stmt->execute([$userId]);
+        $userData = $stmt->fetch(PDO::FETCH_ASSOC);
+        
+        if (!$userData) {
+            logMessage("ERROR: User not found in database for user ID: $userId");
+            updateUserEmailStatus($userId, 'FAILED');
+            logEmailAttempt($userId, 'welcome', 'FAILED', null, "User not found in database");
+            exit(1);
+        }
+        
+        // Use email and name from database (ensures we use the exact values saved)
+        $email = $userData['email'];
+        $name = $userData['full_name'];
+        
+        logMessage("Fetched user data from database - Email: $email, Name: $name");
+        
+        // Log warning if database values differ from arguments (for debugging)
+        if ($email !== $emailFromArg) {
+            logMessage("WARNING: Email from database ($email) differs from argument ($emailFromArg). Using database value.");
+        }
+        if ($name !== $nameFromArg) {
+            logMessage("WARNING: Name from database ($name) differs from argument ($nameFromArg). Using database value.");
+        }
+        
+    } catch (Exception $dbError) {
+        logMessage("ERROR: Failed to fetch user data from database: " . $dbError->getMessage());
+        // Fallback to argument values if database fetch fails
+        $email = $emailFromArg;
+        $name = $nameFromArg;
+        logMessage("Using argument values as fallback - Email: $email, Name: $name");
     }
     
     // Validate email format

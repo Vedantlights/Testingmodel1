@@ -354,31 +354,44 @@ try {
             $db->commit();
         }
         
-        // Trigger welcome email
-        // Try async first (background worker), fallback to sync if exec() not available
-        try {
-            // Check if exec() is available for async sending
-            if (function_exists('exec')) {
-                // Try async background worker
-                sendWelcomeEmailAsync($userId, $fullName, $email);
-                error_log("Registration: Welcome email triggered (async) for user ID: $userId, Email: $email");
-            } else {
-                // Fallback to synchronous sending if exec() not available
-                error_log("Registration: exec() not available, using synchronous email sending for user ID: $userId");
-                sendWelcomeEmailSync($userId, $fullName, $email);
-                error_log("Registration: Welcome email sent (sync) for user ID: $userId, Email: $email");
-            }
-        } catch (Exception $emailError) {
-            // Log error but don't fail registration if email trigger fails
-            error_log("Registration: Failed to trigger welcome email for user ID: $userId, Error: " . $emailError->getMessage());
-            // Try sync as fallback
+        // Fetch user data from database (including email) to ensure we use the exact saved values
+        $stmt = $db->prepare("SELECT id, full_name, email FROM users WHERE id = ?");
+        $stmt->execute([$userId]);
+        $userData = $stmt->fetch(PDO::FETCH_ASSOC);
+        
+        if (!$userData) {
+            error_log("Registration: Could not fetch user data for welcome email, user ID: $userId");
+        } else {
+            // Use email and name from database (ensures we use the exact values saved)
+            $userEmail = $userData['email'];
+            $userFullName = $userData['full_name'];
+            
+            // Trigger welcome email using data from database
+            // Try async first (background worker), fallback to sync if exec() not available
             try {
-                sendWelcomeEmailSync($userId, $fullName, $email);
-                error_log("Registration: Welcome email sent (sync fallback) for user ID: $userId");
-            } catch (Exception $syncError) {
-                error_log("Registration: Sync email also failed for user ID: $userId, Error: " . $syncError->getMessage());
+                // Check if exec() is available for async sending
+                if (function_exists('exec')) {
+                    // Try async background worker
+                    sendWelcomeEmailAsync($userId, $userFullName, $userEmail);
+                    error_log("Registration: Welcome email triggered (async) for user ID: $userId, Email: $userEmail (from database)");
+                } else {
+                    // Fallback to synchronous sending if exec() not available
+                    error_log("Registration: exec() not available, using synchronous email sending for user ID: $userId");
+                    sendWelcomeEmailSync($userId, $userFullName, $userEmail);
+                    error_log("Registration: Welcome email sent (sync) for user ID: $userId, Email: $userEmail (from database)");
+                }
+            } catch (Exception $emailError) {
+                // Log error but don't fail registration if email trigger fails
+                error_log("Registration: Failed to trigger welcome email for user ID: $userId, Error: " . $emailError->getMessage());
+                // Try sync as fallback
+                try {
+                    sendWelcomeEmailSync($userId, $userFullName, $userEmail);
+                    error_log("Registration: Welcome email sent (sync fallback) for user ID: $userId, Email: $userEmail");
+                } catch (Exception $syncError) {
+                    error_log("Registration: Sync email also failed for user ID: $userId, Error: " . $syncError->getMessage());
+                }
+                // Continue with registration - email failure should not block user registration
             }
-            // Continue with registration - email failure should not block user registration
         }
         
         // Generate token
