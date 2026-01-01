@@ -290,7 +290,7 @@ const CityFilteredPGHostel = () => {
       {/* ========== SEARCH BAR WITH BACK BUTTON - START ========== */}
       <div 
         className="buyer-rent-search-bar-banner" 
-        style={{ backgroundImage: 'url(/Rentnew.jpg)' }}
+        style={{ backgroundImage: 'url(/pghostel.jpg)' }}
       >
         <div className="buyer-search-bar-wrapper">
           <h2 className="buyer-search-title">Explore PG & Hostel Options</h2>
