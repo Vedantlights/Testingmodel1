@@ -1,22 +1,32 @@
-/* Z-index hierarchy (defined once for clarity) */
+/* ============================= */
+/* Z-INDEX DEFINITIONS (GLOBAL) */
+/* ============================= */
 :root {
   --z-dropdown: 1000;
   --z-modal: 2000;
   --z-modal-dropdown: 2100;
 }
 
+/* ============================= */
+/* AUTOSUGGEST WRAPPER */
+/* ============================= */
 .state-autosuggest {
   position: relative;
   width: 100%;
-  z-index: 1;
 }
 
+/* ============================= */
+/* INPUT WRAPPER */
+/* ============================= */
 .state-input-wrapper {
   position: relative;
   display: flex;
   align-items: center;
 }
 
+/* ============================= */
+/* INPUT FIELD */
+/* ============================= */
 .state-input {
   width: 100%;
   padding: 0.65rem 2.25rem 0.65rem 0.75rem;
@@ -26,7 +36,7 @@
   color: #111827;
   outline: none;
   background-color: #f9fafb;
-  transition: border-color 0.15s ease, box-shadow 0.15s ease, background-color 0.15s ease;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
 }
 
 .state-input:focus {
@@ -39,19 +49,9 @@
   border-color: #dc2626;
 }
 
-.state-input:disabled {
-  background-color: #f3f4f6;
-  color: #6b7280;
-  cursor: not-allowed;
-  opacity: 0.6;
-}
-
-.state-input:disabled:focus {
-  border-color: #d1d5db;
-  background-color: #f3f4f6;
-  box-shadow: none;
-}
-
+/* ============================= */
+/* CLEAR BUTTON */
+/* ============================= */
 .state-clear-btn {
   position: absolute;
   right: 0.5rem;
@@ -59,21 +59,17 @@
   border: none;
   color: #9ca3af;
   cursor: pointer;
-  font-size: 1rem;
-  padding: 0;
-  z-index: 1;
 }
 
-.state-clear-btn:hover {
-  color: #4b5563;
-}
-
+/* ============================= */
+/* SPINNER */
+/* ============================= */
 .state-spinner {
   position: absolute;
   right: 0.75rem;
   width: 16px;
   height: 16px;
-  border-radius: 999px;
+  border-radius: 50%;
   border: 2px solid rgba(148, 163, 184, 0.4);
   border-top-color: #8b5cf6;
   animation: state-spin 0.6s linear infinite;
@@ -85,84 +81,65 @@
   }
 }
 
+/* ============================= */
+/* ERROR TEXT */
+/* ============================= */
 .state-error-text {
   margin-top: 4px;
   font-size: 0.75rem;
   color: #dc2626;
 }
 
+/* ============================= */
+/* ✅ ONLY DROPDOWN HAS Z-INDEX */
+/* ============================= */
 .state-dropdown {
   position: absolute;
-  top: 100%;
+  top: calc(100% + 4px);
   left: 0;
   right: 0;
-  margin-top: 4px;
+
   background-color: #ffffff;
   border-radius: 0.75rem;
   border: 1px solid #e5e7eb;
   box-shadow: 0 10px 25px rgba(15, 23, 42, 0.15);
+
   max-height: 260px;
   overflow-y: auto;
-  z-index: 1000 !important;
+
+  z-index: var(--z-dropdown);
 }
 
-/* Ensure dropdown appears above popup modals - proper z-index handling */
-.popup-overlay .state-autosuggest,
-.popup-container .state-autosuggest,
- .state-autosuggest,
-.seller-popup-overlay .state-autosuggest,
-.seller-popup-container .state-autosuggest,
-.seller-popup-body .state-autosuggest {
-  position: relative;
-  z-index: 2001 !important; /* Above popup overlay (2000) */
-}
-
-.popup-overlay .state-dropdown,
-.popup-container .state-dropdown,
- .state-dropdown,
-.seller-popup-overlay .state-dropdown,
-.seller-popup-container .state-dropdown,
-.seller-popup-body .state-dropdown {
-  z-index: 99999 !important; /* Very high z-index to appear above everything including popup */
-  position: absolute !important;
-}
-
+/* ============================= */
+/* OPTIONS */
+/* ============================= */
 .state-option {
   padding: 0.55rem 0.9rem;
   cursor: pointer;
   display: flex;
   flex-direction: column;
-  gap: 2px;
-}
-
-.state-option-primary {
-  font-size: 0.9rem;
-  font-weight: 600;
-  color: #111827;
-}
-
-.state-option-secondary {
-  font-size: 0.8rem;
-  color: #6b7280;
 }
 
 .state-option:hover,
 .state-option.active {
-  background: linear-gradient(135deg, #f3e8ff 0%, #e0e7ff 100%);
+  background: linear-gradient(135deg, #f3e8ff, #e0e7ff);
 }
 
-/* Mobile tweaks */
+/* ============================= */
+/* POPUP SAFETY */
+/* ============================= */
+.popup-container,
+.popup-body,
+.form-group {
+  overflow: visible;
+  position: relative;
+}
+
+/* ============================= */
+/* MOBILE */
+/* ============================= */
 @media (max-width: 640px) {
   .state-input {
     font-size: 0.9rem;
-    padding: 0.55rem 2rem 0.55rem 0.7rem;
-  }
-
-  .state-option-primary {
-    font-size: 0.85rem;
-  }
-
-  .state-option-secondary {
-    font-size: 0.75rem;
   }
 }
