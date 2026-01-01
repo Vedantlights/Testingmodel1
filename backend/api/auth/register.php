@@ -9,6 +9,7 @@ require_once __DIR__ . '/../../config/database.php';
 require_once __DIR__ . '/../../utils/response.php';
 require_once __DIR__ . '/../../utils/validation.php';
 require_once __DIR__ . '/../../utils/auth.php';
+require_once __DIR__ . '/../../helpers/email_helper.php';
 
 handlePreflight();
 
@@ -353,6 +354,17 @@ try {
             $db->commit();
         }
         
+        // Trigger welcome email asynchronously (non-blocking)
+        // Email is sent in background and doesn't block registration response
+        try {
+            sendWelcomeEmailAsync($userId, $fullName, $email);
+            error_log("Registration: Welcome email triggered for user ID: $userId, Email: $email");
+        } catch (Exception $emailError) {
+            // Log error but don't fail registration if email trigger fails
+            error_log("Registration: Failed to trigger welcome email for user ID: $userId, Error: " . $emailError->getMessage());
+            // Continue with registration - email failure should not block user registration
+        }
+        
         // Generate token
         $token = generateToken($userId, $userType, $email);
         
@@ -385,9 +397,10 @@ try {
             $user['profile_image'] = null;
         }
         
-        sendSuccess('Registration successful', [
+        sendSuccess('Registration successful. Welcome email sent.', [
             'token' => $token,
-            'user' => $user
+            'user' => $user,
+            'user_id' => $userId
         ]);
         
     } catch (Exception $e) {
