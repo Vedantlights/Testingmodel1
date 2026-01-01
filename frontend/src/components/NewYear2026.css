@@ -80,7 +80,7 @@
   letter-spacing: 1px;
   position: relative;
   z-index: 1;
-  animation: badge-text-glow 2s ease-in-out infinite;
+
 }
 
 .ny-badge-icon {

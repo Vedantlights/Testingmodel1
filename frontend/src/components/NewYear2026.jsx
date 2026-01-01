@@ -75,7 +75,7 @@ const NewYear2026 = ({ variant = 'fullscreen' }) => {
   if (variant === 'badge') {
     return (
       <div className="ny-navbar-badge">
-        <span className="ny-badge-year">2026</span>
+        <span className="ny-badge-year">Happy New Year 2026</span>
         <span className="ny-badge-icon">🎉</span>
       </div>
     );
