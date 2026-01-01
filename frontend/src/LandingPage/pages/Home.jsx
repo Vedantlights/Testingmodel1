@@ -2,7 +2,6 @@ import React, { useState, useEffect } from 'react';
 import SearchBar from '../components/Searchbar';
 import Explore from '../components/Explore';
 import PropertyCard from '../components/Propertycard';
-import NewYear2026 from '../../components/NewYear2026';
 import { propertiesAPI } from '../../services/api.service';
 
 const Home = () => {
@@ -53,7 +52,6 @@ const Home = () => {
 
   return (
     <div>
-      <NewYear2026 />
       <SearchBar />
       <Explore />
 

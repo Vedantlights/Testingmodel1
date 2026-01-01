@@ -2,7 +2,6 @@ import React, { useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, useLocation } from 'react-router-dom';
 import BuyerNavbar from './UserDashboard/components/BuyerNavbar';
 import Footer from './UserDashboard/components/Footer';
-import NewYear2026 from '../components/NewYear2026';
 
 // Existing Pages
 import BuyerHome from './UserDashboard/pages/BuyerHome';
@@ -40,7 +39,6 @@ function AppContent() {
   return (
     <div className="App">
       <ScrollToTop />
-      <NewYear2026 />
       <BuyerNavbar />
       <main className="buyer-main-content">
         <Routes>
