@@ -169,8 +169,6 @@
   flex:1; 
   overflow-y:auto; 
   padding:2rem; 
-  position: relative; 
-  z-index: 0; /* Explicitly set to 0 so dropdowns (z-index: 100000) appear above */
 }
 .step-content { animation:fadeInUp 0.3s ease; }
 @keyframes fadeInUp { from { opacity:0; transform:translateY(10px);} to { opacity:1; transform:translateY(0);} }
@@ -182,20 +180,6 @@
 /* ======================= */
 /* Note: Location and State dropdown styles are handled by LocationAutoSuggest.css and StateAutoSuggest.css */
 /* These styles ensure proper z-index handling for popup containers */
-
-/* Ensure location dropdown overlays form-group-location-map in agent dashboard */
-.popup-container .form-group-location-map,
-.popup-body .form-group-location-map {
-  position: relative;
-  z-index: 1;
-}
-
-.popup-container .location-dropdown,
-.popup-body .location-dropdown,
-.popup-container .state-dropdown,
-.popup-body .state-dropdown {
-  z-index: 100000 !important; /* Above form-group-location-map */
-}
 
 /* form elements */
 .form-group { margin-bottom:1.25rem; }

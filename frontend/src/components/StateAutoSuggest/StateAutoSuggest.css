@@ -106,12 +106,25 @@
   z-index: var(--z-dropdown);
 }
 
-/* Dropdown inside modals/popups */
+/* Ensure dropdown appears above popup modals - proper z-index handling */
+.popup-overlay .state-autosuggest,
+.popup-container .state-autosuggest,
+.popup-body .state-autosuggest,
+.seller-popup-overlay .state-autosuggest,
+.seller-popup-container .state-autosuggest,
+.seller-popup-body .state-autosuggest {
+  position: relative;
+  z-index: 2001 !important; /* Above popup overlay (2000) */
+}
+
 .popup-overlay .state-dropdown,
 .popup-container .state-dropdown,
+.popup-body .state-dropdown,
 .seller-popup-overlay .state-dropdown,
-.seller-popup-container .state-dropdown {
-  z-index: var(--z-modal-dropdown);
+.seller-popup-container .state-dropdown,
+.seller-popup-body .state-dropdown {
+  z-index: 99999 !important; /* Very high z-index to appear above everything including popup */
+  position: absolute !important;
 }
 
 .state-option {
