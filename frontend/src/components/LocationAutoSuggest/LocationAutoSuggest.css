@@ -106,6 +106,9 @@
 .popup-overlay .location-autosuggest,
 .popup-container .location-autosuggest,
 .popup-body .location-autosuggest,
+.seller-popup-overlay .location-autosuggest,
+.seller-popup-container .location-autosuggest,
+.seller-popup-body .location-autosuggest,
 .location-autosuggest-popup {
   position: relative;
   z-index: 2001 !important; /* Above popup overlay (2000) */
@@ -114,9 +117,15 @@
 .popup-overlay .location-dropdown,
 .popup-container .location-dropdown,
 .popup-body .location-dropdown,
+.seller-popup-overlay .location-dropdown,
+.seller-popup-container .location-dropdown,
+.seller-popup-body .location-dropdown,
 .popup-overlay .location-autosuggest-popup .location-dropdown,
 .popup-container .location-autosuggest-popup .location-dropdown,
 .popup-body .location-autosuggest-popup .location-dropdown,
+.seller-popup-overlay .location-autosuggest-popup .location-dropdown,
+.seller-popup-container .location-autosuggest-popup .location-dropdown,
+.seller-popup-body .location-autosuggest-popup .location-dropdown,
 .location-autosuggest-popup .location-dropdown {
   z-index: 99999 !important; /* Very high z-index to appear above everything including popup */
   position: absolute !important;
