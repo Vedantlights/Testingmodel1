@@ -1,7 +1,6 @@
 /* SearchBar.css */
 
 .landing-search-bar-container {
-  /* Background image handled by separate .landing-background-image div */
   color: rgb(255, 251, 251);
   text-align: center;
   padding: 100px 20px;
@@ -17,10 +16,16 @@
   justify-content: center;
   align-items: center;
   overflow: hidden;
-  z-index: 2; /* Above background image */
+  z-index: 1;
   scroll-behavior: smooth;
   scroll-padding-top: 100px; /* Prevent scroll jumps when focusing inputs */
   box-sizing: border-box;
+  /* Background image applied directly to container */
+  background-image: var(--landing-bg-image);
+  background-size: cover;
+  background-position: center center;
+  background-repeat: no-repeat;
+  background-attachment: scroll;
 }
 
 /* Fully Responsive Container Sizing - Full viewport height */
@@ -322,6 +327,8 @@
   left: 0;
   right: 0;
   bottom: 0;
+  background: rgba(0, 0, 0, 0.4); /* Dark overlay for better text readability */
+  z-index: 0;
   pointer-events: none;
 }
 
@@ -330,7 +337,7 @@
   margin: 0 auto;
   padding: 0 1rem;
   position: relative;
-  z-index: 1;
+  z-index: 2; /* Above background overlay */
   width: 100%;
   box-sizing: border-box;
 }

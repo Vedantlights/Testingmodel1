@@ -34,15 +34,12 @@ const PublicLayout = ({ children }) => {
       )}
       
       {/* Main Content */}
-      <main className="main-content">
-        {/* Separate Background Image Div - Only for pages with searchbar */}
-        {backgroundImage && !hideNavbarFooter && (
-          <div 
-            className="landing-background-image" 
-            style={{ backgroundImage: `url(${backgroundImage})` }}
-          />
-        )}
-        
+      <main 
+        className="main-content"
+        style={backgroundImage && !hideNavbarFooter ? {
+          '--landing-bg-image': `url(${backgroundImage})`
+        } : {}}
+      >
         {children}
       </main>
 

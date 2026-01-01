@@ -175,7 +175,7 @@ const Register = () => {
     let valid = false;
     let phone = "";
 
-    // Format phone for MSG91: "919876543210" (country code + number, no + sign)
+    // Format phone for MSG91: "918433517958" (country code + number, no + sign)
     if (digits.length === 10 && /^[6-9]\d{9}$/.test(digits)) {
       valid = true;
       phone = "91" + digits; // MSG91 format: no + sign
@@ -650,7 +650,7 @@ const Register = () => {
                     handleKeyDown(e, "phone");
                   }
                 }}
-                placeholder="+91 98765 43210"
+                placeholder="+918433517958"
                 className="input input-pr"
                 disabled={phoneVerified}
               />

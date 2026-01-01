@@ -94,8 +94,8 @@ export default function SellerContactPage() {
             
             <div className="seller-contact-info-item">
               <div className="seller-contact-info-label">Phone</div>
-              <a href="tel:+919876543210" className="seller-contact-info-link">
-                +91 98765 43210
+              <a href="tel:+918433517958" className="seller-contact-info-link">
+                +918433517958
               </a>
             </div>
 
@@ -207,7 +207,7 @@ export default function SellerContactPage() {
               },
               {
                 question: "How can I get support?",
-                answer: "You can get support by filling out the contact form on this page, or by emailing us directly at info@indiapropertys.com. Our support team typically responds within 24 hours. You can also call us at +91 98765 43210 during business hours."
+                answer: "You can get support by filling out the contact form on this page, or by emailing us directly at info@indiapropertys.com. Our support team typically responds within 24 hours. You can also call us at +918433517958 during business hours."
               }
             ].map((faq, index) => (
               <div key={index} className={`seller-faq-item ${openFaqIndex === index ? 'open' : ''}`}>
