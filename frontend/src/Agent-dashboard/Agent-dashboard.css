@@ -753,14 +753,26 @@ html, body {
 /* RESPONSIVE              */
 /* ======================= */
 
-/* Large Desktop (≥1440px) - Default styles apply */
+/* Large Desktop (≥1440px) */
+@media (min-width: 1440px) {
+  .agent-logo-image {
+    height: 70px;
+  }
+}
 
 /* Laptop (1024px – 1439px) */
-@media (max-width: 1439px) {
+@media (min-width: 1024px) and (max-width: 1439px) {
   .agent-header {
     padding: 0 1.5rem;
   }
   
+  .agent-logo-image {
+    height: 65px;
+  }
+}
+
+/* Tablet (768px – 1023px) */
+@media (min-width: 768px) and (max-width: 1023px) {
   .agent-logo-image {
     height: 60px;
   }
