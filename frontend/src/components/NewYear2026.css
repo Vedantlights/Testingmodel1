@@ -1,0 +1,384 @@
+/* New Year 2026 Animated Component */
+
+.new-year-2026-container {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  pointer-events: none;
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  animation: fadeInOut 5s ease-in-out;
+}
+
+.new-year-2026-container.fullscreen {
+  background: rgba(2, 43, 95, 0.95);
+  backdrop-filter: blur(10px);
+}
+
+@keyframes fadeInOut {
+  0% {
+    opacity: 0;
+  }
+  10% {
+    opacity: 1;
+  }
+  90% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+  }
+}
+
+/* Navbar Badge Version */
+.ny-navbar-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: linear-gradient(135deg, #FFD700 0%, #FFA500 50%, #FF6B6B 100%);
+  background-size: 200% 200%;
+  color: #022b5f;
+  font-weight: 800;
+  font-size: 14px;
+  padding: 6px 14px;
+  border-radius: 30px;
+  margin-left: 12px;
+  animation: badge-gradient-shift 3s ease infinite, badge-pulse 2s ease-in-out infinite;
+  box-shadow: 
+    0 2px 15px rgba(255, 215, 0, 0.5),
+    0 0 30px rgba(255, 107, 107, 0.3);
+  position: relative;
+  overflow: hidden;
+  cursor: pointer;
+  transition: transform 0.3s ease;
+}
+
+.ny-navbar-badge::before {
+  content: '';
+  position: absolute;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  background: linear-gradient(45deg, transparent, rgba(255, 255, 255, 0.4), transparent);
+  animation: badge-shine 3s infinite;
+}
+
+.ny-navbar-badge:hover {
+  transform: scale(1.1);
+  box-shadow: 
+    0 4px 25px rgba(255, 215, 0, 0.7),
+    0 0 40px rgba(255, 107, 107, 0.5);
+}
+
+.ny-badge-year {
+  letter-spacing: 1px;
+  position: relative;
+  z-index: 1;
+  animation: badge-text-glow 2s ease-in-out infinite;
+}
+
+.ny-badge-icon {
+  font-size: 18px;
+  animation: badge-icon-bounce 1.5s ease-in-out infinite;
+  display: inline-block;
+  position: relative;
+  z-index: 1;
+}
+
+@keyframes badge-gradient-shift {
+  0%, 100% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+}
+
+@keyframes badge-pulse {
+  0%, 100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.05);
+  }
+}
+
+@keyframes badge-shine {
+  0% {
+    transform: translateX(-100%) translateY(-100%) rotate(45deg);
+  }
+  100% {
+    transform: translateX(100%) translateY(100%) rotate(45deg);
+  }
+}
+
+@keyframes badge-text-glow {
+  0%, 100% {
+    text-shadow: 0 0 5px rgba(2, 43, 95, 0.5);
+  }
+  50% {
+    text-shadow: 0 0 10px rgba(2, 43, 95, 0.8);
+  }
+}
+
+@keyframes badge-icon-bounce {
+  0%, 100% {
+    transform: translateY(0) rotate(0deg);
+  }
+  25% {
+    transform: translateY(-4px) rotate(-10deg);
+  }
+  75% {
+    transform: translateY(-4px) rotate(10deg);
+  }
+}
+
+.ny-main-text {
+  position: relative;
+  text-align: center;
+  z-index: 10000;
+}
+
+.ny-year-text {
+  display: inline-flex;
+  gap: 8px;
+  font-size: 120px;
+  font-weight: 900;
+  background: linear-gradient(135deg, #FFD700 0%, #FF6B6B 25%, #4ECDC4 50%, #45B7D1 75%, #FFA500 100%);
+  background-size: 300% 300%;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  animation: gradient-shift 3s ease infinite, float-animation 3s ease-in-out infinite;
+  filter: drop-shadow(0 0 20px rgba(255, 215, 0, 0.5));
+  text-shadow: 0 0 30px rgba(255, 215, 0, 0.8);
+}
+
+.ny-digit {
+  display: inline-block;
+  animation: digit-bounce 2s ease-in-out infinite;
+  transform-origin: center;
+}
+
+.ny-digit:nth-child(1) {
+  animation-delay: 0s;
+}
+
+.ny-digit:nth-child(2) {
+  animation-delay: 0.2s;
+}
+
+.ny-digit:nth-child(3) {
+  animation-delay: 0.4s;
+}
+
+.ny-digit:nth-child(4) {
+  animation-delay: 0.6s;
+}
+
+.ny-greeting {
+  margin-top: 20px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 15px;
+}
+
+.ny-greeting-text {
+  font-size: 32px;
+  font-weight: 700;
+  color: #fff;
+  text-shadow: 
+    0 0 10px rgba(255, 215, 0, 0.8),
+    0 0 20px rgba(255, 107, 107, 0.6),
+    0 0 30px rgba(78, 205, 196, 0.4);
+  animation: text-glow 2s ease-in-out infinite;
+  letter-spacing: 3px;
+}
+
+.ny-sparkles {
+  display: flex;
+  gap: 20px;
+  font-size: 40px;
+}
+
+.ny-sparkle {
+  display: inline-block;
+  animation: sparkle-rotate 2s ease-in-out infinite;
+  filter: drop-shadow(0 0 10px rgba(255, 215, 0, 0.8));
+}
+
+.ny-sparkle:nth-child(1) {
+  animation-delay: 0s;
+}
+
+.ny-sparkle:nth-child(2) {
+  animation-delay: 0.3s;
+}
+
+.ny-sparkle:nth-child(3) {
+  animation-delay: 0.6s;
+}
+
+/* Floating Particles */
+.ny-particle {
+  position: absolute;
+  border-radius: 50%;
+  pointer-events: none;
+  animation: particle-float linear infinite;
+  opacity: 0.7;
+}
+
+/* Confetti */
+.ny-confetti {
+  position: fixed;
+  width: 12px;
+  height: 12px;
+  top: -20px;
+  pointer-events: none;
+  animation: confetti-fall linear forwards;
+  border-radius: 2px;
+  z-index: 9998;
+}
+
+/* Animations */
+@keyframes gradient-shift {
+  0%, 100% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+}
+
+@keyframes float-animation {
+  0%, 100% {
+    transform: translateY(0px) scale(1);
+  }
+  50% {
+    transform: translateY(-20px) scale(1.05);
+  }
+}
+
+@keyframes digit-bounce {
+  0%, 100% {
+    transform: translateY(0) rotate(0deg) scale(1);
+  }
+  25% {
+    transform: translateY(-15px) rotate(-5deg) scale(1.1);
+  }
+  75% {
+    transform: translateY(-15px) rotate(5deg) scale(1.1);
+  }
+}
+
+@keyframes text-glow {
+  0%, 100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.9;
+    transform: scale(1.05);
+  }
+}
+
+@keyframes sparkle-rotate {
+  0%, 100% {
+    transform: rotate(0deg) scale(1);
+    opacity: 1;
+  }
+  25% {
+    transform: rotate(90deg) scale(1.3);
+    opacity: 0.8;
+  }
+  50% {
+    transform: rotate(180deg) scale(1);
+    opacity: 1;
+  }
+  75% {
+    transform: rotate(270deg) scale(1.3);
+    opacity: 0.8;
+  }
+}
+
+@keyframes particle-float {
+  0% {
+    transform: translateY(0) translateX(0) rotate(0deg);
+    opacity: 0;
+  }
+  10% {
+    opacity: 0.7;
+  }
+  90% {
+    opacity: 0.7;
+  }
+  100% {
+    transform: translateY(-100vh) translateX(50px) rotate(360deg);
+    opacity: 0;
+  }
+}
+
+@keyframes confetti-fall {
+  0% {
+    transform: translateY(0) rotate(0deg);
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(100vh) rotate(720deg);
+    opacity: 0;
+  }
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .ny-year-text {
+    font-size: 80px;
+    gap: 4px;
+  }
+
+  .ny-greeting-text {
+    font-size: 24px;
+    letter-spacing: 2px;
+  }
+
+  .ny-sparkles {
+    font-size: 30px;
+    gap: 15px;
+  }
+}
+
+@media (max-width: 480px) {
+  .ny-year-text {
+    font-size: 60px;
+    gap: 2px;
+  }
+
+  .ny-greeting-text {
+    font-size: 20px;
+    letter-spacing: 1px;
+  }
+
+  .ny-sparkles {
+    font-size: 24px;
+    gap: 10px;
+  }
+
+  .ny-navbar-badge {
+    font-size: 12px;
+    padding: 5px 10px;
+    margin-left: 8px;
+    gap: 4px;
+  }
+
+  .ny-badge-icon {
+    font-size: 14px;
+  }
+}
+
