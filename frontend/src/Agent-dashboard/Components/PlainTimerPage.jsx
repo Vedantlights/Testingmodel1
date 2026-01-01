@@ -173,8 +173,8 @@ const PlainTimerPage = () => {
 
   if (loading) {
     return (
-      <div className="timer-page">
-        <div className="timer-content">
+      <div className="seller-timer-page">
+        <div className="seller-timer-content">
           <div style={{ textAlign: 'center', padding: '2rem' }}>
             <p>Loading subscription data...</p>
           </div>
@@ -184,26 +184,26 @@ const PlainTimerPage = () => {
   }
 
   return (
-    <div className="timer-page">
-      <div className="timer-content">
-        <div className="badge">
+    <div className="seller-timer-page">
+      <div className="seller-timer-content">
+        <div className="seller-timer-badge">
           LIMITED TIME OFFER
         </div>
 
-        <h1 className="title">
-          <span className="title-purple">3 Months Free</span>
+        <h1 className="seller-timer-title">
+          <span className="seller-timer-title-purple">3 Months Free</span>
           <br />
-          <span className="title-white">Premium Property Upload Access</span>
+          <span className="seller-timer-title-white">Premium Property Upload Access</span>
         </h1>
 
-        <div className="timer-card">
-          <div className="timer-header">
+        <div className="seller-timer-card">
+          <div className="seller-timer-header">
             <svg
               width="28"
               height="28"
               viewBox="0 0 24 24"
               fill="none"
-              className="clock-icon"
+              className="seller-timer-clock-icon"
             >
               <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="2" />
               <path d="M12 6v6l4 2" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
@@ -211,25 +211,25 @@ const PlainTimerPage = () => {
             <h2>Your Trial Expires In</h2>
           </div>
 
-          <div className="timer-display">
+          <div className="seller-timer-display">
             {["days", "hours", "minutes", "seconds"].map((unit, idx) => (
               <React.Fragment key={unit}>
-                <div className="time-block">
-                  <div className="time-box">{String(timeLeft[unit]).padStart(2, "0")}</div>
-                  <div className="time-label">{unit.toUpperCase()}</div>
+                <div className="seller-timer-time-block">
+                  <div className="seller-timer-time-box">{String(timeLeft[unit]).padStart(2, "0")}</div>
+                  <div className="seller-timer-time-label">{unit.toUpperCase()}</div>
                 </div>
-                {idx < 3 && <div className="separator">:</div>}
+                {idx < 3 && <div className="seller-timer-separator">:</div>}
               </React.Fragment>
             ))}
           </div>
         </div>
 
         {/* Plans Section */}
-        <div className="timer-plans-section">
-          <div className="timer-plans-header">
-            <h2 className="timer-plans-title">Choose Your Plan</h2>
-            <p className="timer-plans-subtitle">Select a plan after your free trial ends</p>
-            <div className="timer-plans-lock-badge">
+        <div className="seller-timer-plans-section">
+          <div className="seller-timer-plans-header">
+            <h2 className="seller-timer-plans-title">Choose Your Plan</h2>
+            <p className="seller-timer-plans-subtitle">Select a plan after your free trial ends</p>
+            <div className="seller-timer-plans-lock-badge">
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
                 <rect x="3" y="11" width="18" height="11" rx="2" stroke="currentColor" strokeWidth="2"/>
                 <path d="M7 11V7a5 5 0 0110 0v4" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
@@ -238,32 +238,32 @@ const PlainTimerPage = () => {
             </div>
           </div>
 
-          <div className="timer-plans-container">
+          <div className="seller-timer-plans-container">
             {plans.map((plan, index) => (
               <div 
                 key={index} 
-                className={`timer-plan-card ${plan.popular ? 'popular' : ''}`}
+                className={`seller-timer-plan-card ${plan.popular ? 'popular' : ''}`}
               >
                 {plan.popular && (
-                  <div className="timer-popular-badge">MOST POPULAR</div>
+                  <div className="seller-timer-popular-badge">MOST POPULAR</div>
                 )}
                 
-                <div className={`timer-plan-icon ${plan.icon}`}>
+                <div className={`seller-timer-plan-icon ${plan.icon}`}>
                   <PlanIcon type={plan.icon} />
                 </div>
 
-                <h3 className="timer-plan-name">{plan.name}</h3>
-                <p className="timer-plan-description">{plan.description}</p>
+                <h3 className="seller-timer-plan-name">{plan.name}</h3>
+                <p className="seller-timer-plan-description">{plan.description}</p>
 
-                <div className="timer-plan-price-wrapper">
-                  <div className="timer-plan-price">
-                    <span className="timer-currency">₹</span>
-                    <span className="timer-price">{plan.price}</span>
-                    <span className="timer-duration">{plan.duration}</span>
+                <div className="seller-timer-plan-price-wrapper">
+                  <div className="seller-timer-plan-price">
+                    <span className="seller-timer-currency">₹</span>
+                    <span className="seller-timer-price">{plan.price}</span>
+                    <span className="seller-timer-duration">{plan.duration}</span>
                   </div>
                 </div>
 
-                <ul className="timer-plan-features">
+                <ul className="seller-timer-plan-features">
                   {plan.features.map((feature, idx) => (
                     <li key={idx}>
                       <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
@@ -274,7 +274,7 @@ const PlainTimerPage = () => {
                   ))}
                 </ul>
 
-                <button className="timer-plan-btn" disabled>
+                <button className="seller-timer-plan-btn" disabled>
                   <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
                     <rect x="3" y="11" width="18" height="11" rx="2" stroke="currentColor" strokeWidth="2"/>
                     <path d="M7 11V7a5 5 0 0110 0v4" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
@@ -285,9 +285,9 @@ const PlainTimerPage = () => {
             ))}
 
             {/* Blur Overlay */}
-            <div className="timer-plans-blur-overlay">
-              <div className="timer-blur-content">
-                <div className="timer-blur-icon">
+            <div className="seller-timer-plans-blur-overlay">
+              <div className="seller-timer-blur-content">
+                <div className="seller-timer-blur-icon">
                   <svg width="44" height="44" viewBox="0 0 24 24" fill="none">
                     <rect x="3" y="11" width="18" height="11" rx="2" stroke="currentColor" strokeWidth="2"/>
                     <path d="M7 11V7a5 5 0 0110 0v4" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
@@ -295,7 +295,7 @@ const PlainTimerPage = () => {
                 </div>
                 <h3>Plans Locked During Free Trial</h3>
                 <p>Enjoy your premium access for free! Plans will be available when your trial period ends.</p>
-                <div className="timer-blur-timer">
+                <div className="seller-timer-blur-timer">
                   <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
                     <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="2"/>
                     <path d="M12 6v6l4 2" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
