@@ -549,19 +549,19 @@ const Register = () => {
             <div className="role-info">
               {userType === "buyer" && (
                 <p className="role-hint">
-                  <span className="info-icon">ℹ</span>
+                  
                   As a Buyer/Tenant, you can access Buyer and Seller dashboards
                 </p>
               )}
               {userType === "seller" && (
                 <p className="role-hint">
-                  <span className="info-icon">ℹ</span>
+                  
                   As a Seller/Owner, you can access Buyer and Seller dashboards
                 </p>
               )}
               {userType === "agent" && (
                 <p className="role-hint role-hint-agent">
-                  <span className="info-icon">ℹ</span>
+                
                   As an Agent/Builder, you can only access the Agent dashboard
                 </p>
               )}

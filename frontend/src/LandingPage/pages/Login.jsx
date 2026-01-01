@@ -214,13 +214,13 @@ const Login = () => {
         <div className="role-access-hint">
           {userType === "agent" && (
             <p className="hint-text hint-warning">
-              <span className="hint-icon">⚠</span>
+             
               Only registered Agents/Builders can access this dashboard
             </p>
           )}
           {(userType === "buyer" || userType === "seller") && (
             <p className="hint-text">
-              <span className="hint-icon">ℹ</span>
+             
               Buyers and Sellers can switch between these two dashboards
             </p>
           )}
