@@ -93,6 +93,11 @@ const Navbar = () => {
             <div className="logo-container">
               <img src="/logo.png" alt="India Propertys" className="logo-image" />
             </div>
+            {/* New Year 2026 Badge */}
+            <div className="new-year-2026-badge">
+              <span className="badge-icon">🎉</span>
+              <span className="badge-text">2026</span>
+            </div>
           </Link>
 
           {/* Desktop Navigation */}
@@ -205,6 +210,12 @@ const Navbar = () => {
                 <span className="buyer-mobile-user-name">{user?.full_name || user?.email?.split('@')[0] || 'User'}</span>
                 <span className="buyer-mobile-user-email">{user?.email || ''}</span>
               </div>
+            </div>
+            
+            {/* New Year Badge for Mobile */}
+            <div className="new-year-mobile-badge">
+              <span className="badge-icon">🎉</span>
+              <span className="badge-text">Happy New Year 2026</span>
             </div>
             
             <Link to="/buyer-dashboard" className={`buyer-mobile-nav-link ${isActive('/buyer-dashboard') || isActive('/BuyerHome') ? 'active' : ''}`}>

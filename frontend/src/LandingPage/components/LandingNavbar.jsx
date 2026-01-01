@@ -44,6 +44,11 @@ const LandingNavbar = () => {
             <div className="logo-container">
               <img src="/logo.png" alt="India Propertys" className="logo-image" />
             </div>
+            {/* New Year 2026 Badge */}
+            <div className="new-year-2026-badge">
+              <span className="badge-icon">🎉</span>
+              <span className="badge-text">2026</span>
+            </div>
           </Link>
 
           {/* Desktop Navigation Links */}
@@ -90,6 +95,12 @@ const LandingNavbar = () => {
         {/* Mobile Menu */}
         <div className={`mobile-menu ${isMenuOpen ? 'open' : ''}`}>
           <div className="mobile-menu-content">
+            {/* New Year Badge for Mobile */}
+            <div className="new-year-mobile-badge">
+              <span className="badge-icon">🎉</span>
+              <span className="badge-text">Happy New Year 2026</span>
+            </div>
+            
             <Link to="/" className={`mobile-nav-link ${isActive('/') && !isActive('/buyer') && !isActive('/seller') && !isActive('/agents') && !isActive('/contact') && !isActive('/about') ? 'active' : ''}`}>
               <span>Home</span>
             </Link>
