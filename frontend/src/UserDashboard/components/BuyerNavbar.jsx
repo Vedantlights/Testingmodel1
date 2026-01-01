@@ -86,17 +86,6 @@ const Navbar = () => {
 
   return (
     <nav className={navbarClassName}>
-      {/* Happy New Year 2026 Animation */}
-      <div className="new-year-banner">
-        <div className="new-year-content">
-          <span className="new-year-text">🎉 Happy New Year 2026! 🎉</span>
-          <div className="sparkles">
-            <span className="sparkle">✨</span>
-            <span className="sparkle">✨</span>
-            <span className="sparkle">✨</span>
-          </div>
-        </div>
-      </div>
       <div className="buyer-navbar-container">
         <div className="buyer-navbar-content">
           {/* Logo */}
