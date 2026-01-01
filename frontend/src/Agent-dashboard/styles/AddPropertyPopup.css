@@ -190,6 +190,9 @@
   margin-bottom: 1.5rem; 
   padding-bottom: 1.25rem;
   border-bottom: 1px solid var(--border-color);
+  position: relative; /* Establish positioning context */
+  overflow: visible; /* Allow dropdown to extend beyond container */
+  z-index: auto; /* Don't create unnecessary stacking context */
 }
 .form-group-location-input label { 
   display: block; 
@@ -197,6 +200,8 @@
   font-weight: 600; 
   color: var(--text-primary); 
   margin-bottom: 0.5rem; 
+  position: relative; /* Ensure label is in normal flow */
+  z-index: 1; /* Lower than dropdown */
 }
 
 /* Location Map Form Group - Second location field (Map picker) */

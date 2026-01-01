@@ -131,6 +131,91 @@
   position: absolute !important;
 }
 
+/* ======================= */
+/* AGENT DASHBOARD SPECIFIC FIXES */
+/* ======================= */
+/* Fix for Agent Dashboard location dropdown z-index and layout issue */
+/* Target only agent-specific form group container */
+
+/* Step 1: Ensure form-group-location-input has proper positioning and doesn't clip */
+.form-group-location-input {
+  position: relative !important;
+  overflow: visible !important; /* Critical: Prevent clipping of dropdown */
+  z-index: auto; /* Don't create unnecessary stacking context */
+}
+
+/* Step 2: Ensure label doesn't interfere with dropdown (lower z-index) */
+.form-group-location-input > label {
+  position: relative;
+  z-index: 1; /* Lower than dropdown - ensures dropdown appears above */
+}
+
+/* Step 3: Location autosuggest component - proper positioning */
+.form-group-location-input .location-autosuggest-popup {
+  position: relative !important;
+  z-index: 10 !important; /* Above label but below dropdown */
+  width: 100%;
+}
+
+/* Step 4: Dropdown - absolute positioning relative to input wrapper */
+.form-group-location-input .location-autosuggest-popup .location-dropdown {
+  position: absolute !important;
+  z-index: 10000 !important; /* High enough to appear above labels and inputs */
+  margin-top: 4px !important;
+  top: 100% !important;
+  left: 0 !important;
+  right: 0 !important;
+  width: 100% !important;
+}
+
+/* Step 5: Ensure parent containers don't clip the dropdown */
+/* Override popup-body overflow for location field area */
+.popup-body .form-group-location-input,
+.popup-container .form-group-location-input {
+  overflow: visible !important;
+  position: relative !important;
+}
+
+/* Step 6: Ensure step content doesn't clip dropdown */
+.step-content .form-group-location-input {
+  overflow: visible !important;
+  position: relative !important;
+}
+
+/* Also fix for regular form-group containers in Agent Dashboard popups */
+/* This covers AddUpcomingProjectPopup and other components */
+.popup-container .form-group .location-autosuggest-popup,
+.popup-body .form-group .location-autosuggest-popup {
+  position: relative !important;
+  z-index: 10 !important;
+  width: 100%;
+}
+
+/* Ensure label in regular form-group doesn't interfere */
+.popup-container .form-group > label,
+.popup-body .form-group > label {
+  position: relative;
+  z-index: 1;
+}
+
+.popup-container .form-group .location-autosuggest-popup .location-dropdown,
+.popup-body .form-group .location-autosuggest-popup .location-dropdown {
+  position: absolute !important;
+  z-index: 10000 !important;
+  margin-top: 4px !important;
+  top: 100% !important;
+  left: 0 !important;
+  right: 0 !important;
+  width: 100% !important;
+}
+
+/* Ensure form-group containers in Agent Dashboard don't clip dropdowns */
+.popup-container .form-group,
+.popup-body .form-group {
+  overflow: visible !important;
+  position: relative !important;
+}
+
 .location-option {
   padding: 0.55rem 0.9rem;
   cursor: pointer;
