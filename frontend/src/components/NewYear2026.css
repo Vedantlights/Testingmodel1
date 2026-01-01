@@ -56,6 +56,9 @@
   overflow: hidden;
   cursor: pointer;
   transition: transform 0.3s ease;
+  white-space: nowrap;
+  flex-shrink: 0;
+  max-width: 100%;
 }
 
 .ny-navbar-badge::before {
@@ -77,10 +80,13 @@
 }
 
 .ny-badge-year {
-  letter-spacing: 1px;
+  letter-spacing: 0.5px;
   position: relative;
   z-index: 1;
-
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 100%;
 }
 
 .ny-badge-icon {
@@ -188,6 +194,7 @@
   flex-direction: column;
   align-items: center;
   gap: 15px;
+  padding: 0 20px;
 }
 
 .ny-greeting-text {
@@ -337,48 +344,370 @@
 }
 
 /* Responsive Design */
-@media (max-width: 768px) {
+
+/* Large Tablets and Small Desktops (1024px - 1200px) */
+@media (max-width: 1200px) {
   .ny-year-text {
-    font-size: 80px;
-    gap: 4px;
+    font-size: 100px;
+    gap: 6px;
   }
 
   .ny-greeting-text {
-    font-size: 24px;
+    font-size: 28px;
+    letter-spacing: 2.5px;
+  }
+
+  .ny-sparkles {
+    font-size: 35px;
+    gap: 18px;
+  }
+
+  .ny-navbar-badge {
+    font-size: 13px;
+    padding: 6px 12px;
+    margin-left: 10px;
+    gap: 5px;
+  }
+
+  .ny-badge-icon {
+    font-size: 16px;
+  }
+}
+
+/* Tablets (768px - 1023px) */
+@media (max-width: 1023px) {
+  .ny-year-text {
+    font-size: 90px;
+    gap: 5px;
+  }
+
+  .ny-greeting-text {
+    font-size: 26px;
     letter-spacing: 2px;
   }
 
   .ny-sparkles {
-    font-size: 30px;
-    gap: 15px;
+    font-size: 32px;
+    gap: 16px;
+  }
+
+  .ny-greeting {
+    margin-top: 15px;
+    gap: 12px;
+    padding: 0 15px;
+  }
+
+  .ny-navbar-badge {
+    font-size: 12px;
+    padding: 5px 11px;
+    margin-left: 8px;
+    gap: 4px;
+  }
+
+  .ny-badge-year {
+    letter-spacing: 0.3px;
+  }
+
+  .ny-badge-icon {
+    font-size: 15px;
   }
 }
 
-@media (max-width: 480px) {
+/* Mobile Landscape and Small Tablets (600px - 767px) */
+@media (max-width: 767px) {
   .ny-year-text {
-    font-size: 60px;
-    gap: 2px;
+    font-size: 70px;
+    gap: 4px;
   }
 
   .ny-greeting-text {
-    font-size: 20px;
+    font-size: 22px;
+    letter-spacing: 1.5px;
+  }
+
+  .ny-sparkles {
+    font-size: 28px;
+    gap: 14px;
+  }
+
+  .ny-greeting {
+    margin-top: 12px;
+    gap: 10px;
+    padding: 0 12px;
+  }
+
+  .ny-navbar-badge {
+    font-size: 11px;
+    padding: 4px 10px;
+    margin-left: 6px;
+    gap: 3px;
+    max-width: 200px;
+  }
+
+  .ny-badge-year {
+    font-size: 10px;
+    letter-spacing: 0.2px;
+  }
+
+  .ny-badge-icon {
+    font-size: 14px;
+  }
+
+  .ny-digit {
+    font-size: 70px;
+  }
+}
+
+/* Mobile Portrait (480px - 599px) */
+@media (max-width: 599px) {
+  .ny-year-text {
+    font-size: 55px;
+    gap: 3px;
+  }
+
+  .ny-greeting-text {
+    font-size: 18px;
     letter-spacing: 1px;
   }
 
   .ny-sparkles {
     font-size: 24px;
-    gap: 10px;
+    gap: 12px;
+  }
+
+  .ny-greeting {
+    margin-top: 10px;
+    gap: 8px;
+    padding: 0 10px;
   }
 
   .ny-navbar-badge {
-    font-size: 12px;
-    padding: 5px 10px;
-    margin-left: 8px;
-    gap: 4px;
+    font-size: 10px;
+    padding: 4px 8px;
+    margin-left: 5px;
+    gap: 3px;
+    max-width: 180px;
+  }
+
+  .ny-badge-year {
+    font-size: 9px;
+    letter-spacing: 0.1px;
   }
 
   .ny-badge-icon {
+    font-size: 12px;
+  }
+
+  .ny-digit {
+    font-size: 55px;
+  }
+
+  .ny-particle {
+    width: 4px !important;
+    height: 4px !important;
+  }
+
+  .ny-confetti {
+    width: 8px;
+    height: 8px;
+  }
+}
+
+/* Small Mobile (320px - 479px) */
+@media (max-width: 479px) {
+  .ny-year-text {
+    font-size: 45px;
+    gap: 2px;
+  }
+
+  .ny-greeting-text {
+    font-size: 16px;
+    letter-spacing: 0.5px;
+  }
+
+  .ny-sparkles {
+    font-size: 20px;
+    gap: 10px;
+  }
+
+  .ny-greeting {
+    margin-top: 8px;
+    gap: 6px;
+    padding: 0 8px;
+  }
+
+  .ny-navbar-badge {
+    font-size: 9px;
+    padding: 3px 6px;
+    margin-left: 4px;
+    gap: 2px;
+    max-width: 150px;
+    border-radius: 20px;
+  }
+
+  .ny-badge-year {
+    font-size: 8px;
+    letter-spacing: 0px;
+  }
+
+  .ny-badge-icon {
+    font-size: 11px;
+  }
+
+  .ny-digit {
+    font-size: 45px;
+  }
+
+  .ny-particle {
+    width: 3px !important;
+    height: 3px !important;
+  }
+
+  .ny-confetti {
+    width: 6px;
+    height: 6px;
+  }
+
+  .new-year-2026-container.fullscreen {
+    padding: 20px;
+  }
+}
+
+/* Extra Small Mobile (below 320px) */
+@media (max-width: 319px) {
+  .ny-year-text {
+    font-size: 35px;
+    gap: 1px;
+  }
+
+  .ny-greeting-text {
     font-size: 14px;
+    letter-spacing: 0.3px;
+  }
+
+  .ny-sparkles {
+    font-size: 18px;
+    gap: 8px;
+  }
+
+  .ny-navbar-badge {
+    font-size: 8px;
+    padding: 2px 5px;
+    margin-left: 3px;
+    max-width: 120px;
+  }
+
+  .ny-badge-year {
+    font-size: 7px;
+  }
+
+  .ny-badge-icon {
+    font-size: 10px;
+  }
+
+  .ny-digit {
+    font-size: 35px;
+  }
+}
+
+/* Landscape Orientation Adjustments */
+@media (max-height: 500px) and (orientation: landscape) {
+  .ny-year-text {
+    font-size: 50px;
+  }
+
+  .ny-greeting-text {
+    font-size: 18px;
+  }
+
+  .ny-greeting {
+    margin-top: 8px;
+    gap: 6px;
+  }
+
+  .ny-sparkles {
+    font-size: 22px;
+    gap: 10px;
+  }
+}
+
+/* High DPI Displays */
+@media (-webkit-min-device-pixel-ratio: 2), (min-resolution: 192dpi) {
+  .ny-navbar-badge {
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+}
+
+/* Navbar-specific responsive adjustments */
+@media (max-width: 1023px) {
+  .navbar-logo .ny-navbar-badge,
+  .buyer-navbar-content .navbar-logo .ny-navbar-badge {
+    margin-left: 8px;
+  }
+}
+
+@media (max-width: 767px) {
+  .navbar-logo .ny-navbar-badge,
+  .buyer-navbar-content .navbar-logo .ny-navbar-badge {
+    margin-left: 6px;
+    order: -1; /* Move badge before logo on very small screens if needed */
+  }
+
+  /* Hide badge text on very small screens, show only icon */
+  .ny-navbar-badge .ny-badge-year {
+    display: none;
+  }
+
+  .ny-navbar-badge {
+    padding: 4px 8px;
+    min-width: auto;
+  }
+}
+
+@media (max-width: 480px) {
+  /* Badge text is handled by component logic */
+  .ny-navbar-badge .ny-badge-year {
+    display: inline;
+  }
+}
+
+/* Ensure badge doesn't break navbar flex layout */
+.navbar-logo,
+.buyer-navbar-content .navbar-logo {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+@media (max-width: 767px) {
+  .navbar-logo,
+  .buyer-navbar-content .navbar-logo {
+    flex-wrap: nowrap;
+    gap: 4px;
+  }
+}
+
+/* Reduce motion for accessibility */
+@media (prefers-reduced-motion: reduce) {
+  .ny-year-text,
+  .ny-digit,
+  .ny-greeting-text,
+  .ny-sparkle,
+  .ny-navbar-badge,
+  .ny-badge-icon {
+    animation: none !important;
+    transition: none !important;
+  }
+
+  .ny-navbar-badge:hover {
+    transform: none;
+  }
+
+  .ny-particle,
+  .ny-confetti {
+    animation: none !important;
   }
 }
 

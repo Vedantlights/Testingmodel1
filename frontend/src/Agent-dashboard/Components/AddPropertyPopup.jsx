@@ -2047,7 +2047,7 @@ export default function AddPropertyPopup({ onClose, editIndex = null, initialDat
                 Property Uploaded Successfully!
               </h2>
               <p style={{ fontSize: '1rem', lineHeight: '1.6', marginBottom: '0.5rem', color: '#374151' }}>
-                You can only edit property within <strong style={{ color: '#10b981', fontWeight: '700' }}>24 hours</strong> only.
+                Your property is uploaded successfully and you can edit your property only within <strong style={{ color: '#10b981', fontWeight: '700' }}>24 hours</strong>.
               </p>
             </div>
 

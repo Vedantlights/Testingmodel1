@@ -2269,7 +2269,7 @@ newErrors.description = "Description is required";
                 Property Uploaded Successfully!
               </h3>
               <p style={{ fontSize: '1rem', lineHeight: '1.6', marginTop: '1rem', color: '#374151' }}>
-                You can only edit property within <strong style={{ color: '#10b981', fontWeight: '700' }}>24 hours</strong> only.
+                Your property is uploaded successfully and you can edit your property only within <strong style={{ color: '#10b981', fontWeight: '700' }}>24 hours</strong>.
               </p>
             </div>
 

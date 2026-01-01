@@ -4,6 +4,31 @@ import './NewYear2026.css';
 const NewYear2026 = ({ variant = 'fullscreen' }) => {
   const containerRef = useRef(null);
   const [showFullscreen, setShowFullscreen] = useState(variant === 'fullscreen');
+  const [windowWidth, setWindowWidth] = useState(typeof window !== 'undefined' ? window.innerWidth : 1200);
+
+  useEffect(() => {
+    if (variant !== 'badge') return;
+
+    const handleResize = () => {
+      setWindowWidth(window.innerWidth);
+    };
+
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, [variant]);
+
+  const getBadgeText = () => {
+    if (variant !== 'badge') return 'Happy New Year 2026';
+    
+    if (windowWidth <= 480) {
+      return '2026';
+    } else if (windowWidth <= 767) {
+      return 'NY 2026';
+    } else if (windowWidth <= 1023) {
+      return 'Happy NY 2026';
+    }
+    return 'Happy New Year 2026';
+  };
 
   useEffect(() => {
     // Create floating particles
@@ -75,7 +100,7 @@ const NewYear2026 = ({ variant = 'fullscreen' }) => {
   if (variant === 'badge') {
     return (
       <div className="ny-navbar-badge">
-        <span className="ny-badge-year">Happy New Year 2026</span>
+        <span className="ny-badge-year">{getBadgeText()}</span>
         <span className="ny-badge-icon">🎉</span>
       </div>
     );
