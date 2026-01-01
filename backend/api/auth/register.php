@@ -354,14 +354,30 @@ try {
             $db->commit();
         }
         
-        // Trigger welcome email asynchronously (non-blocking)
-        // Email is sent in background and doesn't block registration response
+        // Trigger welcome email
+        // Try async first (background worker), fallback to sync if exec() not available
         try {
-            sendWelcomeEmailAsync($userId, $fullName, $email);
-            error_log("Registration: Welcome email triggered for user ID: $userId, Email: $email");
+            // Check if exec() is available for async sending
+            if (function_exists('exec')) {
+                // Try async background worker
+                sendWelcomeEmailAsync($userId, $fullName, $email);
+                error_log("Registration: Welcome email triggered (async) for user ID: $userId, Email: $email");
+            } else {
+                // Fallback to synchronous sending if exec() not available
+                error_log("Registration: exec() not available, using synchronous email sending for user ID: $userId");
+                sendWelcomeEmailSync($userId, $fullName, $email);
+                error_log("Registration: Welcome email sent (sync) for user ID: $userId, Email: $email");
+            }
         } catch (Exception $emailError) {
             // Log error but don't fail registration if email trigger fails
             error_log("Registration: Failed to trigger welcome email for user ID: $userId, Error: " . $emailError->getMessage());
+            // Try sync as fallback
+            try {
+                sendWelcomeEmailSync($userId, $fullName, $email);
+                error_log("Registration: Welcome email sent (sync fallback) for user ID: $userId");
+            } catch (Exception $syncError) {
+                error_log("Registration: Sync email also failed for user ID: $userId, Error: " . $syncError->getMessage());
+            }
             // Continue with registration - email failure should not block user registration
         }
         

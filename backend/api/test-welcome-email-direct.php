@@ -87,18 +87,16 @@ echo "\n2. Preparing MSG91 API Payload...\n";
 $payload = [
     'to' => [
         [
-            'email' => $testEmail,
-            'name' => $testName
+            'name' => $testName,
+            'email' => $testEmail
         ]
     ],
     'from' => [
-        'email' => MSG91_EMAIL_FROM_EMAIL,
-        'name' => MSG91_EMAIL_FROM_NAME
+        'name' => MSG91_EMAIL_FROM_NAME,
+        'email' => MSG91_EMAIL_FROM_EMAIL
     ],
-    'template_id' => MSG91_WELCOME_TEMPLATE_ID,
-    'variables' => [
-        'name' => $testName
-    ]
+    'domain' => defined('MSG91_EMAIL_DOMAIN') ? MSG91_EMAIL_DOMAIN : 'indiapropertys.com',
+    'template_id' => MSG91_WELCOME_TEMPLATE_ID
 ];
 
 echo "   Payload:\n";

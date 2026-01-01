@@ -128,19 +128,24 @@ function sendWelcomeEmailViaMSG91($userId, $name, $email) {
     $payload = [
         'to' => [
             [
-                'email' => $email,
-                'name' => $name
+                'name' => $name,
+                'email' => $email
             ]
         ],
         'from' => [
-            'email' => MSG91_EMAIL_FROM_EMAIL,
-            'name' => MSG91_EMAIL_FROM_NAME
+            'name' => MSG91_EMAIL_FROM_NAME,
+            'email' => MSG91_EMAIL_FROM_EMAIL
         ],
-        'template_id' => MSG91_WELCOME_TEMPLATE_ID,
-        'variables' => [
-            'name' => $name
-        ]
+        'domain' => defined('MSG91_EMAIL_DOMAIN') ? MSG91_EMAIL_DOMAIN : 'indiapropertys.com',
+        'template_id' => MSG91_WELCOME_TEMPLATE_ID
     ];
+    
+    // Add variables if template requires them
+    if (defined('MSG91_WELCOME_TEMPLATE_ID')) {
+        $payload['variables'] = [
+            'name' => $name
+        ];
+    }
     
     // Initialize cURL
     $ch = curl_init();
@@ -168,6 +173,15 @@ function sendWelcomeEmailViaMSG91($userId, $name, $email) {
     
     curl_close($ch);
     
+    // Log request details for debugging
+    logMessage("MSG91 Email API Request - User: $email, Name: $name");
+    logMessage("MSG91 Email API Payload: " . json_encode($payload));
+    logMessage("MSG91 Email API HTTP Code: $httpCode");
+    logMessage("MSG91 Email API Response: " . ($response ? substr($response, 0, 500) : 'No response'));
+    if ($curlError) {
+        logMessage("MSG91 Email API CURL Error: $curlError");
+    }
+    
     // Handle cURL errors
     if ($response === false || !empty($curlError)) {
         throw new Exception("cURL error: " . $curlError);
@@ -178,8 +192,8 @@ function sendWelcomeEmailViaMSG91($userId, $name, $email) {
     
     // Check HTTP status code
     if ($httpCode !== 200) {
-        $errorMsg = isset($responseData['message']) ? $responseData['message'] : 'Unknown error';
-        throw new Exception("MSG91 API returned HTTP $httpCode: $errorMsg");
+        $errorMsg = isset($responseData['message']) ? $responseData['message'] : (isset($responseData['errors']) ? $responseData['errors'] : 'Unknown error');
+        throw new Exception("MSG91 API returned HTTP $httpCode: " . (is_string($errorMsg) ? $errorMsg : json_encode($errorMsg)));
     }
     
     // Check if response indicates success

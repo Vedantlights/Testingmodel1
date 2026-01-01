@@ -44,6 +44,7 @@ define('MSG91_EMAIL_SEND_URL', 'https://control.msg91.com/api/v5/email/send');
 define('MSG91_WELCOME_TEMPLATE_ID', getenv('MSG91_WELCOME_TEMPLATE_ID') ?: 'welcome_template_34');
 define('MSG91_EMAIL_FROM_EMAIL', getenv('MSG91_EMAIL_FROM_EMAIL') ?: 'noreply@indiapropertys.com');
 define('MSG91_EMAIL_FROM_NAME', getenv('MSG91_EMAIL_FROM_NAME') ?: 'IndiaPropertys Team');
+define('MSG91_EMAIL_DOMAIN', getenv('MSG91_EMAIL_DOMAIN') ?: 'indiapropertys.com');
 
 // ADMIN WHITELIST - ONLY these numbers can access admin panel
 // NEVER expose these to frontend

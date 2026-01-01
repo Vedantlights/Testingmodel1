@@ -5,7 +5,130 @@
  */
 
 require_once __DIR__ . '/../config/config.php';
+require_once __DIR__ . '/../config/database.php';
 require_once __DIR__ . '/../config/admin-config.php';
+
+/**
+ * Send welcome email synchronously (blocking - use as fallback)
+ * 
+ * This function sends the welcome email directly via MSG91 API.
+ * Use this if background worker (exec()) is not available.
+ * 
+ * @param int $userId User ID
+ * @param string $name User's full name
+ * @param string $email User's email address
+ * @return bool True if email sent successfully, false otherwise
+ */
+function sendWelcomeEmailSync($userId, $name, $email) {
+    // Validate inputs
+    if (empty($userId) || !is_numeric($userId)) {
+        error_log("sendWelcomeEmailSync: Invalid user ID provided: " . $userId);
+        return false;
+    }
+    
+    if (empty($name) || empty($email)) {
+        error_log("sendWelcomeEmailSync: Missing name or email for user ID: " . $userId);
+        return false;
+    }
+    
+    // Validate email format
+    if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+        error_log("sendWelcomeEmailSync: Invalid email format for user ID: " . $userId . ", Email: " . $email);
+        return false;
+    }
+    
+    try {
+        // Prepare MSG91 API payload
+        $payload = [
+            'to' => [
+                [
+                    'name' => $name,
+                    'email' => $email
+                ]
+            ],
+            'from' => [
+                'name' => defined('MSG91_EMAIL_FROM_NAME') ? MSG91_EMAIL_FROM_NAME : 'IndiaPropertys Team',
+                'email' => defined('MSG91_EMAIL_FROM_EMAIL') ? MSG91_EMAIL_FROM_EMAIL : 'noreply@indiapropertys.com'
+            ],
+            'domain' => defined('MSG91_EMAIL_DOMAIN') ? MSG91_EMAIL_DOMAIN : 'indiapropertys.com',
+            'template_id' => defined('MSG91_WELCOME_TEMPLATE_ID') ? MSG91_WELCOME_TEMPLATE_ID : 'welcome_template_34'
+        ];
+        
+        // Send to MSG91 API
+        $url = defined('MSG91_EMAIL_SEND_URL') ? MSG91_EMAIL_SEND_URL : 'https://control.msg91.com/api/v5/email/send';
+        $authkey = defined('MSG91_EMAIL_AUTH_KEY') ? MSG91_EMAIL_AUTH_KEY : '481618A2cCSUpaZHTW6936c356P1';
+        
+        $ch = curl_init();
+        curl_setopt($ch, CURLOPT_URL, $url);
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($ch, CURLOPT_POST, true);
+        curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($payload));
+        curl_setopt($ch, CURLOPT_HTTPHEADER, [
+            "authkey: $authkey",
+            "Content-Type: application/json"
+        ]);
+        curl_setopt($ch, CURLOPT_TIMEOUT, 30);
+        curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 10);
+        
+        $response = curl_exec($ch);
+        $httpcode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+        $error = curl_error($ch);
+        curl_close($ch);
+        
+        // Add logging
+        error_log("MSG91 Email Trigger - User: " . $email . " (User ID: $userId)");
+        error_log("MSG91 HTTP Code: " . $httpcode);
+        error_log("MSG91 Response: " . ($response ? substr($response, 0, 500) : 'No response'));
+        if ($error) {
+            error_log("MSG91 CURL Error: " . $error);
+        }
+        
+        // Update database status
+        try {
+            $db = getDB();
+            if ($httpcode === 200) {
+                $stmt = $db->prepare("UPDATE users SET email_status = 'SENT', email_sent_at = NOW() WHERE id = ?");
+                $stmt->execute([$userId]);
+                
+                // Log to email_logs
+                $responseData = json_decode($response, true);
+                $stmt = $db->prepare("INSERT INTO email_logs (user_id, email_type, status, msg91_response) VALUES (?, 'welcome', 'SUCCESS', ?)");
+                $stmt->execute([$userId, json_encode($responseData)]);
+                
+                return true;
+            } else {
+                $stmt = $db->prepare("UPDATE users SET email_status = 'FAILED' WHERE id = ?");
+                $stmt->execute([$userId]);
+                
+                // Log to email_logs
+                $responseData = json_decode($response, true);
+                $errorMsg = isset($responseData['message']) ? $responseData['message'] : (isset($responseData['errors']) ? $responseData['errors'] : 'HTTP ' . $httpcode);
+                $stmt = $db->prepare("INSERT INTO email_logs (user_id, email_type, status, msg91_response, error_message) VALUES (?, 'welcome', 'FAILED', ?, ?)");
+                $stmt->execute([$userId, json_encode($responseData), is_string($errorMsg) ? $errorMsg : json_encode($errorMsg)]);
+                
+                return false;
+            }
+        } catch (Exception $dbError) {
+            error_log("sendWelcomeEmailSync: Database update error: " . $dbError->getMessage());
+            // Don't fail if DB update fails
+        }
+        
+        return ($httpcode === 200);
+        
+    } catch (Exception $e) {
+        error_log("sendWelcomeEmailSync: Exception - " . $e->getMessage());
+        try {
+            $db = getDB();
+            $stmt = $db->prepare("UPDATE users SET email_status = 'FAILED' WHERE id = ?");
+            $stmt->execute([$userId]);
+            $stmt = $db->prepare("INSERT INTO email_logs (user_id, email_type, status, error_message) VALUES (?, 'welcome', 'FAILED', ?)");
+            $stmt->execute([$userId, $e->getMessage()]);
+        } catch (Exception $dbError) {
+            // Ignore DB errors
+        }
+        return false;
+    }
+}
 
 /**
  * Send welcome email asynchronously (non-blocking)
