@@ -1123,7 +1123,7 @@ export default function AddPropertyPopup({ onClose, editIndex = null, initialDat
                 longitude: locationData.coordinates?.lng ?? ""
               }));
             }}
-            className={`location-autosuggest-popup ${errors.location ? 'agent-location-error' : ''}`}
+            className={errors.location ? "seller-location-error" : ""}
             error={errors.location}
             disabled={isRestrictedEdit}
           />
@@ -1240,7 +1240,7 @@ export default function AddPropertyPopup({ onClose, editIndex = null, initialDat
                     }
                   }
                 }}
-                className={errors.state ? 'agent-state-error' : ''}
+                className={errors.state ? "seller-state-error" : ""}
                 error={errors.state}
                 disabled={isRestrictedEdit}
                 readOnly={stateAutoFilled && !isRestrictedEdit}
@@ -1250,8 +1250,6 @@ export default function AddPropertyPopup({ onClose, editIndex = null, initialDat
                   type="button"
                   onClick={() => {
                     setStateAutoFilled(false);
-                    // Optionally clear state to allow manual entry
-                    // handleChange('state', '');
                   }}
                   style={{
                     position: 'absolute',
@@ -1274,7 +1272,6 @@ export default function AddPropertyPopup({ onClose, editIndex = null, initialDat
                 </button>
               )}
             </div>
-            {errors.state && <span className="error-text">{errors.state}</span>}
           </div>
 
           <div className="form-group">
