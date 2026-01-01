@@ -767,7 +767,8 @@ const ChatUs = () => {
     "When can I visit?",
     "Is it still available?",
     "Tell me about amenities",
-    "Can we negotiate price?"
+    "Can we negotiate price?",
+    "How do we proceed further? I need more information"
   ];
 
   const handleQuickReply = async (reply) => {

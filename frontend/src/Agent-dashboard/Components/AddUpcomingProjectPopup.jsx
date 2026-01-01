@@ -82,6 +82,7 @@ export default function AddUpcomingProjectPopup({ onClose }) {
   const [imageValidationStatus, setImageValidationStatus] = useState([]); // Track validation status for each image
   const [isCheckingImages, setIsCheckingImages] = useState(false);
   const [builderName, setBuilderName] = useState('');
+  const [stateAutoFilled, setStateAutoFilled] = useState(false); // Track if state was auto-filled from map
   const imagesRef = useRef();
   const floorPlansRef = useRef();
   const brochureRef = useRef();
@@ -229,13 +230,22 @@ export default function AddUpcomingProjectPopup({ onClose }) {
   };
 
   const handleLocationSelect = (locationData) => {
+    // Auto-populate state from map selection if available
+    const stateFromMap = locationData.state || '';
+    const wasStateAutoFilled = !!stateFromMap;
+    
     setFormData(prev => ({
       ...prev,
       latitude: locationData.latitude.toString(),
       longitude: locationData.longitude.toString(),
       location: locationData.fullAddress || prev.location || prev.area,
-      fullAddress: locationData.fullAddress || prev.fullAddress
+      fullAddress: locationData.fullAddress || prev.fullAddress,
+      // Auto-populate state if available from map, otherwise keep existing state
+      state: stateFromMap || prev.state
     }));
+    
+    // Track if state was auto-filled from map
+    setStateAutoFilled(wasStateAutoFilled);
     setShowLocationPicker(false);
   };
 
@@ -1074,16 +1084,61 @@ export default function AddUpcomingProjectPopup({ onClose }) {
       {/* State and Additional Address Fields */}
       <div className="form-row two-cols">
         <div className="form-group">
-          <label>State <span className="required">*</span></label>
-          <StateAutoSuggest
-            placeholder="Enter state"
-            value={formData.state || ''}
-            onChange={(stateName) => {
-              handleChange('state', stateName);
-            }}
-            className={`state-autosuggest-popup ${errors.state ? 'agent-state-error' : ''}`}
-            error={errors.state}
-          />
+          <label>
+            State <span className="required">*</span>
+            {stateAutoFilled && (
+              <span style={{ 
+                fontSize: '0.75rem', 
+                color: '#059669', 
+                marginLeft: '8px',
+                fontWeight: 'normal'
+              }}>
+                (Auto-filled from map)
+              </span>
+            )}
+          </label>
+          <div style={{ position: 'relative' }}>
+            <StateAutoSuggest
+              placeholder="Enter state"
+              value={formData.state || ''}
+              onChange={(stateName) => {
+                handleChange('state', stateName);
+                // If user manually changes state, clear auto-fill flag
+                if (stateAutoFilled && stateName !== formData.state) {
+                  setStateAutoFilled(false);
+                }
+              }}
+              className={`state-autosuggest-popup ${errors.state ? 'agent-state-error' : ''}`}
+              error={errors.state}
+              readOnly={stateAutoFilled}
+            />
+            {stateAutoFilled && (
+              <button
+                type="button"
+                onClick={() => {
+                  setStateAutoFilled(false);
+                }}
+                style={{
+                  position: 'absolute',
+                  right: '8px',
+                  top: '50%',
+                  transform: 'translateY(-50%)',
+                  background: 'none',
+                  border: 'none',
+                  color: '#7c3aed',
+                  cursor: 'pointer',
+                  fontSize: '0.75rem',
+                  fontWeight: '600',
+                  padding: '4px 8px',
+                  borderRadius: '4px',
+                  zIndex: 10
+                }}
+                title="Edit state manually"
+              >
+                Edit
+              </button>
+            )}
+          </div>
           {errors.state && <span className="error-text">{errors.state}</span>}
         </div>
 

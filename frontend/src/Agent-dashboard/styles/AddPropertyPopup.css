@@ -231,6 +231,38 @@
 .form-group { margin-bottom:1.25rem; }
 .form-group label { display:block; font-size:0.9rem; font-weight:600; color:var(--text-primary); margin-bottom:0.5rem; }
 
+/* Location Input Form Group - First location field */
+.form-group-location-input { 
+  margin-bottom: 1.5rem; 
+  padding-bottom: 1.25rem;
+  border-bottom: 1px solid var(--border-color);
+}
+.form-group-location-input label { 
+  display: block; 
+  font-size: 0.9rem; 
+  font-weight: 600; 
+  color: var(--text-primary); 
+  margin-bottom: 0.5rem; 
+}
+
+/* Location Map Form Group - Second location field (Map picker) */
+.form-group-location-map { 
+  margin-bottom: 1.5rem; 
+  padding-top: 1.25rem;
+  background: linear-gradient(180deg, rgba(124, 58, 237, 0.02) 0%, transparent 100%);
+  border-radius: var(--radius-md);
+  padding-left: 1rem;
+  padding-right: 1rem;
+  padding-bottom: 1rem;
+}
+.form-group-location-map label { 
+  display: block; 
+  font-size: 0.9rem; 
+  font-weight: 600; 
+  color: var(--text-primary); 
+  margin-bottom: 0.5rem; 
+}
+
 /* Map location form group - separate styling */
 .form-group-map { margin-bottom:1.25rem; }
 .form-group-map label { display:block; font-size:0.9rem; font-weight:600; color:var(--text-primary); margin-bottom:0.5rem; }
@@ -719,6 +751,19 @@
   .form-group label {
     font-size: 0.8rem;
     margin-bottom: 0.4rem;
+  }
+
+  .form-group-location-input {
+    margin-bottom: 1.25rem;
+    padding-bottom: 1rem;
+  }
+
+  .form-group-location-map {
+    margin-bottom: 1.25rem;
+    padding-top: 1rem;
+    padding-left: 0.875rem;
+    padding-right: 0.875rem;
+    padding-bottom: 0.875rem;
   }
 
   .form-group input,

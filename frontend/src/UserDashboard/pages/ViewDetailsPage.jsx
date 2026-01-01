@@ -805,36 +805,6 @@ const ViewDetailsPage = () => {
         }
     }, [property, user, fetchInteractionLimits]);
 
-    // Update timer display every minute
-    useEffect(() => {
-        if (!user || user.user_type !== 'buyer') return;
-        
-        const interval = setInterval(() => {
-            // Re-fetch limits to update timers
-            if (propertyId) {
-                fetchInteractionLimits();
-            }
-        }, 60000); // Update every minute
-        
-        return () => clearInterval(interval);
-    }, [user, propertyId, fetchInteractionLimits]);
-
-    // Format time remaining helper
-    const formatTimeRemaining = (resetTimeSeconds) => {
-        if (!resetTimeSeconds) return null;
-        const now = Math.floor(Date.now() / 1000);
-        const remaining = resetTimeSeconds - now;
-        
-        if (remaining <= 0) return null;
-        
-        const hours = Math.floor(remaining / 3600);
-        const minutes = Math.floor((remaining % 3600) / 60);
-        
-        if (hours > 0) {
-            return `${hours}h ${minutes}m`;
-        }
-        return `${minutes}m`;
-    };
 
     // Handler for Show Owner Details button
     const handleShowOwnerDetails = useCallback(async (e) => {
@@ -1422,12 +1392,9 @@ const ViewDetailsPage = () => {
                                                         borderRadius: '4px'
                                                     }}>
                                                         {combinedInteractionLimit.remaining} / {combinedInteractionLimit.max} interactions remaining
-                                                        {combinedInteractionLimit.resetTimeSeconds && (
+                                                        {combinedInteractionLimit.used > 0 && (
                                                             <span style={{display: 'block', marginTop: '0.125rem', fontSize: '0.7rem'}}>
-                                                                {(() => {
-                                                                    const timeRemaining = formatTimeRemaining(combinedInteractionLimit.resetTimeSeconds);
-                                                                    return timeRemaining ? `Resets in ${timeRemaining}` : 'Resets in 12 hours';
-                                                                })()}
+                                                                Resets in 12 hours
                                                             </span>
                                                         )}
                                                         {!combinedInteractionLimit.canPerform && (
@@ -1511,12 +1478,9 @@ const ViewDetailsPage = () => {
                                                 borderRadius: '4px'
                                             }}>
                                                 {combinedInteractionLimit.remaining} / {combinedInteractionLimit.max} interactions remaining
-                                                {combinedInteractionLimit.resetTimeSeconds && (
+                                                {combinedInteractionLimit.used > 0 && (
                                                     <span style={{display: 'block', marginTop: '0.125rem', fontSize: '0.7rem'}}>
-                                                        {(() => {
-                                                            const timeRemaining = formatTimeRemaining(combinedInteractionLimit.resetTimeSeconds);
-                                                            return timeRemaining ? `Resets in ${timeRemaining}` : 'Resets in 12 hours';
-                                                        })()}
+                                                        Resets in 12 hours
                                                     </span>
                                                 )}
                                                 {!combinedInteractionLimit.canPerform && (

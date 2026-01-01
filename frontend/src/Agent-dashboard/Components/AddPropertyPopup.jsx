@@ -218,6 +218,7 @@ export default function AddPropertyPopup({ onClose, editIndex = null, initialDat
   const [imageFiles, setImageFiles] = useState([]); // Store actual File objects
   const [imageValidationStatus, setImageValidationStatus] = useState([]); // Track validation status for each image
   const [isCheckingImages, setIsCheckingImages] = useState(false);
+  const [stateAutoFilled, setStateAutoFilled] = useState(false); // Track if state was auto-filled from map
   // separate refs for images, video, brochure
   const imagesRef = useRef();
   const videoRef = useRef();
@@ -375,12 +376,22 @@ export default function AddPropertyPopup({ onClose, editIndex = null, initialDat
   // Handle location selection from LocationPicker
   const handleLocationSelect = (locationData) => {
     if (isRestrictedEdit) return; // Prevent location changes after 24 hours
+    
+    // Auto-populate state from map selection if available
+    const stateFromMap = locationData.state || '';
+    const wasStateAutoFilled = !!stateFromMap;
+    
     setFormData(prev => ({
       ...prev,
       latitude: locationData.latitude.toString(),
       longitude: locationData.longitude.toString(),
-      location: locationData.fullAddress || prev.location // Update location with full address if available
+      location: locationData.fullAddress || prev.location, // Update location with full address if available
+      // Auto-populate state if available from map, otherwise keep existing state
+      state: stateFromMap || prev.state
     }));
+    
+    // Track if state was auto-filled from map
+    setStateAutoFilled(wasStateAutoFilled);
     setShowLocationPicker(false);
   };
 
@@ -1094,7 +1105,7 @@ export default function AddPropertyPopup({ onClose, editIndex = null, initialDat
         <h3 className="step-heading">Property Details</h3>
         <p className="step-subheading">Tell us more about your property specifications</p>
 
-        <div className="form-group">
+        <div className="form-group form-group-location-input">
           <label>Location <span className="required">*</span></label>
           <LocationAutoSuggest
             placeholder="Enter locality, area or landmark"
@@ -1119,7 +1130,7 @@ export default function AddPropertyPopup({ onClose, editIndex = null, initialDat
         </div>
 
         {/* Location Picker Button */}
-        <div className="form-group">
+        <div className="form-group form-group-location-map">
           <label>Property Location on Map (Optional)</label>
           {!formData.latitude || !formData.longitude ? (
             <>
@@ -1203,19 +1214,66 @@ export default function AddPropertyPopup({ onClose, editIndex = null, initialDat
         {/* State and Additional Address Fields */}
         <div className="form-row two-cols">
           <div className="form-group">
-            <label>State <span className="required">*</span></label>
-            <StateAutoSuggest
-              placeholder="Enter state"
-              value={formData.state || ''}
-              onChange={(stateName) => {
-                if (!isRestrictedEdit) {
-                  handleChange('state', stateName);
-                }
-              }}
-              className={errors.state ? 'agent-state-error' : ''}
-              error={errors.state}
-              disabled={isRestrictedEdit}
-            />
+            <label>
+              State <span className="required">*</span>
+              {stateAutoFilled && !isRestrictedEdit && (
+                <span style={{ 
+                  fontSize: '0.75rem', 
+                  color: '#059669', 
+                  marginLeft: '8px',
+                  fontWeight: 'normal'
+                }}>
+                  (Auto-filled from map)
+                </span>
+              )}
+            </label>
+            <div style={{ position: 'relative' }}>
+              <StateAutoSuggest
+                placeholder="Enter state"
+                value={formData.state || ''}
+                onChange={(stateName) => {
+                  if (!isRestrictedEdit) {
+                    handleChange('state', stateName);
+                    // If user manually changes state, clear auto-fill flag
+                    if (stateAutoFilled && stateName !== formData.state) {
+                      setStateAutoFilled(false);
+                    }
+                  }
+                }}
+                className={errors.state ? 'agent-state-error' : ''}
+                error={errors.state}
+                disabled={isRestrictedEdit}
+                readOnly={stateAutoFilled && !isRestrictedEdit}
+              />
+              {stateAutoFilled && !isRestrictedEdit && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setStateAutoFilled(false);
+                    // Optionally clear state to allow manual entry
+                    // handleChange('state', '');
+                  }}
+                  style={{
+                    position: 'absolute',
+                    right: '8px',
+                    top: '50%',
+                    transform: 'translateY(-50%)',
+                    background: 'none',
+                    border: 'none',
+                    color: '#7c3aed',
+                    cursor: 'pointer',
+                    fontSize: '0.75rem',
+                    fontWeight: '600',
+                    padding: '4px 8px',
+                    borderRadius: '4px',
+                    zIndex: 10
+                  }}
+                  title="Edit state manually"
+                >
+                  Edit
+                </button>
+              )}
+            </div>
             {errors.state && <span className="error-text">{errors.state}</span>}
           </div>
 

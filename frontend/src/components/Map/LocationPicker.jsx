@@ -101,8 +101,9 @@ const LocationPicker = ({
   const reverseGeocode = useCallback(async (lng, lat) => {
     setIsLoading(true);
     try {
+      // Use a more comprehensive geocoding request to get better state information
       const response = await fetch(
-        `https://api.mapbox.com/geocoding/v5/mapbox.places/${lng},${lat}.json?access_token=${MAPBOX_TOKEN}&country=IN&types=address,locality,place&language=en`
+        `https://api.mapbox.com/geocoding/v5/mapbox.places/${lng},${lat}.json?access_token=${MAPBOX_TOKEN}&country=IN&types=address,locality,place,region&language=en`
       );
       const data = await response.json();
 
@@ -132,6 +133,24 @@ const LocationPicker = ({
           if (item.id.startsWith('postcode')) addressData.pincode = item.text;
           if (item.id.startsWith('country')) addressData.country = item.text;
         });
+
+        // If state not found in context, try to find it in all features
+        if (!addressData.state) {
+          for (const feat of data.features) {
+            if (feat.place_type && feat.place_type.includes('region')) {
+              addressData.state = feat.text;
+              break;
+            }
+            const featContext = feat.context || [];
+            for (const ctx of featContext) {
+              if (ctx.id.startsWith('region')) {
+                addressData.state = ctx.text;
+                break;
+              }
+            }
+            if (addressData.state) break;
+          }
+        }
 
         // Update location state (don't call onLocationChange here - only on save)
         setLocation(addressData);

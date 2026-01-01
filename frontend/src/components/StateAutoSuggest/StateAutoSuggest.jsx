@@ -28,6 +28,7 @@ const StateAutoSuggest = ({
   className = '',
   error,
   disabled = false,
+  readOnly = false,
 }) => {
   const [inputValue, setInputValue] = useState(value || '');
   const [suggestions, setSuggestions] = useState([]);
@@ -222,7 +223,7 @@ const StateAutoSuggest = ({
   }, [inputValue, fetchSuggestions]);
 
   const handleInputChange = (e) => {
-    if (disabled) return;
+    if (disabled || readOnly) return;
     const newValue = e.target.value;
     setInputValue(newValue);
     setSelectedState(null);
@@ -235,7 +236,7 @@ const StateAutoSuggest = ({
   };
 
   const handleSelect = (item) => {
-    if (disabled || !item) return;
+    if (disabled || readOnly || !item) return;
 
     setSelectedState(item);
     setInputValue(item.stateName);
@@ -249,7 +250,7 @@ const StateAutoSuggest = ({
   };
 
   const handleKeyDown = (e) => {
-    if (disabled) return;
+    if (disabled || readOnly) return;
     
     if (e.key === 'ArrowDown') {
       e.preventDefault();
@@ -283,7 +284,7 @@ const StateAutoSuggest = ({
   };
 
   const handleClear = () => {
-    if (disabled) return;
+    if (disabled || readOnly) return;
     setInputValue('');
     setSuggestions([]);
     setIsOpen(false);
@@ -307,12 +308,12 @@ const StateAutoSuggest = ({
           className="state-input"
           autoComplete="off"
           disabled={disabled}
-          readOnly={disabled}
+          readOnly={readOnly || disabled}
         />
         {isLoading && (
           <span className="state-spinner" aria-label="Loading" />
         )}
-        {!isLoading && inputValue && !disabled && (
+        {!isLoading && inputValue && !disabled && !readOnly && (
           <button
             type="button"
             className="state-clear-btn"
@@ -328,7 +329,7 @@ const StateAutoSuggest = ({
         <div className="state-error-text">{errorState}</div>
       )}
 
-      {isOpen && suggestions.length > 0 && !disabled && (
+      {isOpen && suggestions.length > 0 && !disabled && !readOnly && (
         <ul className="state-dropdown" role="listbox">
           {suggestions.map((item, index) => (
             <li
