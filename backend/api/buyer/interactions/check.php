@@ -3,11 +3,12 @@
  * Check Buyer Interaction Limits API
  * GET /api/buyer/interactions/check.php?property_id={id}&action_type={view_owner|chat_owner}
  * 
- * Returns remaining attempts and reset time for a specific action
+ * Returns remaining attempts and reset time for combined interactions
  * 
  * NOTE: Rate limits are GLOBAL per buyer (across all properties)
  * - property_id is accepted for API compatibility but NOT used for limit calculation
- * - A buyer has 5 total attempts per action type across ALL properties
+ * - action_type is accepted for API compatibility but NOT used for limit calculation
+ * - A buyer has 5 total combined interactions (view_owner + chat_owner) per 12 hours across ALL properties
  */
 
 // Register shutdown function to catch fatal errors
@@ -59,11 +60,8 @@ try {
     $propertyId = isset($_GET['property_id']) ? intval($_GET['property_id']) : 0;
     $actionType = isset($_GET['action_type']) ? trim($_GET['action_type']) : '';
     
-    // property_id is optional (accepted for API compatibility but not used for limit calculation)
-    // Action type is required
-    if (!in_array($actionType, ['view_owner', 'chat_owner'])) {
-        sendError('Invalid action type. Must be "view_owner" or "chat_owner"', null, 400);
-    }
+    // property_id and action_type are optional (accepted for API compatibility but not used for limit calculation)
+    // We count ALL interactions (both view_owner and chat_owner) together
     
     $db = getDB();
     if (!$db) {
@@ -77,17 +75,18 @@ try {
     // Calculate the cutoff time (12 hours ago)
     $cutoffTime = date('Y-m-d H:i:s', strtotime("-{$WINDOW_HOURS} hours"));
     
-    // Count attempts in the last 12 hours (GLOBAL - across all properties)
-    // NOTE: property_id is NOT included in WHERE clause - limits are global per buyer
+    // Count ALL interaction attempts in the last 12 hours (GLOBAL - across all properties and action types)
+    // NOTE: Both property_id and action_type are NOT included in WHERE clause - limits are global per buyer
+    // Both view_owner and chat_owner count towards the same combined limit
     $stmt = $db->prepare("
         SELECT COUNT(*) as attempt_count,
                MIN(timestamp) as first_attempt_time
         FROM buyer_interaction_limits
         WHERE buyer_id = ? 
-          AND action_type = ?
+          AND action_type IN ('view_owner', 'chat_owner')
           AND timestamp >= ?
     ");
-    $stmt->execute([$buyerId, $actionType, $cutoffTime]);
+    $stmt->execute([$buyerId, $cutoffTime]);
     $result = $stmt->fetch();
     
     // Safety check: COUNT(*) should always return a row, but handle edge case
@@ -125,7 +124,7 @@ try {
         'can_perform_action' => $canPerformAction,
         'reset_time' => $resetTime,
         'reset_time_seconds' => $resetTimeSeconds,
-        'action_type' => $actionType,
+        'action_type' => $actionType, // Included for reference, but limits are combined
         'property_id' => $propertyId // Included for reference, but limits are global
     ]);
     

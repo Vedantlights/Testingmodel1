@@ -51,6 +51,29 @@ const getAmenityIcon = (amenityName) => {
     return amenity ? amenity.icon : "✓";
 };
 
+// Helper function to capitalize amenity names
+const capitalizeAmenity = (amenityName) => {
+    if (!amenityName) return "";
+    
+    // First try to find a matching amenity in our list to get the proper label
+    const amenity = AMENITIES_WITH_ICONS.find(
+        a => a.label.toLowerCase() === amenityName.toLowerCase() || 
+             a.id.toLowerCase() === amenityName.toLowerCase().replace(/\s+/g, '_') ||
+             a.label.toLowerCase() === amenityName.toLowerCase().replace(/\s+/g, ' ')
+    );
+    
+    // If we found a match, use its label (which has proper capitalization)
+    if (amenity) {
+        return amenity.label;
+    }
+    
+    // Otherwise, capitalize first letter of each word
+    return amenityName
+        .split(/\s+/)
+        .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+        .join(' ');
+};
+
 // Reuse Mapbox access token for geocoding when properties don't have coordinates
 const MAPBOX_TOKEN =
     process.env.REACT_APP_MAPBOX_ACCESS_TOKEN ||
@@ -705,16 +728,8 @@ const ViewDetailsPage = () => {
     // Owner Details State
     const [showOwnerDetails, setShowOwnerDetails] = useState(false);
     
-    // Interaction Limits State
-    const [ownerDetailsLimit, setOwnerDetailsLimit] = useState({
-        remaining: 5,
-        max: 5,
-        used: 0,
-        canPerform: true,
-        resetTime: null,
-        resetTimeSeconds: null
-    });
-    const [chatLimit, setChatLimit] = useState({
+    // Combined Interaction Limits State (shared quota for both view_owner and chat_owner)
+    const [combinedInteractionLimit, setCombinedInteractionLimit] = useState({
         remaining: 5,
         max: 5,
         used: 0,
@@ -756,36 +771,23 @@ const ViewDetailsPage = () => {
         window.history.back(); 
     }, []);
 
-    // Fetch interaction limits
+    // Fetch combined interaction limits (shared quota for both view_owner and chat_owner)
     const fetchInteractionLimits = useCallback(async () => {
         if (!user || user.user_type !== 'buyer' || !propertyId) return;
         
         try {
             setLoadingLimits(true);
-            const [ownerDetailsResponse, chatResponse] = await Promise.all([
-                buyerInteractionsAPI.checkLimit(propertyId, 'view_owner'),
-                buyerInteractionsAPI.checkLimit(propertyId, 'chat_owner')
-            ]);
+            // Since both actions share the same quota, we only need to check once
+            const response = await buyerInteractionsAPI.checkLimit(propertyId, 'view_owner');
             
-            if (ownerDetailsResponse.success) {
-                setOwnerDetailsLimit({
-                    remaining: ownerDetailsResponse.data.remaining_attempts,
-                    max: ownerDetailsResponse.data.max_attempts,
-                    used: ownerDetailsResponse.data.used_attempts,
-                    canPerform: ownerDetailsResponse.data.can_perform_action,
-                    resetTime: ownerDetailsResponse.data.reset_time,
-                    resetTimeSeconds: ownerDetailsResponse.data.reset_time_seconds
-                });
-            }
-            
-            if (chatResponse.success) {
-                setChatLimit({
-                    remaining: chatResponse.data.remaining_attempts,
-                    max: chatResponse.data.max_attempts,
-                    used: chatResponse.data.used_attempts,
-                    canPerform: chatResponse.data.can_perform_action,
-                    resetTime: chatResponse.data.reset_time,
-                    resetTimeSeconds: chatResponse.data.reset_time_seconds
+            if (response.success) {
+                setCombinedInteractionLimit({
+                    remaining: response.data.remaining_attempts,
+                    max: response.data.max_attempts,
+                    used: response.data.used_attempts,
+                    canPerform: response.data.can_perform_action,
+                    resetTime: response.data.reset_time,
+                    resetTimeSeconds: response.data.reset_time_seconds
                 });
             }
         } catch (error) {
@@ -857,12 +859,9 @@ const ViewDetailsPage = () => {
         }
 
         // If hiding (current state), we need to show - check limits first
-        // Check if limit is reached
-        if (!ownerDetailsLimit.canPerform) {
-            const resetMsg = ownerDetailsLimit.resetTimeSeconds 
-                ? formatTimeRemaining(ownerDetailsLimit.resetTimeSeconds)
-                : '12 hours';
-            alert(`You have reached the maximum limit of ${ownerDetailsLimit.max} attempts to view owner details. Please try again after ${resetMsg}.`);
+        // Check if combined limit is reached
+        if (!combinedInteractionLimit.canPerform) {
+            alert('Daily interaction limit reached. Try again after 12 hours.');
             return;
         }
 
@@ -871,8 +870,8 @@ const ViewDetailsPage = () => {
             const response = await buyerInteractionsAPI.recordInteraction(propertyId, 'view_owner');
             
             if (response.success) {
-                // Update limit state
-                setOwnerDetailsLimit({
+                // Update combined limit state
+                setCombinedInteractionLimit({
                     remaining: response.data.remaining_attempts,
                     max: response.data.max_attempts,
                     used: response.data.used_attempts,
@@ -892,7 +891,7 @@ const ViewDetailsPage = () => {
             
             // Check if it's a rate limit error
             if (error.status === 429 && error.data) {
-                setOwnerDetailsLimit({
+                setCombinedInteractionLimit({
                     remaining: error.data.remaining_attempts || 0,
                     max: error.data.max_attempts || 5,
                     used: error.data.used_attempts || 5,
@@ -900,10 +899,7 @@ const ViewDetailsPage = () => {
                     resetTime: error.data.reset_time,
                     resetTimeSeconds: error.data.reset_time_seconds
                 });
-                const resetMsg = error.data.reset_time_seconds 
-                    ? formatTimeRemaining(error.data.reset_time_seconds)
-                    : '12 hours';
-                alert(error.data.message || `You have reached the maximum limit. Please try again after ${resetMsg}.`);
+                alert(error.data.message || 'Daily interaction limit reached. Try again after 12 hours.');
             } else {
                 // Show more detailed error message
                 const errorMsg = error.message || error.data?.message || 'Failed to view owner details. Please try again.';
@@ -911,7 +907,7 @@ const ViewDetailsPage = () => {
                 alert(errorMsg);
             }
         }
-    }, [user, propertyId, ownerDetailsLimit, showOwnerDetails, navigate]);
+    }, [user, propertyId, combinedInteractionLimit, showOwnerDetails, navigate]);
 
     // Handler for Chat with Owner button
     const handleChatWithOwner = useCallback(async () => {
@@ -926,12 +922,9 @@ const ViewDetailsPage = () => {
             return;
         }
 
-        // Check if limit is reached
-        if (!chatLimit.canPerform) {
-            const resetMsg = chatLimit.resetTimeSeconds 
-                ? formatTimeRemaining(chatLimit.resetTimeSeconds)
-                : '12 hours';
-            alert(`You have reached the maximum limit of ${chatLimit.max} attempts to chat with the owner. Please try again after ${resetMsg}.`);
+        // Check if combined limit is reached
+        if (!combinedInteractionLimit.canPerform) {
+            alert('Daily interaction limit reached. Try again after 12 hours.');
             return;
         }
 
@@ -966,8 +959,8 @@ const ViewDetailsPage = () => {
             const response = await buyerInteractionsAPI.recordInteraction(propertyId, 'chat_owner');
             
             if (response.success) {
-                // Update limit state
-                setChatLimit({
+                // Update combined limit state
+                setCombinedInteractionLimit({
                     remaining: response.data.remaining_attempts,
                     max: response.data.max_attempts,
                     used: response.data.used_attempts,
@@ -1001,7 +994,7 @@ const ViewDetailsPage = () => {
             
             // Check if it's a rate limit error
             if (error.status === 429 && error.data) {
-                setChatLimit({
+                setCombinedInteractionLimit({
                     remaining: error.data.remaining_attempts || 0,
                     max: error.data.max_attempts || 5,
                     used: error.data.used_attempts || 5,
@@ -1009,16 +1002,13 @@ const ViewDetailsPage = () => {
                     resetTime: error.data.reset_time,
                     resetTimeSeconds: error.data.reset_time_seconds
                 });
-                const resetMsg = error.data.reset_time_seconds 
-                    ? formatTimeRemaining(error.data.reset_time_seconds)
-                    : '12 hours';
-                alert(error.data.message || `You have reached the maximum limit. Please try again after ${resetMsg}.`);
+                alert(error.data.message || 'Daily interaction limit reached. Try again after 12 hours.');
             } else {
                 const errorMessage = error.message || 'Failed to start chat. Please try again.';
                 alert(errorMessage);
             }
         }
-    }, [user, property, propertyId, navigate, chatLimit]);
+    }, [user, property, propertyId, navigate, combinedInteractionLimit]);
 
     // Handle favorite button click
     const handleFavoriteClick = async (e) => {
@@ -1408,37 +1398,41 @@ const ViewDetailsPage = () => {
                                                     type="button"
                                                     onClick={handleShowOwnerDetails}
                                                     className="contact-send-button"
-                                                    disabled={(!showOwnerDetails && !ownerDetailsLimit.canPerform) || loadingLimits}
+                                                    disabled={(!showOwnerDetails && !combinedInteractionLimit.canPerform) || loadingLimits}
+                                                    title={(!showOwnerDetails && !combinedInteractionLimit.canPerform) ? 'Daily interaction limit reached. Try again after 12 hours.' : ''}
                                                     style={{
                                                         marginTop: '0',
                                                         marginBottom: '0.5rem',
-                                                        opacity: ((!showOwnerDetails && !ownerDetailsLimit.canPerform) || loadingLimits) ? 0.6 : 1,
-                                                        cursor: ((!showOwnerDetails && !ownerDetailsLimit.canPerform) || loadingLimits) ? 'not-allowed' : 'pointer'
+                                                        opacity: ((!showOwnerDetails && !combinedInteractionLimit.canPerform) || loadingLimits) ? 0.6 : 1,
+                                                        cursor: ((!showOwnerDetails && !combinedInteractionLimit.canPerform) || loadingLimits) ? 'not-allowed' : 'pointer'
                                                     }}
                                                 >
                                                     <FaUser style={{marginRight: '8px'}} />
                                                     {showOwnerDetails ? 'Hide Owner Details' : 'Show Owner Details'}
                                                 </button>
                                                 
-                                                {/* Usage Limit Display */}
+                                                {/* Combined Usage Limit Display */}
                                                 {user && user.user_type === 'buyer' && (
                                                     <div style={{
                                                         fontSize: '0.75rem',
-                                                        color: ownerDetailsLimit.canPerform ? '#666' : '#ef4444',
+                                                        color: combinedInteractionLimit.canPerform ? '#666' : '#ef4444',
                                                         marginTop: '0.25rem',
                                                         padding: '0.25rem 0.5rem',
-                                                        backgroundColor: ownerDetailsLimit.canPerform ? '#f3f4f6' : '#fee2e2',
+                                                        backgroundColor: combinedInteractionLimit.canPerform ? '#f3f4f6' : '#fee2e2',
                                                         borderRadius: '4px'
                                                     }}>
-                                                        {ownerDetailsLimit.remaining} / {ownerDetailsLimit.max} requests remaining
-                                                        {ownerDetailsLimit.resetTimeSeconds && (
-                                                            <span style={{display: 'block', marginTop: '0.125rem'}}>
-                                                                Resets in 12 hours
+                                                        {combinedInteractionLimit.remaining} / {combinedInteractionLimit.max} interactions remaining
+                                                        {combinedInteractionLimit.resetTimeSeconds && (
+                                                            <span style={{display: 'block', marginTop: '0.125rem', fontSize: '0.7rem'}}>
+                                                                {(() => {
+                                                                    const timeRemaining = formatTimeRemaining(combinedInteractionLimit.resetTimeSeconds);
+                                                                    return timeRemaining ? `Resets in ${timeRemaining}` : 'Resets in 12 hours';
+                                                                })()}
                                                             </span>
                                                         )}
-                                                        {!ownerDetailsLimit.canPerform && (
-                                                            <span style={{display: 'block', marginTop: '0.125rem', fontWeight: 'bold'}}>
-                                                                Limit reached
+                                                        {!combinedInteractionLimit.canPerform && (
+                                                            <span style={{display: 'block', marginTop: '0.125rem', fontWeight: 'bold', fontSize: '0.7rem'}}>
+                                                                Daily interaction limit reached. Try again after 12 hours.
                                                             </span>
                                                         )}
                                                     </div>
@@ -1496,37 +1490,39 @@ const ViewDetailsPage = () => {
                                                 type="button"
                                                 onClick={handleChatWithOwner}
                                                 className="contact-send-button"
-                                                disabled={!chatLimit.canPerform || loadingLimits}
+                                                disabled={!combinedInteractionLimit.canPerform || loadingLimits}
+                                                title={!combinedInteractionLimit.canPerform ? 'Daily interaction limit reached. Try again after 12 hours.' : ''}
                                                 style={{
-                                                    opacity: (!chatLimit.canPerform || loadingLimits) ? 0.6 : 1,
-                                                    cursor: (!chatLimit.canPerform || loadingLimits) ? 'not-allowed' : 'pointer'
+                                                    opacity: (!combinedInteractionLimit.canPerform || loadingLimits) ? 0.6 : 1,
+                                                    cursor: (!combinedInteractionLimit.canPerform || loadingLimits) ? 'not-allowed' : 'pointer'
                                                 }}
                                             >
                                                 <FaComments style={{marginRight: '8px'}} />
                                                 Chat with Owner
                                             </button>
                                             
-                                            {/* Usage Limit Display */}
+                                            {/* Combined Usage Limit Display */}
                                             <div style={{
-                                                fontSize: '12px',
-                                                color: chatLimit.canPerform ? '#666' : '#ef4444',
-                                                marginTop: '0.5rem',
-                                                padding: '0.5rem',
-                                                backgroundColor: chatLimit.canPerform ? '#f3f4f6' : '#fee2e2',
+                                                fontSize: '0.75rem',
+                                                color: combinedInteractionLimit.canPerform ? '#666' : '#ef4444',
+                                                marginTop: '0.25rem',
+                                                padding: '0.25rem 0.5rem',
+                                                backgroundColor: combinedInteractionLimit.canPerform ? '#f3f4f6' : '#fee2e2',
                                                 borderRadius: '4px'
                                             }}>
-                                                <div style={{fontWeight: '500', marginBottom: '0.25rem'}}>
-                                                    {chatLimit.remaining} / {chatLimit.max} requests remaining
-                                                </div>
-                                                {chatLimit.resetTimeSeconds && (
-                                                    <div style={{fontSize: '11px', color: '#666'}}>
-                                                        Resets in 12 hours
-                                                    </div>
+                                                {combinedInteractionLimit.remaining} / {combinedInteractionLimit.max} interactions remaining
+                                                {combinedInteractionLimit.resetTimeSeconds && (
+                                                    <span style={{display: 'block', marginTop: '0.125rem', fontSize: '0.7rem'}}>
+                                                        {(() => {
+                                                            const timeRemaining = formatTimeRemaining(combinedInteractionLimit.resetTimeSeconds);
+                                                            return timeRemaining ? `Resets in ${timeRemaining}` : 'Resets in 12 hours';
+                                                        })()}
+                                                    </span>
                                                 )}
-                                                {!chatLimit.canPerform && (
-                                                    <div style={{fontSize: '11px', color: '#ef4444', marginTop: '0.25rem', fontWeight: '500'}}>
-                                                        Limit reached. Please try again after the reset time.
-                                                    </div>
+                                                {!combinedInteractionLimit.canPerform && (
+                                                    <span style={{display: 'block', marginTop: '0.125rem', fontWeight: 'bold', fontSize: '0.7rem'}}>
+                                                        Daily interaction limit reached. Try again after 12 hours.
+                                                    </span>
                                                 )}
                                             </div>
                                         </div>
@@ -1627,7 +1623,7 @@ const ViewDetailsPage = () => {
                                     {propertyData.amenities.map((amenity, index) => (
                                         <div key={index} className="amenity-item">
                                             <span className="amenity-icon">{getAmenityIcon(amenity)}</span>
-                                            <span>{amenity}</span>
+                                            <span>{capitalizeAmenity(amenity)}</span>
                                         </div>
                                     ))}
                                 </div>
