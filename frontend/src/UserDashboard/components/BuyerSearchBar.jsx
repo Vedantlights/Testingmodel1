@@ -240,7 +240,7 @@ const SearchBar = () => {
     <div
       className="buyer-search-bar-container"
       style={{
-        backgroundImage: 'url(/Home.jpg)',
+        backgroundImage: 'url(/Homee.jpg)',
         backgroundSize: '100% auto',
         backgroundPosition: 'center top',
         backgroundRepeat: 'no-repeat',
