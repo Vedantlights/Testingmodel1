@@ -33,6 +33,18 @@ define('MSG91_SEND_OTP_URL', 'https://control.msg91.com/api/v5/otp');
 define('MSG91_VERIFY_OTP_URL', 'https://control.msg91.com/api/v5/otp/verify');
 define('MSG91_RESEND_OTP_URL', 'https://control.msg91.com/api/v5/otp/retry');
 
+// MSG91 Email API Configuration (Transactional Emails)
+// SECURITY: Use environment variables for sensitive credentials
+$msg91EmailAuthKey = getenv('MSG91_EMAIL_AUTH_KEY') ?: '481618A2cCSUpaZHTW6936c356P1';
+if ($msg91EmailAuthKey === '481618A2cCSUpaZHTW6936c356P1' && defined('ENVIRONMENT') && ENVIRONMENT === 'production') {
+    error_log('SECURITY WARNING: Using default MSG91_EMAIL_AUTH_KEY in production!');
+}
+define('MSG91_EMAIL_AUTH_KEY', $msg91EmailAuthKey);
+define('MSG91_EMAIL_SEND_URL', 'https://control.msg91.com/api/v5/email/send');
+define('MSG91_WELCOME_TEMPLATE_ID', getenv('MSG91_WELCOME_TEMPLATE_ID') ?: 'welcome_template_34');
+define('MSG91_EMAIL_FROM_EMAIL', getenv('MSG91_EMAIL_FROM_EMAIL') ?: 'noreply@indiapropertys.com');
+define('MSG91_EMAIL_FROM_NAME', getenv('MSG91_EMAIL_FROM_NAME') ?: 'IndiaPropertys Team');
+
 // ADMIN WHITELIST - ONLY these numbers can access admin panel
 // NEVER expose these to frontend
 // SECURITY: Use environment variables for admin mobile numbers

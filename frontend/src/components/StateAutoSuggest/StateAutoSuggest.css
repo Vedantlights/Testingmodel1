@@ -1,15 +1,23 @@
-.state-autosuggest {
-  position: relative;
-  width: 100%;
+/* Z-index hierarchy (defined once for clarity) */
+:root {
+  --z-dropdown: 1000;
+  --z-modal: 2000;
+  --z-modal-dropdown: 2100;
 }
 
-.state-input-wrapper {
+.location-autosuggest {
+  position: relative;
+  width: 100%;
+  z-index: 1;
+}
+
+.location-input-wrapper {
   position: relative;
   display: flex;
   align-items: center;
 }
 
-.state-input {
+.location-input {
   width: 100%;
   padding: 0.65rem 2.25rem 0.65rem 0.75rem;
   border-radius: 0.5rem;
@@ -21,45 +29,30 @@
   transition: border-color 0.15s ease, box-shadow 0.15s ease, background-color 0.15s ease;
 }
 
-.state-input:focus {
+.location-input:focus {
   border-color: #8b5cf6;
   background-color: #ffffff;
   box-shadow: 0 0 0 2px rgba(139, 92, 246, 0.25);
 }
 
-.state-input-error {
+.location-input-error {
   border-color: #dc2626;
 }
 
-.state-input:disabled {
+.location-input:disabled {
   background-color: #f3f4f6;
   color: #6b7280;
   cursor: not-allowed;
   opacity: 0.6;
 }
 
-.state-input:disabled:focus {
+.location-input:disabled:focus {
   border-color: #d1d5db;
   background-color: #f3f4f6;
   box-shadow: none;
 }
 
-.state-spinner {
-  position: absolute;
-  right: 0.5rem;
-  width: 16px;
-  height: 16px;
-  border: 2px solid #e5e7eb;
-  border-top-color: #8b5cf6;
-  border-radius: 50%;
-  animation: spin 0.6s linear infinite;
-}
-
-@keyframes spin {
-  to { transform: rotate(360deg); }
-}
-
-.state-clear-btn {
+.location-clear-btn {
   position: absolute;
   right: 0.5rem;
   background: transparent;
@@ -68,94 +61,95 @@
   cursor: pointer;
   font-size: 1rem;
   padding: 0;
-  width: 20px;
-  height: 20px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  z-index: 1;
 }
 
-.state-clear-btn:hover {
+.location-clear-btn:hover {
   color: #4b5563;
 }
 
-.state-error-text {
-  margin-top: 0.25rem;
+.location-spinner {
+  position: absolute;
+  right: 0.75rem;
+  width: 16px;
+  height: 16px;
+  border-radius: 999px;
+  border: 2px solid rgba(148, 163, 184, 0.4);
+  border-top-color: #8b5cf6;
+  animation: location-spin 0.6s linear infinite;
+}
+
+@keyframes location-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.location-error-text {
+  margin-top: 4px;
   font-size: 0.75rem;
   color: #dc2626;
 }
 
-.state-dropdown {
+.location-dropdown {
   position: absolute;
   top: 100%;
   left: 0;
   right: 0;
-  margin-top: 0.25rem;
-  background: white;
+  margin-top: 4px;
+  background-color: #ffffff;
+  border-radius: 0.75rem;
   border: 1px solid #e5e7eb;
-  border-radius: 0.5rem;
-  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
-  max-height: 200px;
+  box-shadow: 0 10px 25px rgba(15, 23, 42, 0.15);
+  max-height: 260px;
   overflow-y: auto;
-  z-index: 1000;
-  list-style: none;
-  padding: 0.25rem 0;
-  margin: 0;
+  z-index: var(--z-dropdown);
 }
 
-/* Ensure dropdown appears above popup modals */
-.popup-overlay .state-autosuggest,
-.popup-container .state-autosuggest,
-.popup-body .state-autosuggest,
-.seller-popup-overlay .state-autosuggest,
-.seller-popup-container .state-autosuggest,
-.seller-popup-body .state-autosuggest,
-.state-autosuggest-popup {
-  position: relative;
-  z-index: 2001 !important; /* Above popup overlay (2000) */
+/* Dropdown inside modals/popups - cleaner approach */
+.popup-overlay .location-dropdown,
+.popup-container .location-dropdown,
+.seller-popup-overlay .location-dropdown,
+.seller-popup-container .location-dropdown {
+  z-index: var(--z-modal-dropdown);
 }
 
-.popup-overlay .state-dropdown,
-.popup-container .state-dropdown,
-.popup-body .state-dropdown,
-.seller-popup-overlay .state-dropdown,
-.seller-popup-container .state-dropdown,
-.seller-popup-body .state-dropdown,
-.state-autosuggest-popup .state-dropdown {
-  z-index: 10000 !important; /* Ensure dropdown is above everything */
-  position: absolute !important;
-}
-
-.state-option {
-  padding: 0.75rem 1rem;
+.location-option {
+  padding: 0.55rem 0.9rem;
   cursor: pointer;
-  transition: background-color 0.15s ease;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
 }
 
-.state-option:hover,
-.state-option.active {
-  background-color: #f3f4f6;
-}
-
-.state-option-primary {
-  font-size: 0.95rem;
+.location-option-primary {
+  font-size: 0.9rem;
+  font-weight: 600;
   color: #111827;
-  font-weight: 500;
 }
 
-/* Responsive */
-@media (max-width: 768px) {
-  .state-input {
+.location-option-secondary {
+  font-size: 0.8rem;
+  color: #6b7280;
+}
+
+.location-option:hover,
+.location-option.active {
+  background: linear-gradient(135deg, #f3e8ff 0%, #e0e7ff 100%);
+}
+
+/* Mobile tweaks */
+@media (max-width: 640px) {
+  .location-input {
     font-size: 0.9rem;
     padding: 0.55rem 2rem 0.55rem 0.7rem;
   }
 
-  .state-option {
-    padding: 0.65rem 0.875rem;
+  .location-option-primary {
+    font-size: 0.85rem;
   }
 
-  .state-option-primary {
-    font-size: 0.875rem;
+  .location-option-secondary {
+    font-size: 0.75rem;
   }
 }
-
