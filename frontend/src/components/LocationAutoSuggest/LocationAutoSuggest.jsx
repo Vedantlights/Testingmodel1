@@ -308,22 +308,14 @@ const LocationAutoSuggest = ({
   const [highlightedIndex, setHighlightedIndex] = useState(-1);
   const [selectedLocation, setSelectedLocation] = useState(null);
   const [errorState, setErrorState] = useState(null);
-  const justSelectedRef = useRef(false); // Flag to prevent reopening after selection
 
   const containerRef = useRef(null);
   const abortControllerRef = useRef(null);
 
   // Keep internal input in sync when parent value changes
   useEffect(() => {
-    // Only update if value actually changed and doesn't match current input
-    if (value !== inputValue) {
-      setInputValue(value || '');
-      // If value is set externally and matches a selected location, don't reopen dropdown
-      if (selectedLocation && (selectedLocation.fullAddress === value || selectedLocation.placeName === value)) {
-        justSelectedRef.current = true; // Prevent reopening
-      }
-    }
-  }, [value, inputValue, selectedLocation]);
+    setInputValue(value || '');
+  }, [value]);
 
   // Close dropdown on outside click
   useEffect(() => {
@@ -455,12 +447,6 @@ const LocationAutoSuggest = ({
 
   // Debounce input changes
   useEffect(() => {
-    // Don't fetch suggestions if we just selected a location (prevents reopening dropdown)
-    if (justSelectedRef.current) {
-      justSelectedRef.current = false;
-      return;
-    }
-
     if (!inputValue || inputValue.trim().length < MIN_QUERY_LENGTH) {
       setSuggestions([]);
       setIsOpen(false);
@@ -479,24 +465,8 @@ const LocationAutoSuggest = ({
     if (disabled) return; // Prevent changes when disabled
     const newValue = e.target.value;
     setInputValue(newValue);
-    
-    // If the new value matches the selected location's full address, don't clear selection
-    // This prevents reopening dropdown when user clicks on already selected location
-    if (selectedLocation && (selectedLocation.fullAddress === newValue || selectedLocation.placeName === newValue)) {
-      // Value matches selected location, don't change anything
-      return;
-    }
-    
-    // Clear selection if user is typing something different
     setSelectedLocation(null);
-    justSelectedRef.current = false; // Reset flag when user types
-    
-    // Only open dropdown if there's actual input (not just matching selected)
-    if (newValue && newValue.trim().length >= MIN_QUERY_LENGTH) {
-      setIsOpen(true);
-    } else {
-      setIsOpen(false);
-    }
+    setIsOpen(true);
 
     // If user clears input, notify parent
     if (!newValue && onChange) {
@@ -507,22 +477,11 @@ const LocationAutoSuggest = ({
   const handleSelect = (item) => {
     if (disabled || !item) return; // Prevent selection when disabled
 
-    // Set flag to prevent reopening dropdown immediately after selection
-    justSelectedRef.current = true;
-    
     setSelectedLocation(item);
     setInputValue(item.fullAddress || item.placeName || '');
     setIsOpen(false);
     setSuggestions([]);
     setHighlightedIndex(-1);
-
-    // Blur the input to prevent it from reopening the dropdown
-    if (containerRef.current) {
-      const input = containerRef.current.querySelector('.location-input');
-      if (input && document.activeElement === input) {
-        input.blur();
-      }
-    }
 
     if (onChange) {
       onChange(item);

@@ -131,18 +131,6 @@
   position: absolute !important;
 }
 
-/* Ensure dropdown overlays form-group-location-map in agent dashboard */
-.popup-container .form-group-location-map,
-.popup-body .form-group-location-map {
-  position: relative;
-  z-index: 1;
-}
-
-.popup-container .location-dropdown,
-.popup-body .location-dropdown {
-  z-index: 100000 !important; /* Above form-group-location-map */
-}
-
 .location-option {
   padding: 0.55rem 0.9rem;
   cursor: pointer;
