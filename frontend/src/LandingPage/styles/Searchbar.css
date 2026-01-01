@@ -20,7 +20,6 @@
   z-index: 2; /* Above background image */
   scroll-behavior: smooth;
   scroll-padding-top: 100px; /* Prevent scroll jumps when focusing inputs */
-  box-sizing: border-box;
 }
 
 /* Fully Responsive Container Sizing - Full viewport height */
@@ -38,10 +37,6 @@
   .landing-search-bar-wrapper {
     max-width: 1400px;
     padding: 0 2rem;
-  }
-
-  .search-form {
-    padding: 2rem;
   }
 
   .search-title {
@@ -69,10 +64,6 @@
     padding: 0 1.5rem;
   }
 
-  .search-form {
-    padding: 2rem;
-  }
-
   .search-title {
     font-size: 2.5rem;
   }
@@ -91,10 +82,6 @@
     padding-top: calc(5rem + 2.5rem);
     scroll-behavior: smooth;
     scroll-padding-top: 100px; /* Prevent scroll jumps when focusing inputs */
-  }
-
-  .landing-search-bar-wrapper {
-    padding: 0 1rem;
   }
 
   .search-title {
@@ -118,11 +105,11 @@
   .search-select {
     padding: 0.875rem 0.875rem;
     font-size: 0.9rem;
-    min-height: 44px; /* Touch-friendly */
+    min-height: 44px; /* Tap-friendly */
   }
 
   .search-button {
-    min-height: 44px; /* Touch-friendly */
+    min-height: 44px; /* Tap-friendly */
   }
 }
 
@@ -171,13 +158,13 @@
   .search-select {
     padding: 0.875rem 1rem;
     font-size: 0.95rem;
-    min-height: 44px; /* Touch-friendly */
+    min-height: 44px; /* Tap-friendly */
   }
 
   .search-button {
     font-size: 1rem;
     padding: 0.875rem 1.5rem;
-    min-height: 44px; /* Touch-friendly */
+    min-height: 44px; /* Tap-friendly */
   }
 }
 
@@ -224,13 +211,13 @@
   .search-select {
     padding: 0.75rem 0.875rem;
     font-size: 0.9rem;
-    min-height: 44px; /* Touch-friendly */
+    min-height: 44px; /* Tap-friendly */
   }
 
   .search-button {
     font-size: 0.95rem;
     padding: 0.75rem 1.25rem;
-    min-height: 44px; /* Touch-friendly */
+    min-height: 44px; /* Tap-friendly */
   }
 }
 
@@ -277,13 +264,13 @@
   .search-select {
     padding: 0.75rem 0.75rem;
     font-size: 0.875rem;
-    min-height: 44px; /* Touch-friendly */
+    min-height: 44px; /* Tap-friendly */
   }
 
   .search-button {
     font-size: 0.9rem;
     padding: 0.75rem 1rem;
-    min-height: 44px; /* Touch-friendly */
+    min-height: 44px; /* Tap-friendly */
   }
 }
 
@@ -328,11 +315,10 @@
 .landing-search-bar-wrapper {
   max-width: 1280px;
   margin: 0 auto;
-  padding: 0 1rem;
+  margin-top: 8px;
+  padding: 0 1rem 4rem 1rem;
   position: relative;
   z-index: 1;
-  width: 100%;
-  box-sizing: border-box;
 }
 
 .search-title {
@@ -357,8 +343,6 @@
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
   margin-bottom: 3rem;
   animation: slideInUp 0.6s ease forwards;
-  box-sizing: border-box;
-  width: 100%;
 }
 
 .search-inputs {
