@@ -95,7 +95,7 @@ $payload = [
         'name' => MSG91_EMAIL_FROM_NAME,
         'email' => MSG91_EMAIL_FROM_EMAIL
     ],
-    'domain' => defined('MSG91_EMAIL_DOMAIN') ? MSG91_EMAIL_DOMAIN : 'indiapropertys.com',
+    'domain' => defined('MSG91_EMAIL_DOMAIN') ? MSG91_EMAIL_DOMAIN : 'indiapropertys.in',
     'template_id' => MSG91_WELCOME_TEMPLATE_ID
 ];
 

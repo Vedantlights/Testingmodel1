@@ -48,9 +48,9 @@ function sendWelcomeEmailSync($userId, $name, $email) {
             ],
             'from' => [
                 'name' => defined('MSG91_EMAIL_FROM_NAME') ? MSG91_EMAIL_FROM_NAME : 'IndiaPropertys Team',
-                'email' => defined('MSG91_EMAIL_FROM_EMAIL') ? MSG91_EMAIL_FROM_EMAIL : 'noreply@indiapropertys.com'
+                'email' => defined('MSG91_EMAIL_FROM_EMAIL') ? MSG91_EMAIL_FROM_EMAIL : 'noreply@indiapropertys.in'
             ],
-            'domain' => defined('MSG91_EMAIL_DOMAIN') ? MSG91_EMAIL_DOMAIN : 'indiapropertys.com',
+            'domain' => defined('MSG91_EMAIL_DOMAIN') ? MSG91_EMAIL_DOMAIN : 'indiapropertys.in',
             'template_id' => defined('MSG91_WELCOME_TEMPLATE_ID') ? MSG91_WELCOME_TEMPLATE_ID : 'welcome_template_34'
         ];
         
