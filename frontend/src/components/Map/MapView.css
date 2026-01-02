@@ -368,12 +368,7 @@
 
 /* ========== TABLET RESPONSIVE (768px - 1024px) ========== */
 @media (max-width: 1024px) {
-  .map-card-container,
-  .mapboxgl-popup.map-card-container {
-    max-width: 340px !important;
-    width: auto !important;
-    min-width: 280px;
-  }
+ 
 
   .popup-card-content {
     padding: 14px 16px 16px 16px;
@@ -424,12 +419,7 @@
     min-height: 300px;
   }
 
-  .map-card-container,
-  .mapboxgl-popup.map-card-container {
-    max-width: 280px !important;
-    width: auto !important;
-    min-width: 240px;
-  }
+ 
 
   .mapboxgl-popup-content {
     border-radius: 10px;
@@ -608,4 +598,10 @@
     font-size: 9px;
     border-radius: 12px;
   }
+}
+.mapboxgl-canvas {
+  left: 0;
+  position: absolute;
+  top: 0;
+  width: 100% !important;
 }
