@@ -15,6 +15,7 @@
   padding: 2rem;
   z-index: 2000;
   overflow-y: auto;
+  overflow-x: visible !important; /* Allow horizontal overflow for dropdowns */
   animation: fadeIn 0.2s ease;
 }
 
@@ -184,11 +185,17 @@
 .seller-popup-body {
   flex: 1;
   overflow-y: auto;
+  overflow-x: visible !important; /* Allow horizontal overflow for dropdowns */
   padding: 2rem;
+  position: relative; /* Establish positioning context */
 }
 
 .seller-popup-step-content {
   animation: fadeInUp 0.3s ease;
+  overflow: visible !important; /* CRITICAL: Allow dropdowns to overflow - matches Agent Dashboard */
+  position: relative !important; /* Establish positioning context for dropdowns */
+  z-index: 0 !important; /* Lower than dropdowns */
+  isolation: auto !important; /* Don't create stacking context */
 }
 
 @keyframes fadeInUp {
