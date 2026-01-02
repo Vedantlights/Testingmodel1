@@ -241,10 +241,12 @@ const SearchBar = () => {
       className="buyer-search-bar-container"
       style={{
         backgroundImage: 'url(/Homee.jpg)',
-        backgroundSize: '100% auto',
-        backgroundPosition: 'center top',
+        backgroundSize: 'cover',
+        backgroundPosition: 'center center',
         backgroundRepeat: 'no-repeat',
-        backgroundAttachment: 'scroll'
+        backgroundAttachment: 'scroll',
+        height: '100vh',
+        minHeight: '100vh'
       }}
     >
       <div className="buyer-search-bar-wrapper">
