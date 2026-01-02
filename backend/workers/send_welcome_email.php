@@ -133,10 +133,6 @@ function sendWelcomeEmailViaMSG91($userId, $name, $email) {
                         'email' => $email,
                         'name' => $name
                     ]
-                ],
-                'variables' => [
-                    'name' => $name,
-                    'email' => $email
                 ]
             ]
         ],

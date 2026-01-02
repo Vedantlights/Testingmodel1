@@ -47,10 +47,6 @@ function sendWelcomeEmailSync($userId, $name, $email) {
                             'email' => $email,
                             'name' => $name
                         ]
-                    ],
-                    'variables' => [
-                        'name' => $name,
-                        'email' => $email
                     ]
                 ]
             ],
