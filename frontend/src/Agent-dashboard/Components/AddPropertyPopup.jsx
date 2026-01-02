@@ -224,6 +224,7 @@ export default function AddPropertyPopup({ onClose, editIndex = null, initialDat
   const videoRef = useRef();
   const brochureRef = useRef();
   const popupBodyRef = useRef(null);
+  const popupContainerRef = useRef(null);
 
   // Check if property is older than 24 hours (only allow title and price editing)
   const isPropertyOlderThan24Hours = () => {
@@ -283,6 +284,41 @@ export default function AddPropertyPopup({ onClose, editIndex = null, initialDat
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
   }, [onClose]);
+
+  // Disable number input spinner functionality (wheel and arrow keys) ONLY within popup
+  useEffect(() => {
+    const container = popupContainerRef.current;
+    if (!container) return;
+
+    const handleWheel = (e) => {
+      // Check if the event target is a number input within the popup
+      if (e.target.type === 'number' && container.contains(e.target)) {
+        // Only prevent if the input is focused
+        if (document.activeElement === e.target) {
+          e.preventDefault();
+        }
+      }
+    };
+
+    const handleKeyDown = (e) => {
+      // Check if arrow keys are pressed on a number input within the popup
+      if (
+        (e.key === 'ArrowUp' || e.key === 'ArrowDown') &&
+        e.target.type === 'number' &&
+        container.contains(e.target)
+      ) {
+        e.preventDefault();
+      }
+    };
+
+    container.addEventListener('wheel', handleWheel, { passive: false });
+    container.addEventListener('keydown', handleKeyDown);
+
+    return () => {
+      container.removeEventListener('wheel', handleWheel);
+      container.removeEventListener('keydown', handleKeyDown);
+    };
+  }, []);
 
   // Cleanup blob URLs on unmount to prevent memory leaks
   useEffect(() => {
@@ -2099,7 +2135,7 @@ export default function AddPropertyPopup({ onClose, editIndex = null, initialDat
 
       {/* Main Popup - Only show if edit notice not shown */}
       {!showEditNoticeModal && (
-      <div className="popup-container" role="dialog" aria-modal="true">
+      <div className="popup-container" ref={popupContainerRef} role="dialog" aria-modal="true">
         {/* Header */}
         <div className="popup-header">
           <h2>{editIndex !== null ? 'Edit Property' : 'List Your Property'}</h2>
