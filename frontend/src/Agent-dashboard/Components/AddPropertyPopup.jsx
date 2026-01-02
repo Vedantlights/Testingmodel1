@@ -1306,14 +1306,24 @@ export default function AddPropertyPopup({ onClose, editIndex = null, initialDat
               if (isRestrictedEdit) return;
               if (!locationData) {
                 setFormData(prev => ({ ...prev, location: "", latitude: "", longitude: "" }));
+                setStateAutoFilled(false);
                 return;
               }
+              // Auto-populate state from location input if available
+              const stateFromLocation = locationData.state || '';
+              const wasStateAutoFilled = !!stateFromLocation;
+              
               setFormData(prev => ({
                 ...prev,
                 location: locationData.fullAddress || locationData.placeName || "",
                 latitude: locationData.coordinates?.lat ?? "",
-                longitude: locationData.coordinates?.lng ?? ""
+                longitude: locationData.coordinates?.lng ?? "",
+                // Always update state from location (even if empty) to reflect the new location
+                state: stateFromLocation
               }));
+              
+              // Track if state was auto-filled from location input
+              setStateAutoFilled(wasStateAutoFilled);
             }}
             className={errors.location ? "seller-location-error" : ""}
             error={errors.location}
