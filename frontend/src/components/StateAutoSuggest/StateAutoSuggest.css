@@ -1,32 +1,26 @@
-/* ============================= */
-/* Z-INDEX DEFINITIONS (GLOBAL) */
-/* ============================= */
-:root {
-  --z-dropdown: 1000;
-  --z-modal: 2000;
-  --z-modal-dropdown: 2100;
-}
+/* ========================= */
+/* BASE AUTOSUGGEST WRAPPER */
+/* ========================= */
 
-/* ============================= */
-/* AUTOSUGGEST WRAPPER */
-/* ============================= */
 .state-autosuggest {
   position: relative;
   width: 100%;
 }
 
-/* ============================= */
+/* ========================= */
 /* INPUT WRAPPER */
-/* ============================= */
+/* ========================= */
+
 .state-input-wrapper {
   position: relative;
   display: flex;
   align-items: center;
 }
 
-/* ============================= */
+/* ========================= */
 /* INPUT FIELD */
-/* ============================= */
+/* ========================= */
+
 .state-input {
   width: 100%;
   padding: 0.65rem 2.25rem 0.65rem 0.75rem;
@@ -49,9 +43,16 @@
   border-color: #dc2626;
 }
 
-/* ============================= */
+.state-input:disabled {
+  background-color: #f3f4f6;
+  color: #6b7280;
+  cursor: not-allowed;
+}
+
+/* ========================= */
 /* CLEAR BUTTON */
-/* ============================= */
+/* ========================= */
+
 .state-clear-btn {
   position: absolute;
   right: 0.5rem;
@@ -61,9 +62,14 @@
   cursor: pointer;
 }
 
-/* ============================= */
-/* SPINNER */
-/* ============================= */
+.state-clear-btn:hover {
+  color: #4b5563;
+}
+
+/* ========================= */
+/* LOADING SPINNER */
+/* ========================= */
+
 .state-spinner {
   position: absolute;
   right: 0.75rem;
@@ -81,18 +87,20 @@
   }
 }
 
-/* ============================= */
+/* ========================= */
 /* ERROR TEXT */
-/* ============================= */
+/* ========================= */
+
 .state-error-text {
   margin-top: 4px;
   font-size: 0.75rem;
   color: #dc2626;
 }
 
-/* ============================= */
-/* ✅ ONLY DROPDOWN HAS Z-INDEX */
-/* ============================= */
+/* ========================= */
+/* 🔑 DROPDOWN – ONLY ELEMENT WITH Z-INDEX */
+/* ========================= */
+
 .state-dropdown {
   position: absolute;
   top: calc(100% + 4px);
@@ -107,39 +115,69 @@
   max-height: 260px;
   overflow-y: auto;
 
-  z-index: var(--z-dropdown);
+  z-index: 50; /* ✅ ONLY HERE */
 }
 
-/* ============================= */
-/* OPTIONS */
-/* ============================= */
+/* ========================= */
+/* STATE OPTIONS */
+/* ========================= */
+
 .state-option {
   padding: 0.55rem 0.9rem;
   cursor: pointer;
   display: flex;
   flex-direction: column;
+  gap: 2px;
+}
+
+.state-option-primary {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #111827;
 }
 
 .state-option:hover,
 .state-option.active {
-  background: linear-gradient(135deg, #f3e8ff, #e0e7ff);
+  background: linear-gradient(135deg, #f3e8ff 0%, #e0e7ff 100%);
 }
 
-/* ============================= */
-/* POPUP SAFETY */
-/* ============================= */
+/* ========================= */
+/* AGENT DASHBOARD FIX */
+/* ========================= */
+
+.form-group-state-input {
+  position: relative;
+  overflow: visible; /* ✅ critical */
+}
+
+/* Ensure label never blocks dropdown */
+.form-group-state-input > label {
+  position: relative;
+  z-index: 1;
+}
+
+/* ========================= */
+/* POPUP / MODAL SAFETY */
+/* ========================= */
+
 .popup-container,
 .popup-body,
+.step-content,
 .form-group {
   overflow: visible;
-  position: relative;
 }
 
-/* ============================= */
-/* MOBILE */
-/* ============================= */
+/* ========================= */
+/* MOBILE TWEAKS */
+/* ========================= */
+
 @media (max-width: 640px) {
   .state-input {
     font-size: 0.9rem;
+    padding: 0.55rem 2rem 0.55rem 0.7rem;
+  }
+
+  .state-option-primary {
+    font-size: 0.85rem;
   }
 }
