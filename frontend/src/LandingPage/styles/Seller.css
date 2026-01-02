@@ -41,8 +41,7 @@ h2 {
   padding: 0 20px;
   position: relative;
   margin-top: 8rem; /* Position below navbar */
-  min-height: calc(100vh - 8rem); /* Minimum viewport height minus navbar - allows content expansion */
-  height: calc(100vh - 8rem); /* Maintain aspect ratio */
+  height: calc(100vh - 8rem); /* Exactly viewport height minus navbar - no scrolling */
   display: flex;
   flex-direction: column;
   justify-content: center;
@@ -527,7 +526,6 @@ h2 {
 @media (max-width: 767px) {
   .seller-hero-sections {
     margin-top: 4.5rem;
-    min-height: calc(100vh - 4.5rem);
     height: calc(100vh - 4.5rem);
     padding: 0 1rem;
   }
@@ -606,7 +604,6 @@ h2 {
 @media (max-width: 480px) {
   .seller-hero-sections {
     margin-top: 4rem;
-    min-height: calc(100vh - 4rem);
     height: calc(100vh - 4rem);
     padding: 0 0.75rem;
   }
@@ -659,7 +656,6 @@ h2 {
 @media (max-width: 360px) {
   .seller-hero-sections {
     margin-top: 3.75rem;
-    min-height: calc(100vh - 3.75rem);
     height: calc(100vh - 3.75rem);
     padding: 0 0.625rem;
   }
