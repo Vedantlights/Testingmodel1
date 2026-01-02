@@ -21,7 +21,7 @@ date_default_timezone_set('Asia/Kolkata');
 // Load required files
 require_once __DIR__ . '/../config/config.php';
 require_once __DIR__ . '/../config/database.php';
-require_once __DIR__ . '/../config/admin-config.php';
+require_once __DIR__ . '/../helpers/email_helper_smtp.php';
 
 /**
  * Log message to error log
@@ -86,137 +86,19 @@ function logEmailAttempt($userId, $emailType, $status, $msg91Response = null, $e
 }
 
 /**
- * Send welcome email via MSG91 Email API
+ * Send welcome email via MSG91 SMTP (wrapper function for compatibility)
  */
 function sendWelcomeEmailViaMSG91($userId, $name, $email) {
-    // Validate inputs
-    if (empty($userId) || !is_numeric($userId)) {
-        throw new Exception("Invalid user ID: " . $userId);
-    }
+    // Use SMTP method instead of API
+    $result = sendWelcomeEmailViaSMTP($userId, $name, $email);
     
-    if (empty($name) || empty($email)) {
-        throw new Exception("Missing name or email for user ID: " . $userId);
-    }
-    
-    // Validate email format
-    if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
-        throw new Exception("Invalid email format: " . $email);
-    }
-    
-    // Check if MSG91 constants are defined
-    if (!defined('MSG91_EMAIL_AUTH_KEY')) {
-        throw new Exception("MSG91_EMAIL_AUTH_KEY constant is not defined");
-    }
-    
-    if (!defined('MSG91_EMAIL_SEND_URL')) {
-        throw new Exception("MSG91_EMAIL_SEND_URL constant is not defined");
-    }
-    
-    if (!defined('MSG91_WELCOME_TEMPLATE_ID')) {
-        throw new Exception("MSG91_WELCOME_TEMPLATE_ID constant is not defined");
-    }
-    
-    if (!defined('MSG91_EMAIL_FROM_EMAIL')) {
-        throw new Exception("MSG91_EMAIL_FROM_EMAIL constant is not defined");
-    }
-    
-    if (!defined('MSG91_EMAIL_FROM_NAME')) {
-        throw new Exception("MSG91_EMAIL_FROM_NAME constant is not defined");
-    }
-    
-    // Prepare MSG91 API payload (correct v5 API structure)
-    $payload = [
-        'recipients' => [
-            [
-                'to' => [
-                    [
-                        'email' => $email,
-                        'name' => $name
-                    ]
-                ]
-            ]
-        ],
-        'from' => [
-            'email' => MSG91_EMAIL_FROM_EMAIL
-        ],
-        'domain' => defined('MSG91_EMAIL_DOMAIN') ? MSG91_EMAIL_DOMAIN : 'indiapropertys.in',
-        'template_id' => MSG91_WELCOME_TEMPLATE_ID
-    ];
-    
-    // Initialize cURL
-    $ch = curl_init();
-    
-    // Set cURL options
-    curl_setopt_array($ch, [
-        CURLOPT_URL => MSG91_EMAIL_SEND_URL,
-        CURLOPT_RETURNTRANSFER => true,
-        CURLOPT_ENCODING => '',
-        CURLOPT_MAXREDIRS => 10,
-        CURLOPT_TIMEOUT => 30,
-        CURLOPT_FOLLOWLOCATION => true,
-        CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
-        CURLOPT_CUSTOMREQUEST => 'POST',
-        CURLOPT_POSTFIELDS => json_encode($payload),
-        CURLOPT_HTTPHEADER => [
-            'Content-Type: application/json',
-            'Accept: application/json',
-            'authkey: ' . MSG91_EMAIL_AUTH_KEY
-        ],
-        CURLOPT_SSL_VERIFYPEER => true,
-        CURLOPT_SSL_VERIFYHOST => 2
-    ]);
-    
-    // Execute request
-    $response = curl_exec($ch);
-    $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-    $curlError = curl_error($ch);
-    
-    curl_close($ch);
-    
-    // Log request details for debugging
-    logMessage("MSG91 Email API Request - User: $email, Name: $name");
-    logMessage("MSG91 Email API Payload: " . json_encode($payload));
-    logMessage("MSG91 Email API HTTP Code: $httpCode");
-    logMessage("MSG91 Email API Response: " . ($response ? substr($response, 0, 500) : 'No response'));
-    if ($curlError) {
-        logMessage("MSG91 Email API CURL Error: $curlError");
-    }
-    
-    // Handle cURL errors
-    if ($response === false || !empty($curlError)) {
-        throw new Exception("cURL error: " . $curlError);
-    }
-    
-    // Parse response
-    $responseData = json_decode($response, true);
-    
-    // Check HTTP status code
-    if ($httpCode !== 200) {
-        $errorMsg = isset($responseData['message']) ? $responseData['message'] : (isset($responseData['errors']) ? $responseData['errors'] : 'Unknown error');
-        throw new Exception("MSG91 API returned HTTP $httpCode: " . (is_string($errorMsg) ? $errorMsg : json_encode($errorMsg)));
-    }
-    
-    // Check if response indicates success
-    // MSG91 typically returns success in response body
-    if (isset($responseData['type']) && $responseData['type'] === 'success') {
+    if ($result) {
         return [
             'success' => true,
-            'response' => $responseData
-        ];
-    } elseif (isset($responseData['message']) && strpos(strtolower($responseData['message']), 'success') !== false) {
-        return [
-            'success' => true,
-            'response' => $responseData
-        ];
-    } elseif ($httpCode === 200) {
-        // HTTP 200 usually means success even if response format is unexpected
-        return [
-            'success' => true,
-            'response' => $responseData
+            'response' => ['method' => 'SMTP', 'sent_at' => date('Y-m-d H:i:s')]
         ];
     } else {
-        $errorMsg = isset($responseData['message']) ? $responseData['message'] : 'Unknown error';
-        throw new Exception("MSG91 API error: $errorMsg");
+        throw new Exception("Failed to send welcome email via SMTP");
     }
 }
 

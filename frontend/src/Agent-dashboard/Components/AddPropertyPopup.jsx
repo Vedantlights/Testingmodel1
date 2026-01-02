@@ -386,8 +386,8 @@ export default function AddPropertyPopup({ onClose, editIndex = null, initialDat
       latitude: locationData.latitude.toString(),
       longitude: locationData.longitude.toString(),
       location: locationData.fullAddress || prev.location, // Update location with full address if available
-      // Auto-populate state if available from map, otherwise keep existing state
-      state: stateFromMap || prev.state
+      // Always update state from map (even if empty) to reflect the new location
+      state: stateFromMap
     }));
     
     // Track if state was auto-filled from map
