@@ -21,7 +21,9 @@ date_default_timezone_set('Asia/Kolkata');
 // Load required files
 require_once __DIR__ . '/../config/config.php';
 require_once __DIR__ . '/../config/database.php';
+require_once __DIR__ . '/../../vendor/autoload.php';
 require_once __DIR__ . '/../helpers/email_helper_smtp.php';
+
 
 /**
  * Log message to error log
