@@ -544,7 +544,6 @@ h2 {
 /* Large Desktop (≥1440px) */
 @media (min-width: 1440px) {
   .agent-hero-sections {
-    margin-top: 8rem;
     height: calc(100vh - 8rem);
     padding: 0 2.5rem;
   }
@@ -566,7 +565,6 @@ h2 {
 /* Laptop (1024px - 1439px) */
 @media (min-width: 1024px) and (max-width: 1439px) {
   .agent-hero-sections {
-    margin-top: 8rem;
     height: calc(100vh - 8rem);
     padding: 0 2rem;
   }
@@ -635,6 +633,7 @@ h2 {
 /* Mobile (≤767px) */
 @media (max-width: 767px) {
   .agent-hero-sections {
+    margin-top: 5rem;
     height: calc(100vh - 4.5rem);
     padding: 0 1rem;
     background-attachment: scroll; /* Better performance on mobile */
@@ -728,6 +727,7 @@ h2 {
   .agent-hero-sections {
     height: calc(100vh - 4rem);
     padding: 0 0.75rem;
+    margin-top: 5rem;
   }
 
   section {
@@ -801,6 +801,7 @@ h2 {
 @media (max-width: 360px) {
   .agent-hero-sections {
     height: calc(100vh - 3.75rem);
+    margin-top: 5rem;
   }
   
   section {
