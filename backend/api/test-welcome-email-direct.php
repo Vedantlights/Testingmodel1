@@ -113,17 +113,28 @@ if (!defined('MSG91_SMTP_FROM_NAME')) {
     echo "   ✓ MSG91_SMTP_FROM_NAME: " . MSG91_SMTP_FROM_NAME . "\n";
 }
 
-// Check PHPMailer availability
-// Using root vendor folder
-$phpmailerPath = __DIR__ . '/../../vendor/autoload.php';
-if (!file_exists($phpmailerPath)) {
-    echo "   ✗ PHPMailer not found at: $phpmailerPath\n";
+// Check PHPMailer availability - check root vendor first (production), then backend vendor (local)
+$rootVendor = __DIR__ . '/../../vendor/autoload.php'; // Root vendor (production - pushed to git)
+$backendVendor = __DIR__ . '/../vendor/autoload.php'; // Backend vendor (local development)
+
+$phpmailerPath = null;
+if (file_exists($rootVendor)) {
+    $phpmailerPath = $rootVendor; // Use root vendor (production)
+} elseif (file_exists($backendVendor)) {
+    $phpmailerPath = $backendVendor; // Use backend vendor (local fallback)
+}
+
+if (!$phpmailerPath) {
+    echo "   ✗ PHPMailer not found at root vendor or backend vendor\n";
+    echo "   Root vendor path: $rootVendor\n";
+    echo "   Backend vendor path: $backendVendor\n";
     echo "   Install via: composer require phpmailer/phpmailer\n";
     $configError = true;
 } else {
     require_once $phpmailerPath;
     if (class_exists('PHPMailer\PHPMailer\PHPMailer')) {
-        echo "   ✓ PHPMailer is available\n";
+        $vendorLocation = ($phpmailerPath === $rootVendor) ? 'root vendor' : 'backend vendor';
+        echo "   ✓ PHPMailer is available (from: $vendorLocation)\n";
     } else {
         echo "   ✗ PHPMailer class not found\n";
         $configError = true;
