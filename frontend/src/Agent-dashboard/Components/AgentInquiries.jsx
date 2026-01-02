@@ -984,7 +984,7 @@ const AgentInquiries = ({ onUnreadCountChange }) => {
             {safeProperties.map(property => (
               property && (
                 <option key={property.id} value={property.id}>
-                  {property.title || 'Unknown Property'}
+                  {(property.title || 'Unknown Property').toUpperCase()}
                 </option>
               )
             ))}
