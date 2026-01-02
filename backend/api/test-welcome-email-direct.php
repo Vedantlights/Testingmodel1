@@ -38,7 +38,7 @@ curl_setopt($ch, CURLOPT_POST, true);
 curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($payload));
 curl_setopt($ch, CURLOPT_HTTPHEADER, [
     'Content-Type: application/json',
-    'authkey: ' . MSG91_AUTH_KEY
+    'authkey: ' . MSG91_EMAIL_AUTH_KEY  // Correct constant for Email API
 ]);
 
 $response = curl_exec($ch);
