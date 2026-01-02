@@ -69,8 +69,13 @@ export default function AgentBuilderLandingPage() {
 
   return (
     <div className="agent-landing-page">
-      {/* Hero Section - Background handled by LandingPage.jsx */}
-      <div className="agent-hero-sections">
+      {/* Hero Section - Background image */}
+      <div 
+        className="agent-hero-sections"
+        style={{
+          backgroundImage: `url(${process.env.PUBLIC_URL}/landingpageagent.jpeg)`
+        }}
+      >
         <h1 className="agent-hero-title">Find Your Dream Home Without Any Brokerage</h1>
         <p className="agent-hero-subtitle">Browse 35,000+ verified properties. Connect directly with owners. Move in faster.</p>
         <div className="agent-cta-buttons">

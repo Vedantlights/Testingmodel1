@@ -76,8 +76,13 @@ export default function BuyerTenantLandingPage() {
 
   return (
     <div className="buyer-landing-page">
-      {/* Hero Section - Background handled by LandingPage.jsx */}
-      <div className="buy-hero-sections">
+      {/* Hero Section - Background image */}
+      <div 
+        className="buy-hero-sections"
+        style={{
+          backgroundImage: `url(${process.env.PUBLIC_URL}/LoginBuy.jpg)`
+        }}
+      >
         <h1 className="buy-hero-title">Find Your Dream Home Without Any Brokerage</h1>
         <p className="buy-hero-subtitle">Browse 35,000+ verified properties. Connect directly with owners. Move in faster.</p>
         <div className="buy-cta-buttons">

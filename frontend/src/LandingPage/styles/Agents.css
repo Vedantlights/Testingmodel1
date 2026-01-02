@@ -33,9 +33,8 @@ h2 {
   width: 100%;
 }
 
-/* Hero Section - Background image */
+/* Hero Section - Background image set via inline style */
 .agent-hero-sections {
-  background-image: url('/landingpageagent.jpeg');
   background-size: cover;
   background-position: center;
   background-repeat: no-repeat;

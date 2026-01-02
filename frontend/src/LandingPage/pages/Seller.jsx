@@ -60,8 +60,13 @@ const Seller = () => {
 
   return (
     <div className="seller-landing-page">
-     {/* Hero Section - Background handled by LandingPage.jsx */}
-      <div className="seller-hero-sections">
+     {/* Hero Section - Background image */}
+      <div 
+        className="seller-hero-sections"
+        style={{
+          backgroundImage: `url(${process.env.PUBLIC_URL}/LoginSellerr.jpg)`
+        }}
+      >
         <h1 className="seller-hero-title">Find Your Dream Home Without Any Brokerage</h1>
         <p className="seller-hero-subtitle">Browse 35,000+ verified properties. Connect directly with owners. Move in faster.</p>
         <div className="seller-cta-buttons">

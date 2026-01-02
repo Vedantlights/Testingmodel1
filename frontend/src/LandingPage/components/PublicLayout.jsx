@@ -12,11 +12,13 @@ const PublicLayout = ({ children }) => {
   const hideNavbarFooter = path === '/login' || path === '/register';
 
   // Determine background image based on route
+  // Note: Buyer, Seller, and Agent pages have backgrounds in their hero sections only
   const getBackgroundImage = () => {
     if (path === '/') return '/AboutUs.jpg';
-    if (path === '/seller' || path === '/search') return '/LoginSellerr.jpg';
-    if (path === '/buyer' || path === '/dashboard') return '/LoginBuy.jpg';
-    if (path === '/agents') return '/landingpageagent.jpeg';
+    // Removed background images for buyer, seller, and agent - they use hero section backgrounds only
+    if (path === '/seller' || path === '/search') return null;
+    if (path === '/buyer' || path === '/dashboard') return null;
+    if (path === '/agents') return null;
     if (path === '/contact') return null;
     if (path === '/about') return null;
     return null;
