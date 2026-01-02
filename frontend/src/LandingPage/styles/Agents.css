@@ -42,7 +42,6 @@ h2 {
   text-align: center;
   padding: 0 20px;
   position: relative;
-  margin-top: 8rem; /* Position below navbar */
   height: calc(100vh - 8rem); /* Exactly viewport height minus navbar */
   display: flex;
   flex-direction: column;
@@ -636,7 +635,6 @@ h2 {
 /* Mobile (≤767px) */
 @media (max-width: 767px) {
   .agent-hero-sections {
-    margin-top: 4.5rem;
     height: calc(100vh - 4.5rem);
     padding: 0 1rem;
     background-attachment: scroll; /* Better performance on mobile */
@@ -728,7 +726,6 @@ h2 {
 /* Small Mobile (≤480px) */
 @media (max-width: 480px) {
   .agent-hero-sections {
-    margin-top: 4rem;
     height: calc(100vh - 4rem);
     padding: 0 0.75rem;
   }
@@ -803,9 +800,7 @@ h2 {
 /* Extra Small Mobile (≤360px) */
 @media (max-width: 360px) {
   .agent-hero-sections {
-    margin-top: 3.75rem;
     height: calc(100vh - 3.75rem);
-    padding: 0 0.625rem;
   }
   
   section {
