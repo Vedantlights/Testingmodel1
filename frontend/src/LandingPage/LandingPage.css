@@ -25,13 +25,6 @@
   overflow-y: hidden !important; /* Allow vertical scrolling */
   margin: 0;
   padding: 0;
-  /* Background image applied via CSS variable from PublicLayout */
-  background-image: var(--landing-bg-image);
-  background-size: cover;
-  background-position: center;
-  background-repeat: no-repeat;
-  background-attachment: scroll;
-  min-height: 100vh; /* Ensure background is visible */
 }
 
 /* Responsive main-content sizing */
@@ -40,13 +33,6 @@
   .main-content {
     width: 100%;
     overflow-x: hidden;
-    /* Ensure background image remains visible */
-    background-image: var(--landing-bg-image);
-    background-size: cover;
-    background-position: center;
-    background-repeat: no-repeat;
-    background-attachment: scroll;
-    min-height: 100vh;
   }
 }
 
@@ -55,13 +41,6 @@
   .main-content {
     width: 100%;
     overflow-x: hidden;
-    /* Ensure background image remains visible on mobile */
-    background-image: var(--landing-bg-image);
-    background-size: cover;
-    background-position: center;
-    background-repeat: no-repeat;
-    background-attachment: scroll;
-    min-height: 100vh;
   }
 }
 

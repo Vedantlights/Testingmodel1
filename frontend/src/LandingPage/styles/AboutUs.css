@@ -12,8 +12,7 @@
 .about-hero {
   position: relative;
   width: 100%;
-  min-height: 500px;
-  height: 500px; /* Maintain aspect ratio while allowing content expansion */
+  height: 500px;
   background-size: cover;
   background-position: center;
   background-repeat: no-repeat;
@@ -688,8 +687,7 @@
   }
 
   .about-hero {
-    min-height: 550px;
-    height: 550px; /* Maintain aspect ratio while allowing content expansion */
+    height: 550px;
   }
 
   .about-hero-title {
@@ -713,8 +711,7 @@
   }
 
   .about-hero {
-    min-height: 500px;
-    height: 500px; /* Maintain aspect ratio while allowing content expansion */
+    height: 500px;
   }
 
   .about-hero-title {
@@ -733,8 +730,7 @@
 /* Tablet (768px - 1023px) */
 @media (min-width: 768px) and (max-width: 1023px) {
   .about-hero {
-    min-height: 400px;
-    height: 400px; /* Maintain aspect ratio while allowing content expansion */
+    height: 400px;
   }
 
   .about-hero-title {
@@ -812,8 +808,7 @@
 /* Mobile (≤767px) */
 @media (max-width: 767px) {
   .about-hero {
-    min-height: 350px;
-    height: 350px; /* Maintain aspect ratio while allowing content expansion */
+    height: 350px;
   }
 
   .about-hero-title {
@@ -930,8 +925,7 @@
 /* Small Mobile (≤480px) */
 @media (max-width: 480px) {
   .about-hero {
-    min-height: 300px;
-    height: 300px; /* Maintain aspect ratio while allowing content expansion */
+    height: 300px;
   }
 
   .about-hero-title {
@@ -1058,8 +1052,7 @@
 /* Extra Small Mobile (≤360px) */
 @media (max-width: 360px) {
   .about-hero {
-    min-height: 280px;
-    height: 280px; /* Maintain aspect ratio while allowing content expansion */
+    height: 280px;
   }
 
   .about-hero-title {
