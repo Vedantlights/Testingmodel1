@@ -130,10 +130,6 @@ $payload = [
                     'email' => $testEmail,
                     'name' => $testName
                 ]
-            ],
-            'variables' => [
-                'name' => $testName,
-                'email' => $testEmail
             ]
         ]
     ],
