@@ -233,6 +233,7 @@ export default function AddPropertyPopup({ onClose, editIndex = null, initialDat
   const [stateAutoFilled, setStateAutoFilled] = useState(false); // Track if state was auto-filled from map
   const fileRef = useRef();
   const popupBodyRef = useRef(null);
+  const popupContainerRef = useRef(null);
 
   // Check property limit (3 properties max for free users)
   const PROPERTY_LIMIT = 3;
@@ -309,6 +310,41 @@ export default function AddPropertyPopup({ onClose, editIndex = null, initialDat
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
   }, [onClose]);
+
+  // Disable number input spinner functionality (wheel and arrow keys) ONLY within popup
+  useEffect(() => {
+    const container = popupContainerRef.current;
+    if (!container) return;
+
+    const handleWheel = (e) => {
+      // Check if the event target is a number input within the popup
+      if (e.target.type === 'number' && container.contains(e.target)) {
+        // Only prevent if the input is focused
+        if (document.activeElement === e.target) {
+          e.preventDefault();
+        }
+      }
+    };
+
+    const handleKeyDown = (e) => {
+      // Check if arrow keys are pressed on a number input within the popup
+      if (
+        (e.key === 'ArrowUp' || e.key === 'ArrowDown') &&
+        e.target.type === 'number' &&
+        container.contains(e.target)
+      ) {
+        e.preventDefault();
+      }
+    };
+
+    container.addEventListener('wheel', handleWheel, { passive: false });
+    container.addEventListener('keydown', handleKeyDown);
+
+    return () => {
+      container.removeEventListener('wheel', handleWheel);
+      container.removeEventListener('keydown', handleKeyDown);
+    };
+  }, []);
 
   const handleChange = (field, value) => {
     // Sanitize text inputs
@@ -2323,7 +2359,7 @@ newErrors.description = "Description is required";
 
       {/* Main Popup - Only show if limit not reached and edit notice not shown */}
       {!showLimitWarning && !showEditNoticeModal && (
-      <div className="seller-popup-container" role="dialog" aria-modal="true">
+      <div className="seller-popup-container" ref={popupContainerRef} role="dialog" aria-modal="true">
         {/* Header */}
         <div className="seller-popup-header">
           <h2>{editIndex !== null ? 'Edit Property' : 'List Your Property'}</h2>
