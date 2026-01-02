@@ -298,6 +298,21 @@
   color: var(--text-muted);
 }
 
+/* ======================= */
+/* NUMBER INPUT SPIN BUTTONS REMOVAL */
+/* ======================= */
+/* Remove browser default number input spin buttons ONLY within Add Property popup */
+.seller-popup-container input[type="number"] {
+  -moz-appearance: textfield; /* Firefox */
+  appearance: textfield; /* Standard property for compatibility */
+}
+
+.seller-popup-container input[type="number"]::-webkit-inner-spin-button,
+.seller-popup-container input[type="number"]::-webkit-outer-spin-button {
+  -webkit-appearance: none; /* Chrome, Safari, Edge */
+  margin: 0; /* Remove any margin */
+}
+
 .seller-popup-error-text {
   display: block;
   font-size: 0.8rem;
