@@ -750,8 +750,11 @@
   }
 
   .about-story-content {
-    grid-template-columns: 1fr;
-    gap: 40px;
+    display: grid;
+    grid-template-columns: 1fr;   /* stack content vertically */
+    grid-template-rows: 1fr 1fr; 
+    gap: 40px;                    /* reduced gap for small screens */
+    align-items: stretch;
   }
 
   .about-story-text {
@@ -839,6 +842,14 @@
 
   .mission-vision-card {
     padding: 30px;
+  }
+
+  .about-story-content {
+    display: grid;
+    grid-template-columns: 1fr;   /* stack content vertically */
+    grid-template-rows: 1fr 1fr; 
+    gap: 40px;                    /* reduced gap for small screens */
+    align-items: stretch;
   }
 
   .values-grid {
@@ -968,6 +979,14 @@
     padding: 0 0.75rem;
   }
 
+  .about-story-content {
+    display: grid;
+    grid-template-columns: 1fr;   /* stack content vertically */
+    grid-template-rows: 1fr 1fr; 
+    gap: 40px;                    /* reduced gap for small screens */
+    align-items: stretch;
+  }
+
   .mission-vision-card {
     padding: 24px;
   }
@@ -1065,6 +1084,14 @@
 
   .about-container {
     padding: 0 0.625rem;
+  }
+
+  .about-story-content {
+    display: grid;
+    grid-template-columns: 1fr;   /* stack content vertically */
+    grid-template-rows: 1fr 1fr; 
+    gap: 40px;                    /* reduced gap for small screens */
+    align-items: stretch;
   }
 
   .about-story,
