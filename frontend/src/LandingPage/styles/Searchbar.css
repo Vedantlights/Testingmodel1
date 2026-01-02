@@ -370,7 +370,7 @@
 
 .search-inputs {
   display: grid;
- 
+  grid-template-columns: repeat(4, 1fr);
   gap: 1.5rem;
   margin-bottom: 2.5rem;
   padding-bottom: 1rem;
@@ -692,7 +692,7 @@
 /* Tablet (736px - 1023px) */
 @media (min-width: 736px) and (max-width: 1023px) {
   .search-inputs {
-    grid-template-columns: repeat(2, 1fr);
+   
     gap: 1.25rem;
   }
 
