@@ -1948,3 +1948,46 @@
 .location-picker-btn svg {
   stroke: white;
 }
+
+/* ======================= */
+/* LOCATION PICKER MODAL DROPDOWN FIX */
+/* ======================= */
+/* Fix for location-dropdown being clipped inside location-picker-modal-content */
+/* Ensure dropdowns can escape modal content bounds - Seller Dashboard only */
+
+/* Ensure modal overlay allows dropdown overflow */
+.location-picker-modal-overlay {
+  overflow: visible !important;
+}
+
+/* Ensure the search section allows dropdown overflow */
+.location-picker-search-section {
+  position: relative;
+  overflow: visible !important;
+  z-index: 1;
+}
+
+/* Ensure search box container allows overflow */
+.location-picker-modal-content .search-box {
+  position: relative;
+  overflow: visible !important;
+}
+
+/* Ensure dropdown containers have proper z-index and positioning */
+.location-picker-modal-content .location-autosuggest,
+.location-picker-modal-content .state-autosuggest {
+  position: relative;
+  z-index: 10001 !important; /* Higher than modal z-index (2100) */
+  isolation: isolate;
+}
+
+/* Ensure dropdowns render above modal content */
+/* Note: Modal content has overflow-y: auto which clips absolute positioned children */
+/* Solution: Use very high z-index and ensure parent containers allow overflow */
+.location-picker-modal-content .location-dropdown,
+.location-picker-modal-content .state-dropdown {
+  z-index: 10002 !important; /* Even higher to ensure visibility above modal */
+  position: absolute !important; /* Keep absolute for proper alignment */
+  /* Parent containers (search-section, search-box) have overflow: visible */
+  /* This allows dropdown to escape modal content bounds */
+}
