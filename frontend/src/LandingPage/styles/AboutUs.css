@@ -1088,3 +1088,12 @@
   }
 }
 
+@media (max-width: 780px) {
+  .about-story-content {
+    display: grid;
+    grid-template-columns: 1fr;   /* stack content vertically */
+    grid-template-rows: 1fr 1fr; 
+    gap: 40px;                    /* reduced gap for small screens */
+    align-items: stretch;
+  }
+}

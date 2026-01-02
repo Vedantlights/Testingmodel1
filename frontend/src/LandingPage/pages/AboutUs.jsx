@@ -285,10 +285,10 @@ const AboutUs = () => {
               Join thousands of satisfied customers who found their perfect property through IndiaPropertys
             </p>
             <div className="cta-buttons">
-              <Link to="/buy" className="cta-button cta-primary">
+              <Link to="/login" className="cta-button cta-primary">
                 Start Searching
               </Link>
-              <Link to="/BuyerContactPage" className="cta-button cta-secondary">
+              <Link to="/login" className="cta-button cta-secondary">
                 Contact Us
               </Link>
             </div>
