@@ -58,7 +58,7 @@ function sendWelcomeEmailViaSMTP($userId, $name, $email) {
         $mail->SMTPSecure = \PHPMailer\PHPMailer\PHPMailer::ENCRYPTION_STARTTLS;
         $mail->Port = MSG91_SMTP_PORT;
         $mail->CharSet = 'UTF-8';
-        $mail->SMTPDebug = 0; // Set to 2 for debugging
+        $mail->SMTPDebug = 0; // Set to 2 for debugging (logs to error_log)
         $mail->SMTPOptions = array(
             'ssl' => array(
                 'verify_peer' => false,
@@ -100,9 +100,13 @@ function sendWelcomeEmailViaSMTP($userId, $name, $email) {
         return true;
         
     } catch (\PHPMailer\PHPMailer\Exception $e) {
-        // Email sending failed
-        $errorMessage = "PHPMailer Error: " . $mail->ErrorInfo;
-        error_log("sendWelcomeEmailViaSMTP: Failed to send welcome email to: $email (User ID: $userId) - " . $errorMessage);
+        // Email sending failed - capture detailed error
+        $errorInfo = isset($mail) ? $mail->ErrorInfo : 'PHPMailer error info not available';
+        $exceptionMessage = $e->getMessage();
+        $errorMessage = "PHPMailer Error: $errorInfo | Exception: $exceptionMessage";
+        
+        error_log("sendWelcomeEmailViaSMTP: Failed to send welcome email to: $email (User ID: $userId)");
+        error_log("sendWelcomeEmailViaSMTP: Error Details - $errorMessage");
         
         // Update database status
         try {
@@ -110,7 +114,7 @@ function sendWelcomeEmailViaSMTP($userId, $name, $email) {
             $stmt = $db->prepare("UPDATE users SET email_status = 'FAILED' WHERE id = ?");
             $stmt->execute([$userId]);
             
-            // Log to email_logs
+            // Log to email_logs with full error details
             $stmt = $db->prepare("INSERT INTO email_logs (user_id, email_type, status, error_message) VALUES (?, 'welcome', 'FAILED', ?)");
             $stmt->execute([$userId, $errorMessage]);
         } catch (Exception $dbError) {
@@ -120,7 +124,7 @@ function sendWelcomeEmailViaSMTP($userId, $name, $email) {
         return false;
     } catch (Exception $e) {
         // General exception
-        $errorMessage = "Exception: " . $e->getMessage();
+        $errorMessage = "Exception: " . $e->getMessage() . " | File: " . $e->getFile() . " | Line: " . $e->getLine();
         error_log("sendWelcomeEmailViaSMTP: Exception - Failed to send welcome email to: $email (User ID: $userId) - " . $errorMessage);
         
         // Update database status
@@ -132,7 +136,7 @@ function sendWelcomeEmailViaSMTP($userId, $name, $email) {
             $stmt = $db->prepare("INSERT INTO email_logs (user_id, email_type, status, error_message) VALUES (?, 'welcome', 'FAILED', ?)");
             $stmt->execute([$userId, $errorMessage]);
         } catch (Exception $dbError) {
-            // Ignore DB errors
+            error_log("sendWelcomeEmailViaSMTP: Database update error: " . $dbError->getMessage());
         }
         
         return false;
