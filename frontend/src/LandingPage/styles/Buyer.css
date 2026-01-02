@@ -33,9 +33,13 @@ h2 {
   width: 100%;
 }
 
-/* Hero Section - Background handled by LandingPage.jsx */
+/* Hero Section - Background image */
 .buy-hero-sections {
-  background: transparent; /* Let parent background show through */
+  background-image: url('/LoginBuy.jpg');
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  background-attachment: fixed;
   color: rgb(255, 251, 251);
   text-align: center;
   padding: 0 20px;
@@ -50,6 +54,23 @@ h2 {
   overflow: hidden;
   box-sizing: border-box;
   z-index: 2; /* Above background image */
+}
+
+/* Overlay for better text readability */
+.buy-hero-sections::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.4); /* Dark overlay with 40% opacity */
+  z-index: 1;
+}
+
+.buy-hero-sections > * {
+  position: relative;
+  z-index: 2;
 }
 
 /* Overlay for better text readability */
@@ -740,6 +761,7 @@ h2 {
     margin-top: 4.5rem;
     height: calc(100vh - 4.5rem);
     padding: 0 1rem;
+    background-attachment: scroll; /* Better performance on mobile */
   }
 
   section {
