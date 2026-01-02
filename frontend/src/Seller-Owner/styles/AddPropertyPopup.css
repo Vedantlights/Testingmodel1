@@ -343,9 +343,14 @@
 }
 
 /* Form Rows */
+/* CRITICAL FIX: Match Agent Dashboard to prevent stacking context issues */
 .form-row {
   display: grid;
   gap: 1rem;
+  position: relative !important; /* Establish positioning context */
+  z-index: 0 !important; /* Very low z-index to stay below dropdowns */
+  overflow: visible !important; /* Allow dropdowns to overflow */
+  isolation: auto !important; /* Don't create stacking context */
 }
 
 .form-row.two-cols {
@@ -354,6 +359,7 @@
 
 .form-row.three-cols {
   grid-template-columns: repeat(3, 1fr);
+  z-index: 0 !important; /* Ensure three-cols also stays below dropdowns */
 }
 
 /* Input with Icon */
