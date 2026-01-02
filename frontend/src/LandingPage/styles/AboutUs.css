@@ -14,7 +14,7 @@
   width: 100%;
   min-height: 500px;
   height: 500px; /* Maintain aspect ratio while allowing content expansion */
-  background-size: contain; /* Show full image in first viewport */
+  background-size: cover;
   background-position: center;
   background-repeat: no-repeat;
   display: flex;
