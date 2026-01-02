@@ -911,7 +911,7 @@ const SellerInquiries = ({ onUnreadCountChange }) => {
             <option value="all">All Properties</option>
             {properties.map(property => (
               <option key={property.id} value={property.id}>
-                {property.title}
+                {(property.title || '').toUpperCase()}
               </option>
             ))}
           </select>
