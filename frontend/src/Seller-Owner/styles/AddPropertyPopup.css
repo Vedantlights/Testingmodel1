@@ -1974,21 +1974,22 @@
  * containers allow overflow, enabling dropdown to escape modal bounds.
  */
 
-/* FIX A: Remove overflow clipping from modal content - CRITICAL ROOT CAUSE FIX */
-/* This is the primary fix - removing overflow-y: auto allows dropdown to escape */
+/* FIX A: Responsive modal content - fits within viewport without scrolling */
+/* Content uses flexbox to distribute space, no internal scrolling */
+/* Height handled responsively in LocationPicker.css to account for overlay padding */
 .location-picker-modal-content {
-  overflow: visible !important; /* CRITICAL: Remove clipping to allow dropdown escape */
+  overflow: hidden !important; /* No internal scrolling - content fits viewport */
   position: relative !important; /* Maintain positioning context */
   display: flex !important;
   flex-direction: column !important;
-  max-height: 90vh !important; /* Still limit modal height */
-  /* Note: Scrolling handled by viewport if content exceeds height */
-  /* Modal structure (flexbox with flex-shrink: 0 children) should fit within 90vh */
+  /* Height and max-height handled by LocationPicker.css with proper padding calculations */
+  /* This ensures consistent behavior across Agent and Seller dashboards */
 }
 
-/* FIX B: Ensure modal overlay allows overflow */
+/* FIX B: Ensure modal overlay allows overflow for dropdowns */
 .location-picker-modal-overlay {
   overflow: visible !important; /* Allow dropdown to escape overlay bounds */
+  /* Overlay padding handled responsively in LocationPicker.css */
 }
 
 /* FIX C: Ensure search section allows overflow */
@@ -2032,11 +2033,10 @@
   position: relative !important; /* Maintain positioning */
 }
 
-/* FIX H: Map section maintains its own overflow handling */
+/* FIX H: Map section adapts to available space responsively */
 .location-picker-map {
-  flex: 1 !important;
+  flex: 1 1 auto !important; /* Take available space, shrink if needed */
   overflow: hidden !important; /* Map handles its own overflow */
-  min-height: 400px !important;
-  max-height: 500px !important;
-  flex-shrink: 0 !important;
+  min-height: 0 !important; /* Allow flexbox to shrink below content size */
+  /* Height adapts responsively - see LocationPicker.css for breakpoints */
 }
