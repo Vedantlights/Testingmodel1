@@ -4,34 +4,16 @@
 /* OVERLAY & CONTAINER     */
 /* ======================= */
 
-:root{
-  --radius-sm:8px;
-  --radius-md:12px;
-  --radius-lg:16px;
-  --radius-xl:20px;
-  --border-color:#e9e9f0;
-  --text-primary:#0f1724;
-  --text-secondary:#4b5563;
-  --text-muted:#6b7280;
-  --accent-color:#7c3aed;
-  --accent-gradient: linear-gradient(135deg,#7c3aed,#6d28d9);
-  --success-color:#10b981;
-  --danger-color:#ef4444;
-  --bg-primary:#f3f4f6;
-  --transition-fast:150ms;
-  --transition-normal:300ms;
-  --shadow-xl: 0 18px 60px rgba(0,0,0,0.12);
-}
-
 .seller-popup-overlay {
   position: fixed;
   inset: 0;
   background: rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(4px);
   display: flex;
   align-items: flex-start;
   justify-content: center;
   padding: 2rem;
-  z-index: 1;
+  z-index: 2000;
   overflow-y: auto;
   animation: fadeIn 0.2s ease;
 }
@@ -43,7 +25,7 @@
 
 .seller-popup-container {
   width: 100%;
-  max-width: 900px;
+  max-width: 800px;
   background: white;
   border-radius: var(--radius-xl);
   box-shadow: var(--shadow-xl);
@@ -51,9 +33,6 @@
   flex-direction: column;
   max-height: calc(100vh - 4rem);
   animation: slideUp 0.3s ease;
-  position: relative;
-  z-index: 1; /* Above overlay */
-  overflow: visible; /* Allow dropdowns to overflow */
 }
 
 @keyframes slideUp {
@@ -205,16 +184,11 @@
 .seller-popup-body {
   flex: 1;
   overflow-y: auto;
-  overflow-x: visible; /* Allow dropdowns to overflow horizontally */
   padding: 2rem;
 }
 
 .seller-popup-step-content {
   animation: fadeInUp 0.3s ease;
-  overflow: visible !important; /* Allow dropdowns to overflow */
-  position: relative; /* Establish positioning context for dropdowns */
-  z-index: 0; /* Lower than dropdowns */
-  isolation: auto; /* Don't create stacking context */
 }
 
 @keyframes fadeInUp {
@@ -1178,42 +1152,6 @@
 /* RESPONSIVE              */
 /* ======================= */
 
-/* Large Desktop (≥1440px) - Default styles apply */
-
-/* Laptop (1024px – 1439px) */
-@media (max-width: 1439px) {
-  .seller-popup-container {
-    max-width: 850px;
-  }
-
-  .seller-popup-header,
-  .seller-popup-body,
-  .seller-popup-footer {
-    padding: 1.5rem 1.75rem;
-  }
-
-  .seller-popup-step-indicator {
-    padding: 1.5rem 1.75rem;
-  }
-
-  .media-upload-row {
-    grid-template-columns: repeat(3, 1fr);
-    gap: 0.875rem;
-  }
-
-  .image-preview-grid {
-    grid-template-columns: repeat(5, 1fr);
-  }
-
-  .seller-popup-property-type-grid {
-    grid-template-columns: repeat(4, 1fr);
-  }
-
-  .seller-popup-amenities-grid {
-    grid-template-columns: repeat(4, 1fr);
-  }
-}
-
 /* Tablet (768px – 1023px) */
 @media (max-width: 1023px) {
   .seller-popup-overlay {
@@ -1221,7 +1159,7 @@
   }
 
   .seller-popup-container {
-    max-width: 100%;
+    max-width: 90%;
     max-height: calc(100vh - 3rem);
   }
 
@@ -1288,9 +1226,10 @@
   }
 
   .seller-popup-container {
+    max-width: 100%;
     max-height: 100vh;
     border-radius: 0;
-    max-width: 100%;
+    height: 100vh;
   }
 
   .seller-popup-header {
