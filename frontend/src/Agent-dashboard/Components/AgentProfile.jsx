@@ -13,7 +13,14 @@ const AgentProfile = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [uploadingImage, setUploadingImage] = useState(false);
+  const [showImageMenu, setShowImageMenu] = useState(false);
+  const [showCameraModal, setShowCameraModal] = useState(false);
+  const [capturedImage, setCapturedImage] = useState(null);
+  const [cameraFacingMode, setCameraFacingMode] = useState('environment'); // 'environment' (rear) or 'user' (front)
   const fileInputRef = useRef(null);
+  const videoRef = useRef(null);
+  const streamRef = useRef(null);
+  const imageMenuRef = useRef(null);
 
   const [formData, setFormData] = useState({
     firstName: '',
@@ -216,8 +223,177 @@ const AgentProfile = () => {
     }
   };
 
-  const handleImageUpload = async (e) => {
-    const file = e.target.files?.[0];
+  const handleImageSelect = () => {
+    setShowImageMenu(false);
+    fileInputRef.current?.click();
+  };
+
+  // Handle camera capture - Open camera modal
+  const handleCameraCapture = async () => {
+    setShowImageMenu(false);
+    
+    try {
+      // Check if MediaDevices API is available
+      if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+        alert('Camera is not supported on this device. Please use gallery upload instead.');
+        return;
+      }
+
+      // Request camera access - default to back camera on mobile
+      const constraints = {
+        video: {
+          facingMode: { exact: 'environment' }, // Try exact back camera first
+          width: { ideal: 1920 },
+          height: { ideal: 1080 }
+        }
+      };
+
+      let stream;
+      try {
+        stream = await navigator.mediaDevices.getUserMedia(constraints);
+      } catch (exactError) {
+        // If exact back camera fails, fallback to any environment camera
+        try {
+          stream = await navigator.mediaDevices.getUserMedia({
+            video: {
+              facingMode: 'environment',
+              width: { ideal: 1920 },
+              height: { ideal: 1080 }
+            }
+          });
+        } catch (fallbackError) {
+          // If environment fails, try any available camera
+          stream = await navigator.mediaDevices.getUserMedia({
+            video: {
+              width: { ideal: 1920 },
+              height: { ideal: 1080 }
+            }
+          });
+        }
+      }
+      
+      streamRef.current = stream;
+      setCameraFacingMode('environment'); // Reset to back camera
+      setShowCameraModal(true);
+      
+      // Set video stream when modal opens
+      setTimeout(() => {
+        if (videoRef.current && stream) {
+          videoRef.current.srcObject = stream;
+          videoRef.current.play();
+        }
+      }, 100);
+    } catch (error) {
+      console.error('Error accessing camera:', error);
+      if (error.name === 'NotAllowedError' || error.name === 'PermissionDeniedError') {
+        alert('Camera permission denied. Please allow camera access and try again.');
+      } else if (error.name === 'NotFoundError' || error.name === 'DevicesNotFoundError') {
+        alert('No camera found on this device. Please use gallery upload instead.');
+      } else {
+        alert('Failed to access camera. Please try again or use gallery upload.');
+      }
+    }
+  };
+
+  // Flip camera between front and back
+  const flipCamera = async () => {
+    const newFacingMode = cameraFacingMode === 'environment' ? 'user' : 'environment';
+    
+    // Stop current stream
+    if (streamRef.current) {
+      streamRef.current.getTracks().forEach(track => track.stop());
+      streamRef.current = null;
+    }
+
+    // Start new stream with flipped camera
+    try {
+      const constraints = {
+        video: {
+          facingMode: { exact: newFacingMode },
+          width: { ideal: 1920 },
+          height: { ideal: 1080 }
+        }
+      };
+
+      let stream;
+      try {
+        stream = await navigator.mediaDevices.getUserMedia(constraints);
+      } catch (exactError) {
+        // Fallback to non-exact facingMode
+        stream = await navigator.mediaDevices.getUserMedia({
+          video: {
+            facingMode: newFacingMode,
+            width: { ideal: 1920 },
+            height: { ideal: 1080 }
+          }
+        });
+      }
+
+      setCameraFacingMode(newFacingMode);
+      streamRef.current = stream;
+
+      if (videoRef.current) {
+        videoRef.current.srcObject = stream;
+        videoRef.current.play();
+      }
+    } catch (error) {
+      console.error('Error flipping camera:', error);
+      alert('Failed to switch camera. Please try again.');
+    }
+  };
+
+  // Capture photo from camera
+  const capturePhoto = () => {
+    if (videoRef.current) {
+      const video = videoRef.current;
+      const canvas = document.createElement('canvas');
+      canvas.width = video.videoWidth;
+      canvas.height = video.videoHeight;
+      const ctx = canvas.getContext('2d');
+      ctx.drawImage(video, 0, 0);
+      
+      // Convert to blob
+      canvas.toBlob((blob) => {
+        if (blob) {
+          // Create a File object from blob
+          const file = new File([blob], 'camera-photo.jpg', { type: 'image/jpeg' });
+          setCapturedImage(file);
+        }
+      }, 'image/jpeg', 0.9);
+    }
+  };
+
+  // Use captured photo
+  const useCapturedPhoto = () => {
+    if (capturedImage) {
+      uploadProfileImage(capturedImage);
+      closeCameraModal();
+    }
+  };
+
+  // Retake photo
+  const retakePhoto = () => {
+    setCapturedImage(null);
+  };
+
+  // Close camera modal and stop stream
+  const closeCameraModal = () => {
+    // Stop video stream
+    if (streamRef.current) {
+      streamRef.current.getTracks().forEach(track => track.stop());
+      streamRef.current = null;
+    }
+    
+    // Clear video source
+    if (videoRef.current) {
+      videoRef.current.srcObject = null;
+    }
+    
+    setShowCameraModal(false);
+    setCapturedImage(null);
+  };
+
+  const uploadProfileImage = async (file) => {
     if (!file) return;
 
     // Basic file validation
@@ -232,6 +408,7 @@ const AgentProfile = () => {
     }
 
     setUploadingImage(true);
+    setShowImageMenu(false);
 
     try {
       // Upload image to backend
@@ -269,6 +446,42 @@ const AgentProfile = () => {
     }
   };
 
+  const handleImageUpload = async (e) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      uploadProfileImage(file);
+    }
+  };
+
+  // Close image menu when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (showImageMenu && imageMenuRef.current && !imageMenuRef.current.contains(event.target)) {
+        setShowImageMenu(false);
+      }
+    };
+    
+    document.addEventListener('mousedown', handleClickOutside);
+    document.addEventListener('click', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+      document.removeEventListener('click', handleClickOutside);
+    };
+  }, [showImageMenu]);
+
+  // Cleanup camera stream on unmount
+  useEffect(() => {
+    return () => {
+      if (streamRef.current) {
+        streamRef.current.getTracks().forEach(track => track.stop());
+        streamRef.current = null;
+      }
+      if (videoRef.current) {
+        videoRef.current.srcObject = null;
+      }
+    };
+  }, []);
+
   const tabs = [
     { id: 'personal', label: 'Personal Info' },
     { id: 'business', label: 'Business Info' }
@@ -299,7 +512,7 @@ const AgentProfile = () => {
 
           <div className="profile-avatar-section">
 
-            <div className="avatar-wrapper">
+            <div className="avatar-wrapper" ref={imageMenuRef}>
               {formData.profileImage && !imageError ? (
                 <img
                   src={formData.profileImage}
@@ -319,19 +532,53 @@ const AgentProfile = () => {
                 ref={fileInputRef}
                 type="file"
                 id="profileImageInput"
-                accept="image/*"
+                accept="image/jpeg,image/jpg,image/png,image/webp"
                 style={{ display: "none" }}
                 onChange={handleImageUpload}
               />
 
-              <button
-                className="avatar-edit-btn"
-                onClick={() => fileInputRef.current?.click()}
-                disabled={uploadingImage}
-                title={uploadingImage ? 'Uploading...' : 'Change profile picture'}
-              >
-                {uploadingImage ? '⏳' : '📸'}
-              </button>
+              <div className="avatar-upload-wrapper">
+                <button
+                  className="avatar-edit-btn"
+                  onClick={() => setShowImageMenu(!showImageMenu)}
+                  disabled={uploadingImage}
+                  title={uploadingImage ? 'Uploading...' : 'Change profile picture'}
+                >
+                  {uploadingImage ? (
+                    <div className="spinner-small"></div>
+                  ) : (
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+                      <path d="M23 19a2 2 0 01-2 2H3a2 2 0 01-2-2V8a2 2 0 012-2h4l2-3h6l2 3h4a2 2 0 012 2z" stroke="currentColor" strokeWidth="2"/>
+                      <circle cx="12" cy="13" r="4" stroke="currentColor" strokeWidth="2"/>
+                    </svg>
+                  )}
+                </button>
+                
+                {/* Dropdown menu */}
+                {showImageMenu && !uploadingImage && (
+                  <div className="image-upload-menu">
+                    <button 
+                      onClick={handleImageSelect}
+                      className="upload-menu-item"
+                    >
+                      <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+                        <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M17 8l-5-5-5 5M12 3v12" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                      </svg>
+                      <span>Upload from Device</span>
+                    </button>
+                    <button 
+                      onClick={handleCameraCapture}
+                      className="upload-menu-item"
+                    >
+                      <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+                        <path d="M23 19a2 2 0 01-2 2H3a2 2 0 01-2-2V8a2 2 0 012-2h4l2-3h6l2 3h4a2 2 0 012 2z" stroke="currentColor" strokeWidth="2"/>
+                        <circle cx="12" cy="13" r="4" stroke="currentColor" strokeWidth="2"/>
+                      </svg>
+                      <span>Take Photo</span>
+                    </button>
+                  </div>
+                )}
+              </div>
             </div>
 
             <h2>{formData.firstName} {formData.lastName}</h2>
@@ -578,6 +825,106 @@ const AgentProfile = () => {
           </div>
         </div>
       </div>
+
+      {/* Camera Modal */}
+      {showCameraModal && (
+        <div className="camera-modal-overlay" onClick={closeCameraModal}>
+          <div className="camera-modal" onClick={(e) => e.stopPropagation()}>
+            <div className="camera-modal-header">
+              <h3>Take Photo</h3>
+              <button 
+                className="camera-close-btn"
+                onClick={closeCameraModal}
+                aria-label="Close camera"
+              >
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+                  <path d="M18 6L6 18M6 6l12 12" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+                </svg>
+              </button>
+            </div>
+            
+            <div className="camera-content">
+              {!capturedImage ? (
+                <>
+                  <video
+                    ref={videoRef}
+                    autoPlay
+                    playsInline
+                    muted
+                    className="camera-video"
+                  />
+                  <div className="camera-controls">
+                    <button 
+                      className="camera-flip-btn"
+                      onClick={flipCamera}
+                      aria-label="Flip camera"
+                      title="Flip camera"
+                    >
+                      <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+                        <path d="M17 1l4 4-4 4M21 5H11M7 23l-4-4 4-4M3 19h10" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                        <path d="M12 12a3 3 0 11-6 0 3 3 0 016 0z" stroke="currentColor" strokeWidth="2"/>
+                      </svg>
+                    </button>
+                    <button 
+                      className="camera-capture-btn"
+                      onClick={capturePhoto}
+                      aria-label="Capture photo"
+                    >
+                      <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+                        <circle cx="12" cy="12" r="10" stroke="white" strokeWidth="2"/>
+                        <circle cx="12" cy="12" r="4" fill="white"/>
+                      </svg>
+                    </button>
+                    <button 
+                      className="camera-cancel-btn"
+                      onClick={closeCameraModal}
+                      aria-label="Cancel"
+                    >
+                      Cancel
+                    </button>
+                  </div>
+                </>
+              ) : (
+                <>
+                  <img 
+                    src={URL.createObjectURL(capturedImage)} 
+                    alt="Captured" 
+                    className="camera-preview"
+                  />
+                  <div className="camera-preview-controls">
+                    <button 
+                      className="camera-retake-btn"
+                      onClick={retakePhoto}
+                    >
+                      <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+                        <path d="M1 4v6h6M23 20v-6h-6" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+                        <path d="M3.51 9a9 9 0 0114.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0020.49 15" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+                      </svg>
+                      Retake
+                    </button>
+                    <button 
+                      className="camera-use-btn"
+                      onClick={useCapturedPhoto}
+                      disabled={uploadingImage}
+                    >
+                      {uploadingImage ? (
+                        <div className="spinner-small"></div>
+                      ) : (
+                        <>
+                          <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+                            <path d="M20 6L9 17l-5-5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                          </svg>
+                          Use Photo
+                        </>
+                      )}
+                    </button>
+                  </div>
+                </>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

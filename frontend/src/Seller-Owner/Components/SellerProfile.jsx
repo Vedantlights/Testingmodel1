@@ -28,6 +28,7 @@ const SellerProfile = () => {
   const [showImageMenu, setShowImageMenu] = useState(false);
   const [showCameraModal, setShowCameraModal] = useState(false);
   const [capturedImage, setCapturedImage] = useState(null);
+  const [cameraFacingMode, setCameraFacingMode] = useState('environment'); // 'environment' (rear) or 'user' (front)
   const fileInputRef = useRef(null);
   const cameraInputRef = useRef(null);
   const videoRef = useRef(null);
@@ -300,31 +301,112 @@ const SellerProfile = () => {
     setShowImageMenu(false);
     
     try {
-      // Request camera access
-      const stream = await navigator.mediaDevices.getUserMedia({ 
-        video: { 
-          facingMode: 'environment' // Use back camera by default, fallback to front
-        } 
-      });
+      // Check if MediaDevices API is available
+      if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+        alert('Camera is not supported on this device. Please use gallery upload instead.');
+        return;
+      }
+
+      // Request camera access - default to back camera on mobile
+      const constraints = {
+        video: {
+          facingMode: { exact: 'environment' }, // Try exact back camera first
+          width: { ideal: 1920 },
+          height: { ideal: 1080 }
+        }
+      };
+
+      let stream;
+      try {
+        stream = await navigator.mediaDevices.getUserMedia(constraints);
+      } catch (exactError) {
+        // If exact back camera fails, fallback to any environment camera
+        try {
+          stream = await navigator.mediaDevices.getUserMedia({
+            video: {
+              facingMode: 'environment',
+              width: { ideal: 1920 },
+              height: { ideal: 1080 }
+            }
+          });
+        } catch (fallbackError) {
+          // If environment fails, try any available camera
+          stream = await navigator.mediaDevices.getUserMedia({
+            video: {
+              width: { ideal: 1920 },
+              height: { ideal: 1080 }
+            }
+          });
+        }
+      }
       
       streamRef.current = stream;
+      setCameraFacingMode('environment'); // Reset to back camera
       setShowCameraModal(true);
       
       // Set video stream when modal opens
       setTimeout(() => {
         if (videoRef.current && stream) {
           videoRef.current.srcObject = stream;
+          videoRef.current.play();
         }
       }, 100);
     } catch (error) {
       console.error('Error accessing camera:', error);
       if (error.name === 'NotAllowedError' || error.name === 'PermissionDeniedError') {
-        alert('Camera access denied. Please allow camera permission in your browser settings.');
+        alert('Camera permission denied. Please allow camera access and try again.');
       } else if (error.name === 'NotFoundError' || error.name === 'DevicesNotFoundError') {
-        alert('No camera found on this device.');
+        alert('No camera found on this device. Please use gallery upload instead.');
       } else {
-        alert('Unable to access camera. Please try using "Upload from Device" instead.');
+        alert('Failed to access camera. Please try again or use gallery upload.');
       }
+    }
+  };
+
+  // Flip camera between front and back
+  const flipCamera = async () => {
+    const newFacingMode = cameraFacingMode === 'environment' ? 'user' : 'environment';
+    
+    // Stop current stream
+    if (streamRef.current) {
+      streamRef.current.getTracks().forEach(track => track.stop());
+      streamRef.current = null;
+    }
+
+    // Start new stream with flipped camera
+    try {
+      const constraints = {
+        video: {
+          facingMode: { exact: newFacingMode },
+          width: { ideal: 1920 },
+          height: { ideal: 1080 }
+        }
+      };
+
+      let stream;
+      try {
+        stream = await navigator.mediaDevices.getUserMedia(constraints);
+      } catch (exactError) {
+        // Fallback to non-exact facingMode
+        stream = await navigator.mediaDevices.getUserMedia({
+          video: {
+            facingMode: newFacingMode,
+            width: { ideal: 1920 },
+            height: { ideal: 1080 }
+          }
+        });
+      }
+
+      setCameraFacingMode(newFacingMode);
+      streamRef.current = stream;
+
+      if (videoRef.current) {
+        videoRef.current.srcObject = stream;
+        videoRef.current.play();
+      }
+    } catch (error) {
+      console.error('Error flipping camera:', error);
+      alert('Failed to switch camera. Please try again.');
     }
   };
 
@@ -1013,9 +1095,21 @@ const SellerProfile = () => {
                     ref={videoRef}
                     autoPlay
                     playsInline
+                    muted
                     className="seller-camera-video"
                   />
                   <div className="seller-camera-controls">
+                    <button 
+                      className="seller-camera-flip-btn"
+                      onClick={flipCamera}
+                      aria-label="Flip camera"
+                      title="Flip camera"
+                    >
+                      <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+                        <path d="M17 1l4 4-4 4M21 5H11M7 23l-4-4 4-4M3 19h10" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                        <path d="M12 12a3 3 0 11-6 0 3 3 0 016 0z" stroke="currentColor" strokeWidth="2"/>
+                      </svg>
+                    </button>
                     <button 
                       className="seller-camera-capture-btn"
                       onClick={capturePhoto}
@@ -1025,6 +1119,13 @@ const SellerProfile = () => {
                         <circle cx="12" cy="12" r="10" stroke="white" strokeWidth="2"/>
                         <circle cx="12" cy="12" r="4" fill="white"/>
                       </svg>
+                    </button>
+                    <button 
+                      className="seller-camera-cancel-btn"
+                      onClick={closeCameraModal}
+                      aria-label="Cancel"
+                    >
+                      Cancel
                     </button>
                   </div>
                 </>
