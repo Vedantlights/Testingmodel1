@@ -46,7 +46,8 @@ header('Content-Type: text/html; charset=utf-8');
         <h2>2. PHPMailer Status</h2>
         <div class="info-box">
             <?php
-            $phpmailerPath = __DIR__ . '/../vendor/autoload.php';
+            // Using root vendor folder
+            $phpmailerPath = __DIR__ . '/../../vendor/autoload.php';
             if (file_exists($phpmailerPath)) {
                 require_once $phpmailerPath;
                 if (class_exists('PHPMailer\PHPMailer\PHPMailer')) {

@@ -9,7 +9,8 @@ require_once __DIR__ . '/../config/database.php';
 require_once __DIR__ . '/../utils/welcome_email_template.php';
 
 // Check if PHPMailer is available
-$phpmailerPath = __DIR__ . '/../vendor/autoload.php';
+// Using root vendor folder
+$phpmailerPath = __DIR__ . '/../../vendor/autoload.php';
 if (file_exists($phpmailerPath)) {
     require_once $phpmailerPath;
 }
