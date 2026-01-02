@@ -1859,6 +1859,7 @@ newErrors.description = "Description is required";
           ref={fileRef}
           type="file"
           accept="image/*"
+          capture="environment"
           multiple
           onChange={handleImageUpload}
           style={{ display: 'none' }}

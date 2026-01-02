@@ -1629,6 +1629,7 @@ export default function AddPropertyPopup({ onClose, editIndex = null, initialDat
             ref={imagesRef}
             type="file"
             accept="image/*"
+            capture="environment"
             multiple
             onChange={handleImageUpload}
             style={{ display: 'none' }}
