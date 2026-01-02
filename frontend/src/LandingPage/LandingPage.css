@@ -27,7 +27,7 @@
   padding: 0;
   /* Background image applied via CSS variable from PublicLayout */
   background-image: var(--landing-bg-image);
-  background-size: cover;
+  background-size: contain; /* Show full image in first viewport */
   background-position: center;
   background-repeat: no-repeat;
   background-attachment: scroll;
@@ -40,9 +40,9 @@
   .main-content {
     width: 100%;
     overflow-x: hidden;
-    /* Ensure background image remains visible */
+    /* Ensure background image remains visible on mobile */
     background-image: var(--landing-bg-image);
-    background-size: cover;
+    background-size: contain; /* Show full image in first viewport */
     background-position: center;
     background-repeat: no-repeat;
     background-attachment: scroll;
@@ -57,7 +57,7 @@
     overflow-x: hidden;
     /* Ensure background image remains visible on mobile */
     background-image: var(--landing-bg-image);
-    background-size: cover;
+    background-size: contain; /* Show full image in first viewport */
     background-position: center;
     background-repeat: no-repeat;
     background-attachment: scroll;

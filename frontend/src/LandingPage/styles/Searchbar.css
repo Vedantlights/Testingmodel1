@@ -22,7 +22,7 @@
   box-sizing: border-box;
   /* Background image applied directly to container */
   background-image: var(--landing-bg-image);
-  background-size: cover;
+  background-size: contain; /* Show full image in first viewport */
   background-position: center center;
   background-repeat: no-repeat;
   background-attachment: scroll;
