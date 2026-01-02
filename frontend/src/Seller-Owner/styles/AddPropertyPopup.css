@@ -189,6 +189,10 @@
 
 .seller-popup-step-content {
   animation: fadeInUp 0.3s ease;
+  overflow: visible !important; /* Allow dropdowns to overflow */
+  position: relative; /* Establish positioning context for dropdowns */
+  z-index: 0; /* Lower than dropdowns */
+  isolation: auto; /* Don't create stacking context */
 }
 
 @keyframes fadeInUp {
@@ -213,6 +217,60 @@
   font-size: 0.95rem;
   color: var(--text-secondary);
   margin-bottom: 2rem;
+}
+
+/* ======================= */
+/* LOCATION & STATE DROPDOWNS */
+/* ======================= */
+/* Note: Location and State dropdown styles are handled by LocationAutoSuggest.css and StateAutoSuggest.css */
+/* These styles ensure proper z-index handling for popup containers */
+
+/* Ensure dropdowns appear above all form elements */
+.location-autosuggest,
+.state-autosuggest {
+  position: relative;
+  z-index: 9999 !important; /* Very high z-index to appear above everything */
+  isolation: isolate; /* Create new stacking context */
+}
+
+.location-dropdown,
+.state-dropdown {
+  z-index: 10000 !important; /* Maximum z-index to ensure dropdowns appear above everything */
+  position: absolute !important; /* Ensure absolute positioning */
+  background-color: #ffffff !important; /* Ensure white background */
+  background: #ffffff !important; /* Fallback for background-color */
+}
+
+.seller-popup-form-group {
+  position: relative;
+  overflow: visible;
+}
+
+.seller-popup-form-group .location-autosuggest,
+.seller-popup-form-group .state-autosuggest {
+  z-index: 9999 !important;
+}
+
+.seller-location-error {
+  border-color: var(--danger-color) !important;
+}
+
+.form-row {
+  display: grid;
+  gap: 1rem;
+  position: relative; /* Establish positioning context */
+  z-index: 0 !important; /* Very low z-index to stay below dropdowns */
+  overflow: visible !important; /* Allow dropdowns to overflow */
+  isolation: auto; /* Don't create stacking context */
+}
+
+.form-row.two-cols {
+  grid-template-columns: repeat(2, 1fr);
+}
+
+.form-row.three-cols {
+  grid-template-columns: repeat(3, 1fr);
+  z-index: 0 !important; /* Ensure three-cols also stays below dropdowns */
 }
 
 /* ======================= */
@@ -276,20 +334,6 @@
 
 .seller-popup-error-text.center {
   text-align: center;
-}
-
-/* Form Rows */
-.form-row {
-  display: grid;
-  gap: 1rem;
-}
-
-.form-row.two-cols {
-  grid-template-columns: repeat(2, 1fr);
-}
-
-.form-row.three-cols {
-  grid-template-columns: repeat(3, 1fr);
 }
 
 /* Input with Icon */
@@ -958,9 +1002,6 @@
   margin-bottom: 4px;
 }
 
-.image-validation-success {
-  /* Simple success message, no animation */
-}
 
 /* Disabled Next Button */
 .seller-popup-next-btn.disabled {
