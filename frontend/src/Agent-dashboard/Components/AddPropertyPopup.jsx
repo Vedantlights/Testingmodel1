@@ -1105,7 +1105,7 @@ export default function AddPropertyPopup({ onClose, editIndex = null, initialDat
         <h3 className="step-heading">Property Details</h3>
         <p className="step-subheading">Tell us more about your property specifications</p>
 
-        <div className="form-group form-group-location-input">
+        <div className="seller-popup-form-group">
           <label>Location <span className="required">*</span></label>
           <LocationAutoSuggest
             placeholder="Enter locality, area or landmark"
@@ -1130,7 +1130,7 @@ export default function AddPropertyPopup({ onClose, editIndex = null, initialDat
         </div>
 
         {/* Location Picker Button */}
-        <div className="form-group form-group-location-map">
+        <div className="seller-popup-form-group">
           <label>Property Location on Map (Optional)</label>
           {!formData.latitude || !formData.longitude ? (
             <>
@@ -1147,7 +1147,7 @@ export default function AddPropertyPopup({ onClose, editIndex = null, initialDat
                 </svg>
                 <span>Add Location on Map</span>
               </button>
-              <span className="hint-text">Select exact location on map for better visibility</span>
+              <span className="seller-popup-hint">Select exact location on map for better visibility</span>
             </>
           ) : (
             <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>

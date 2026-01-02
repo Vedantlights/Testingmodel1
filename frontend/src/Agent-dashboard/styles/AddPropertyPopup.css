@@ -202,62 +202,102 @@
   background: #ffffff !important; /* Fallback for background-color */
 }
 
-/* form elements */
+/* ======================= */
+/* FORM ELEMENTS           */
+/* ======================= */
+
+.seller-popup-form-group {
+  margin-bottom: 1.5rem;
+  position: relative;
+  overflow: visible;
+}
+
+.seller-popup-form-group label {
+  display: block;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--text-primary) !important;
+  margin-bottom: 0.5rem;
+}
+
+.required {
+  color: var(--danger-color);
+}
+
+.seller-popup-form-group input,
+.seller-popup-form-group select,
+.seller-popup-form-group textarea {
+  width: 100%;
+  padding: 0.875rem 1rem;
+  border: 2px solid var(--border-color);
+  border-radius: var(--radius-md);
+  font-size: 0.95rem;
+  color: var(--text-primary);
+  background: white;
+  transition: all var(--transition-fast);
+  outline: none;
+}
+
+.seller-popup-form-group input:focus,
+.seller-popup-form-group select:focus,
+.seller-popup-form-group textarea:focus {
+  border-color: var(--accent-color);
+  box-shadow: 0 0 0 3px rgba(124, 58, 237, 0.1);
+}
+
+.seller-popup-form-group input.error,
+.seller-popup-form-group select.error,
+.seller-popup-form-group textarea.error {
+  border-color: var(--danger-color);
+}
+
+.seller-popup-form-group input::placeholder,
+.seller-popup-form-group textarea::placeholder {
+  color: var(--text-muted);
+}
+
+.seller-popup-error-text {
+  display: block;
+  font-size: 0.8rem;
+  color: var(--danger-color);
+  margin-top: 0.35rem;
+}
+
+.seller-popup-error-text.center {
+  text-align: center;
+}
+
+.seller-popup-hint {
+  display: block;
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  margin-top: 0.5rem;
+}
+
+.seller-location-error {
+  border-color: var(--danger-color) !important;
+}
+
+/* Legacy form-group support (for other form elements) */
 .form-group { 
   margin-bottom:1.25rem; 
-  position: relative; /* Establish positioning context for dropdowns */
-  overflow: visible !important; /* Allow dropdowns to overflow */
-  z-index: 0; /* Lower than dropdowns */
-  isolation: auto; /* Don't create stacking context unless needed */
+  position: relative;
+  overflow: visible !important;
+  z-index: 0;
+  isolation: auto;
 }
 
-/* Special handling for form-group containing location/state inputs */
 .form-group .location-autosuggest,
 .form-group .state-autosuggest {
-  z-index: 9999 !important; /* Very high z-index */
-}
-.form-group label { display:block; font-size:0.9rem; font-weight:600; color:var(--text-primary); margin-bottom:0.5rem; }
-
-/* Location Input Form Group - First location field */
-.form-group-location-input { 
-  margin-bottom: 1.5rem; 
-  padding-bottom: 1.25rem;
-  border-bottom: 1px solid var(--border-color);
-  position: relative; /* Establish positioning context */
-  overflow: visible !important; /* Allow dropdown to extend beyond container */
-  z-index: 0 !important; /* Keep low to allow dropdowns to overlay */
-  isolation: auto; /* Don't create stacking context */
-}
-.form-group-location-input label { 
-  display: block; 
-  font-size: 0.9rem; 
-  font-weight: 600; 
-  color: var(--text-primary); 
-  margin-bottom: 0.5rem; 
-  position: relative; /* Ensure label is in normal flow */
- /* Lower than dropdown */
+  z-index: 9999 !important;
 }
 
-/* Location Map Form Group - Second location field (Map picker) */
-.form-group-location-map { 
-  margin-bottom: 1.5rem; 
-  padding-top: 1.25rem;
-  background: linear-gradient(180deg, rgba(124, 58, 237, 0.02) 0%, transparent 100%);
-  border-radius: var(--radius-md);
-  padding-left: 1rem;
-  padding-right: 1rem;
-  padding-bottom: 1rem;
-  position: relative; /* Establish positioning context */
-  z-index: 0 !important; /* Very low z-index to stay below dropdowns */
-  overflow: visible !important; /* Allow dropdowns to overflow */
-  isolation: auto; /* Don't create stacking context */
-}
-.form-group-location-map label { 
-  display: block; 
-  font-size: 0.9rem; 
-  font-weight: 600; 
-  color: var(--text-primary); 
-  margin-bottom: 0.5rem; 
+.form-group label { 
+  display:block; 
+  font-size:0.9rem; 
+  font-weight:600; 
+  color:var(--text-primary); 
+  margin-bottom:0.5rem; 
 }
 
 /* Map location form group - separate styling */
@@ -725,17 +765,20 @@
     margin-bottom: 0.4rem;
   }
 
-  .form-group-location-input {
+  .seller-popup-form-group {
     margin-bottom: 1.25rem;
-    padding-bottom: 1rem;
   }
 
-  .form-group-location-map {
-    margin-bottom: 1.25rem;
-    padding-top: 1rem;
-    padding-left: 0.875rem;
-    padding-right: 0.875rem;
-    padding-bottom: 0.875rem;
+  .seller-popup-form-group label {
+    font-size: 0.85rem;
+    margin-bottom: 0.4rem;
+  }
+
+  .seller-popup-form-group input,
+  .seller-popup-form-group select,
+  .seller-popup-form-group textarea {
+    padding: 0.75rem 0.875rem;
+    font-size: 0.9rem;
   }
 
   .form-group input,
@@ -1015,4 +1058,36 @@
   .amenities-grid {
     grid-template-columns: 1fr;
   }
+}
+
+/* Location Picker Button */
+.location-picker-btn {
+  width: 100%;
+  padding: 12px 16px;
+  background: linear-gradient(135deg, #764ba2 0%, #5a3a7e 100%);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 0.95rem;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 8px rgba(118, 75, 162, 0.3);
+}
+
+.location-picker-btn:hover {
+  background: linear-gradient(135deg, #5a3a7e 0%, #4a2d66 100%);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(118, 75, 162, 0.4);
+}
+
+.location-picker-btn:active {
+  transform: translateY(0);
+}
+
+.location-picker-btn svg {
+  stroke: white;
 }
