@@ -5,8 +5,9 @@
  */
 
 // Check if PHPMailer is available via Composer
+// Using root vendor folder
 $GLOBALS['usePHPMailer'] = false;
-$phpmailerPath = __DIR__ . '/../vendor/autoload.php';
+$phpmailerPath = __DIR__ . '/../../vendor/autoload.php';
 if (file_exists($phpmailerPath)) {
     require_once $phpmailerPath;
     // Check if PHPMailer classes are available

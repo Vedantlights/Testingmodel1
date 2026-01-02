@@ -114,7 +114,8 @@ if (!defined('MSG91_SMTP_FROM_NAME')) {
 }
 
 // Check PHPMailer availability
-$phpmailerPath = __DIR__ . '/../vendor/autoload.php';
+// Using root vendor folder
+$phpmailerPath = __DIR__ . '/../../vendor/autoload.php';
 if (!file_exists($phpmailerPath)) {
     echo "   ✗ PHPMailer not found at: $phpmailerPath\n";
     echo "   Install via: composer require phpmailer/phpmailer\n";

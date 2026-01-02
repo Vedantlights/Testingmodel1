@@ -7,7 +7,8 @@
 require_once __DIR__ . '/../config/config.php';
 
 // Check PHPMailer
-$phpmailerPath = __DIR__ . '/../vendor/autoload.php';
+// Using root vendor folder
+$phpmailerPath = __DIR__ . '/../../vendor/autoload.php';
 if (file_exists($phpmailerPath)) {
     require_once $phpmailerPath;
 } else {

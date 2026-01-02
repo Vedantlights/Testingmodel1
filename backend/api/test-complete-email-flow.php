@@ -63,7 +63,8 @@ try {
 
 // Step 3: Check PHPMailer
 echo "\nStep 3: Checking PHPMailer...\n";
-$phpmailerPath = __DIR__ . '/../vendor/autoload.php';
+// Using root vendor folder
+$phpmailerPath = __DIR__ . '/../../vendor/autoload.php';
 if (file_exists($phpmailerPath)) {
     echo "✓ vendor/autoload.php exists\n";
     require_once $phpmailerPath;
