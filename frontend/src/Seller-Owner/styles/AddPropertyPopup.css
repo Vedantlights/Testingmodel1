@@ -1952,42 +1952,78 @@
 /* ======================= */
 /* LOCATION PICKER MODAL DROPDOWN FIX */
 /* ======================= */
-/* Fix for location-dropdown being clipped inside location-picker-modal-content */
-/* Ensure dropdowns can escape modal content bounds - Seller Dashboard only */
+/* ROOT CAUSE: location-dropdown clipped by location-picker-modal-content overflow-y: auto */
+/* Seller Dashboard ONLY - Match Agent Dashboard behavior */
+/* 
+ * The modal content has overflow-y: auto which creates a clipping context.
+ * Absolutely positioned children (dropdown) are clipped to this container's bounds.
+ * Solution: Remove overflow clipping from modal-content and ensure all parent
+ * containers allow overflow, enabling dropdown to escape modal bounds.
+ */
 
-/* Ensure modal overlay allows dropdown overflow */
+/* FIX A: Remove overflow clipping from modal content - CRITICAL ROOT CAUSE FIX */
+/* This is the primary fix - removing overflow-y: auto allows dropdown to escape */
+.location-picker-modal-content {
+  overflow: visible !important; /* CRITICAL: Remove clipping to allow dropdown escape */
+  position: relative !important; /* Maintain positioning context */
+  display: flex !important;
+  flex-direction: column !important;
+  max-height: 90vh !important; /* Still limit modal height */
+  /* Note: Scrolling handled by viewport if content exceeds height */
+  /* Modal structure (flexbox with flex-shrink: 0 children) should fit within 90vh */
+}
+
+/* FIX B: Ensure modal overlay allows overflow */
 .location-picker-modal-overlay {
-  overflow: visible !important;
+  overflow: visible !important; /* Allow dropdown to escape overlay bounds */
 }
 
-/* Ensure the search section allows dropdown overflow */
+/* FIX C: Ensure search section allows overflow */
+/* This is where LocationAutoSuggest would be rendered if used in modal */
 .location-picker-search-section {
-  position: relative;
-  overflow: visible !important;
-  z-index: 1;
+  position: relative !important;
+  overflow: visible !important; /* Critical: allow dropdown to escape */
+  z-index: 1 !important;
+  flex-shrink: 0 !important; /* Maintain layout - prevent shrinking */
 }
 
-/* Ensure search box container allows overflow */
-.location-picker-modal-content .search-box {
-  position: relative;
-  overflow: visible !important;
-}
-
-/* Ensure dropdown containers have proper z-index and positioning */
+/* FIX D: Ensure autosuggest containers allow overflow and proper stacking */
 .location-picker-modal-content .location-autosuggest,
 .location-picker-modal-content .state-autosuggest {
-  position: relative;
+  position: relative !important;
+  overflow: visible !important; /* Critical: allow dropdown to escape */
   z-index: 10001 !important; /* Higher than modal z-index (2100) */
-  isolation: isolate;
+  isolation: isolate !important; /* Create new stacking context */
 }
 
-/* Ensure dropdowns render above modal content */
-/* Note: Modal content has overflow-y: auto which clips absolute positioned children */
-/* Solution: Use very high z-index and ensure parent containers allow overflow */
+/* FIX E: Ensure search box allows overflow */
+.location-picker-modal-content .search-box {
+  position: relative !important;
+  overflow: visible !important; /* Critical: allow dropdown to escape */
+}
+
+/* FIX F: Dropdown positioning and stacking - must escape modal bounds */
 .location-picker-modal-content .location-dropdown,
 .location-picker-modal-content .state-dropdown {
-  z-index: 10002 !important; /* Even higher to ensure visibility above modal */
-  position: absolute !important; /* Keep absolute for proper alignment */
-  /* Parent containers (search-section, search-box) have overflow: visible */
-  /* This allows dropdown to escape modal content bounds */
+  position: absolute !important; /* Absolute positioning relative to autosuggest parent */
+  z-index: 10002 !important; /* Highest z-index to ensure visibility above modal */
+  /* Dropdown now escapes modal-content bounds because parent has overflow: visible */
+}
+
+/* FIX G: Ensure header, footer, and hint sections don't interfere */
+.location-picker-header,
+.location-picker-footer,
+.location-picker-hint {
+  flex-shrink: 0 !important; /* Don't shrink - maintain layout */
+  overflow: visible !important; /* Allow any child elements to escape */
+  position: relative !important; /* Maintain positioning */
+}
+
+/* FIX H: Map section maintains its own overflow handling */
+.location-picker-map {
+  flex: 1 !important;
+  overflow: hidden !important; /* Map handles its own overflow */
+  min-height: 400px !important;
+  max-height: 500px !important;
+  flex-shrink: 0 !important;
 }
