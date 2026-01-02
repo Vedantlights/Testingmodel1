@@ -383,7 +383,7 @@
   }
 
   .buyer-city-project-card {
-    min-height: 240px; /* Maintain background image visibility on mobile */
+    min-height: 44px; /* Tap-friendly */
   }
 }
 

@@ -152,8 +152,7 @@ h2 {
   text-align: center;
   transition: all 0.3s ease;
   cursor: pointer;
-  min-height: 250px;
-  height: 250px; /* Maintain aspect ratio while allowing content expansion */
+  height: 250px;
   position: relative;
   overflow: hidden;
 }
@@ -710,8 +709,7 @@ h2 {
   }
 
   .type-card {
-    min-height: 220px;
-    height: 220px; /* Maintain aspect ratio while allowing content expansion */
+    height: 220px;
   }
 
   .benefits-grid {
@@ -789,8 +787,7 @@ h2 {
   }
 
   .type-card {
-    min-height: 200px;
-    height: 200px; /* Maintain aspect ratio while allowing content expansion */
+    height: 200px;
   }
 
   .features-grid {
@@ -853,8 +850,7 @@ h2 {
   }
 
   .type-card {
-    min-height: 180px;
-    height: 180px; /* Maintain aspect ratio while allowing content expansion */
+    height: 180px;
   }
   
   .stats-grid {
@@ -915,7 +911,6 @@ h2 {
   }
   
   .type-card {
-    min-height: 160px;
-    height: 160px; /* Maintain aspect ratio while allowing content expansion */
+    height: 160px;
   }
 }
