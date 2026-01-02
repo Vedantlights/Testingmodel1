@@ -155,15 +155,29 @@ define('MAPBOX_ACCESS_TOKEN', $mapboxToken);
 define('OTP_EXPIRATION_MINUTES', (int)(getenv('OTP_EXPIRATION_MINUTES') ?: 10));
 define('OTP_LENGTH', (int)(getenv('OTP_LENGTH') ?: 6));
 
-// Email Configuration (Hostinger SMTP)
+// Email Configuration
+// MSG91 SMTP Configuration (for welcome emails)
 // SECURITY: Use environment variables for sensitive credentials
+define('MSG91_SMTP_HOST', getenv('MSG91_SMTP_HOST') ?: 'smtp.mailer91.com');
+define('MSG91_SMTP_PORT', (int)(getenv('MSG91_SMTP_PORT') ?: 587));
+define('MSG91_SMTP_USER', getenv('MSG91_SMTP_USER') ?: 'emailer@indiapropertys.com');
+$msg91SmtpPass = getenv('MSG91_SMTP_PASS');
+if (empty($msg91SmtpPass)) {
+    $msg91SmtpPass = 'D872SL1u6IuaG7sZ';
+    if (defined('ENVIRONMENT') && ENVIRONMENT === 'production') {
+        error_log('SECURITY WARNING: MSG91 SMTP password not set via environment variable in production!');
+    }
+}
+define('MSG91_SMTP_PASS', $msg91SmtpPass);
+define('MSG91_SMTP_FROM_EMAIL', getenv('MSG91_SMTP_FROM_EMAIL') ?: 'noreply@indiapropertys.com');
+define('MSG91_SMTP_FROM_NAME', getenv('MSG91_SMTP_FROM_NAME') ?: 'India Propertys');
+
+// Hostinger SMTP Configuration (for OTP emails - legacy)
 define('SMTP_HOST', getenv('SMTP_HOST') ?: 'smtp.hostinger.com');
 define('SMTP_PORT', (int)(getenv('SMTP_PORT') ?: 587));
 define('SMTP_USER', getenv('SMTP_USER') ?: 'info@indiapropertys.com');
-// WARNING: SMTP password should be set via environment variable
 $smtpPass = getenv('SMTP_PASS');
 if (empty($smtpPass)) {
-    // Fallback to hardcoded value (for backward compatibility)
     $smtpPass = 'V1e2d2a4n5t@2020';
     if (defined('ENVIRONMENT') && ENVIRONMENT === 'production') {
         error_log('SECURITY WARNING: SMTP password not set via environment variable in production!');

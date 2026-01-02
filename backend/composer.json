@@ -4,7 +4,8 @@
     "type": "project",
     "require": {
         "php": ">=7.4",
-        "google/cloud-vision": "^1.5"
+        "google/cloud-vision": "^1.5",
+        "phpmailer/phpmailer": "*"
     },
     "autoload": {
         "psr-4": {
