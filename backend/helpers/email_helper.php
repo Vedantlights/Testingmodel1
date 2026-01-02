@@ -38,16 +38,23 @@ function sendWelcomeEmailSync($userId, $name, $email) {
     }
     
     try {
-        // Prepare MSG91 API payload
+        // Prepare MSG91 API payload (correct v5 API structure)
         $payload = [
-            'to' => [
+            'recipients' => [
                 [
-                    'name' => $name,
-                    'email' => $email
+                    'to' => [
+                        [
+                            'email' => $email,
+                            'name' => $name
+                        ]
+                    ],
+                    'variables' => [
+                        'name' => $name,
+                        'email' => $email
+                    ]
                 ]
             ],
             'from' => [
-                'name' => defined('MSG91_EMAIL_FROM_NAME') ? MSG91_EMAIL_FROM_NAME : 'IndiaPropertys Team',
                 'email' => defined('MSG91_EMAIL_FROM_EMAIL') ? MSG91_EMAIL_FROM_EMAIL : 'noreply@indiapropertys.in'
             ],
             'domain' => defined('MSG91_EMAIL_DOMAIN') ? MSG91_EMAIL_DOMAIN : 'indiapropertys.in',
@@ -59,16 +66,22 @@ function sendWelcomeEmailSync($userId, $name, $email) {
         $authkey = defined('MSG91_EMAIL_AUTH_KEY') ? MSG91_EMAIL_AUTH_KEY : '481618A2cCSUpaZHTW6936c356P1';
         
         $ch = curl_init();
-        curl_setopt($ch, CURLOPT_URL, $url);
-        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-        curl_setopt($ch, CURLOPT_POST, true);
-        curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($payload));
-        curl_setopt($ch, CURLOPT_HTTPHEADER, [
-            "authkey: $authkey",
-            "Content-Type: application/json"
+        curl_setopt_array($ch, [
+            CURLOPT_URL => $url,
+            CURLOPT_RETURNTRANSFER => true,
+            CURLOPT_ENCODING => '',
+            CURLOPT_MAXREDIRS => 10,
+            CURLOPT_TIMEOUT => 30,
+            CURLOPT_FOLLOWLOCATION => true,
+            CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
+            CURLOPT_CUSTOMREQUEST => 'POST',
+            CURLOPT_POSTFIELDS => json_encode($payload),
+            CURLOPT_HTTPHEADER => [
+                'Content-Type: application/json',
+                'Accept: application/json',
+                "authkey: $authkey"
+            ]
         ]);
-        curl_setopt($ch, CURLOPT_TIMEOUT, 30);
-        curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 10);
         
         $response = curl_exec($ch);
         $httpcode = curl_getinfo($ch, CURLINFO_HTTP_CODE);

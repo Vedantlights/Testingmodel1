@@ -124,28 +124,28 @@ function sendWelcomeEmailViaMSG91($userId, $name, $email) {
         throw new Exception("MSG91_EMAIL_FROM_NAME constant is not defined");
     }
     
-    // Prepare MSG91 API payload
+    // Prepare MSG91 API payload (correct v5 API structure)
     $payload = [
-        'to' => [
+        'recipients' => [
             [
-                'name' => $name,
-                'email' => $email
+                'to' => [
+                    [
+                        'email' => $email,
+                        'name' => $name
+                    ]
+                ],
+                'variables' => [
+                    'name' => $name,
+                    'email' => $email
+                ]
             ]
         ],
         'from' => [
-            'name' => MSG91_EMAIL_FROM_NAME,
             'email' => MSG91_EMAIL_FROM_EMAIL
         ],
         'domain' => defined('MSG91_EMAIL_DOMAIN') ? MSG91_EMAIL_DOMAIN : 'indiapropertys.in',
         'template_id' => MSG91_WELCOME_TEMPLATE_ID
     ];
-    
-    // Add variables if template requires them
-    if (defined('MSG91_WELCOME_TEMPLATE_ID')) {
-        $payload['variables'] = [
-            'name' => $name
-        ];
-    }
     
     // Initialize cURL
     $ch = curl_init();
@@ -154,14 +154,18 @@ function sendWelcomeEmailViaMSG91($userId, $name, $email) {
     curl_setopt_array($ch, [
         CURLOPT_URL => MSG91_EMAIL_SEND_URL,
         CURLOPT_RETURNTRANSFER => true,
-        CURLOPT_POST => true,
+        CURLOPT_ENCODING => '',
+        CURLOPT_MAXREDIRS => 10,
+        CURLOPT_TIMEOUT => 30,
+        CURLOPT_FOLLOWLOCATION => true,
+        CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
+        CURLOPT_CUSTOMREQUEST => 'POST',
         CURLOPT_POSTFIELDS => json_encode($payload),
         CURLOPT_HTTPHEADER => [
             'Content-Type: application/json',
+            'Accept: application/json',
             'authkey: ' . MSG91_EMAIL_AUTH_KEY
         ],
-        CURLOPT_TIMEOUT => 30, // 30 second timeout
-        CURLOPT_CONNECTTIMEOUT => 10, // 10 second connection timeout
         CURLOPT_SSL_VERIFYPEER => true,
         CURLOPT_SSL_VERIFYHOST => 2
     ]);
