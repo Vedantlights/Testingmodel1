@@ -238,8 +238,8 @@ export default function AddUpcomingProjectPopup({ onClose }) {
       longitude: locationData.longitude.toString(),
       location: locationData.fullAddress || prev.location || prev.area,
       fullAddress: locationData.fullAddress || prev.fullAddress,
-      // Auto-populate state if available from map, otherwise keep existing state
-      state: stateFromMap || prev.state
+      // Always update state from map (even if empty) to reflect the new location
+      state: stateFromMap
     }));
     
     // Track if state was auto-filled from map
