@@ -692,7 +692,7 @@
 /* Tablet (736px - 1023px) */
 @media (min-width: 736px) and (max-width: 1023px) {
   .search-inputs {
-   
+    grid-template-columns: repeat(2, 1fr);
     gap: 1.25rem;
   }
 
@@ -790,5 +790,16 @@
   .city-name {
     font-size: clamp(0.7rem, 2vw, 0.75rem);
     padding: 0.5rem;
+  }
+}
+@media (max-width: 734px) {
+  .search-inputs {
+    display: grid;
+    gap: 1.5rem;
+    margin-bottom: 2.5rem;
+    overflow: visible;
+    padding-bottom: 1rem;
+    position: relative;
+    grid-template-columns: 1fr; /* single column for mobile */
   }
 }
