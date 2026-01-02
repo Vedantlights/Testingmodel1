@@ -128,8 +128,12 @@ function generateWelcomeEmailPlainText($userName, $userEmail) {
     $websiteUrl = defined('BASE_URL') ? BASE_URL : 'https://indiapropertys.com';
     $currentYear = date('Y');
     
+    // Sanitize user input for plain text (remove newlines and excessive whitespace)
+    $sanitizedName = trim(preg_replace('/[\r\n]+/', ' ', $userName));
+    $sanitizedEmail = trim($userEmail);
+    
     $text = "Welcome to India Propertys!\n\n";
-    $text .= "Hi " . $userName . ",\n\n";
+    $text .= "Hi " . $sanitizedName . ",\n\n";
     $text .= "Welcome to India Propertys! We're thrilled to have you join our community of property seekers and sellers.\n\n";
     $text .= "Your account has been successfully created. You can now explore thousands of properties, save your favorites, and connect with sellers directly.\n\n";
     $text .= "Features:\n";
@@ -142,7 +146,7 @@ function generateWelcomeEmailPlainText($userName, $userEmail) {
     $text .= "The India Propertys Team\n\n";
     $text .= "---\n";
     $text .= "© " . $currentYear . " India Propertys. All rights reserved.\n";
-    $text .= "This email was sent to " . $userEmail . "\n";
+    $text .= "This email was sent to " . $sanitizedEmail . "\n";
     
     return $text;
 }

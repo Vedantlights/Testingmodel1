@@ -90,15 +90,23 @@ function logEmailAttempt($userId, $emailType, $status, $msg91Response = null, $e
  */
 function sendWelcomeEmailViaMSG91($userId, $name, $email) {
     // Use SMTP method instead of API
-    $result = sendWelcomeEmailViaSMTP($userId, $name, $email);
-    
-    if ($result) {
-        return [
-            'success' => true,
-            'response' => ['method' => 'SMTP', 'sent_at' => date('Y-m-d H:i:s')]
-        ];
-    } else {
-        throw new Exception("Failed to send welcome email via SMTP");
+    try {
+        $result = sendWelcomeEmailViaSMTP($userId, $name, $email);
+        
+        if ($result) {
+            return [
+                'success' => true,
+                'response' => ['method' => 'SMTP', 'sent_at' => date('Y-m-d H:i:s')]
+            ];
+        } else {
+            // Get last error if available
+            $lastError = error_get_last();
+            $errorDetails = $lastError ? $lastError['message'] : 'Unknown error - check error logs for details';
+            throw new Exception("Failed to send welcome email via SMTP: $errorDetails");
+        }
+    } catch (Exception $e) {
+        // Re-throw with more context
+        throw new Exception("SMTP email sending failed for user ID $userId: " . $e->getMessage());
     }
 }
 

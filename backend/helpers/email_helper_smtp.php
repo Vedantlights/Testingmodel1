@@ -86,15 +86,26 @@ function sendWelcomeEmailViaSMTP($userId, $name, $email) {
         // Update database status
         try {
             $db = getDB();
+            if (!$db) {
+                error_log("sendWelcomeEmailViaSMTP: Database connection failed for user ID: $userId");
+                // Email was sent successfully, so return true even if DB update fails
+                return true;
+            }
+            
             $stmt = $db->prepare("UPDATE users SET email_status = 'SENT', email_sent_at = NOW() WHERE id = ?");
             $stmt->execute([$userId]);
             
-            // Log to email_logs
-            $stmt = $db->prepare("INSERT INTO email_logs (user_id, email_type, status, msg91_response) VALUES (?, 'welcome', 'SUCCESS', ?)");
-            $stmt->execute([$userId, json_encode(['method' => 'SMTP', 'sent_at' => date('Y-m-d H:i:s')])]);
+            // Log to email_logs (table may not exist in some setups, so catch errors)
+            try {
+                $stmt = $db->prepare("INSERT INTO email_logs (user_id, email_type, status, msg91_response) VALUES (?, 'welcome', 'SUCCESS', ?)");
+                $stmt->execute([$userId, json_encode(['method' => 'SMTP', 'sent_at' => date('Y-m-d H:i:s')])]);
+            } catch (Exception $logError) {
+                // email_logs table might not exist - log but don't fail
+                error_log("sendWelcomeEmailViaSMTP: Failed to log to email_logs table (table may not exist): " . $logError->getMessage());
+            }
         } catch (Exception $dbError) {
-            error_log("sendWelcomeEmailViaSMTP: Database update error: " . $dbError->getMessage());
-            // Don't fail if DB update fails
+            error_log("sendWelcomeEmailViaSMTP: Database update error for user ID $userId: " . $dbError->getMessage());
+            // Don't fail if DB update fails - email was sent successfully
         }
         
         return true;
@@ -111,14 +122,20 @@ function sendWelcomeEmailViaSMTP($userId, $name, $email) {
         // Update database status
         try {
             $db = getDB();
-            $stmt = $db->prepare("UPDATE users SET email_status = 'FAILED' WHERE id = ?");
-            $stmt->execute([$userId]);
-            
-            // Log to email_logs with full error details
-            $stmt = $db->prepare("INSERT INTO email_logs (user_id, email_type, status, error_message) VALUES (?, 'welcome', 'FAILED', ?)");
-            $stmt->execute([$userId, $errorMessage]);
+            if ($db) {
+                $stmt = $db->prepare("UPDATE users SET email_status = 'FAILED' WHERE id = ?");
+                $stmt->execute([$userId]);
+                
+                // Log to email_logs with full error details (table may not exist)
+                try {
+                    $stmt = $db->prepare("INSERT INTO email_logs (user_id, email_type, status, error_message) VALUES (?, 'welcome', 'FAILED', ?)");
+                    $stmt->execute([$userId, $errorMessage]);
+                } catch (Exception $logError) {
+                    error_log("sendWelcomeEmailViaSMTP: Failed to log to email_logs table: " . $logError->getMessage());
+                }
+            }
         } catch (Exception $dbError) {
-            error_log("sendWelcomeEmailViaSMTP: Database update error: " . $dbError->getMessage());
+            error_log("sendWelcomeEmailViaSMTP: Database update error for user ID $userId: " . $dbError->getMessage());
         }
         
         return false;
@@ -130,13 +147,20 @@ function sendWelcomeEmailViaSMTP($userId, $name, $email) {
         // Update database status
         try {
             $db = getDB();
-            $stmt = $db->prepare("UPDATE users SET email_status = 'FAILED' WHERE id = ?");
-            $stmt->execute([$userId]);
-            
-            $stmt = $db->prepare("INSERT INTO email_logs (user_id, email_type, status, error_message) VALUES (?, 'welcome', 'FAILED', ?)");
-            $stmt->execute([$userId, $errorMessage]);
+            if ($db) {
+                $stmt = $db->prepare("UPDATE users SET email_status = 'FAILED' WHERE id = ?");
+                $stmt->execute([$userId]);
+                
+                // Log to email_logs (table may not exist)
+                try {
+                    $stmt = $db->prepare("INSERT INTO email_logs (user_id, email_type, status, error_message) VALUES (?, 'welcome', 'FAILED', ?)");
+                    $stmt->execute([$userId, $errorMessage]);
+                } catch (Exception $logError) {
+                    error_log("sendWelcomeEmailViaSMTP: Failed to log to email_logs table: " . $logError->getMessage());
+                }
+            }
         } catch (Exception $dbError) {
-            error_log("sendWelcomeEmailViaSMTP: Database update error: " . $dbError->getMessage());
+            error_log("sendWelcomeEmailViaSMTP: Database update error for user ID $userId: " . $dbError->getMessage());
         }
         
         return false;

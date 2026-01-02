@@ -6,13 +6,13 @@
 
 require_once __DIR__ . '/../config/config.php';
 require_once __DIR__ . '/../config/database.php';
-require_once __DIR__ . '/../config/admin-config.php';
+// Note: admin-config.php not needed for SMTP - only required for MSG91 API calls
 require_once __DIR__ . '/email_helper_smtp.php';
 
 /**
  * Send welcome email synchronously (blocking - use as fallback)
  * 
- * This function sends the welcome email directly via MSG91 API.
+ * This function sends the welcome email directly via MSG91 SMTP.
  * Use this if background worker (exec()) is not available.
  * 
  * @param int $userId User ID
