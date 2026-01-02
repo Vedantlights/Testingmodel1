@@ -42,7 +42,7 @@ h2 {
   text-align: center;
   padding: 0 20px;
   position: relative;
-  height: calc(100vh - 8rem); /* Exactly viewport height minus navbar - no scrolling */
+  height: calc(100vh - 1rem); /* Exactly viewport height minus navbar - no scrolling */
   display: flex;
   flex-direction: column;
   justify-content: center;
@@ -451,7 +451,7 @@ h2 {
 /* Large Desktop (≥1440px) */
 @media (min-width: 1440px) {
   .seller-hero-sections {
-    height: calc(100vh - 8rem);
+    height: calc(100vh - 1rem);
     padding: 0 2.5rem;
   }
   
@@ -472,7 +472,7 @@ h2 {
 /* Laptop (1024px - 1439px) */
 @media (min-width: 1024px) and (max-width: 1439px) {
   .seller-hero-sections {
-    height: calc(100vh - 8rem);
+    height: calc(100vh - 1rem);
     padding: 0 2rem;
   }
   
