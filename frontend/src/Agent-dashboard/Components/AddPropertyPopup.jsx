@@ -219,10 +219,16 @@ export default function AddPropertyPopup({ onClose, editIndex = null, initialDat
   const [imageValidationStatus, setImageValidationStatus] = useState([]); // Track validation status for each image
   const [isCheckingImages, setIsCheckingImages] = useState(false);
   const [stateAutoFilled, setStateAutoFilled] = useState(false); // Track if state was auto-filled from map
+  const [showActionSelector, setShowActionSelector] = useState(false);
+  const [showCameraModal, setShowCameraModal] = useState(false);
+  const [cameraStream, setCameraStream] = useState(null);
+  const [cameraFacingMode, setCameraFacingMode] = useState('environment'); // 'environment' (rear) or 'user' (front)
   // separate refs for images, video, brochure
   const imagesRef = useRef();
   const videoRef = useRef();
   const brochureRef = useRef();
+  const cameraVideoRef = useRef(null);
+  const cameraCanvasRef = useRef(null);
   const popupBodyRef = useRef(null);
   const popupContainerRef = useRef(null);
 
@@ -661,6 +667,156 @@ export default function AddPropertyPopup({ onClose, editIndex = null, initialDat
       }
     }
   };
+
+  // Handle upload zone click - show action selector
+  const handleImageUploadZoneClick = () => {
+    setShowActionSelector(true);
+  };
+
+  // Handle action selection
+  const handleActionSelect = (action) => {
+    setShowActionSelector(false);
+    if (action === 'gallery') {
+      imagesRef.current?.click();
+    } else if (action === 'camera') {
+      startCamera();
+    }
+  };
+
+  // Start camera with MediaDevices API
+  const startCamera = async () => {
+    try {
+      // Check if MediaDevices API is available
+      if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+        alert('Camera is not supported on this device. Please use gallery upload instead.');
+        return;
+      }
+
+      const constraints = {
+        video: {
+          facingMode: cameraFacingMode,
+          width: { ideal: 1920 },
+          height: { ideal: 1080 }
+        }
+      };
+
+      const stream = await navigator.mediaDevices.getUserMedia(constraints);
+      setCameraStream(stream);
+      setShowCameraModal(true);
+
+      // Attach stream to video element
+      if (cameraVideoRef.current) {
+        cameraVideoRef.current.srcObject = stream;
+        cameraVideoRef.current.play();
+      }
+    } catch (error) {
+      console.error('Error accessing camera:', error);
+      if (error.name === 'NotAllowedError' || error.name === 'PermissionDeniedError') {
+        alert('Camera permission denied. Please allow camera access and try again.');
+      } else if (error.name === 'NotFoundError' || error.name === 'DevicesNotFoundError') {
+        alert('No camera found on this device. Please use gallery upload instead.');
+      } else {
+        alert('Failed to access camera. Please try again or use gallery upload.');
+      }
+    }
+  };
+
+  // Stop camera stream
+  const stopCamera = () => {
+    if (cameraStream) {
+      cameraStream.getTracks().forEach(track => track.stop());
+      setCameraStream(null);
+    }
+    if (cameraVideoRef.current) {
+      cameraVideoRef.current.srcObject = null;
+    }
+    setShowCameraModal(false);
+  };
+
+  // Flip camera between front and back
+  const flipCamera = async () => {
+    const newFacingMode = cameraFacingMode === 'environment' ? 'user' : 'environment';
+    setCameraFacingMode(newFacingMode);
+    
+    // Stop current stream
+    if (cameraStream) {
+      cameraStream.getTracks().forEach(track => track.stop());
+    }
+
+    // Start new stream with flipped camera
+    try {
+      const constraints = {
+        video: {
+          facingMode: newFacingMode,
+          width: { ideal: 1920 },
+          height: { ideal: 1080 }
+        }
+      };
+
+      const stream = await navigator.mediaDevices.getUserMedia(constraints);
+      setCameraStream(stream);
+
+      if (cameraVideoRef.current) {
+        cameraVideoRef.current.srcObject = stream;
+        cameraVideoRef.current.play();
+      }
+    } catch (error) {
+      console.error('Error flipping camera:', error);
+      alert('Failed to switch camera. Please try again.');
+    }
+  };
+
+  // Capture image from camera
+  const captureImage = () => {
+    if (!cameraVideoRef.current || !cameraCanvasRef.current) return;
+
+    const video = cameraVideoRef.current;
+    const canvas = cameraCanvasRef.current;
+    const context = canvas.getContext('2d');
+
+    // Set canvas dimensions to match video
+    canvas.width = video.videoWidth;
+    canvas.height = video.videoHeight;
+
+    // Draw video frame to canvas
+    context.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+    // Convert canvas to blob
+    canvas.toBlob((blob) => {
+      if (!blob) {
+        alert('Failed to capture image. Please try again.');
+        return;
+      }
+
+      // Create File object from blob
+      const file = new File([blob], `camera-capture-${Date.now()}.jpg`, {
+        type: 'image/jpeg',
+        lastModified: Date.now()
+      });
+
+      // Create a synthetic event object to pass to handleImageUpload
+      const syntheticEvent = {
+        target: {
+          files: [file]
+        }
+      };
+
+      // Stop camera
+      stopCamera();
+
+      // Process the captured image through existing upload handler
+      handleImageUpload(syntheticEvent);
+    }, 'image/jpeg', 0.95);
+  };
+
+  // Cleanup camera on unmount
+  useEffect(() => {
+    return () => {
+      if (cameraStream) {
+        cameraStream.getTracks().forEach(track => track.stop());
+      }
+    };
+  }, [cameraStream]);
 
   const removeImage = (idx) => {
     // Revoke blob URL to free memory
@@ -1620,7 +1776,7 @@ export default function AddPropertyPopup({ onClose, editIndex = null, initialDat
         {/* Images */}
         <div 
           className={`upload-zone media-upload ${errors.images ? 'error' : ''}`}
-          onClick={() => imagesRef.current?.click()}
+          onClick={handleImageUploadZoneClick}
           role="button"
           tabIndex={0}
           aria-label="Upload Images"
@@ -1629,11 +1785,11 @@ export default function AddPropertyPopup({ onClose, editIndex = null, initialDat
             ref={imagesRef}
             type="file"
             accept="image/*"
-            capture="environment"
             multiple
             onChange={handleImageUpload}
             style={{ display: 'none' }}
           />
+          <canvas ref={cameraCanvasRef} style={{ display: 'none' }} />
           <div className="upload-content">
             <div className="upload-icon">
               <svg width="48" height="48" viewBox="0 0 24 24" fill="none">
@@ -2203,6 +2359,117 @@ export default function AddPropertyPopup({ onClose, editIndex = null, initialDat
           </div>
         </div>
       </div>
+      )}
+
+      {/* Action Selector Modal */}
+      {showActionSelector && (
+        <div 
+          className="camera-action-selector-overlay"
+          onClick={(e) => {
+            if (e.target.classList.contains('camera-action-selector-overlay')) {
+              setShowActionSelector(false);
+            }
+          }}
+        >
+          <div className="camera-action-selector-modal">
+            <h3>Choose Upload Method</h3>
+            <div className="camera-action-buttons">
+              <button
+                type="button"
+                className="camera-action-btn gallery-btn"
+                onClick={() => handleActionSelect('gallery')}
+              >
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+                  <path d="M21 19V5a2 2 0 00-2-2H5a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2zM8.5 13.5l2.5 3.01L14.5 12l4.5 6H5l3.5-4.5z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                </svg>
+                <span>Upload from Gallery</span>
+              </button>
+              <button
+                type="button"
+                className="camera-action-btn camera-btn"
+                onClick={() => handleActionSelect('camera')}
+              >
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+                  <path d="M23 19a2 2 0 01-2 2H3a2 2 0 01-2-2V8a2 2 0 012-2h4l2-3h6l2 3h4a2 2 0 012 2z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                  <circle cx="12" cy="13" r="4" stroke="currentColor" strokeWidth="2"/>
+                </svg>
+                <span>Use Camera</span>
+              </button>
+            </div>
+            <button
+              type="button"
+              className="camera-action-close-btn"
+              onClick={() => setShowActionSelector(false)}
+            >
+              Cancel
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Camera Capture Modal */}
+      {showCameraModal && (
+        <div className="camera-capture-overlay">
+          <div className="camera-capture-modal">
+            <div className="camera-capture-header">
+              <h3>Take Photo</h3>
+              <button
+                type="button"
+                className="camera-close-btn"
+                onClick={stopCamera}
+                aria-label="Close camera"
+              >
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+                  <path d="M18 6L6 18M6 6l12 12" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+                </svg>
+              </button>
+            </div>
+            
+            <div className="camera-preview-container">
+              <video
+                ref={cameraVideoRef}
+                autoPlay
+                playsInline
+                muted
+                className="camera-preview-video"
+              />
+            </div>
+
+            <div className="camera-controls">
+              <button
+                type="button"
+                className="camera-flip-btn"
+                onClick={flipCamera}
+                aria-label="Flip camera"
+              >
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+                  <path d="M17 1l4 4-4 4M21 5H11M7 23l-4-4 4-4M3 19h10" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                  <path d="M12 12a3 3 0 11-6 0 3 3 0 016 0z" stroke="currentColor" strokeWidth="2"/>
+                </svg>
+              </button>
+              
+              <button
+                type="button"
+                className="camera-capture-btn"
+                onClick={captureImage}
+                aria-label="Capture photo"
+              >
+                <div className="camera-capture-circle">
+                  <div className="camera-capture-inner"></div>
+                </div>
+              </button>
+              
+              <button
+                type="button"
+                className="camera-cancel-btn"
+                onClick={stopCamera}
+                aria-label="Cancel"
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
+        </div>
       )}
 
       {/* Location Picker Modal */}
