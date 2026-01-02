@@ -8,10 +8,20 @@ require_once __DIR__ . '/../config/config.php';
 require_once __DIR__ . '/../config/database.php';
 require_once __DIR__ . '/../utils/welcome_email_template.php';
 
-// Check if PHPMailer is available
-// Using root vendor folder
-$phpmailerPath = __DIR__ . '/../../vendor/autoload.php';
-if (file_exists($phpmailerPath)) {
+// Check if PHPMailer is available - check root vendor first (production), then backend vendor (local)
+// Root vendor: ../../vendor/autoload.php (from backend/helpers/ -> root/vendor/)
+// Backend vendor: ../vendor/autoload.php (from backend/helpers/ -> backend/vendor/)
+$rootVendor = __DIR__ . '/../../vendor/autoload.php'; // Root vendor (production - pushed to git)
+$backendVendor = __DIR__ . '/../vendor/autoload.php'; // Backend vendor (local development)
+
+$phpmailerPath = null;
+if (file_exists($rootVendor)) {
+    $phpmailerPath = $rootVendor; // Use root vendor (production)
+} elseif (file_exists($backendVendor)) {
+    $phpmailerPath = $backendVendor; // Use backend vendor (local fallback)
+}
+
+if ($phpmailerPath) {
     require_once $phpmailerPath;
 }
 
