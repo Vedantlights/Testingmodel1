@@ -1,6 +1,9 @@
 # Dependencies
 node_modules/
 vendor/
+# Exception: Include PHPMailer (needed for production)
+!vendor/phpmailer/
+!vendor/phpmailer/**
 composer.lock
 
 # Environment files
