@@ -14,15 +14,33 @@ require_once __DIR__ . '/../utils/welcome_email_template.php';
 $rootVendor = __DIR__ . '/../../vendor/autoload.php'; // Root vendor (production - pushed to git)
 $backendVendor = __DIR__ . '/../vendor/autoload.php'; // Backend vendor (local development)
 
-$phpmailerPath = null;
+$phpmailerLoaded = false;
+
 if (file_exists($rootVendor)) {
-    $phpmailerPath = $rootVendor; // Use root vendor (production)
+    require_once $rootVendor;
+    $phpmailerLoaded = true;
+    error_log("PHPMailer: Loaded root vendor autoloader from: $rootVendor");
 } elseif (file_exists($backendVendor)) {
-    $phpmailerPath = $backendVendor; // Use backend vendor (local fallback)
+    require_once $backendVendor;
+    $phpmailerLoaded = true;
+    error_log("PHPMailer: Loaded backend vendor autoloader from: $backendVendor");
+} else {
+    error_log("PHPMailer: ERROR - No vendor autoloader found at either path:");
+    error_log("  - Root vendor: $rootVendor");
+    error_log("  - Backend vendor: $backendVendor");
+    error_log("  - Please run 'composer install' in the appropriate directory");
 }
 
-if ($phpmailerPath) {
-    require_once $phpmailerPath;
+// Verify PHPMailer class is actually available after autoloader is loaded
+if ($phpmailerLoaded && !class_exists('PHPMailer\PHPMailer\PHPMailer')) {
+    error_log("PHPMailer: ERROR - Autoloader found but PHPMailer class not available!");
+    error_log("PHPMailer: This means PHPMailer is not installed in vendor directory");
+    error_log("PHPMailer: Solution - Run: composer require phpmailer/phpmailer");
+    $phpmailerLoaded = false;
+}
+
+if ($phpmailerLoaded) {
+    error_log("PHPMailer: Successfully loaded and verified class availability");
 }
 
 /**
@@ -34,6 +52,8 @@ if ($phpmailerPath) {
  * @return bool True if email sent successfully, false otherwise
  */
 function sendWelcomeEmailViaSMTP($userId, $name, $email) {
+    global $phpmailerLoaded;
+    
     // Validate inputs
     if (empty($userId) || !is_numeric($userId)) {
         error_log("sendWelcomeEmailViaSMTP: Invalid user ID provided: " . $userId);
@@ -51,9 +71,11 @@ function sendWelcomeEmailViaSMTP($userId, $name, $email) {
         return false;
     }
     
-    // Check if PHPMailer is available
-    if (!class_exists('PHPMailer\PHPMailer\PHPMailer')) {
-        error_log("sendWelcomeEmailViaSMTP: PHPMailer class not found. Please install PHPMailer via Composer.");
+    // Check if PHPMailer is available using our verified flag
+    if (!$phpmailerLoaded || !class_exists('PHPMailer\PHPMailer\PHPMailer')) {
+        error_log("sendWelcomeEmailViaSMTP: PHPMailer not available for user ID: " . $userId);
+        error_log("sendWelcomeEmailViaSMTP: Check error log above for autoloader and installation details");
+        error_log("sendWelcomeEmailViaSMTP: Install PHPMailer with: composer require phpmailer/phpmailer");
         return false;
     }
     
@@ -177,4 +199,3 @@ function sendWelcomeEmailViaSMTP($userId, $name, $email) {
         return false;
     }
 }
-

@@ -63,7 +63,7 @@ const PROPERTY_TYPE_FIELDS = {
     showBedrooms: true,
     showBathrooms: true,
     showBalconies: true,
-    showFloor: false, // Often ground floor or single floor
+    showFloor: true, // Allow floor number when total floors is specified
     showTotalFloors: true, // May have multiple floors
     showFacing: true,
     showFurnishing: true,
@@ -91,7 +91,7 @@ const PROPERTY_TYPE_FIELDS = {
     showBedrooms: true,
     showBathrooms: true,
     showBalconies: false, // Farm houses may not have balconies
-    showFloor: false, // Usually ground floor
+    showFloor: true, // Allow floor number when total floors is specified
     showTotalFloors: true,
     showFacing: true,
     showFurnishing: true,
