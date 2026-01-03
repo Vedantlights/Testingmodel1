@@ -25,6 +25,7 @@
   overflow-y: hidden !important; /* Allow vertical scrolling */
   margin: 0;
   padding: 0;
+  margin-top:5.6rem;
 }
 
 /* Responsive main-content sizing */
@@ -44,3 +45,6 @@
   }
 }
 
+.auth-page .main-content {
+  margin-top: 0 !important;
+}

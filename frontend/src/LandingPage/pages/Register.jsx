@@ -31,6 +31,14 @@ const Register = () => {
       setUserType(roleFromUrl);
     }
   }, [searchParams]);
+  //for css conditione
+  useEffect(() => {
+    document.body.classList.add("auth-page");
+
+    return () => {
+      document.body.classList.remove("auth-page");
+    };
+  }, []);
 
   // Prevent body scrolling when component mounts
   useEffect(() => {
