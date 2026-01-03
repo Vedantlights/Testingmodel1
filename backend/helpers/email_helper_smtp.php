@@ -8,11 +8,9 @@ require_once __DIR__ . '/../config/config.php';
 require_once __DIR__ . '/../config/database.php';
 require_once __DIR__ . '/../utils/welcome_email_template.php';
 
-// Check if PHPMailer is available - check root vendor first (production), then backend vendor (local)
+// Check if PHPMailer is available - using root vendor only
 // Root vendor: ../../vendor/autoload.php (from backend/helpers/ -> root/vendor/)
-// Backend vendor: ../vendor/autoload.php (from backend/helpers/ -> backend/vendor/)
 $rootVendor = __DIR__ . '/../../vendor/autoload.php'; // Root vendor (production - pushed to git)
-$backendVendor = __DIR__ . '/../vendor/autoload.php'; // Backend vendor (local development)
 
 $phpmailerLoaded = false;
 
@@ -20,15 +18,10 @@ if (file_exists($rootVendor)) {
     require_once $rootVendor;
     $phpmailerLoaded = true;
     error_log("PHPMailer: Loaded root vendor autoloader from: $rootVendor");
-} elseif (file_exists($backendVendor)) {
-    require_once $backendVendor;
-    $phpmailerLoaded = true;
-    error_log("PHPMailer: Loaded backend vendor autoloader from: $backendVendor");
 } else {
-    error_log("PHPMailer: ERROR - No vendor autoloader found at either path:");
+    error_log("PHPMailer: ERROR - No vendor autoloader found at root vendor path:");
     error_log("  - Root vendor: $rootVendor");
-    error_log("  - Backend vendor: $backendVendor");
-    error_log("  - Please run 'composer install' in the appropriate directory");
+    error_log("  - Please run 'composer install' in the project root directory");
 }
 
 // Verify PHPMailer class is actually available after autoloader is loaded
