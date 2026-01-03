@@ -160,16 +160,16 @@ define('OTP_LENGTH', (int)(getenv('OTP_LENGTH') ?: 6));
 // SECURITY: Use environment variables for sensitive credentials
 define('MSG91_SMTP_HOST', getenv('MSG91_SMTP_HOST') ?: 'smtp.mailer91.com');
 define('MSG91_SMTP_PORT', (int)(getenv('MSG91_SMTP_PORT') ?: 587));
-define('MSG91_SMTP_USER', getenv('MSG91_SMTP_USER') ?: 'emailer@indiapropertys.com');
+define('MSG91_SMTP_USER', getenv('MSG91_SMTP_USER') ?: 'emailer@indiapropertys.in');
 $msg91SmtpPass = getenv('MSG91_SMTP_PASS');
 if (empty($msg91SmtpPass)) {
-    $msg91SmtpPass = 'D872SL1u6IuaG7sZ';
+    $msg91SmtpPass = 'uawM8YyVM4lXbcRd';
     if (defined('ENVIRONMENT') && ENVIRONMENT === 'production') {
         error_log('SECURITY WARNING: MSG91 SMTP password not set via environment variable in production!');
     }
 }
 define('MSG91_SMTP_PASS', $msg91SmtpPass);
-define('MSG91_SMTP_FROM_EMAIL', getenv('MSG91_SMTP_FROM_EMAIL') ?: 'noreply@indiapropertys.com');
+define('MSG91_SMTP_FROM_EMAIL', getenv('MSG91_SMTP_FROM_EMAIL') ?: 'noreply@indiapropertys.in');
 define('MSG91_SMTP_FROM_NAME', getenv('MSG91_SMTP_FROM_NAME') ?: 'India Propertys');
 
 // Hostinger SMTP Configuration (for OTP emails - legacy)
