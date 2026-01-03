@@ -169,7 +169,7 @@ header('Content-Type: text/html; charset=utf-8');
                 <span class="label">PHPMailer Status:</span>
                 <span class="value">
                     <?php
-                    $phpmailerPath = __DIR__ . '/../vendor/autoload.php';
+                    $phpmailerPath = __DIR__ . '/../../vendor/autoload.php';
                     if (file_exists($phpmailerPath)) {
                         require_once $phpmailerPath;
                         if (class_exists('PHPMailer\PHPMailer\PHPMailer')) {
