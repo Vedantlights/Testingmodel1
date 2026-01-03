@@ -9,6 +9,13 @@ const Login = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const { login } = useAuth();
+  useEffect(() => {
+    document.body.classList.add("auth-page");
+
+    return () => {
+      document.body.classList.remove("auth-page");
+    };
+  }, []);
 
   // Get role from URL query parameter, default to "buyer"
   const roleFromUrl = searchParams.get("role");
@@ -174,6 +181,7 @@ const Login = () => {
   };
 
   return (
+    
     <div className="login-container">
       <div 
         className="background-image"
