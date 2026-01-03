@@ -104,7 +104,7 @@ const Home = () => {
     },
     { 
       name: "Hyderabad", 
-      image: "https://images.unsplash.com/photo-1603262110267-d58cf800a49e?w=800&q=80"
+      image: "https://unsplash.com/photos/a-large-white-building-with-towers-with-charminar-in-the-background-lCdayu-e9rY"
     },
     { 
       name: "Chennai", 
@@ -112,7 +112,7 @@ const Home = () => {
     },
     { 
       name: "Pune", 
-      image: "https://images.unsplash.com/photo-1610519953839-c3ef2a8b8e5e?w=800&q=80"
+      image: "https://unsplash.com/photos/a-tall-brick-building-with-a-blue-street-sign-on-its-side-ZPIVkCCKZmg"
     },
     { 
       name: "Kolkata", 
@@ -120,7 +120,7 @@ const Home = () => {
     },
     { 
       name: "Ahmedabad", 
-      image: "https://images.unsplash.com/photo-1621422829620-dca23e14e3b5?w=800&q=80"
+      image: "https://unsplash.com/photos/a-bridge-with-lights-at-night-VEIPDEgiHOM"
     },
   ];
 

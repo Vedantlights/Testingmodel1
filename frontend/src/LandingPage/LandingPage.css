@@ -25,7 +25,7 @@
   overflow-y: hidden !important; /* Allow vertical scrolling */
   margin: 0;
   padding: 0;
-  margin-top:5.6rem;
+  /* margin-top:5.6rem; */
 }
 
 /* Responsive main-content sizing */

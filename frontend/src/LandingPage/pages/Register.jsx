@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { User, Building2, Home } from "lucide-react";
-import { otpAPI, authAPI } from "../../services/api.service";
+import { otpAPI } from "../../services/api.service";
+import { useAuth } from "../../context/AuthContext"; // ✅ ADDED
 import "../styles/Register.css";
 
 // MSG91 Widget Configuration (SMS Verification Widget)
@@ -15,6 +16,7 @@ const MSG91_EMAIL_AUTH_TOKEN = "481618TX6cdMp7Eg69414e7eP1"; // Token ID
 const Register = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
+  const { register: registerUser } = useAuth(); // ✅ ADDED
 
   // Get role from URL query parameter, default to "buyer"
   const roleFromUrl = searchParams.get("role");
@@ -382,12 +384,34 @@ const Register = () => {
         phoneVerificationToken: phoneVerificationToken ? `${phoneVerificationToken.substring(0, 20)}...` : null
       });
 
-      const response = await authAPI.register(registrationData);
+      // ✅ CHANGED: Use AuthContext register (handles auto-login)
+      const response = await registerUser(registrationData);
 
       if (response.success) {
-        setSuccess(`Registration successful as ${getUserTypeLabel(userType)}!`);
+        // ✅ CHANGED: Show welcome message
+        setSuccess(`Registration successful! Welcome, ${formData.fullName}!`);
+        
+        // ✅ ADDED: Store current session
+        localStorage.setItem(
+          "currentSession",
+          JSON.stringify({
+            email: formData.email,
+            loginType: userType,
+            loginTime: new Date().toISOString(),
+          })
+        );
+
+        console.log("✅ Registration successful - Auto-logged in!");
+        
+        // ✅ CHANGED: Navigate to dashboard instead of login
         setTimeout(() => {
-          navigate("/login");
+          if (userType === "buyer") {
+            navigate("/buyer-dashboard");
+          } else if (userType === "seller") {
+            navigate("/seller-dashboard");
+          } else if (userType === "agent") {
+            navigate("/agent-dashboard");
+          }
         }, 1500);
       } else {
         // Show detailed error message

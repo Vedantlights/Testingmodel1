@@ -633,7 +633,7 @@ h2 {
 /* Mobile (≤767px) */
 @media (max-width: 767px) {
   .agent-hero-sections {
-    margin-top: 5rem;
+    
     height: calc(100vh - 4.5rem);
     padding: 0 1rem;
     background-attachment: scroll; /* Better performance on mobile */
@@ -727,7 +727,7 @@ h2 {
   .agent-hero-sections {
     height: calc(100vh - 4rem);
     padding: 0 0.75rem;
-    margin-top: 5rem;
+    
   }
 
   section {
@@ -801,7 +801,7 @@ h2 {
 @media (max-width: 360px) {
   .agent-hero-sections {
     height: calc(100vh - 3.75rem);
-    margin-top: 5rem;
+   
   }
   
   section {

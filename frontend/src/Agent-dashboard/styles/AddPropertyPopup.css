@@ -101,7 +101,7 @@
   align-items: center;
   position: relative;
   flex-shrink: 0; /* Prevent shrinking */
-  min-width: 80px; /* Ensure minimum width for alignment */
+  min-width: 75px; /* Ensure minimum width for alignment */
 }
 .step-circle { 
   width: 44px;
