@@ -367,31 +367,39 @@ try {
             $userFullName = $userData['full_name'];
             
             // Trigger welcome email using data from database
-            // Try async first (background worker), fallback to sync if exec() not available
+            // Use synchronous sending by default for reliability (guaranteed delivery)
+            // Sync mode provides immediate feedback and ensures email is sent
+            $emailSent = false;
+            $emailErrorMsg = null;
+            
             try {
-                // Check if exec() is available for async sending
-                if (function_exists('exec')) {
-                    // Try async background worker
-                    sendWelcomeEmailAsync($userId, $userFullName, $userEmail);
-                    error_log("Registration: Welcome email triggered (async) for user ID: $userId, Email: $userEmail (from database)");
+                error_log("Registration: Sending welcome email (sync) for user ID: $userId, Email: $userEmail");
+                $emailSent = sendWelcomeEmailSync($userId, $userFullName, $userEmail);
+                
+                if ($emailSent) {
+                    error_log("Registration: ✓ Welcome email sent successfully (sync) for user ID: $userId, Email: $userEmail");
                 } else {
-                    // Fallback to synchronous sending if exec() not available
-                    error_log("Registration: exec() not available, using synchronous email sending for user ID: $userId");
-                    sendWelcomeEmailSync($userId, $userFullName, $userEmail);
-                    error_log("Registration: Welcome email sent (sync) for user ID: $userId, Email: $userEmail (from database)");
+                    error_log("Registration: ✗ Welcome email sending failed (sync) for user ID: $userId, Email: $userEmail - sendWelcomeEmailSync returned false");
+                    $emailErrorMsg = "sendWelcomeEmailSync returned false";
                 }
             } catch (Exception $emailError) {
                 // Log error but don't fail registration if email trigger fails
-                error_log("Registration: Failed to trigger welcome email for user ID: $userId, Error: " . $emailError->getMessage());
-                // Try sync as fallback
-                try {
-                    sendWelcomeEmailSync($userId, $userFullName, $userEmail);
-                    error_log("Registration: Welcome email sent (sync fallback) for user ID: $userId, Email: $userEmail");
-                } catch (Exception $syncError) {
-                    error_log("Registration: Sync email also failed for user ID: $userId, Error: " . $syncError->getMessage());
-                }
-                // Continue with registration - email failure should not block user registration
+                $emailErrorMsg = $emailError->getMessage();
+                error_log("Registration: ✗ Exception while sending welcome email for user ID: $userId, Email: $userEmail, Error: " . $emailErrorMsg);
+                error_log("Registration: Exception trace: " . $emailError->getTraceAsString());
+            } catch (Error $emailError) {
+                // Catch fatal errors too
+                $emailErrorMsg = $emailError->getMessage();
+                error_log("Registration: ✗ Fatal error while sending welcome email for user ID: $userId, Email: $userEmail, Error: " . $emailErrorMsg);
             }
+            
+            // Log final status
+            if (!$emailSent) {
+                error_log("Registration: WARNING - Welcome email was not sent for user ID: $userId, Email: $userEmail. Error: " . ($emailErrorMsg ?: "Unknown error"));
+                error_log("Registration: User registration completed successfully, but welcome email delivery failed. User should still be able to use the system.");
+            }
+            
+            // Continue with registration - email failure should not block user registration
         }
         
         // Generate token

@@ -106,8 +106,9 @@ function sendWelcomeEmailViaSMTP($userId, $name, $email) {
         // Send email
         $mail->send();
         
-        // Log success
-        error_log("sendWelcomeEmailViaSMTP: Welcome email sent successfully to: $email (User ID: $userId)");
+        // Log success with details
+        error_log("sendWelcomeEmailViaSMTP: ✓ SUCCESS - Welcome email sent successfully to: $email (User ID: $userId)");
+        error_log("sendWelcomeEmailViaSMTP: Email details - From: " . MSG91_SMTP_FROM_EMAIL . " (" . MSG91_SMTP_FROM_NAME . "), To: $email, Subject: Welcome to India Propertys! 🏡");
         
         // Update database status
         try {
@@ -142,8 +143,22 @@ function sendWelcomeEmailViaSMTP($userId, $name, $email) {
         $exceptionMessage = $e->getMessage();
         $errorMessage = "PHPMailer Error: $errorInfo | Exception: $exceptionMessage";
         
-        error_log("sendWelcomeEmailViaSMTP: Failed to send welcome email to: $email (User ID: $userId)");
+        error_log("sendWelcomeEmailViaSMTP: ✗ FAILED to send welcome email to: $email (User ID: $userId)");
         error_log("sendWelcomeEmailViaSMTP: Error Details - $errorMessage");
+        error_log("sendWelcomeEmailViaSMTP: SMTP Host: " . MSG91_SMTP_HOST . ", Port: " . MSG91_SMTP_PORT);
+        error_log("sendWelcomeEmailViaSMTP: SMTP User: " . MSG91_SMTP_USER);
+        error_log("sendWelcomeEmailViaSMTP: From Email: " . MSG91_SMTP_FROM_EMAIL);
+        
+        // Additional debugging for common issues
+        if (stripos($errorInfo, 'authentication') !== false || stripos($errorInfo, '535') !== false) {
+            error_log("sendWelcomeEmailViaSMTP: AUTHENTICATION ERROR - Check SMTP username/password credentials");
+        }
+        if (stripos($errorInfo, 'connection') !== false || stripos($errorInfo, 'timeout') !== false) {
+            error_log("sendWelcomeEmailViaSMTP: CONNECTION ERROR - Check network/firewall settings, port " . MSG91_SMTP_PORT . " must be open");
+        }
+        if (stripos($errorInfo, 'tls') !== false || stripos($errorInfo, 'ssl') !== false) {
+            error_log("sendWelcomeEmailViaSMTP: TLS/SSL ERROR - Check if STARTTLS is supported on port " . MSG91_SMTP_PORT);
+        }
         
         // Update database status
         try {
